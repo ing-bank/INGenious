@@ -20,6 +20,12 @@ public abstract class TestData {
 
     private String enviroment;
 
+    /**
+     * When true, skips datasheet migrations to ensure read-only operation (e.g., during validation).
+     * Set by the parent Project when loaded in read-only mode.
+     */
+    private boolean readOnlyMode = false;
+
     public TestData(Project sProject, String enviroment) {
         this.sProject = sProject;
         this.enviroment = enviroment;
@@ -27,6 +33,25 @@ public abstract class TestData {
     }
 
     public abstract void load();
+
+    /**
+     * Sets the read-only mode for this TestData instance.
+     * When true, prevents datasheet migrations during load.
+     *
+     * @param readOnly true to enable read-only mode
+     */
+    public void setReadOnlyMode(boolean readOnly) {
+        this.readOnlyMode = readOnly;
+    }
+
+    /**
+     * Returns whether this TestData is in read-only mode.
+     *
+     * @return true if in read-only mode
+     */
+    protected boolean isReadOnlyMode() {
+        return readOnlyMode;
+    }
 
     public void save() {
         for (TestDataModel tData : testDataList) {
@@ -77,8 +102,7 @@ public abstract class TestData {
         String name = "TestData";
         int i = 0;
         String tdName = name + i;
-        List<String> names = getTestDataNames();
-        while (names.contains(tdName)) {
+        while (hasTestDataNameIgnoreCase(tdName)) {
             tdName = name + ++i;
         }
         return addTestData(getNewTestData(tdName));
@@ -109,6 +133,22 @@ public abstract class TestData {
             }
         }
         return null;
+    }
+
+    public TestDataModel getByNameIgnoreCase(String name) {
+        if (name == null) {
+            return null;
+        }
+        for (TestDataModel tData : testDataList) {
+            if (tData.getName().equalsIgnoreCase(name)) {
+                return tData;
+            }
+        }
+        return null;
+    }
+
+    public boolean hasTestDataNameIgnoreCase(String name) {
+        return getByNameIgnoreCase(name) != null;
     }
 
     public abstract TestDataModel getNewTestData(String name);
@@ -163,6 +203,17 @@ public abstract class TestData {
     ) {
         for (TestDataModel testDataList1 : testDataList) {
             testDataList1.refactorTestCaseScenario(testCaseName, oldScenarioName, newScenarioName);
+        }
+    }
+
+    public void updateScope(
+        String scenarioName,
+        String testCaseName,
+        String oldScope,
+        String newScope
+    ) {
+        for (TestDataModel testDataList1 : testDataList) {
+            testDataList1.updateScope(scenarioName, testCaseName, oldScope, newScope);
         }
     }
 }

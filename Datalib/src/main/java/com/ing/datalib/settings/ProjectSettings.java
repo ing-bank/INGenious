@@ -20,6 +20,7 @@ public class ProjectSettings {
     private final Capabilities capabilities;
     private final Emulators emulators;
     private final Devices devices;
+    private boolean readOnlyMode = false;
     private final TestMgmtModule testMgmtModule;
     private final ReportPortalSettings rpSettings;
     private final ExtentReportSettings extentSettings;
@@ -30,13 +31,18 @@ public class ProjectSettings {
     private final LambdaTestCaps lambdaTestCaps;
 
     public ProjectSettings(Project sProject) {
+        this(sProject, false);
+    }
+
+    public ProjectSettings(Project sProject, boolean readOnlyMode) {
         this.sProject = sProject;
+        this.readOnlyMode = readOnlyMode;
         this.userDefinedSettings = new UserDefinedSettings(getLocation());
         // this.driverSettings = new DriverSettings(getLocation());
         this.driverSettings = new DriverProperties(getLocation());
-        this.capabilities = new Capabilities(getLocation());
-        this.emulators = new Emulators(getLocation());
-        this.devices = new Devices(getLocation());
+        this.capabilities = new Capabilities(getLocation(), readOnlyMode);
+        this.emulators = new Emulators(getLocation(), readOnlyMode);
+        this.devices = new Devices(getLocation(), readOnlyMode);
         this.testMgmtModule = new TestMgmtModule(getLocation());
         this.execSettings = new ExecutionSettings(getLocation());
         this.dbSettings = new DBProperties(getLocation());
@@ -46,28 +52,34 @@ public class ProjectSettings {
         this.SSLConfigurations = new KafkaSSLConfigurations(getLocation());
         this.lambdaTestCaps = new LambdaTestCaps(getLocation());
 
-        // Ensure SAP is available as default browser
+        // Ensure SAP is available as default browser (skipped if read-only)
         ensureSAPDefaultEmulator();
 
         // One-time migration: move legacy "Manage Browsers" emulator entries
         // into the new "Manage Devices" store. Idempotent and SAP-preserving.
-        EmulatorToDeviceMigration.migrate(emulators, devices);
+        // Skipped if in read-only mode.
+        if (!readOnlyMode) {
+            EmulatorToDeviceMigration.migrate(emulators, devices);
+        }
     }
 
     /**
      * Ensures SAP emulator exists for this project.
      * Adds SAP if missing and saves configuration.
      * Creates SAP.properties file if it doesn't exist.
+     * Skipped if in read-only mode (e.g., during validation).
      */
     private void ensureSAPDefaultEmulator() {
-        // Always ensure SAP exists (regardless of file existence - works for new projects)
-        if (emulators.getEmulator("SAP") == null) {
-            emulators.addEmulator("SAP");
-            emulators.save();
-        }
+        if (!readOnlyMode) {
+            // Always ensure SAP exists (regardless of file existence - works for new projects)
+            if (emulators.getEmulator("SAP") == null) {
+                emulators.addEmulator("SAP");
+                emulators.save();
+            }
 
-        // Ensure SAP.properties file exists
-        capabilities.ensureSAPCapabilitiesExist();
+            // Ensure SAP.properties file exists
+            capabilities.ensureSAPCapabilitiesExist();
+        }
     }
 
     public void resetLocation() {

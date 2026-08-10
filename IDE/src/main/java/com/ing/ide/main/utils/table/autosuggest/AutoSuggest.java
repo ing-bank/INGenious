@@ -182,6 +182,53 @@ public class AutoSuggest extends JComboBox<String> {
 
     public void beforeSearch(String text) {}
 
+    private boolean isHeaderItem(Object o) {
+        if (o instanceof String) {
+            String s = (String) o;
+            return s.startsWith("__HEADER__:");
+        }
+        return false;
+    }
+
+    private int findNextSelectableIndex(int startIndex, int direction) {
+        ComboBoxModel<String> mdl = getModel();
+        if (mdl == null) return -1;
+        int size = mdl.getSize();
+        int i = startIndex;
+        while (i >= 0 && i < size) {
+            Object el = mdl.getElementAt(i);
+            if (!isHeaderItem(el)) return i;
+            i += direction;
+        }
+        return -1;
+    }
+
+    @Override
+    public void setSelectedItem(Object anObject) {
+        // When attempting to select a header token, skip it and select the next selectable item
+        if (isHeaderItem(anObject)) {
+            // try to find next selectable in current model
+            ComboBoxModel<String> mdl = getModel();
+            if (mdl != null) {
+                int idx = -1;
+                // prefer next item forward
+                for (int i = 0; i < mdl.getSize(); i++) {
+                    if (!isHeaderItem(mdl.getElementAt(i))) {
+                        idx = i;
+                        break;
+                    }
+                }
+                if (idx != -1) {
+                    super.setSelectedItem(mdl.getElementAt(idx));
+                    return;
+                }
+            }
+            // no selectable item found -> ignore
+            return;
+        }
+        super.setSelectedItem(anObject);
+    }
+
     class AutoSuggestKeyHandler extends KeyAdapter {
         private boolean shouldHide = true;
 
@@ -227,9 +274,12 @@ public class AutoSuggest extends JComboBox<String> {
                     } else if (isPopupVisible()) {
                         // Allow the combo box to handle navigation when popup is visible
                         int currentIndex = getSelectedIndex();
-                        if (currentIndex < getItemCount() - 1) {
-                            setSelectedIndex(currentIndex + 1);
+                        int next = currentIndex + 1;
+                        int sel = findNextSelectableIndex(next, 1);
+                        if (sel == -1 && currentIndex == -1) {
+                            sel = findNextSelectableIndex(0, 1);
                         }
+                        if (sel != -1) setSelectedIndex(sel);
                         e.consume();
                     }
                     break;
@@ -239,13 +289,14 @@ public class AutoSuggest extends JComboBox<String> {
                         showPopup();
                         e.consume();
                     } else if (isPopupVisible()) {
-                        // Allow the combo box to handle navigation when popup is visible
+                        // Allow the combo box to handle navigation when popup is visible and skip headers
                         int currentIndex = getSelectedIndex();
-                        if (currentIndex > 0) {
-                            setSelectedIndex(currentIndex - 1);
-                        } else if (currentIndex == -1 && getItemCount() > 0) {
-                            setSelectedIndex(0);
+                        int prev = currentIndex - 1;
+                        int selPrev = findNextSelectableIndex(prev, -1);
+                        if (selPrev == -1 && currentIndex == -1 && getItemCount() > 0) {
+                            selPrev = findNextSelectableIndex(getItemCount() - 1, -1);
                         }
+                        if (selPrev != -1) setSelectedIndex(selPrev);
                         e.consume();
                     }
                     break;
@@ -270,10 +321,33 @@ public class AutoSuggest extends JComboBox<String> {
         textField.setText(str);
     }
 
+    @Override
+    public void setSelectedIndex(int index) {
+        ComboBoxModel<String> mdl = getModel();
+        if (mdl == null) {
+            super.setSelectedIndex(index);
+            return;
+        }
+        if (index >= 0 && index < mdl.getSize()) {
+            Object el = mdl.getElementAt(index);
+            if (isHeaderItem(el)) {
+                // ignore selecting headers
+                return;
+            }
+        }
+        super.setSelectedIndex(index);
+    }
+
     private ComboBoxModel<String> getSuggestedModel() {
         DefaultComboBoxModel<String> m = new DefaultComboBoxModel<>();
+        String search = getSearchString().toLowerCase();
         for (String s : searchList) {
-            if (s.toLowerCase().contains(getSearchString().toLowerCase())) {
+            // Always include header tokens (special items starting with __HEADER__:) so the dropdown shows section headers
+            if (s != null && s.startsWith("__HEADER__:")) {
+                m.addElement(s);
+                continue;
+            }
+            if (s != null && s.toLowerCase().contains(search)) {
                 m.addElement(s);
             }
         }

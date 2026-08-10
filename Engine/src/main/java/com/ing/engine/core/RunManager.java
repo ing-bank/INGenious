@@ -72,6 +72,7 @@ public class RunManager {
         RunContext exe = new RunContext();
         exe.Scenario = globalSettings.getScenario();
         exe.TestCase = globalSettings.getTestCase();
+        exe.ReusableScope = globalSettings.getReusableScope();
         exe.Description = "Test Run";
         exe.BrowserName = globalSettings.getBrowser();
         exe.Browser = Browser.fromString(exe.BrowserName);

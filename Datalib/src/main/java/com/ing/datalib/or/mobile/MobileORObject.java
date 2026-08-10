@@ -472,8 +472,12 @@ public class MobileORObject extends UndoRedoModel implements ORObjectInf {
     @JsonIgnore
     @Override
     public Boolean rename(String newName) {
+        boolean renamedParent = true;
         if (getParent().getChildCount() == 1) {
-            getParent().rename(newName);
+            renamedParent = getParent().rename(newName);
+            if (!renamedParent) {
+                return false;
+            }
         }
         if (newName == null || newName.isBlank()) {
             return false;
@@ -648,33 +652,84 @@ public class MobileORObject extends UndoRedoModel implements ORObjectInf {
         }
     }
 
+    /**
+     * Adds a new attribute to the end of the active platform's attribute list.
+     */
     @JsonIgnore
     public void addNewAttribute() {
-        String newAttrName = "NewProp";
-        int i = 1;
-        while (getAttribute(newAttrName) != null) {
-            newAttrName = "NewProp" + i++;
-        }
-        addNewAttribute(newAttrName);
+        addNewAttributeAt(activePlatform, getRowCount());
     }
 
+    /**
+     * Adds a named attribute to the end of the active platform's attribute list.
+     *
+     * @param attrName attribute name to add
+     */
     @JsonIgnore
     public void addNewAttribute(String attrName) {
         addNewAttribute(activePlatform, attrName);
     }
 
+    /**
+     * Adds a named attribute to the end of the specified platform's attribute list.
+     *
+     * @param platform target mobile platform
+     * @param attrName attribute name to add
+     */
     @JsonIgnore
     public void addNewAttribute(MobilePlatform platform, String attrName) {
-        if (getAttribute(platform, attrName) == null) {
-            List<ORAttribute> attrs = getAttributes(platform);
-            attrs.add(new ORAttribute(attrName, attrs.size()));
-            if (platform == activePlatform) {
-                super.rowAdded(attrs.size() - 1);
-                fireTableRowsInserted(attrs.size() - 1, attrs.size() - 1);
-            } else {
-                changeSave();
-            }
+        addNewAttributeAt(platform, attrName, getAttributes(platform).size());
+    }
+
+    /**
+     * Adds a uniquely named new attribute at the specified index.
+     *
+     * @param platform target mobile platform
+     * @param index insertion index
+     * @return inserted row index, or {@code -1} if insertion failed
+     */
+    @JsonIgnore
+    public int addNewAttributeAt(MobilePlatform platform, int index) {
+        String newAttrName = "NewProp";
+        int i = 1;
+
+        while (getAttribute(platform, newAttrName) != null) {
+            newAttrName = "NewProp" + i++;
         }
+
+        return addNewAttributeAt(platform, newAttrName, index);
+    }
+
+    /**
+     * Adds a named attribute at the specified index.
+     *
+     * @param platform target mobile platform
+     * @param attrName attribute name to add
+     * @param index insertion index
+     * @return inserted row index, or {@code -1} if the attribute already exists
+     */
+    @JsonIgnore
+    public int addNewAttributeAt(MobilePlatform platform, String attrName, int index) {
+        if (getAttribute(platform, attrName) != null) {
+            return -1;
+        }
+
+        List<ORAttribute> attrs = getAttributes(platform);
+
+        if (index < 0 || index > attrs.size()) {
+            index = attrs.size();
+        }
+
+        attrs.add(index, new ORAttribute(attrName, index));
+
+        if (platform == activePlatform) {
+            super.rowAdded(index);
+            fireTableRowsInserted(index, index);
+        } else {
+            changeSave();
+        }
+
+        return index;
     }
 
     @JsonIgnore

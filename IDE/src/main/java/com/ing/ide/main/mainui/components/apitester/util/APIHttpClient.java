@@ -4,6 +4,8 @@ import com.ing.datalib.api.*;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import java.io.*;
+import java.net.InetSocketAddress;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -30,6 +32,58 @@ import javax.net.ssl.*;
  */
 public class APIHttpClient {
     private static final Logger LOG = Logger.getLogger(APIHttpClient.class.getName());
+
+    /**
+     * Request headers that the JDK {@link HttpClient} restricts by default. The API Workbench
+     * relaxes them so users can faithfully replay pasted curl commands that set headers such as
+     * {@code Host}, {@code Connection} or {@code Content-Length}.
+     */
+    private static final String[] RELAXED_RESTRICTED_HEADERS = {
+        "host",
+        "connection",
+        "content-length",
+        "upgrade",
+        "expect",
+        "via",
+        "date",
+        "accept-encoding"
+    };
+
+    static {
+        relaxRestrictedHeaders();
+    }
+
+    /**
+     * Merges {@link #RELAXED_RESTRICTED_HEADERS} into the {@code jdk.httpclient.allowRestrictedHeaders}
+     * system property without clobbering any value already configured (for example, one supplied via
+     * a {@code -D} flag in the launcher scripts).
+     * <p>
+     * This is a defensive fallback for contexts where the app is NOT started through the launcher
+     * scripts (IDE/debugger, tests). In production the launcher's {@code -D} flag is the primary
+     * mechanism and guarantees the property is set before any {@link HttpClient} initializes. The
+     * property is read only once by the JDK, so a launcher value always wins on ordering; this merge
+     * only takes effect when nothing set it yet — which is also when the API tester is the first HTTP
+     * user in the JVM.
+     */
+    private static void relaxRestrictedHeaders() {
+        try {
+            String key = "jdk.httpclient.allowRestrictedHeaders";
+            String existing = System.getProperty(key, "");
+            java.util.LinkedHashSet<String> allowed = new java.util.LinkedHashSet<>();
+            for (String h : existing.split(",")) {
+                String trimmed = h.trim().toLowerCase();
+                if (!trimmed.isEmpty()) {
+                    allowed.add(trimmed);
+                }
+            }
+            for (String h : RELAXED_RESTRICTED_HEADERS) {
+                allowed.add(h);
+            }
+            System.setProperty(key, String.join(",", allowed));
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Failed to relax restricted HTTP headers", e);
+        }
+    }
 
     private final HttpClient httpClient;
     private final HttpClient insecureHttpClient;
@@ -207,9 +261,25 @@ public class APIHttpClient {
             }
         }
 
-        // Apply headers to builder
+        // Apply headers to builder. A header may still be rejected as restricted depending on the
+        // JDK version / property timing; skip it gracefully rather than failing the whole request.
         for (Map.Entry<String, String> entry : headers.entrySet()) {
-            builder.header(entry.getKey(), entry.getValue());
+            // The JDK HttpClient manages these itself: Content-Length is computed from the body
+            // publisher (a manual value can conflict), and Accept-Encoding controls automatic
+            // response decompression — forwarding "gzip" would yield a compressed, unreadable body.
+            // Drop them so pasted curl commands render cleanly.
+            String name = entry.getKey();
+            if (
+                "content-length".equalsIgnoreCase(name) || "accept-encoding".equalsIgnoreCase(name)
+            ) {
+                LOG.log(Level.FINE, "Dropping client-managed request header: " + name);
+                continue;
+            }
+            try {
+                builder.header(name, entry.getValue());
+            } catch (IllegalArgumentException e) {
+                LOG.log(Level.WARNING, "Skipping restricted/invalid request header: " + name, e);
+            }
         }
     }
 
@@ -476,15 +546,15 @@ public class APIHttpClient {
      */
     private HttpClient getHttpClient(APIRequest request) {
         CertificateConfig certConfig = request.getCertificateConfig();
+        ProxyConfig proxyConfig = request.getProxyConfig();
+        boolean useProxy = proxyConfig != null && proxyConfig.hasValidConfig();
+        boolean useCerts =
+            certConfig != null && certConfig.isEnabled() && certConfig.hasValidConfig();
 
-        // If certificates are configured, create a custom client
-        if (certConfig != null && certConfig.isEnabled() && certConfig.hasValidConfig()) {
+        // If certificates and/or a proxy are configured, create a custom client
+        if (useCerts || useProxy) {
             try {
-                SSLContext sslContext = createCertificateSSLContext(
-                    certConfig,
-                    !request.isSslVerificationEnabled()
-                );
-                return HttpClient
+                HttpClient.Builder builder = HttpClient
                     .newBuilder()
                     .version(HttpClient.Version.HTTP_1_1)
                     .connectTimeout(
@@ -492,13 +562,34 @@ public class APIHttpClient {
                             request.getTimeout() > 0 ? request.getTimeout() : defaultTimeout
                         )
                     )
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .sslContext(sslContext)
-                    .build();
+                    .followRedirects(HttpClient.Redirect.NORMAL);
+
+                if (useCerts) {
+                    SSLContext sslContext = createCertificateSSLContext(
+                        certConfig,
+                        !request.isSslVerificationEnabled()
+                    );
+                    builder.sslContext(sslContext);
+                } else if (trustAllCertificates) {
+                    builder.sslContext(buildTrustAllSSLContext());
+                }
+
+                if (useProxy) {
+                    builder.proxy(
+                        ProxySelector.of(
+                            new InetSocketAddress(
+                                proxyConfig.getHost().trim(),
+                                Integer.parseInt(proxyConfig.getPort().trim())
+                            )
+                        )
+                    );
+                }
+
+                return builder.build();
             } catch (Exception e) {
                 LOG.log(
                     Level.WARNING,
-                    "Failed to create SSL context with certificates, using default",
+                    "Failed to create custom HTTP client (certificate/proxy), using default",
                     e
                 );
             }
@@ -506,6 +597,27 @@ public class APIHttpClient {
 
         // Fall back to standard clients
         return trustAllCertificates ? insecureHttpClient : httpClient;
+    }
+
+    /**
+     * Builds an SSL context that trusts all server certificates.
+     */
+    private SSLContext buildTrustAllSSLContext() throws Exception {
+        TrustManager[] trustAllCerts = new TrustManager[] {
+            new X509TrustManager() {
+
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[0];
+                }
+
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+            }
+        };
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, trustAllCerts, new SecureRandom());
+        return sslContext;
     }
 
     /**

@@ -28,10 +28,16 @@ public class Devices {
 
     private List<Device> devices;
     private String location;
+    private boolean readOnlyMode = false;
     private final ObjectMapper objMapper;
 
     public Devices(String location) {
+        this(location, false);
+    }
+
+    public Devices(String location, boolean readOnlyMode) {
         this.location = location;
+        this.readOnlyMode = readOnlyMode;
         this.objMapper = new ObjectMapper();
         this.devices = new ArrayList<>();
         load();
@@ -55,6 +61,14 @@ public class Devices {
     public void reload() {
         devices.clear();
         load();
+    }
+
+    public void setReadOnlyMode(boolean readOnly) {
+        this.readOnlyMode = readOnly;
+    }
+
+    protected boolean isReadOnlyMode() {
+        return readOnlyMode;
     }
 
     public List<Device> getDevices() {

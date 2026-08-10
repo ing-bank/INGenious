@@ -21,6 +21,7 @@ import com.ing.ide.main.fx.FXDashBoard;
 import com.ing.ide.main.fx.FXMenuBar;
 import com.ing.ide.main.fx.FXStatusBar;
 import com.ing.ide.main.fx.FXToolBar;
+import com.ing.ide.main.mainui.components.aichat.AICopilot;
 import com.ing.ide.main.mainui.components.apitester.APITester;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testexecution.TestExecution;
@@ -82,6 +83,8 @@ public class AppMainFrame extends JFrame {
 
     private final APITester apiTester;
 
+    private final AICopilot aiCopilot;
+
     private final FXDashBoard dashBoard;
 
     private final DashBoardManager dashBoardManager;
@@ -133,6 +136,7 @@ public class AppMainFrame extends JFrame {
         progressed(50);
         apiTester = new APITester(this);
         progressed(52);
+        aiCopilot = new AICopilot(this);
         dashBoard = new FXDashBoard(testExecution);
         progressed(60);
         dashBoardManager = new DashBoardManager(this);
@@ -163,6 +167,8 @@ public class AppMainFrame extends JFrame {
         slideShow.addSlide("TestExecution", testExecution.getTestExecutionUI());
         slideShow.addSlide("DashBoard", dashBoard);
         slideShow.addSlide("APITester", apiTester.getAPITesterUI());
+        slideShow.addSlide("AICopilot", aiCopilot.getAICopilotUI());
+        slideShow.addSlideChangeListener(aiCopilot);
         progressed(85);
         add(slideShow, BorderLayout.CENTER);
         add(toolBar, BorderLayout.NORTH);
@@ -184,6 +190,39 @@ public class AppMainFrame extends JFrame {
                             doRestart();
                         }
                         dispose();
+                    }
+                }
+            }
+        );
+        // Close any open menus when the window loses focus to prevent
+        // submenus from floating over other applications when alt-tabbing
+        addWindowFocusListener(
+            new java.awt.event.WindowFocusListener() {
+
+                @Override
+                public void windowGainedFocus(WindowEvent e) {
+                    // No action needed
+                }
+
+                @Override
+                public void windowLostFocus(WindowEvent e) {
+                    // Close all open JavaFX menus
+                    if (fxMenuBar != null) {
+                        fxMenuBar.closeAllMenus();
+                    }
+                }
+            }
+        );
+        // Close any open menus when the window is resized to prevent
+        // submenus from rendering incorrectly or floating during resize
+        addComponentListener(
+            new java.awt.event.ComponentAdapter() {
+
+                @Override
+                public void componentResized(java.awt.event.ComponentEvent e) {
+                    // Close all open JavaFX menus during window resize
+                    if (fxMenuBar != null) {
+                        fxMenuBar.closeAllMenus();
                     }
                 }
             }
@@ -280,6 +319,11 @@ public class AppMainFrame extends JFrame {
         getGlassPane().setVisible(false);
         slideShow.showSlide("TestExecution");
         testExecution.getTestExecutionUI().adjustUI();
+        // Prune stale tags from the active filter and re-apply: if a tag
+        // was renamed or deleted in the Test Design tab, the filter still
+        // shows previous results. This keeps only valid tags, or clears
+        // the filter entirely if no valid tags remain.
+        testExecution.getTestExecutionUI().refreshTagFilter();
         if (fxStatusBar != null) fxStatusBar.setCurrentView("Test Execution");
     }
 
@@ -294,6 +338,12 @@ public class AppMainFrame extends JFrame {
         getGlassPane().setVisible(false);
         slideShow.showSlide("APITester");
         if (fxStatusBar != null) fxStatusBar.setCurrentView("API Workbench");
+    }
+
+    public void showAICopilot() {
+        getGlassPane().setVisible(false);
+        slideShow.showSlide("AICopilot");
+        if (fxStatusBar != null) fxStatusBar.setCurrentView("AI Assistant");
     }
 
     private String getAppTitle() {
@@ -338,6 +388,10 @@ public class AppMainFrame extends JFrame {
 
     public APITester getAPITester() {
         return apiTester;
+    }
+
+    public AICopilot getAICopilot() {
+        return aiCopilot;
     }
 
     public DashBoardManager getDashBoardManager() {

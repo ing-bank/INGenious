@@ -16,8 +16,15 @@ public class Capabilities {
 
     private String location;
 
+    private boolean readOnlyMode = false;
+
     public Capabilities(String location) {
+        this(location, false);
+    }
+
+    public Capabilities(String location, boolean readOnlyMode) {
         this.location = location;
+        this.readOnlyMode = readOnlyMode;
         createCapsFolder();
         load();
     }
@@ -222,9 +229,20 @@ public class Capabilities {
     /**
      * Ensures SAP.properties file exists.
      * Creates it if missing for projects that have SAP emulator.
+     * Skipped if in read-only mode (e.g., during validation).
      */
     public void ensureSAPCapabilitiesExist() {
-        String sapFile = location + File.separator + "SAP.properties";
-        createFile(sapFile);
+        if (!readOnlyMode) {
+            String sapFile = location + File.separator + "SAP.properties";
+            createFile(sapFile);
+        }
+    }
+
+    public void setReadOnlyMode(boolean readOnly) {
+        this.readOnlyMode = readOnly;
+    }
+
+    protected boolean isReadOnlyMode() {
+        return readOnlyMode;
     }
 }

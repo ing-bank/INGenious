@@ -11,6 +11,11 @@ import javax.swing.tree.DefaultMutableTreeNode;
 public class CommonNode extends DefaultMutableTreeNode {
 
     public void sort() {
+        // Children is null if no children have been added yet
+        // (DefaultMutableTreeNode uses lazy initialization)
+        if (children == null) {
+            return;
+        }
         Collections.sort(
             children,
             new Comparator() {

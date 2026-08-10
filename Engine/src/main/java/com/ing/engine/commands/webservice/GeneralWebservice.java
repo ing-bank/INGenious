@@ -281,10 +281,15 @@ public class GeneralWebservice extends Command implements WebservicePluginApi {
             httpClient.get(key).send(httpRequest.get(key), HttpResponse.BodyHandlers.ofString())
         );
 
-        responsebodies.put(key, (String) response.get(key).body());
+        String responseBody = (String) response.get(key).body();
+        if (responseBody.startsWith(")]}',")) {
+            responsebodies.put(key, responseBody.replace(")]}',", "").trim());
+        } else {
+            responsebodies.put(key, responseBody);
+        }
 
         after.put(key, Instant.now());
-        savePayload("response", (String) response.get(key).body());
+        savePayload("response", responseBody);
 
         responsecodes.put(key, Integer.toString(response.get(key).statusCode()));
     }
@@ -447,7 +452,7 @@ public class GeneralWebservice extends Command implements WebservicePluginApi {
                 } else {
                     sc.init(null, trustAllCerts, new SecureRandom());
                 }
-                httpClientBuilder.put(key, httpClientBuilder.get(key)).sslContext(sc);
+                httpClientBuilder.put(key, httpClientBuilder.get(key).sslContext(sc));
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);

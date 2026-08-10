@@ -1,12 +1,15 @@
 package com.ing.ide.main.ui;
 
 import java.awt.Image;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.KeyStroke;
 
 /**
  *
@@ -18,9 +21,19 @@ public class AboutUI extends javax.swing.JDialog {
     public AboutUI() {
         super(new JFrame());
         initComponents();
+        installEscapeCloseHandler();
         detailsPane.setText(About.getDetailsAsHTML());
         setSize(500, 600);
         setImage();
+    }
+
+    private void installEscapeCloseHandler() {
+        getRootPane()
+            .registerKeyboardAction(
+                e -> setVisible(false),
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_IN_FOCUSED_WINDOW
+            );
     }
 
     private void setImage() {

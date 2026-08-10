@@ -77,10 +77,10 @@ public final class ObjectTypeUtil {
         objectTypesforIDEDropdown.add(ObjectType.DATABASE);
         objectTypesforIDEDropdown.add(ObjectType.KAFKA);
         objectTypesforIDEDropdown.add(ObjectType.QUEUE);
-        objectTypesforIDEDropdown.add("Synthetic Data");
+        objectTypesforIDEDropdown.add(ObjectType.DATA);
         objectTypesforIDEDropdown.add(ObjectType.FILE);
         objectTypesforIDEDropdown.add(ObjectType.GENERAL);
-        objectTypesforIDEDropdown.add("EXECUTE");
+        objectTypesforIDEDropdown.add("Execute");
         objectTypesforIDEDropdown.add(ObjectType.STRINGOPERATIONS);
         objectTypesforIDEDropdown.addAll(pluginObjectTypes);
         return Collections.unmodifiableList(objectTypesforIDEDropdown);

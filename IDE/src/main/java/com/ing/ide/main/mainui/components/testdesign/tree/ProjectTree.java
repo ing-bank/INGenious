@@ -3,16 +3,24 @@ package com.ing.ide.main.mainui.components.testdesign.tree;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.component.TestStep;
+import com.ing.datalib.component.utils.SortOrderStore;
 import com.ing.datalib.exception.TestCaseConversionException;
 import com.ing.datalib.model.DataItem;
 import com.ing.datalib.model.Meta;
 import com.ing.datalib.model.Tag;
+import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.sap.ResolvedSapObject;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
+import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.testcase.validation.TestCaseValidation;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.GroupNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ProjectTreeModel;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ScenarioNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.TestCaseNode;
+import com.ing.ide.main.mainui.components.testdesign.tree.model.TestPlanGroupNode;
+import com.ing.ide.main.mainui.components.testdesign.tree.model.TestPlanNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.TestPlanTreeModel;
 import com.ing.ide.main.ui.ProjectProperties;
 import com.ing.ide.main.utils.Utils;
@@ -25,6 +33,7 @@ import com.ing.ide.util.Notification;
 import com.ing.ide.util.Validator;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
@@ -37,19 +46,30 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -312,16 +332,20 @@ public class ProjectTree implements ActionListener {
                     row,
                     focused
                 );
-                if (value instanceof GroupNode) {
+                if (value instanceof TestPlanGroupNode) {
+                    setIcons(IconSettings.getIconSettings().getTestPlanGroup());
+                } else if (value instanceof GroupNode) {
                     setIcons(IconSettings.getIconSettings().getReusableFolder());
                 } else if (value instanceof ScenarioNode) {
                     setIcons(IconSettings.getIconSettings().getTestPlanScenario());
+                    // setText(withScopeBadge(value));
                 } else if (value instanceof TestCaseNode) {
                     if (ProjectTree.this instanceof ReusableTree) {
                         setIcons(IconSettings.getIconSettings().getReusableTestCase());
                     } else {
                         setIcons(IconSettings.getIconSettings().getTestPlanTestCase());
                     }
+                    // setText(withScopeBadge(value));
                 } else {
                     setIcons(IconSettings.getIconSettings().getTestPlanRoot());
                 }
@@ -389,6 +413,8 @@ public class ProjectTree implements ActionListener {
             popupMenu.forScenario();
         } else if (selected instanceof TestCaseNode) {
             popupMenu.forTestCase();
+        } else if (selected instanceof TestPlanGroupNode) {
+            popupMenu.forGroup();
         } else if (selected instanceof GroupNode) {
             popupMenu.forTestPlan();
         }
@@ -438,14 +464,29 @@ public class ProjectTree implements ActionListener {
             case "Delete TestCase":
                 deleteTestCases();
                 break;
+            case "New Group":
+                addGroup();
+                break;
+            case "Rename Group":
+                renameGroup();
+                break;
+            case "Delete Group":
+                deleteGroup();
+                break;
             case "Sort":
                 sort();
                 break;
             case "Edit Tag":
                 editTag();
                 break;
-            case "Make As Reusable/TestCase":
+            case "Make As TestCase":
                 makeAsReusableRTestCase();
+                break;
+            case "Make As Project Reusable":
+                makeAsReusableRTestCase();
+                break;
+            case "Make As Shared Reusable":
+                moveTestCaseToSharedReusable();
                 break;
             case "Details":
                 showDetails();
@@ -482,26 +523,72 @@ public class ProjectTree implements ActionListener {
      * Adds a new scenario to the project.
      */
     private void addScenario() {
-        ScenarioNode scNode = treeModel.addScenario(
-            getSelectedGroupNode(),
-            testDesign.getProject().addScenario(fetchNewScenarioName())
-        );
+        String scenarioName = fetchNewScenarioName();
+        Scenario scenario = testDesign.getProject().addScenario(scenarioName);
+        if (scenario == null) {
+            Notification.showWarning(
+                "Scenario '" +
+                scenarioName +
+                "' already exists in the Test Plan. Please choose a different Test Plan scenario name."
+            );
+            return;
+        }
+        ScenarioNode scNode;
+        TestPlanGroupNode selectedGroup = getSelectedTestPlanGroupNode();
+        if (selectedGroup != null && treeModel instanceof TestPlanTreeModel) {
+            scNode = ((TestPlanTreeModel) treeModel).addScenarioToGroup(selectedGroup, scenario);
+        } else {
+            scNode = treeModel.addScenario(getSelectedGroupNode(), scenario);
+        }
         selectAndScrollTo(new TreePath(scNode.getPath()));
+        persistSortOrder(scNode.getParent());
     }
 
     /**
-     * Generates a unique name for a new scenario.
+     * Generates a unique name for a new scenario checking all scopes.
      * @return unique scenario name
      */
     private String fetchNewScenarioName() {
-        String newScenarioName = "NewScenario";
-        for (int i = 0;; i++) {
-            if (testDesign.getProject().getScenarioByName(newScenarioName) == null) {
+        String base = "NewScenario";
+        // prefer plain base name if available
+        if (
+            testDesign.getProject().getTestPlanScenarioByName(base) == null &&
+            !treeHasScenarioName(base)
+        ) {
+            return base;
+        }
+        int i = 0;
+        String newScenarioName;
+        for (;;) {
+            newScenarioName = base + i;
+            if (
+                testDesign.getProject().getTestPlanScenarioByName(newScenarioName) == null &&
+                !treeHasScenarioName(newScenarioName)
+            ) {
                 break;
             }
-            newScenarioName = "NewScenario" + i;
+            i++;
         }
         return newScenarioName;
+    }
+
+    private boolean treeHasScenarioName(String name) {
+        if (treeModel == null || treeModel.getRoot() == null) return false;
+        javax.swing.tree.TreeNode rootNode = (javax.swing.tree.TreeNode) treeModel.getRoot();
+        for (javax.swing.tree.TreeNode child : Collections.list(rootNode.children())) {
+            if (child instanceof GroupNode) {
+                for (ScenarioNode sc : ScenarioNode.toList(((GroupNode) child).children())) {
+                    if (sc.getScenario().getName().equalsIgnoreCase(name)) {
+                        return true;
+                    }
+                }
+            } else if (child instanceof ScenarioNode) {
+                if (((ScenarioNode) child).getScenario().getName().equalsIgnoreCase(name)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -516,13 +603,20 @@ public class ProjectTree implements ActionListener {
             }
         }
         if (scenarioNode != null) {
-            TestCase testcase;
             String testCaseName = fetchNewTestCaseName(scenarioNode.getScenario());
-            testcase = scenarioNode.getScenario().addTestCase(testCaseName);
+            TestCase testcase = scenarioNode.getScenario().addTestCase(testCaseName);
+            if (testcase == null) {
+                Notification.showWarning(
+                    "Failed to add test case: a test case with this name already exists."
+                );
+                return;
+            }
             testDesign.loadTableModelForSelection(testcase);
-            selectAndScrollTo(
-                new TreePath(treeModel.addTestCase(scenarioNode, testcase).getPath())
-            );
+            TestCaseNode tcNode = treeModel.addTestCase(scenarioNode, testcase);
+            if (tcNode != null && tcNode.getTestCase() != null) {
+                selectAndScrollTo(new TreePath(tcNode.getPath()));
+                persistSortOrder(scenarioNode);
+            }
         }
     }
 
@@ -534,10 +628,7 @@ public class ProjectTree implements ActionListener {
     private String fetchNewTestCaseName(Scenario scenario) {
         String newTestCaseName = "NewTestCase";
         for (int i = 0;; i++) {
-            if (
-                scenario.getTestCaseByName(newTestCaseName) == null &&
-                !getProject().hasTestCaseInAnyScenario(scenario.getName(), newTestCaseName)
-            ) {
+            if (scenario.getTestCaseByName(newTestCaseName) == null) {
                 break;
             }
             newTestCaseName = "NewTestCase" + i;
@@ -558,9 +649,23 @@ public class ProjectTree implements ActionListener {
                     getTreeModel().reload(scenarioNode);
                     renameScenario(scenarioNode.getScenario());
                     testDesign.getScenarioComp().refreshTitle();
+                    persistSortOrder(scenarioNode.getParent());
                     return true;
                 } else {
                     Notification.show("Scenario " + name + " Already present");
+                    return false;
+                }
+            }
+            TestPlanGroupNode groupNode = getSelectedTestPlanGroupNode();
+            if (
+                groupNode != null &&
+                !groupNode.toString().equals(name) &&
+                treeModel instanceof TestPlanTreeModel
+            ) {
+                if (((TestPlanTreeModel) treeModel).renameGroup(groupNode, name)) {
+                    return true;
+                } else {
+                    Notification.show("Group " + name + " Already present");
                     return false;
                 }
             }
@@ -569,6 +674,7 @@ public class ProjectTree implements ActionListener {
                 if (testCaseNode.getTestCase().rename(name)) {
                     getTreeModel().reload(testCaseNode);
                     testDesign.getTestCaseComp().refreshTitle();
+                    persistSortOrder(testCaseNode.getParent());
                     return true;
                 } else {
                     Notification.show(
@@ -597,14 +703,10 @@ public class ProjectTree implements ActionListener {
     private void deleteScenarios() {
         List<ScenarioNode> scenarioNodes = getSelectedScenarioNodes();
         if (!scenarioNodes.isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(
-                null,
-                "<html><body><p style='width: 200px;'>" +
-                "Are you sure want to delete the following Scenarios?<br>" +
-                scenarioNodes +
-                "</p></body></html>",
+            int option = showScrollableDeleteConfirmation(
                 "Delete Scenario",
-                JOptionPane.YES_NO_OPTION
+                "Scenarios",
+                scenarioNodes
             );
             if (option == JOptionPane.YES_OPTION) {
                 LOGGER.log(
@@ -612,10 +714,19 @@ public class ProjectTree implements ActionListener {
                     "Delete Scenarios approved for {0}; {1}",
                     new Object[] { scenarioNodes.size(), scenarioNodes }
                 );
+                Set<GroupNode> affectedGroups = new HashSet<>();
+                for (ScenarioNode scenarioNode : scenarioNodes) {
+                    if (scenarioNode.getParent() instanceof GroupNode) {
+                        affectedGroups.add((GroupNode) scenarioNode.getParent());
+                    }
+                }
                 for (ScenarioNode scenarioNode : scenarioNodes) {
                     deleteTestCases(TestCaseNode.toList(scenarioNode.children()));
                     scenarioNode.getScenario().delete();
                     getTreeModel().removeNodeFromParent(scenarioNode);
+                }
+                for (GroupNode g : affectedGroups) {
+                    persistSortOrder(g);
                 }
             }
         }
@@ -627,14 +738,10 @@ public class ProjectTree implements ActionListener {
     private void deleteTestCases() {
         List<TestCaseNode> testcaseNodes = getSelectedTestCaseNodes();
         if (!testcaseNodes.isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(
-                null,
-                "<html><body><p style='width: 200px;'>" +
-                "Are you sure want to delete the following TestCases?<br>" +
-                testcaseNodes +
-                "</p></body></html>",
+            int option = showScrollableDeleteConfirmation(
                 "Delete TestCase",
-                JOptionPane.YES_NO_OPTION
+                "TestCases",
+                testcaseNodes
             );
             if (option == JOptionPane.YES_OPTION) {
                 LOGGER.log(
@@ -648,10 +755,59 @@ public class ProjectTree implements ActionListener {
     }
 
     /**
+     * Shows a delete confirmation dialog with a scrollable list so action buttons stay visible.
+     * @param title dialog title
+     * @param itemType display name for the selected item type
+     * @param selectedItems selected items to display
+     * @return JOptionPane option value
+     */
+    private int showScrollableDeleteConfirmation(
+        String title,
+        String itemType,
+        List<?> selectedItems
+    ) {
+        JPanel messagePanel = new JPanel(new java.awt.BorderLayout(0, 8));
+        messagePanel.add(
+            new JLabel("Are you sure want to delete the following " + itemType + "?"),
+            java.awt.BorderLayout.NORTH
+        );
+
+        JTextArea itemsArea = new JTextArea();
+        itemsArea.setEditable(false);
+        itemsArea.setLineWrap(false);
+        itemsArea.setWrapStyleWord(false);
+
+        StringBuilder content = new StringBuilder();
+        for (Object item : selectedItems) {
+            content.append(item).append(System.lineSeparator());
+        }
+        itemsArea.setText(content.toString());
+        itemsArea.setCaretPosition(0);
+
+        JScrollPane scrollPane = new JScrollPane(itemsArea);
+        scrollPane.setPreferredSize(new Dimension(360, 180));
+        messagePanel.add(scrollPane, java.awt.BorderLayout.CENTER);
+
+        return JOptionPane.showConfirmDialog(
+            null,
+            messagePanel,
+            title,
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+    }
+
+    /**
      * Deletes the specified test cases and resets table if needed.
      * @param testcaseNodes list of test case nodes to delete
      */
     private void deleteTestCases(List<TestCaseNode> testcaseNodes) {
+        Set<ScenarioNode> affectedScenarios = new HashSet<>();
+        for (TestCaseNode tcNode : testcaseNodes) {
+            if (tcNode.getParent() instanceof ScenarioNode) {
+                affectedScenarios.add((ScenarioNode) tcNode.getParent());
+            }
+        }
         TestCase loadedTestCase = testDesign.getTestCaseComp().getCurrentTestCase();
         Boolean shouldRemove = false;
 
@@ -665,6 +821,9 @@ public class ProjectTree implements ActionListener {
 
         if (shouldRemove) {
             testDesign.getTestCaseComp().resetTable();
+        }
+        for (ScenarioNode sn : affectedScenarios) {
+            persistSortOrder(sn);
         }
     }
 
@@ -835,14 +994,21 @@ public class ProjectTree implements ActionListener {
      * Shows error notifications for failures and reloads both trees on success.
      */
     protected void makeAsReusableRTestCase() {
+        if (getSelectedTestCaseNodes().isEmpty()) {
+            Notification.showWarning("Select at least one test case to make as Project Reusable.");
+            return;
+        }
         if (!getSelectedTestCaseNodes().isEmpty()) {
             // Save ALL test cases to prevent data loss on reload
             getProject().save();
 
             boolean anySuccess = false;
+            int impactedUpdates = 0;
             for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {
                 try {
                     getProject().moveTestCaseToReusable(testCaseNode.getTestCase());
+                    impactedUpdates +=
+                        getProject().getAndResetLastImpactedReusableReferenceUpdates();
                     anySuccess = true;
                 } catch (TestCaseConversionException e) {
                     Notification.show(e.getMessage());
@@ -853,6 +1019,9 @@ public class ProjectTree implements ActionListener {
                 getProject().save();
                 load();
                 getTestDesign().getReusableTree().load();
+                showImpactedReferenceNotification("Moved to Project Reusable", impactedUpdates);
+            } else {
+                Notification.showWarning("No test cases were moved to Project Reusable.");
             }
         }
     }
@@ -863,6 +1032,244 @@ public class ProjectTree implements ActionListener {
      */
     void makeAsReusableRTestCase(TestCase testCase) {
         getTestDesign().getReusableTree().getTreeModel().addTestCase(testCase);
+    }
+
+    /**
+     * Moves selected test case(s) from Test Plan to Shared Reusable Components.
+     */
+    private void moveTestCaseToSharedReusable() {
+        if (getSelectedTestCaseNodes().isEmpty()) {
+            Notification.showWarning("Select at least one test case to make as Shared Reusable.");
+            return;
+        }
+        if (!getSelectedTestCaseNodes().isEmpty()) {
+            int option = JOptionPane.showConfirmDialog(
+                null,
+                "Move selected test case(s) to Shared Reusable Components?",
+                "Make As Shared Reusable",
+                JOptionPane.YES_NO_OPTION
+            );
+            if (option != JOptionPane.YES_OPTION) {
+                return;
+            }
+            // Save ALL test cases to prevent data loss on reload
+            getProject().save();
+
+            boolean anySuccess = false;
+            int impactedUpdates = 0;
+
+            // Move test cases first and record which ones moved successfully.
+            List<TestCase> movedSuccessfully = new ArrayList<>();
+            for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {
+                try {
+                    getProject().moveTestCaseToSharedReusable(testCaseNode.getTestCase());
+                    impactedUpdates +=
+                        getProject().getAndResetLastImpactedReusableReferenceUpdates();
+                    anySuccess = true;
+                    movedSuccessfully.add(testCaseNode.getTestCase());
+                } catch (TestCaseConversionException e) {
+                    Notification.show(e.getMessage());
+                }
+            }
+
+            // Only after test cases have been moved successfully, detect and optionally move project-scoped objects
+            if (!movedSuccessfully.isEmpty()) {
+                // If the user cancels the second confirmation, we simply skip moving objects but do not revert moved test cases.
+                try {
+                    confirmAndMoveProjectObjectsForTestCases(movedSuccessfully);
+                } catch (Exception ex) {
+                    LOGGER.log(
+                        Level.WARNING,
+                        "Error during optional object move after test case migration",
+                        ex
+                    );
+                }
+            }
+            if (anySuccess) {
+                getProject().reload();
+                getProject().save();
+                load();
+                getTestDesign().getSharedReusableTree().load();
+                showImpactedReferenceNotification("Moved to Shared Reusable", impactedUpdates);
+            } else {
+                Notification.showWarning("No test cases were moved to Shared Reusable.");
+            }
+        }
+    }
+
+    protected void showImpactedReferenceNotification(String operationName, int impactedUpdates) {
+        if (impactedUpdates > 0) {
+            Notification.showSuccess(
+                operationName +
+                " completed. All impacted test cases have been updated (" +
+                impactedUpdates +
+                ")."
+            );
+        } else {
+            Notification.showSuccess(
+                operationName + " completed. No impacted test case references required updates."
+            );
+        }
+    }
+
+    /**
+     * Detects project-scoped object references used by the provided test cases.
+     * If any project-only objects are found, prompts the user whether to move those
+     * objects/pages to Shared OR. If the user agrees, moves objects/pages to Shared.
+     * Returns true when the caller should proceed with moving test cases to Shared; false if cancelled.
+     */
+    public boolean confirmAndMoveProjectObjectsForTestCases(List<TestCase> testCases) {
+        try {
+            var repo = getProject().getObjectRepository();
+            if (repo == null) return true; // nothing to do
+
+            // Collect project-only references as pairs of pageName -> set(objectName)
+            Map<String, Set<String>> projectRefs = new HashMap<>();
+
+            for (TestCase tc : testCases) {
+                tc.loadTableModel();
+                for (TestStep step : tc.getTestSteps()) {
+                    if (!step.isPageObjectStep()) continue;
+                    String ref = step.getReference();
+                    String obj = step.getObject();
+                    if (ref == null || ref.isBlank() || obj == null || obj.isBlank()) continue;
+
+                    // Parse the page reference first to handle scoped tokens like "[Project] Home"
+                    ResolvedWebObject.PageRef wref = ResolvedWebObject.PageRef.parse(ref);
+                    var wres = repo.resolveWebObject(wref, obj);
+                    if (wres != null) {
+                        if (wres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(wres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+
+                    ResolvedMobileObject.PageRef mref = ResolvedMobileObject.PageRef.parse(ref);
+                    var mres = repo.resolveMobileObject(mref, obj);
+                    if (mres != null) {
+                        if (mres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(mres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+
+                    ResolvedStructuredDataObject.PageRef sref = ResolvedStructuredDataObject.PageRef.parse(
+                        ref
+                    );
+                    var sres = repo.resolveStructuredDataObject(sref, obj);
+                    if (sres != null) {
+                        if (sres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(sres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+
+                    ResolvedSapObject.PageRef sapref = ResolvedSapObject.PageRef.parse(ref);
+                    var sapres = repo.resolveSapObject(sapref, obj);
+                    if (sapres != null) {
+                        if (sapres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(sapres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+                }
+            }
+
+            if (projectRefs.isEmpty()) return true; // no project-only objects found
+
+            // Build confirmation message
+            StringBuilder sb = new StringBuilder();
+            sb.append(
+                "The selected test case(s) reference project-scoped Object Repository items:\n\n"
+            );
+            for (var e : projectRefs.entrySet()) {
+                sb
+                    .append("Page: ")
+                    .append(e.getKey())
+                    .append(" -> Objects: ")
+                    .append(e.getValue())
+                    .append("\n");
+            }
+            sb.append(
+                "\nDo you want to move these objects/pages to Shared Object Repository as well?\n"
+            );
+
+            int opt = JOptionPane.showConfirmDialog(
+                null,
+                sb.toString(),
+                "Move referenced Project Objects to Shared?",
+                JOptionPane.YES_NO_OPTION
+            );
+
+            // if (opt == JOptionPane.CANCEL_OPTION || opt == JOptionPane.CLOSED_OPTION) return false;
+            if (opt != JOptionPane.YES_OPTION) return true; // proceed without moving objects
+
+            // User agreed to move objects/pages to Shared OR.
+            // Only move the specific objects referenced by the selected test cases.
+            for (String pageName : projectRefs.keySet()) {
+                try {
+                    for (String obj : projectRefs.get(pageName)) {
+                        // try web
+                        var r = repo.resolveWebObjectWithScope(pageName, obj);
+                        if (r != null && r.isFromProject()) {
+                            repo.moveWebObject(r, pageName);
+                            continue;
+                        }
+                        var rm = repo.resolveMobileObjectWithScope(pageName, obj);
+                        if (rm != null && rm.isFromProject()) {
+                            repo.moveMobileObject(rm, pageName);
+                            continue;
+                        }
+                        var rs = repo.resolveStructuredDataObjectWithScope(pageName, obj);
+                        if (rs != null && rs.isFromProject()) {
+                            repo.moveStructuredDataObject(rs, pageName);
+                            continue;
+                        }
+                        var rsp = repo.resolveSapObjectWithScope(pageName, obj);
+                        if (rsp != null && rsp.isFromProject()) {
+                            repo.moveSapObject(rsp, pageName);
+                            continue;
+                        }
+                    }
+                } catch (Exception ex) {
+                    // ignore individual failures and continue
+                }
+            }
+
+            // Save repository and refresh UI.
+            // Remove any now-empty source pages (moved all objects) to keep repository consistent
+            try {
+                com.ing.datalib.or.web.WebOR projectWebOR = repo.getWebOR();
+                if (projectWebOR != null) {
+                    for (String pageName : projectRefs.keySet()) {
+                        com.ing.datalib.or.web.WebORPage sourcePage = projectWebOR.getPageByName(
+                            pageName
+                        );
+                        if (sourcePage != null && sourcePage.getObjectGroups().isEmpty()) {
+                            sourcePage.removeFromParent();
+                        }
+                    }
+                }
+            } catch (Throwable t) {
+                // Ignore - best effort cleanup
+            }
+
+            repo.save();
+            // Ensure UI reload runs on the Swing EDT to avoid potential threading/race issues
+            javax.swing.SwingUtilities.invokeLater(() -> getTestDesign().getObjectRepo().load());
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true; // allow proceed on error
+        }
     }
 
     /**
@@ -907,7 +1314,180 @@ public class ProjectTree implements ActionListener {
      */
     private void sort() {
         if (tree.getSelectionPath() != null) {
-            getTreeModel().sort(tree.getSelectionPath().getLastPathComponent());
+            Object node = tree.getSelectionPath().getLastPathComponent();
+            getTreeModel().sort(node);
+            persistSortOrder(node);
+        }
+    }
+
+    /**
+     * @return whether this is a Test Plan tree currently showing a group layer.
+     */
+    boolean isTestPlanGrouped() {
+        return (
+            treeModel instanceof TestPlanTreeModel &&
+            ((TestPlanTreeModel) treeModel).getRoot().isGrouped()
+        );
+    }
+
+    /**
+     * Persists the current Test Plan grouping to {@code TestPlan/.groups} when this
+     * is a Test Plan tree. No-op for other trees.
+     */
+    private void saveGroupsIfTestPlan() {
+        if (treeModel instanceof TestPlanTreeModel) {
+            ((TestPlanTreeModel) treeModel).saveGroups();
+        }
+    }
+
+    /**
+     * @return the currently selected {@link TestPlanGroupNode}, or {@code null}.
+     */
+    protected TestPlanGroupNode getSelectedTestPlanGroupNode() {
+        TreePath path = tree.getSelectionPath();
+        if (path != null && path.getLastPathComponent() instanceof TestPlanGroupNode) {
+            return (TestPlanGroupNode) path.getLastPathComponent();
+        }
+        return null;
+    }
+
+    /**
+     * Prompts for a name and creates a new scenario group.
+     */
+    private void addGroup() {
+        if (!(treeModel instanceof TestPlanTreeModel)) {
+            return;
+        }
+        String name = JOptionPane.showInputDialog(
+            tree,
+            "Group name:",
+            "New Group",
+            JOptionPane.PLAIN_MESSAGE
+        );
+        if (name == null) {
+            return;
+        }
+        name = name.trim();
+        if (name.isEmpty() || name.equals(TestPlanGroupNode.UNGROUPED)) {
+            return;
+        }
+        if (!Validator.isValidName(name)) {
+            return;
+        }
+        TestPlanGroupNode group = ((TestPlanTreeModel) treeModel).addGroup(name);
+        if (group == null) {
+            Notification.show("Group '" + name + "' already exists.");
+            return;
+        }
+        selectAndScrollTo(new TreePath(group.getPath()));
+    }
+
+    /**
+     * Starts inline editing of the selected group's name.
+     */
+    private void renameGroup() {
+        TestPlanGroupNode group = getSelectedTestPlanGroupNode();
+        if (group != null) {
+            tree.startEditingAtPath(new TreePath(group.getPath()));
+        }
+    }
+
+    /**
+     * Deletes the selected group after confirmation, moving its scenarios to the
+     * {@code (Ungrouped)} node.
+     */
+    private void deleteGroup() {
+        TestPlanGroupNode group = getSelectedTestPlanGroupNode();
+        if (group == null || group.isUngrouped() || !(treeModel instanceof TestPlanTreeModel)) {
+            return;
+        }
+        int option = JOptionPane.showConfirmDialog(
+            null,
+            "<html><body><p style='width: 200px;'>" +
+            "Delete group '" +
+            group +
+            "'? Its scenarios will move to " +
+            TestPlanGroupNode.UNGROUPED +
+            ".</p></body></html>",
+            "Delete Group",
+            JOptionPane.YES_NO_OPTION
+        );
+        if (option == JOptionPane.YES_OPTION) {
+            ((TestPlanTreeModel) treeModel).deleteGroup(group);
+        }
+    }
+
+    /**
+     * Moves all selected scenarios into the given target group.
+     * @param target destination group
+     */
+    private void moveSelectedScenariosToGroup(TestPlanGroupNode target) {
+        if (!(treeModel instanceof TestPlanTreeModel)) {
+            return;
+        }
+        for (ScenarioNode scenarioNode : getSelectedScenarioNodes()) {
+            ((TestPlanTreeModel) treeModel).moveScenarioToGroup(scenarioNode, target);
+        }
+    }
+
+    /**
+     * Rebuilds the "Move to Group" submenu with the current groups, excluding the
+     * selected scenario's current parent group.
+     * @param menu the submenu to populate
+     */
+    void buildMoveToGroupSubmenu(JMenu menu) {
+        menu.removeAll();
+        if (!(treeModel instanceof TestPlanTreeModel)) {
+            return;
+        }
+        TestPlanNode root = ((TestPlanTreeModel) treeModel).getRoot();
+        ScenarioNode selected = getSelectedScenarioNode();
+        Object currentParent = selected != null ? selected.getParent() : null;
+        for (final TestPlanGroupNode group : root.getGroupNodes()) {
+            if (group == currentParent) {
+                continue;
+            }
+            JMenuItem item = new JMenuItem(group.toString());
+            item.setFont(new Font("ING Me", Font.PLAIN, 11));
+            item.addActionListener(e -> moveSelectedScenariosToGroup(group));
+            menu.add(item);
+        }
+    }
+
+    /**
+     * Persists the sort order of the given node's children to a {@code .sort_order} file on disk.
+     * Call this after any operation that changes the membership or order of a node's children.
+     * @param node the tree node whose children order should be saved (GroupNode or ScenarioNode)
+     */
+    protected void persistSortOrder(Object node) {
+        if (node instanceof ScenarioNode) {
+            ScenarioNode scenarioNode = (ScenarioNode) node;
+            File scenarioDir = new File(scenarioNode.getScenario().getLocation());
+            List<String> names = new ArrayList<>();
+            for (TestCaseNode tcNode : TestCaseNode.toList(scenarioNode.children())) {
+                if (tcNode == null || tcNode.getTestCase() == null) {
+                    continue;
+                }
+                names.add(tcNode.getTestCase().getName());
+            }
+            SortOrderStore.save(scenarioDir, names);
+        } else if (node instanceof TestPlanGroupNode) {
+            // Scenario order within a Test Plan group is persisted via .groups.
+            saveGroupsIfTestPlan();
+        } else if (node instanceof TestPlanNode && ((TestPlanNode) node).isGrouped()) {
+            // Group order at the Test Plan root is persisted via .groups.
+            saveGroupsIfTestPlan();
+        } else if (node instanceof GroupNode) {
+            List<ScenarioNode> scenarioNodes = ScenarioNode.toList(((GroupNode) node).children());
+            if (!scenarioNodes.isEmpty()) {
+                File parentDir = new File(scenarioNodes.get(0).getScenario().getLocation())
+                .getParentFile();
+                List<String> names = new ArrayList<>();
+                for (ScenarioNode sn : scenarioNodes) {
+                    names.add(sn.getScenario().getName());
+                }
+                SortOrderStore.save(parentDir, names);
+            }
         }
     }
 
@@ -944,6 +1524,20 @@ public class ProjectTree implements ActionListener {
     }
 
     /**
+     * Renames a tag across the entire project by delegating to
+     * {@link com.ing.datalib.model.ProjectInfo#renameAll(String, String)}.
+     * This ensures all test cases, scenarios, meta entries, and project-level
+     * references receive the updated name.
+     *
+     * @param tag      the tag to rename (its value is updated in-place)
+     * @param newValue the new tag name
+     */
+    private void onUpdateTag(Tag tag, String newValue) {
+        getProject().getInfo().renameAll(tag.getValue(), newValue);
+        tag.setValue(newValue);
+    }
+
+    /**
      * Opens the tag editor for a test case data item and, when a corresponding
      * {@link TestCase} is supplied, re-saves its YAML so the new tag set is
      * mirrored on disk.
@@ -955,7 +1549,8 @@ public class ProjectTree implements ActionListener {
                 getProject().getInfo().getAllTags(tc.getTags()),
                 tc.getTags(),
                 this::onRemoveTag,
-                this::onAddTag
+                this::onAddTag,
+                this::onUpdateTag
             )
             .withTitle(editTagTitle(tc.getName()))
             .show(
@@ -979,7 +1574,8 @@ public class ProjectTree implements ActionListener {
                 getProject().getInfo().getAllTags(scn.getTags()),
                 scn.getTags(),
                 this::onRemoveTag,
-                this::onAddTag
+                this::onAddTag,
+                this::onUpdateTag
             )
             .withTitle(editTagTitle(scn.getName()))
             .show(scn::setTags);
@@ -1138,11 +1734,17 @@ public class ProjectTree implements ActionListener {
         protected JMenuItem addScenario;
         protected JMenuItem renameScenario;
         protected JMenuItem deleteScenario;
+        protected JMenuItem addGroup;
+        protected JMenuItem renameGroup;
+        protected JMenuItem deleteGroup;
+        protected JMenu moveToGroup;
         protected JMenuItem addTestCase;
         protected JMenuItem renameTestCase;
         protected JMenuItem deleteTestCase;
 
-        protected JMenuItem toggleReusable;
+        protected JMenuItem toggleTestCase;
+        protected JMenuItem toggleSharedReusable;
+        protected JMenuItem toggleProjectReusable;
 
         protected JMenuItem impactAnalysis;
 
@@ -1169,6 +1771,13 @@ public class ProjectTree implements ActionListener {
             add(renameScenario = create("Rename Scenario", Keystroke.RENAME));
             add(deleteScenario = create("Delete Scenario", Keystroke.DELETE));
             addSeparator();
+            add(addGroup = create("New Group", null));
+            add(renameGroup = create("Rename Group", null));
+            add(deleteGroup = create("Delete Group", null));
+            moveToGroup = new JMenu("Move to Group");
+            moveToGroup.setFont(new Font("ING Me", Font.PLAIN, 11));
+            add(moveToGroup);
+            addSeparator();
             add(addTestCase = create("Add TestCase", Keystroke.NEW));
             add(renameTestCase = create("Rename TestCase", Keystroke.RENAME));
             add(deleteTestCase = create("Delete TestCase", Keystroke.DELETE));
@@ -1178,8 +1787,15 @@ public class ProjectTree implements ActionListener {
             menu.setFont(UIManager.getFont("TableMenu.font"));
             menu.add(create("Manual Testcase", null));
             add(menu);
-            add(toggleReusable = create("Make As Reusable/TestCase", null));
-            toggleReusable.setText("Make As Reusable");
+            add(toggleTestCase = create("Make As TestCase", null));
+            toggleTestCase.setText("Make As TestCase");
+            toggleTestCase.setVisible(false);
+            add(toggleProjectReusable = create("Make As Project Reusable", null));
+            toggleProjectReusable.setText("Make As Project Reusable");
+            toggleProjectReusable.setVisible(true);
+            add(toggleSharedReusable = create("Make As Shared Reusable", null));
+            toggleSharedReusable.setText("Make As Shared Reusable");
+            toggleSharedReusable.setVisible(true);
             addSeparator();
             setCCP();
             addSeparator();
@@ -1204,7 +1820,9 @@ public class ProjectTree implements ActionListener {
             addScenario.setEnabled(false);
             renameTestCase.setEnabled(false);
             deleteTestCase.setEnabled(false);
-            toggleReusable.setEnabled(false);
+            toggleTestCase.setEnabled(false);
+            toggleSharedReusable.setEnabled(false);
+            toggleProjectReusable.setEnabled(false);
 
             impactAnalysis.setEnabled(false);
             getCmdSyntax.setEnabled(false);
@@ -1217,6 +1835,11 @@ public class ProjectTree implements ActionListener {
             paste.setFont(UIManager.getFont("TableMenu.font"));
 
             sort.setEnabled(true);
+            boolean grouped = isTestPlanGrouped();
+            setGroupItemsVisible(false, false, false, grouped);
+            if (grouped) {
+                buildMoveToGroupSubmenu(moveToGroup);
+            }
         }
 
         /**
@@ -1231,7 +1854,9 @@ public class ProjectTree implements ActionListener {
 
             renameTestCase.setEnabled(true);
             deleteTestCase.setEnabled(true);
-            toggleReusable.setEnabled(true);
+            toggleTestCase.setEnabled(true);
+            toggleSharedReusable.setEnabled(true);
+            toggleProjectReusable.setEnabled(true);
 
             impactAnalysis.setEnabled(true);
 
@@ -1245,6 +1870,7 @@ public class ProjectTree implements ActionListener {
             paste.setFont(UIManager.getFont("TableMenu.font"));
 
             sort.setEnabled(false);
+            setGroupItemsVisible(false, false, false, false);
         }
 
         /**
@@ -1259,7 +1885,9 @@ public class ProjectTree implements ActionListener {
             addTestCase.setEnabled(false);
             renameTestCase.setEnabled(false);
             deleteTestCase.setEnabled(false);
-            toggleReusable.setEnabled(false);
+            toggleTestCase.setEnabled(false);
+            toggleSharedReusable.setEnabled(false);
+            toggleProjectReusable.setEnabled(false);
 
             impactAnalysis.setEnabled(false);
             getCmdSyntax.setEnabled(false);
@@ -1272,6 +1900,159 @@ public class ProjectTree implements ActionListener {
             paste.setFont(UIManager.getFont("TableMenu.font"));
 
             sort.setEnabled(true);
+            setGroupItemsVisible(true, false, false, false);
+        }
+
+        /**
+         * Configures menu items for a scenario group context (Test Plan tree only).
+         */
+        protected void forGroup() {
+            TestPlanGroupNode group = getSelectedTestPlanGroupNode();
+            boolean named = group != null && !group.isUngrouped();
+
+            addScenario.setEnabled(true);
+            renameScenario.setEnabled(false);
+            deleteScenario.setEnabled(false);
+            addTestCase.setEnabled(false);
+            renameTestCase.setEnabled(false);
+            deleteTestCase.setEnabled(false);
+            toggleTestCase.setEnabled(false);
+            toggleSharedReusable.setEnabled(false);
+            toggleProjectReusable.setEnabled(false);
+
+            impactAnalysis.setEnabled(false);
+            getCmdSyntax.setEnabled(false);
+
+            copy.setEnabled(false);
+            copy.setFont(UIManager.getFont("TableMenu.font"));
+            cut.setEnabled(false);
+            cut.setFont(UIManager.getFont("TableMenu.font"));
+            paste.setEnabled(true);
+            paste.setFont(UIManager.getFont("TableMenu.font"));
+
+            sort.setEnabled(true);
+            setGroupItemsVisible(false, true, named, false);
+        }
+
+        /**
+         * Controls visibility of the grouping menu items.
+         * @param addG   show "New Group"
+         * @param rename show "Rename Group"
+         * @param delete show "Delete Group"
+         * @param move   show "Move to Group" submenu
+         */
+        protected void setGroupItemsVisible(
+            boolean addG,
+            boolean rename,
+            boolean delete,
+            boolean move
+        ) {
+            addGroup.setVisible(addG);
+            renameGroup.setVisible(rename);
+            deleteGroup.setVisible(delete);
+            moveToGroup.setVisible(move);
+
+            // Clean up orphaned separators after visibility changes
+            cleanupOrphanedSeparators();
+        }
+
+        /**
+         * Hides separators that are orphaned or duplicate.
+         * A separator is hidden if:
+         * 1. It's between two groups where one or both have no visible items, AND
+         * 2. There's another separator adjacent to it with only hidden items between them (consecutive duplicate).
+         *
+         * This ensures that when a group of items (like group actions) is completely hidden,
+         * we don't get multiple consecutive separators, but keep exactly one separator between
+         * the surrounding visible item groups.
+         *
+         * Since the menu is reused, separators are hidden rather than removed to allow proper restoration.
+         */
+        private void cleanupOrphanedSeparators() {
+            java.util.List<Integer> separatorIndices = new java.util.ArrayList<>();
+
+            // Find all separator indices
+            for (int i = 0; i < getComponentCount(); i++) {
+                java.awt.Component comp = getComponent(i);
+                if (comp instanceof javax.swing.JSeparator) {
+                    separatorIndices.add(i);
+                }
+            }
+
+            // For each separator, determine if it should be hidden
+            for (int sepIdx : separatorIndices) {
+                boolean hasVisibleBefore = false;
+                boolean hasVisibleAfter = false;
+
+                // Find the nearest visible item before this separator
+                // (stop at the previous separator, don't look across separator boundaries)
+                for (int i = sepIdx - 1; i >= 0; i--) {
+                    java.awt.Component comp = getComponent(i);
+                    if (comp != null && comp instanceof javax.swing.JSeparator) {
+                        // Hit another separator, stop looking
+                        break;
+                    }
+                    if (comp != null && comp.isVisible()) {
+                        hasVisibleBefore = true;
+                        break;
+                    }
+                }
+
+                // Find the nearest visible item after this separator
+                // (stop at the next separator, don't look across separator boundaries)
+                for (int i = sepIdx + 1; i < getComponentCount(); i++) {
+                    java.awt.Component comp = getComponent(i);
+                    if (comp != null && comp instanceof javax.swing.JSeparator) {
+                        // Hit another separator, stop looking
+                        break;
+                    }
+                    if (comp != null && comp.isVisible()) {
+                        hasVisibleAfter = true;
+                        break;
+                    }
+                }
+
+                java.awt.Component separator = getComponent(sepIdx);
+                if (separator == null) {
+                    continue;
+                }
+
+                // If one or both sides have no visible items (orphaned separator)
+                if (!hasVisibleBefore || !hasVisibleAfter) {
+                    // Check if this is a duplicate separator (has another orphaned separator adjacent)
+                    // Only keep the first one, hide subsequent duplicates
+                    boolean isDuplicate = false;
+
+                    // Check if there's another orphaned separator before this one
+                    for (int idx : separatorIndices) {
+                        if (idx >= sepIdx) {
+                            break; // Only check separators before this one
+                        }
+                        // Check if that separator is also orphaned
+                        boolean thatHasVisibleAfter = false;
+                        for (int i = idx + 1; i < getComponentCount(); i++) {
+                            java.awt.Component comp = getComponent(i);
+                            if (comp != null && comp instanceof javax.swing.JSeparator) {
+                                break;
+                            }
+                            if (comp != null && comp.isVisible()) {
+                                thatHasVisibleAfter = true;
+                                break;
+                            }
+                        }
+                        if (!thatHasVisibleAfter) {
+                            // Previous separator is also orphaned with nothing after it
+                            isDuplicate = true;
+                            break;
+                        }
+                    }
+
+                    separator.setVisible(!isDuplicate);
+                } else {
+                    // Keep separator if it has visible items on both sides
+                    separator.setVisible(true);
+                }
+            }
         }
 
         /**

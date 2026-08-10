@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class ReusableTreeModel extends ProjectTreeModel {
     private static final Logger LOGGER = Logger.getLogger(ReusableTreeModel.class.getName());
-    private static final String DEFAULT_GROUP = "Reusable Components";
+    private static final String DEFAULT_GROUP = "Project Reusable Components";
 
     Project project;
 
@@ -59,6 +59,9 @@ public class ReusableTreeModel extends ProjectTreeModel {
 
     @Override
     public TestCaseNode addTestCase(TestCase testCase) {
+        if (testCase == null || testCase.getScenario() == null) {
+            return null;
+        }
         GroupNode groupNode;
         if (getRoot().getChildCount() > 0) {
             for (GroupNode group : GroupNode.toList(getRoot().children())) {

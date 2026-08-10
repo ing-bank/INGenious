@@ -121,7 +121,7 @@ public class EnvTestData {
             String key = entry.getKey();
             TestData sTestData = entry.getValue();
             if (!key.equals(envName)) {
-                if (sTestData.getByName(model.getName()) == null) {
+                if (sTestData.getByNameIgnoreCase(model.getName()) == null) {
                     TestDataModel newModel = sTestData.addTestData(
                         sTestData.getNewTestData(model.getName())
                     );
@@ -140,7 +140,7 @@ public class EnvTestData {
             String key = entry.getKey();
             TestData sTestData = entry.getValue();
             if (!key.equals(envName)) {
-                TestDataModel tdModel = sTestData.getByName(model.getName());
+                TestDataModel tdModel = sTestData.getByNameIgnoreCase(model.getName());
                 if (tdModel != null) {
                     for (String column : columns) {
                         tdModel.addColumn(column);
@@ -155,7 +155,7 @@ public class EnvTestData {
             String key = entry.getKey();
             TestData sTestData = entry.getValue();
             if (!key.equals(envName)) {
-                TestDataModel tdModel = sTestData.getByName(model.getName());
+                TestDataModel tdModel = sTestData.getByNameIgnoreCase(model.getName());
                 if (tdModel != null) {
                     for (int row : rows) {
                         tdModel.addRecord();
@@ -171,6 +171,8 @@ public class EnvTestData {
 
     private void loadForEnv(String env) {
         TestData stestData = TestDataFactory.get(sProject.getTestdataType(), sProject, env);
+        // Propagate read-only mode to prevent datasheet migrations during validation
+        stestData.setReadOnlyMode(sProject.isReadOnlyMode());
         stestData.load();
         environmentTestData.put(env, stestData);
     }
@@ -212,6 +214,19 @@ public class EnvTestData {
         }
         environmentProperties.put("Environment", getEnvironmentsAsString());
         saveProperties(environmentProperties, getPropertiesLocation());
+
+        // Track shared reusables used in test data
+        try {
+            updateSharedReusableProjectsItemsFromTestData(sProject, this);
+        } catch (Exception ex) {
+            Logger
+                .getLogger(EnvTestData.class.getName())
+                .log(
+                    Level.WARNING,
+                    "Failed to update shared reusable projects items from test data",
+                    ex
+                );
+        }
     }
 
     private static void saveProperties(Properties prop, String filename) {
@@ -246,8 +261,8 @@ public class EnvTestData {
 
     public TestDataModel getTestDataByName(String sheetName) {
         for (TestData sTestData : getAllEnvironments()) {
-            if (sTestData.getByName(sheetName) != null) {
-                return sTestData.getByName(sheetName);
+            if (sTestData.getByNameIgnoreCase(sheetName) != null) {
+                return sTestData.getByNameIgnoreCase(sheetName);
             }
         }
         return null;
@@ -279,17 +294,119 @@ public class EnvTestData {
         }
     }
 
-    public Boolean renameTestData(String oldName, String newName) {
+    /**
+     * Updates the Scope of the test data entry for a scenario+testcase across all environments, as
+     * part of an explicit test case conversion between Test Plan / Project Reusables / Shared Reusables.
+     */
+    public void updateScope(
+        String scenarioName,
+        String testCaseName,
+        String oldScope,
+        String newScope
+    ) {
         for (TestData testData : getAllEnvironments()) {
-            if (testData.getByName(newName) != null) {
-                return false;
+            testData.updateScope(scenarioName, testCaseName, oldScope, newScope);
+        }
+    }
+
+    /**
+     * Find all environments that contain a datasheet with the given name.
+     *
+     * @param datasheetName the name of the datasheet to search for
+     * @return list of environment names where the datasheet exists
+     */
+    public List<String> findEnvironmentsWithDatasheet(String datasheetName) {
+        List<String> environments = new ArrayList<>();
+        for (Map.Entry<String, TestData> entry : environmentTestData.entrySet()) {
+            TestData testData = entry.getValue();
+            if (testData.getByNameIgnoreCase(datasheetName) != null) {
+                environments.add(entry.getKey());
             }
         }
+        return environments;
+    }
+
+    /**
+     * Find environments other than the current one that contain a datasheet with the given name.
+     *
+     * @param datasheetName the name of the datasheet to search for
+     * @param currentEnv the current environment to exclude from search
+     * @return list of environment names (excluding currentEnv) where the datasheet exists
+     */
+    public List<String> findOtherEnvironmentsWithDatasheet(
+        String datasheetName,
+        String currentEnv
+    ) {
+        List<String> environments = new ArrayList<>();
+        for (Map.Entry<String, TestData> entry : environmentTestData.entrySet()) {
+            String envName = entry.getKey();
+            TestData testData = entry.getValue();
+            if (
+                !envName.equals(currentEnv) && testData.getByNameIgnoreCase(datasheetName) != null
+            ) {
+                environments.add(envName);
+            }
+        }
+        return environments;
+    }
+
+    /**
+     * Rename a datasheet in a single environment only.
+     *
+     * @param oldName current datasheet name
+     * @param newName new datasheet name
+     * @param envName environment where rename should occur
+     * @return true if rename was successful, false if newName already exists
+     */
+    public Boolean renameTestData(String oldName, String newName, String envName) {
+        TestData ntestData = sProject.getTestData().getTestDataFor(envName);
+        TestDataModel existingByNewName = ntestData.getByNameIgnoreCase(newName);
+        if (existingByNewName != null && !existingByNewName.getName().equals(oldName)) {
+            return false;
+        }
+
         for (TestData testData : getAllEnvironments()) {
-            if (testData.getByName(oldName) != null) {
+            if (testData.getByName(oldName) != null && testData.getEnviroment().equals(envName)) {
                 testData.getByName(oldName).rename(newName);
             }
         }
+        sProject.refactorTestData(oldName, newName);
+        return true;
+    }
+
+    /**
+     * Rename a datasheet across multiple specified environments.
+     *
+     * @param oldName current datasheet name
+     * @param newName new datasheet name
+     * @param environments list of environment names where rename should occur
+     * @return true if rename was successful across all environments, false if newName already exists in any
+     */
+    public Boolean renameTestDataAcrossEnvironments(
+        String oldName,
+        String newName,
+        List<String> environments
+    ) {
+        // First check if newName already exists in any of the target environments
+        for (String envName : environments) {
+            TestData testData = getTestDataFor(envName);
+            TestDataModel existingByNewName = testData == null
+                ? null
+                : testData.getByNameIgnoreCase(newName);
+            if (existingByNewName != null && !existingByNewName.getName().equals(oldName)) {
+                return false;
+            }
+        }
+
+        // Perform the rename in all specified environments
+        for (String envName : environments) {
+            TestData testData = getTestDataFor(envName);
+            if (testData != null && testData.getByName(oldName) != null) {
+                testData.getByName(oldName).rename(newName);
+            }
+        }
+
+        // Refactor references in test cases
         sProject.refactorTestData(oldName, newName);
         return true;
     }
@@ -319,5 +436,38 @@ public class EnvTestData {
         }
         sProject.refactorTestDataColumn(tdName, oldColName, newColName);
         return true;
+    }
+
+    /**
+     * Scans test data for shared reusable scenario references and updates projects.items file.
+     * Collects scenario names from all test data records and checks if they are shared reusables.
+     */
+    private static void updateSharedReusableProjectsItemsFromTestData(
+        Project project,
+        EnvTestData envTestData
+    ) {
+        Set<String> sharedReusableNames = new java.util.HashSet<>();
+
+        // Scan all test data environments and records for scenario names
+        for (TestData testData : envTestData.getAllEnvironments()) {
+            for (TestDataModel model : testData.getTestDataList()) {
+                // Get all records from the model
+                for (com.ing.datalib.testdata.model.Record record : model.getRecords()) {
+                    String scenarioName = record.getScenario();
+                    // Check if this scenario exists and is a shared reusable
+                    if (scenarioName != null && !scenarioName.trim().isEmpty()) {
+                        Scenario scenario = project.getScenarioByName(scenarioName);
+                        if (scenario != null && scenario.isSharedReusableScenario()) {
+                            sharedReusableNames.add(scenarioName);
+                        }
+                    }
+                }
+            }
+        }
+
+        // If shared reusables found in test data, update projects.items
+        if (!sharedReusableNames.isEmpty()) {
+            TestCase.updateSharedReusableProjectsItems(project, sharedReusableNames);
+        }
     }
 }

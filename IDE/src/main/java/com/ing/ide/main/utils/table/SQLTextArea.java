@@ -8,7 +8,6 @@ import com.ing.ide.util.WindowMover;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -81,6 +80,16 @@ public class SQLTextArea extends javax.swing.JDialog {
         setLocationRelativeTo(parent);
         initCloseListener();
         setVisible(true);
+    }
+
+    private String linearizeCode() {
+        String text = jTextArea1.getText();
+        if (text == null || text.trim().isEmpty()) {
+            return text;
+        }
+        // Collapse all whitespace (newlines, tabs, multiple spaces) into single spaces
+        String linearized = text.replaceAll("\\s+", " ").trim();
+        return linearized;
     }
 
     private void addToolbar() {
@@ -190,11 +199,17 @@ public class SQLTextArea extends javax.swing.JDialog {
     }
 
     private void closeAndSave() {
-        Optional
-            .ofNullable(jTextArea1.getText())
-            .filter(val -> !val.trim().isEmpty())
-            .map(val -> val.startsWith("@") ? val : "@" + val)
-            .ifPresent(currentStep::setInput);
+        String text = jTextArea1.getText();
+        if (text != null && !text.trim().isEmpty()) {
+            // Linearize first
+            text = linearizeCode();
+            // Add @ prefix if not present
+            if (!text.startsWith("@")) {
+                text = "@" + text;
+            }
+            jTextArea1.setText(text);
+            currentStep.setInput(text);
+        }
         dispose();
     }
 
@@ -228,8 +243,9 @@ public class SQLTextArea extends javax.swing.JDialog {
 
                     @Override
                     public void actionPerformed(ActionEvent e) {
+                        String linearized = linearizeCode();
                         Optional
-                            .ofNullable(jTextArea1.getText())
+                            .ofNullable(linearized)
                             .filter(val -> !val.trim().isEmpty())
                             .map(val -> val.startsWith("@") ? val : "@" + val)
                             .ifPresent(currentStep::setInput);

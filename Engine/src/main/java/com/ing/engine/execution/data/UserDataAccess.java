@@ -117,11 +117,12 @@ public abstract class UserDataAccess implements UserDataAccessApi {
     public TestDataView getTestData(String sheetName) {
         return DataAccess
             .getTestData(context(), sheetName)
-            .withSubIter(
+            .withSubIterAndScope(
                 context().scenario(),
                 context().testcase(),
                 context().iteration(),
-                context().subIteration()
+                context().subIteration(),
+                DataAccessInternal.getScopeFilter(context())
             );
     }
 }

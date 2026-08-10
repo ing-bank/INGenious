@@ -89,13 +89,26 @@ public class DataAccess extends DataAccessInternal {
         throws DataNotFoundException {
         String nextSubIteration = (Integer.parseInt(subIter) + 1) + "";
         String val = null;
+
+        // The root is normally the Test Plan entry (empty scope), but when a reusable is run
+        // standalone (no parent Execute step) it IS its own root, so it must be filtered by
+        // its own resolved scope, not an assumed-empty one - otherwise Param Loop end-of-data
+        // detection could match a same-named row from the other reusable scope.
+        boolean isQueryingRoot =
+            scn.equals(context.getRoot().scenario()) && tc.equals(context.getRoot().testcase());
+        String scopeFilter = isQueryingRoot
+            ? getScopeFilter(context.getRoot())
+            : getScopeFilter(context);
+
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
         if (validEnv(context)) {
             env = getModel(context, sheet);
-            val = getDataFromModel(env, field, scn, tc, iter, nextSubIteration);
+            val =
+                getDataFromModelWithScope(env, field, scn, tc, iter, nextSubIteration, scopeFilter);
         } else {
-            val = getDataFromModel(def, field, scn, tc, iter, nextSubIteration);
+            val =
+                getDataFromModelWithScope(def, field, scn, tc, iter, nextSubIteration, scopeFilter);
         }
         return val;
     }
@@ -172,12 +185,13 @@ public class DataAccess extends DataAccessInternal {
         Object val = null;
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
+        String scope = getScopeFilter(context, scn, tc);
         if (validEnv(context)) {
             env = getModel(context, sheet);
-            val = getDataFromModel(env, field, scn, tc, iter, subIter);
+            val = getDataFromModelWithScope(env, field, scn, tc, iter, subIter, scope);
         }
         if (val == null) {
-            val = getDataFromModel(def, field, scn, tc, iter, subIter);
+            val = getDataFromModelWithScope(def, field, scn, tc, iter, subIter, scope);
         }
         if (val == null) {
             throwErrorWithCause(context, sheet, field, subIter);
@@ -217,12 +231,22 @@ public class DataAccess extends DataAccessInternal {
         throws DataNotFoundException {
         boolean updated = false;
         TestDataModel def = getDefModel(context, sheet);
+        String scope = getScopeFilter(context, scn, tc);
         if (validEnv(context)) {
             updated =
-                putDataToModel(getModel(context, sheet), field, newVal, scn, tc, iter, subIter);
+                putDataToModel(
+                    getModel(context, sheet),
+                    field,
+                    newVal,
+                    scn,
+                    tc,
+                    iter,
+                    subIter,
+                    scope
+                );
         }
         if (!updated) {
-            updated = putDataToModel(def, field, newVal, scn, tc, iter, subIter);
+            updated = putDataToModel(def, field, newVal, scn, tc, iter, subIter, scope);
         }
         if (!updated) {
             throwErrorWithCause(context, sheet, field, subIter);
@@ -324,44 +348,58 @@ public class DataAccess extends DataAccessInternal {
         String iter,
         String subIter
     ) {
+        String scopeFilter = getScopeFilter(context);
+        // The "root" test case is normally the Test Plan entry (always empty scope), but
+        // when a reusable is executed standalone (no parent Execute step) it IS its own
+        // root, so the root lookup must honor its resolved scope too - otherwise it would
+        // match a same-named row from the other reusable scope before scope filtering
+        // ever gets a chance to apply below.
+        String rootScopeFilter = getScopeFilter(context.getRoot());
+
         if (notNull(env) && env.hasColumn(field)) {
-            Object val = getDataFromModel(
+            // Try root test case first
+            Object val = getDataFromModelWithScope(
                 env,
                 field,
                 context.getRoot().scenario(),
                 context.getRoot().testcase(),
                 iter,
-                subIter
+                subIter,
+                rootScopeFilter
             );
             if (val == null) {
                 val =
-                    getDataFromModel(
+                    getDataFromModelWithScope(
                         def,
                         field,
                         context.getRoot().scenario(),
                         context.getRoot().testcase(),
                         iter,
-                        subIter
+                        subIter,
+                        rootScopeFilter
                     );
                 if (val == null) {
+                    // Try reusable data with scope filtering
                     val =
-                        getDataFromModel(
+                        getDataFromModelWithScope(
                             env,
                             field,
                             context.scenario(),
                             context.testcase(),
                             iter,
-                            subIter
+                            subIter,
+                            scopeFilter
                         );
                     if (val == null) {
                         val =
-                            getDataFromModel(
+                            getDataFromModelWithScope(
                                 def,
                                 field,
                                 context.scenario(),
                                 context.testcase(),
                                 iter,
-                                subIter
+                                subIter,
+                                scopeFilter
                             );
                     }
                 }
@@ -403,7 +441,8 @@ public class DataAccess extends DataAccessInternal {
                     context.getRoot().scenario(),
                     context.getRoot().testcase(),
                     iter,
-                    subIter
+                    subIter,
+                    getScopeFilter(context.getRoot())
                 ) ||
                 putDataToModel(
                     env,
@@ -413,7 +452,8 @@ public class DataAccess extends DataAccessInternal {
                     context.scenario(),
                     context.testcase(),
                     iter,
-                    subIter
+                    subIter,
+                    getScopeFilter(context)
                 )
             );
         } else {
@@ -438,17 +478,32 @@ public class DataAccess extends DataAccessInternal {
         String iter,
         String subIter
     ) {
+        String scopeFilter = getScopeFilter(context);
+        String rootScopeFilter = getScopeFilter(context.getRoot());
+
         if (notNull(def) && def.hasColumn(field)) {
-            return Objects.toString(
-                getDataFromModel(
-                    def,
-                    field,
-                    context.getRoot().scenario(),
-                    context.getRoot().testcase(),
-                    iter,
-                    subIter
-                ),
-                getDataFromModel(def, field, context.scenario(), context.testcase(), iter, subIter)
+            // Try root test case first
+            Object rootVal = getDataFromModelWithScope(
+                def,
+                field,
+                context.getRoot().scenario(),
+                context.getRoot().testcase(),
+                iter,
+                subIter,
+                rootScopeFilter
+            );
+            if (rootVal != null) {
+                return rootVal;
+            }
+            // Try reusable data with scope filtering
+            return getDataFromModelWithScope(
+                def,
+                field,
+                context.scenario(),
+                context.testcase(),
+                iter,
+                subIter,
+                scopeFilter
             );
         }
         return null;
@@ -474,44 +529,53 @@ public class DataAccess extends DataAccessInternal {
         String iter,
         String subIter
     ) {
+        String scopeFilter = getScopeFilter(context);
+        String rootScopeFilter = getScopeFilter(context.getRoot());
+
         if (notNull(env) && env.hasColumn(field)) {
-            Object val = getDataFromModel(
+            // Try root test case first
+            Object val = getDataFromModelWithScope(
                 env,
                 field,
                 context.getRoot().scenario(),
                 context.getRoot().testcase(),
                 iter,
-                subIter
+                subIter,
+                rootScopeFilter
             );
             if (val == null) {
                 val =
-                    getDataFromModel(
+                    getDataFromModelWithScope(
                         def,
                         field,
                         context.getRoot().scenario(),
                         context.getRoot().testcase(),
                         iter,
-                        subIter
+                        subIter,
+                        rootScopeFilter
                     );
                 if (val == null) {
+                    // Try reusable data with scope filtering
                     val =
-                        getDataFromModel(
+                        getDataFromModelWithScope(
                             env,
                             field,
                             context.scenario(),
                             context.testcase(),
                             iter,
-                            subIter
+                            subIter,
+                            scopeFilter
                         );
                     if (val == null) {
                         val =
-                            getDataFromModel(
+                            getDataFromModelWithScope(
                                 def,
                                 field,
                                 context.scenario(),
                                 context.testcase(),
                                 iter,
-                                subIter
+                                subIter,
+                                scopeFilter
                             );
                     }
                 }
@@ -539,14 +603,18 @@ public class DataAccess extends DataAccessInternal {
         String iter,
         String subIter
     ) {
+        String scopeFilter = getScopeFilter(context);
+
         if (notNull(def) && def.hasColumn(field)) {
-            return getDataFromModel(
+            // Use scope-aware filtering for reusable data
+            return getDataFromModelWithScope(
                 def,
                 field,
                 context.scenario(),
                 context.testcase(),
                 iter,
-                subIter
+                subIter,
+                scopeFilter
             );
         }
         return null;
@@ -580,7 +648,8 @@ public class DataAccess extends DataAccessInternal {
                 context.getRoot().scenario(),
                 context.getRoot().testcase(),
                 iter,
-                subIter
+                subIter,
+                getScopeFilter(context.getRoot())
             ) ||
             putDataToModel(
                 model,
@@ -589,7 +658,8 @@ public class DataAccess extends DataAccessInternal {
                 context.scenario(),
                 context.testcase(),
                 iter,
-                subIter
+                subIter,
+                getScopeFilter(context)
             )
         );
     }

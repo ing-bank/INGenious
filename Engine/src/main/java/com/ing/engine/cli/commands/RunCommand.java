@@ -7,8 +7,6 @@ import java.io.File;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.*;
-import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
@@ -21,8 +19,8 @@ import picocli.CommandLine.ParentCommand;
  *
  * <p>The simplest form auto-detects the executable type:
  * <pre>
- *   ingenious run &lt;Project&gt;/&lt;Scenario&gt;/&lt;TestCase&gt;   # runs a test case
- *   ingenious run &lt;Project&gt;/&lt;Release&gt;/&lt;TestSet&gt;     # runs a test set
+ *   ingenious run <Project>/<Scenario>/<TestCase>   # runs a test case
+ *   ingenious run <Project>/<Release>/<TestSet>     # runs a test set
  * </pre>
  *
  * <p>The {@code testcase / testset / tags / rerun} sub-subcommands remain
@@ -30,6 +28,7 @@ import picocli.CommandLine.ParentCommand;
  */
 @Command(
     name = "run",
+    mixinStandardHelpOptions = true,
     description = "Execute tests (auto-detects test case vs test set from <Project>/<X>/<Y>)",
     subcommands = {
         RunCommand.TestCaseRunCommand.class,
@@ -96,22 +95,7 @@ public class RunCommand implements Callable<Integer> {
         INGeniousCLI cli = INGeniousCLI.getInstance();
 
         if (autoPath == null || autoPath.isEmpty()) {
-            com.ing.engine.cli.output.Style s = cli.style();
-            cli.printHeader("Usage");
-            System.out.println(
-                "  " +
-                s.cyan(com.ing.engine.cli.output.Style.ICON_ARROW) +
-                " ingenious run " +
-                s.bold("<Project>/<Scenario>/<TestCase>")
-            );
-            System.out.println(
-                "  " +
-                s.cyan(com.ing.engine.cli.output.Style.ICON_ARROW) +
-                " ingenious run " +
-                s.bold("<Project>/<Release>/<TestSet>")
-            );
-            System.out.println();
-            System.out.println("  " + s.dim("For advanced options, see 'ingenious run --help'"));
+            System.out.println("See 'ingenious run --help' for usage.");
             return 0;
         }
 
@@ -380,7 +364,11 @@ public class RunCommand implements Callable<Integer> {
     /**
      * Run a specific test case.
      */
-    @Command(name = "testcase", description = "Run a specific test case")
+    @Command(
+        name = "testcase",
+        mixinStandardHelpOptions = true,
+        description = "Run a specific test case"
+    )
     public static class TestCaseRunCommand implements Callable<Integer> {
         @ParentCommand
         private RunCommand parent;
@@ -516,7 +504,7 @@ public class RunCommand implements Callable<Integer> {
     /**
      * Run a test set (release/test set combination).
      */
-    @Command(name = "testset", description = "Run a test set")
+    @Command(name = "testset", mixinStandardHelpOptions = true, description = "Run a test set")
     public static class TestSetRunCommand implements Callable<Integer> {
         @ParentCommand
         private RunCommand parent;
@@ -614,7 +602,11 @@ public class RunCommand implements Callable<Integer> {
     /**
      * Run tests by tags.
      */
-    @Command(name = "tags", description = "Run tests matching tags")
+    @Command(
+        name = "tags",
+        mixinStandardHelpOptions = true,
+        description = "Run tests matching tags"
+    )
     public static class TagsRunCommand implements Callable<Integer> {
         @ParentCommand
         private RunCommand parent;
@@ -702,6 +694,7 @@ public class RunCommand implements Callable<Integer> {
      */
     @Command(
         name = "rerun",
+        mixinStandardHelpOptions = true,
         description = "Rerun only the failed test cases from the last execution"
     )
     public static class RerunCommand implements Callable<Integer> {

@@ -93,7 +93,7 @@ public class ReferenceRenderer extends AbstractRenderer {
                 } else {
                     setEmpty(comp);
                 }
-            } else if (step.isPageObjectStep()) {
+            } else if (step.isPageObjectStep() && !step.isReusableStep()) {
                 if (isObjectPresent(step)) setDefault(comp); else setNotPresent(
                     comp,
                     objNotPresent
@@ -101,11 +101,24 @@ public class ReferenceRenderer extends AbstractRenderer {
             } else {
                 setDefault(comp);
             }
+
+            if (step.isReusableStep()) {
+                applyReusableScopeColor(comp, step.getReference());
+            }
         } else {
             setDefault(comp);
             Color c = UIManager.getColor("ing.commentedForeground");
             comp.setForeground(c != null ? c : Color.lightGray);
             comp.setFont(new Font("Default", Font.ITALIC, 11));
+        }
+    }
+
+    private void applyReusableScopeColor(JComponent comp, String reference) {
+        String ref = reference == null ? "" : reference.trim();
+        if (ref.startsWith("[Shared]")) {
+            comp.setForeground(new Color(0, 128, 0));
+        } else if (ref.startsWith("[Project]")) {
+            comp.setForeground(Color.BLACK);
         }
     }
 

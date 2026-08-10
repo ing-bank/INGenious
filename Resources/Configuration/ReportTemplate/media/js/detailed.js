@@ -513,7 +513,7 @@ function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '', keyP
         return (name || '').toLowerCase().includes(filter) || (description || '').toLowerCase().includes(filter);
     }
     
-    function renderStep(step, keyPath) {
+    function renderStep(step, keyPath, reusableContext) {
         const data = step.data || {};
         const status = (data.status || '').toLowerCase();
         if (showFailedOnly && status !== 'fail') return '';
@@ -627,11 +627,14 @@ function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '', keyP
             detailsHtml += `</div>`;
         }
         if (isTestAccessibilityStep(step)){
+            // Determine which name to use for the aXe report path:
+            // If inside a reusable, use the reusable name; otherwise use the test case name
+            const contextName = reusableContext || Params.TC;
             detailsHtml += `<div class="flex gap-3 flex-wrap mt-4">
-                <button @click="openAxeReportModal('${Params.TC}', getReusableAxeReportPath('${Params.TC}'))"
-                    :disabled="!getReusableAxeReportPath('${Params.TC}')"
+                <button @click="openAxeReportModal('${contextName}', getReusableAxeReportPath('${contextName}'))"
+                    :disabled="!getReusableAxeReportPath('${contextName}')"
                     class="btn btn--secondary btn--sm"
-                    :style="getReusableAxeReportPath('${Params.TC}') ? {
+                    :style="getReusableAxeReportPath('${contextName}') ? {
                         'background-color': '#7724FF',
                         'color': '#FFFFFF',
                         'border-color': 'rgba(119, 36, 255, 0.5)',
@@ -655,9 +658,16 @@ function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '', keyP
     function renderReusable(reusable, keyPath) {
         const status = (reusable.status || '').toLowerCase();
         const statusIcon = status === 'pass' ? '<svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' : '<svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
+        
+        // Extract the reusable name from the full path (e.g., "Scenario:ReusableName" -> "ReusableName")
+        const reusableName = (reusable.name || '').includes(':') 
+            ? reusable.name.split(':')[1].trim() 
+            : reusable.name;
+        
         let html = `<div class="reusable-component rounded-lg overflow-visible ${status === 'pass' ? 'reusable-header--passed' : 'reusable-header--failed'}" data-key="${keyPath}"><div class="flex items-center gap-3 p-4 cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" onclick="toggleReusableV2('${keyPath}')"><div class="flex items-center justify-center flex-shrink-0">${statusIcon}</div><div class="flex-1"><div class="font-semibold text-gray-800 dark:text-gray-200">${escapeHtml(reusable.name)}</div>${reusable.description ? `<div class="text-sm text-gray-600 dark:text-gray-400">${escapeHtml(reusable.description)}</div>` : ''}</div><div class="flex items-center gap-2"><span class="badge text-xs badge--${status}">${escapeHtml(reusable.status || '')}</span><svg class="w-5 h-5 text-gray-400 transition-transform duration-200 reusable-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div></div><div class="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-900" style="display: none;" data-reusable-body="${keyPath}"><div class="step-timeline">`;
         (reusable.data || []).forEach((child, idx) => {
-            if (child.type === 'step') html += renderStep(child, keyPath + '-' + idx);
+            // Pass the reusable name as context to child steps so they can find the correct aXe report
+            if (child.type === 'step') html += renderStep(child, keyPath + '-' + idx, reusableName);
             else if (child.type === 'reusable') html += renderReusable(child, keyPath + '-' + idx);
         });
         return html + '</div></div></div>';
@@ -665,10 +675,19 @@ function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '', keyP
     
     let html = '';
     (iterations || []).forEach((item, idx) => {
-        const keyPath = keyPrefix === '' ? ('' + idx) : (keyPrefix + '-' + idx);
-        if (item.type === 'step') html += renderStep(item, keyPath);
-        else if (item.type === 'reusable') html += renderReusable(item, keyPath);
+        // Include the iteration-specific prefix so every rendered element
+        // has a unique key across all iterations.
+        const keyPath = keyPrefix
+            ? keyPrefix + '-' + idx
+            : String(idx);
+
+        if (item.type === 'step') {
+            html += renderStep(item, keyPath, null);
+        } else if (item.type === 'reusable') {
+            html += renderReusable(item, keyPath);
+        }
     });
+
     return html;
 }
 

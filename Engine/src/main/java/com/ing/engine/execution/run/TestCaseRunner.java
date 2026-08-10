@@ -1,6 +1,7 @@
 package com.ing.engine.execution.run;
 
 import com.ing.datalib.component.Project;
+import com.ing.datalib.component.ReusableRef;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.testdata.model.TestDataModel;
@@ -61,6 +62,11 @@ public class TestCaseRunner {
     private boolean breakSubIterationFlag = false;
     private volatile int currentStepIndex = -1;
     private volatile boolean stopAfterCurrentStep = false;
+
+    // Scope metadata for reusable resolution context
+    private ReusableRef.Scope resolvedReusableScope = null; // PROJECT, SHARED, or null if not reusable
+
+    private boolean suppressDebugForReusableStepOver;
 
     //<editor-fold defaultstate="collapsed" desc="_init_">
     public TestCaseRunner(ProjectRunner exe, String scenario, String testCase) {
@@ -202,6 +208,17 @@ public class TestCaseRunner {
         return context != null;
     }
 
+    public void setSuppressDebugForReusableStepOver(boolean suppress) {
+        this.suppressDebugForReusableStepOver = suppress;
+    }
+
+    public boolean isDebugSuppressedForReusableStepOver() {
+        return (
+            suppressDebugForReusableStepOver ||
+            (context != null && context.isDebugSuppressedForReusableStepOver())
+        );
+    }
+
     public TestCase getTestCase() {
         return testCase;
     }
@@ -222,6 +239,44 @@ public class TestCaseRunner {
      */
     public void requestStopAfterCurrentStep() {
         this.stopAfterCurrentStep = true;
+    }
+
+    /**
+     * Sets the scope of the resolved reusable component for this execution context.
+     * Used by resolver to track which scope (PROJECT/SHARED) the reusable was found in.
+     *
+     * @param scope the resolved scope (PROJECT, SHARED, or null if not a reusable)
+     */
+    public void setResolvedReusableScope(ReusableRef.Scope scope) {
+        this.resolvedReusableScope = scope;
+    }
+
+    /**
+     * Gets the scope of the resolved reusable component for this execution context.
+     * Used by test-data and validators to make scope-aware decisions.
+     *
+     * @return the resolved scope (PROJECT, SHARED, or null if not a reusable)
+     */
+    public ReusableRef.Scope getResolvedReusableScope() {
+        return resolvedReusableScope;
+    }
+
+    /**
+     * Checks if this execution context is for a shared reusable component.
+     *
+     * @return true if resolved scope is SHARED, false otherwise
+     */
+    public boolean isSharedReusable() {
+        return resolvedReusableScope == ReusableRef.Scope.SHARED;
+    }
+
+    /**
+     * Checks if this execution context is for a project reusable component.
+     *
+     * @return true if resolved scope is PROJECT, false otherwise
+     */
+    public boolean isProjectReusable() {
+        return resolvedReusableScope == ReusableRef.Scope.PROJECT;
     }
 
     //</editor-fold>
@@ -474,6 +529,7 @@ public class TestCaseRunner {
             TestCase parentTestCase = testCase.getParentTestCase();
             for (int currStep = 0; canRunStep(currStep); currStep++) {
                 TestStep testStep = testCase.getTestSteps().get(currStep);
+                currentStepIndex = currStep;
 
                 if (!testStep.isCommented()) {
                     checkForStartLoop(testStep, currStep);

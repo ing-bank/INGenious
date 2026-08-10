@@ -6,7 +6,9 @@ import com.ing.datalib.or.web.ResolvedWebObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import org.apache.commons.csv.CSVRecord;
 
 /**
@@ -19,6 +21,20 @@ public class TestStep {
     private static String BREAKPOINT = "*";
     private static String COMMENT = "//";
     private static String HARD_ASSERTION = "~";
+    private static final Set<String> NON_PAGE_OBJECTS = Set.of(
+        "execute",
+        "app",
+        "browser",
+        "mobile",
+        "database",
+        "webservice",
+        "kafka",
+        "synthetic data",
+        "queue",
+        "file",
+        "general",
+        "string operations"
+    );
 
     public enum HEADERS {
         Step(0),
@@ -275,8 +291,12 @@ public class TestStep {
     }
 
     public Boolean isPageObjectStep() {
+        String objectName = Objects.toString(getObject(), "").trim();
+        String reference = Objects.toString(getReference(), "").trim();
         return (
-            !getObject().equals("Browser") && !getObject().isEmpty() && !getReference().isEmpty()
+            !objectName.isEmpty() &&
+            !reference.isEmpty() &&
+            !NON_PAGE_OBJECTS.contains(objectName.toLowerCase(Locale.ROOT))
         );
     }
 
@@ -379,9 +399,53 @@ public class TestStep {
 
     public String[] getReusableData() {
         if (isReusableStep()) {
-            return getAction().split(":");
+            try {
+                ReusableRef ref = getEffectiveReusableRef();
+                return new String[] { ref.getScenarioName(), ref.getTestCaseName() };
+            } catch (IllegalArgumentException ex) {
+                String[] parts = getAction().split(":", 2);
+                if (parts.length == 2) {
+                    return parts;
+                }
+            }
         }
         return null;
+    }
+
+    /**
+     * Returns reusable reference parsed from action and enriched with scope from Reference column
+     * when action is unscoped legacy format.
+     */
+    public ReusableRef getEffectiveReusableRef() {
+        if (!isReusableStep()) {
+            return null;
+        }
+
+        ReusableRef parsed = ReusableRef.parse(getAction());
+        if (parsed.getScope() != ReusableRef.Scope.UNSCOPED) {
+            return parsed;
+        }
+
+        ReusableRef.Scope scopedFromReference = parseReusableScopeFromReference(getReference());
+        if (scopedFromReference == ReusableRef.Scope.UNSCOPED) {
+            return parsed;
+        }
+        return new ReusableRef(
+            scopedFromReference,
+            parsed.getScenarioName(),
+            parsed.getTestCaseName()
+        );
+    }
+
+    private ReusableRef.Scope parseReusableScopeFromReference(String reference) {
+        String ref = Objects.toString(reference, "").trim();
+        if (ref.startsWith("[Project]")) {
+            return ReusableRef.Scope.PROJECT;
+        }
+        if (ref.startsWith("[Shared]")) {
+            return ReusableRef.Scope.SHARED;
+        }
+        return ReusableRef.Scope.UNSCOPED;
     }
 
     public String[] getTestDataFromInput() {

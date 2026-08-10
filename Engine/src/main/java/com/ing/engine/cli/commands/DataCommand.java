@@ -14,6 +14,7 @@ import picocli.CommandLine.ParentCommand;
  */
 @Command(
     name = "data",
+    mixinStandardHelpOptions = true,
     description = "Test data management",
     subcommands = {
         DataCommand.ListCommand.class,

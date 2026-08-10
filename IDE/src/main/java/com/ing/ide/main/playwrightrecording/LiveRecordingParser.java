@@ -45,6 +45,7 @@ public class LiveRecordingParser {
     private final String referenceValue;
     private final int firstInsertIndex;
     private final WebORPage objectPage;
+    private final boolean preserveExistingObjects;
 
     private int addedCount = 0;
     private String lastSignature = null;
@@ -58,11 +59,34 @@ public class LiveRecordingParser {
         String referenceValue,
         WebORPage objectPage
     ) {
+        this(parser, testCase, firstInsertIndex, referenceValue, objectPage, false);
+    }
+
+    /**
+     * Creates a live recording parser.
+     *
+     * @param parser                   the base Playwright recording parser
+     * @param testCase                 the test case to populate with recorded steps
+     * @param firstInsertIndex         the index where recorded steps should be inserted
+     * @param referenceValue           the reference value for recorded steps
+     * @param objectPage               the Web OR page to register recorded objects
+     * @param preserveExistingObjects  if {@code true}, preserve any existing objects in the page (for RecordFromHere);
+     *                                 if {@code false}, clear objects for a fresh rebuild
+     */
+    public LiveRecordingParser(
+        PlaywrightRecordingParser parser,
+        TestCase testCase,
+        int firstInsertIndex,
+        String referenceValue,
+        WebORPage objectPage,
+        boolean preserveExistingObjects
+    ) {
         this.parser = parser;
         this.testCase = testCase;
         this.referenceValue = referenceValue;
         this.firstInsertIndex = Math.max(firstInsertIndex, 0);
         this.objectPage = objectPage;
+        this.preserveExistingObjects = preserveExistingObjects;
     }
 
     /**
@@ -77,8 +101,17 @@ public class LiveRecordingParser {
             return false;
         }
 
-        List<String> actionLines = extractActionLines(fileLines);
-        String signature = String.join("\n", actionLines);
+        // Use the same stable parsing logic as the file-import path so frame details and
+        // page-switch actions are detected identically. parseLinesToSteps maintains the cross-line
+        // state (page-switch detection, page indices, current/previous page) and registers the web
+        // objects into the recording page.
+        List<PlaywrightRecordingParser.ParsedStep> parsedSteps = parser.parseLinesToSteps(
+            fileLines,
+            objectPage,
+            preserveExistingObjects
+        );
+
+        String signature = buildSignature(parsedSteps);
         if (signature.equals(lastSignature)) {
             return false;
         }
@@ -86,23 +119,26 @@ public class LiveRecordingParser {
 
         removePreviouslyAddedSteps();
         deferredTextInputs.clear();
-        parser.resetLiveObjectRegistry(objectPage);
 
         int insertAt = Math.min(firstInsertIndex, testCase.getTestSteps().size());
         int stepNumber = 0;
-        for (String line : actionLines) {
+        List<String> currentLoggedLines = new ArrayList<>();
+        for (PlaywrightRecordingParser.ParsedStep parsedStep : parsedSteps) {
             TestStep step = insertAt < testCase.getTestSteps().size()
                 ? testCase.addNewStepAt(insertAt)
                 : testCase.addNewStep();
 
-            populateStep(step, line, insertAt);
+            populateStep(step, parsedStep, insertAt);
             stepNumber++;
+
+            String stepSignature = stepSignature(parsedStep);
+            currentLoggedLines.add(stepSignature);
 
             // Only log steps that are new or changed since the previous cycle to avoid
             // repeating already-reported steps on every rebuild.
             boolean isNewOrChanged =
                 stepNumber > lastLoggedActionLines.size() ||
-                !line.equals(lastLoggedActionLines.get(stepNumber - 1));
+                !stepSignature.equals(lastLoggedActionLines.get(stepNumber - 1));
             if (logger != null && isNewOrChanged) {
                 logger.accept(describeStep(stepNumber, step));
             }
@@ -112,10 +148,22 @@ public class LiveRecordingParser {
         }
 
         lastLoggedActionLines.clear();
-        lastLoggedActionLines.addAll(actionLines);
+        lastLoggedActionLines.addAll(currentLoggedLines);
 
         parser.saveLiveRecordingPage(objectPage);
         return true;
+    }
+
+    private String buildSignature(List<PlaywrightRecordingParser.ParsedStep> parsedSteps) {
+        StringBuilder sb = new StringBuilder();
+        for (PlaywrightRecordingParser.ParsedStep parsedStep : parsedSteps) {
+            sb.append(stepSignature(parsedStep)).append('\n');
+        }
+        return sb.toString();
+    }
+
+    private String stepSignature(PlaywrightRecordingParser.ParsedStep parsedStep) {
+        return parsedStep.objectName + "|" + parsedStep.action + "|" + parsedStep.input;
     }
 
     /**
@@ -152,15 +200,19 @@ public class LiveRecordingParser {
         addedCount = 0;
     }
 
-    private void populateStep(TestStep step, String line, int insertAt) {
-        String action = parser.getAction(line);
-        String input = parser.getInput(line);
-        String objectName = parser.registerLiveObject(line, objectPage);
+    private void populateStep(
+        TestStep step,
+        PlaywrightRecordingParser.ParsedStep parsedStep,
+        int insertAt
+    ) {
+        String objectName = parsedStep.objectName;
+        String action = parsedStep.action;
+        String input = parsedStep.input;
 
         step.setObject(objectName);
         step.setAction(action);
         step.setDescription("");
-        step.setCondition("");
+        step.setCondition(parsedStep.condition == null ? "" : parsedStep.condition);
         step.setReference("Browser".equals(objectName) ? "" : referenceValue);
         step.setNewlyRecorded(true);
 
@@ -170,31 +222,6 @@ public class LiveRecordingParser {
         } else {
             step.setInput(input == null ? "" : input);
         }
-    }
-
-    private List<String> extractActionLines(List<String> fileLines) {
-        List<String> actionLines = new ArrayList<>();
-        for (String raw : fileLines) {
-            if (raw == null) {
-                continue;
-            }
-            String trimmed = raw.trim();
-            boolean isPageAction =
-                trimmed.startsWith("page") &&
-                !trimmed.startsWith("page.on(") &&
-                !trimmed.startsWith("page.close(") &&
-                !trimmed.startsWith("page.waitFor");
-            // Playwright codegen emits assertions as: assertThat(page....).isVisible()/containsText()/...
-            boolean isAssertion = trimmed.startsWith("assertThat(");
-            if (!isPageAction && !isAssertion) {
-                continue;
-            }
-            String action = parser.getAction(trimmed);
-            if (action != null && !action.isEmpty()) {
-                actionLines.add(trimmed);
-            }
-        }
-        return actionLines;
     }
 
     public synchronized int finalizeDeferredInputs() {

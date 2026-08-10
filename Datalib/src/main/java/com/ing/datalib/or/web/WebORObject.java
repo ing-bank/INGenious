@@ -227,10 +227,15 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
     @JsonIgnore
     @Override
     public boolean isCellEditable(int row, int column) {
-        // Exact column (2) is not editable for xpath, css, TestId
+        // Exact column (2) is not editable for xpath, css, TestId, JSPath
         if (column == 2 && row < attributes.size()) {
             String attrName = attributes.get(row).getName();
-            if ("xpath".equals(attrName) || "css".equals(attrName) || "TestId".equals(attrName)) {
+            if (
+                "xpath".equals(attrName) ||
+                "css".equals(attrName) ||
+                "TestId".equals(attrName) ||
+                "JSPath".equals(attrName)
+            ) {
                 return false;
             }
         }
@@ -356,8 +361,12 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
     @JsonIgnore
     @Override
     public Boolean rename(String newName) {
+        boolean renamedParent = true;
         if (getParent().getChildCount() == 1) {
-            getParent().rename(newName);
+            renamedParent = getParent().rename(newName);
+            if (!renamedParent) {
+                return false;
+            }
         }
         if (newName == null || newName.isBlank()) {
             return false;
@@ -523,22 +532,72 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
         }
     }
 
+    /**
+     * Adds a new attribute to the end of the attribute list.
+     */
     @JsonIgnore
     public void addNewAttribute() {
+        addNewAttributeAt(attributes.size());
+    }
+
+    /**
+     * Adds a named attribute to the end of the attribute list.
+     *
+     * @param attrName attribute name to add
+     */
+    @JsonIgnore
+    public void addNewAttribute(String attrName) {
+        addNewAttributeAt(attrName, attributes.size());
+    }
+
+    /**
+     * Adds a uniquely named new attribute at the specified index.
+     *
+     * @param index insertion index
+     * @return inserted row index, or {@code -1} if insertion failed
+     */
+    @JsonIgnore
+    public int addNewAttributeAt(int index) {
         String newAttrName = "NewProp";
         int i = 1;
+
         while (getAttribute(newAttrName) != null) {
             newAttrName = "NewProp" + i++;
         }
-        addNewAttribute(newAttrName);
+
+        return addNewAttributeAt(newAttrName, index);
+    }
+
+    /**
+     * Adds a named attribute at the specified index.
+     *
+     * @param attrName attribute name to add
+     * @param index insertion index
+     * @return inserted row index, or {@code -1} if the attribute already exists
+     */
+    @JsonIgnore
+    public int addNewAttributeAt(String attrName, int index) {
+        if (getAttribute(attrName) != null) {
+            return -1;
+        }
+
+        if (index < 0 || index > attributes.size()) {
+            index = attributes.size();
+        }
+
+        attributes.add(index, new ORAttribute(attrName, index));
+        refreshPreferences();
+
+        super.rowAdded(index);
+        fireTableRowsInserted(index, index);
+
+        return index;
     }
 
     @JsonIgnore
-    public void addNewAttribute(String attrName) {
-        if (getAttribute(attrName) == null) {
-            attributes.add(new ORAttribute(attrName, attributes.size()));
-            super.rowAdded(attributes.size() - 1);
-            fireTableRowsInserted(attributes.size() - 1, attributes.size() - 1);
+    private void refreshPreferences() {
+        for (int i = 0; i < attributes.size(); i++) {
+            attributes.get(i).setPreference(String.valueOf(i + 1));
         }
     }
 

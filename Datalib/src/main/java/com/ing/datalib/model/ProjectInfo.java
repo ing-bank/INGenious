@@ -65,8 +65,8 @@ public class ProjectInfo {
 
     /**
      * Whether the application should auto-migrate CSV test cases to YAML on
-     * project load. Null (legacy) defaults to {@code false} during the opt-in
-     * phase; new projects opt in by setting this to {@code true}.
+     * project load. Defaults to {@code true} (auto-migration enabled).
+     * Set to {@code false} to explicitly disable auto-migration.
      */
     @JsonProperty("autoMigrateCsvToYaml")
     private Boolean autoMigrateCsvToYaml;
@@ -201,6 +201,45 @@ public class ProjectInfo {
     @JsonIgnore
     private Stream<Tag> getMetaTags() {
         return meta.stream().filter(Meta::isTag).map(Meta::toTag);
+    }
+
+    /**
+     * Renames a tag across all locations in the project: meta tags, project-level tags,
+     * scenario tags, and data item (test case) tags.
+     *
+     * @param oldValue the current tag name
+     * @param newValue the new tag name
+     */
+    @JsonIgnore
+    public void renameAll(String oldValue, String newValue) {
+        if (Objects.equals(oldValue, newValue) || oldValue == null || newValue == null) {
+            return;
+        }
+        // Rename in meta tags
+        for (Meta m : meta) {
+            if (m.isTag() && oldValue.equals(m.getName())) {
+                m.setName(newValue);
+            }
+            for (Tag t : m.getTags()) {
+                if (oldValue.equals(t.getValue())) {
+                    t.setValue(newValue);
+                }
+            }
+        }
+        // Rename in project-level tags
+        for (Tag t : tags) {
+            if (oldValue.equals(t.getValue())) {
+                t.setValue(newValue);
+            }
+        }
+        // Rename in data item (test case) tags
+        for (DataItem item : data) {
+            for (Tag t : item.getTags()) {
+                if (oldValue.equals(t.getValue())) {
+                    t.setValue(newValue);
+                }
+            }
+        }
     }
 
     @JsonIgnore

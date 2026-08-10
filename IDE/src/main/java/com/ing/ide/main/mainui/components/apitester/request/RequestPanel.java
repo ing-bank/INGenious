@@ -33,6 +33,7 @@ public class RequestPanel extends JPanel {
     private BodyPanel bodyPanel;
     private AuthPanel authPanel;
     private SettingsPanel settingsPanel;
+    private ProxyPanel proxyPanel;
 
     public RequestPanel(APITesterUI parent) {
         this.parent = parent;
@@ -71,6 +72,10 @@ public class RequestPanel extends JPanel {
         // Settings tab
         settingsPanel = new SettingsPanel();
         tabPane.addTab("Settings", settingsPanel);
+
+        // Proxy tab
+        proxyPanel = new ProxyPanel();
+        tabPane.addTab("Proxy", proxyPanel);
 
         add(tabPane, BorderLayout.CENTER);
     }
@@ -112,11 +117,11 @@ public class RequestPanel extends JPanel {
         saveButton.setPreferredSize(new Dimension(70, 36));
         saveButton.addActionListener(e -> parent.saveRequest());
 
-        // Convert to Test button
-        JButton convertButton = new JButton("⇢ Test");
+        // Convert to Automation button
+        JButton convertButton = new JButton("⇢ Automation");
         convertButton.setFont(convertButton.getFont().deriveFont(11f));
-        convertButton.setPreferredSize(new Dimension(75, 36));
-        convertButton.setToolTipText("Convert to INGenious Test Case");
+        convertButton.setPreferredSize(new Dimension(110, 36));
+        convertButton.setToolTipText("Convert to INGenious Test Case or User Intent (Reusable)");
         convertButton.addActionListener(e -> showConvertToTestDialog());
 
         // Layout
@@ -180,6 +185,9 @@ public class RequestPanel extends JPanel {
 
         // Settings
         settingsPanel.loadSettings(request);
+
+        // Proxy
+        proxyPanel.loadProxy(request.getProxyConfig());
     }
 
     /**
@@ -204,6 +212,9 @@ public class RequestPanel extends JPanel {
 
         // Settings
         settingsPanel.updateRequest(request);
+
+        // Proxy
+        proxyPanel.updateRequest(request);
     }
 
     /**
@@ -228,12 +239,15 @@ public class RequestPanel extends JPanel {
         updateRequest(parent.getCurrentRequest());
         APIRequest request = parent.getCurrentRequest();
 
-        // Get available scenarios
-        java.util.List<com.ing.datalib.component.Scenario> scenarios = parent
+        // Get available scenarios from both Test Plan and Reusable Components
+        final java.util.List<com.ing.datalib.component.Scenario> testPlanScenarios = parent
             .getApiTester()
             .getAvailableScenarios();
+        final java.util.List<com.ing.datalib.component.Scenario> reusableScenarios = parent
+            .getApiTester()
+            .getAvailableReusableScenarios();
 
-        if (scenarios.isEmpty()) {
+        if (testPlanScenarios.isEmpty() && reusableScenarios.isEmpty()) {
             javax.swing.JOptionPane.showMessageDialog(
                 this,
                 "No scenarios available. Please open a project and create a scenario first.",
@@ -243,14 +257,23 @@ public class RequestPanel extends JPanel {
             return;
         }
 
+        // Automation target options
+        final String TYPE_TEST_CASE = "Test Case";
+        final String TYPE_USER_INTENT = "User Intent (Reusable)";
+
         // Create dialog
-        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.GridLayout(3, 2, 10, 10));
+        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.GridLayout(4, 2, 10, 10));
         panel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        panel.add(new javax.swing.JLabel("Target Scenario:"));
-        javax.swing.JComboBox<com.ing.datalib.component.Scenario> scenarioCombo = new javax.swing.JComboBox<>(
-            scenarios.toArray(new com.ing.datalib.component.Scenario[0])
+        panel.add(new javax.swing.JLabel("Automation Type:"));
+        javax.swing.JComboBox<String> typeCombo = new javax.swing.JComboBox<>(
+            new String[] { TYPE_TEST_CASE, TYPE_USER_INTENT }
         );
+        panel.add(typeCombo);
+
+        final javax.swing.JLabel scenarioLabel = new javax.swing.JLabel("Target Scenario:");
+        panel.add(scenarioLabel);
+        final javax.swing.JComboBox<com.ing.datalib.component.Scenario> scenarioCombo = new javax.swing.JComboBox<>();
         scenarioCombo.setRenderer(
             new javax.swing.DefaultListCellRenderer() {
 
@@ -278,11 +301,12 @@ public class RequestPanel extends JPanel {
         );
         panel.add(scenarioCombo);
 
-        panel.add(new javax.swing.JLabel("Test Case Name:"));
+        final javax.swing.JLabel nameLabel = new javax.swing.JLabel("Test Case Name:");
+        panel.add(nameLabel);
         String defaultName = request.getName() != null
             ? request.getName()
             : request.getMethod() + "_" + extractPathName(request.getUrl());
-        javax.swing.JTextField nameField = new javax.swing.JTextField(defaultName);
+        final javax.swing.JTextField nameField = new javax.swing.JTextField(defaultName);
         panel.add(nameField);
 
         panel.add(new javax.swing.JLabel(""));
@@ -292,15 +316,38 @@ public class RequestPanel extends JPanel {
         infoLabel.setForeground(APITesterColors.textSecondary());
         panel.add(infoLabel);
 
+        // Populate the scenario combo (and name label) based on the selected type
+        typeCombo.addActionListener(
+            e -> {
+                boolean reusable = TYPE_USER_INTENT.equals(typeCombo.getSelectedItem());
+                java.util.List<com.ing.datalib.component.Scenario> list = reusable
+                    ? reusableScenarios
+                    : testPlanScenarios;
+                scenarioCombo.setModel(
+                    new javax.swing.DefaultComboBoxModel<>(
+                        list.toArray(new com.ing.datalib.component.Scenario[0])
+                    )
+                );
+                nameLabel.setText(reusable ? "User Intent Name:" : "Test Case Name:");
+            }
+        );
+        // Initialise for the default selection (Test Case)
+        scenarioCombo.setModel(
+            new javax.swing.DefaultComboBoxModel<>(
+                testPlanScenarios.toArray(new com.ing.datalib.component.Scenario[0])
+            )
+        );
+
         int result = javax.swing.JOptionPane.showConfirmDialog(
             this,
             panel,
-            "Convert to INGenious Test",
+            "Convert to Automation",
             javax.swing.JOptionPane.OK_CANCEL_OPTION,
             javax.swing.JOptionPane.PLAIN_MESSAGE
         );
 
         if (result == javax.swing.JOptionPane.OK_OPTION) {
+            boolean reusable = TYPE_USER_INTENT.equals(typeCombo.getSelectedItem());
             com.ing.datalib.component.Scenario selectedScenario = (com.ing.datalib.component.Scenario) scenarioCombo.getSelectedItem();
 
             // Validate scenario is selected
@@ -319,17 +366,114 @@ public class RequestPanel extends JPanel {
             if (testCaseName.isEmpty()) {
                 javax.swing.JOptionPane.showMessageDialog(
                     this,
-                    "Please enter a test case name.",
+                    "Please enter a " + (reusable ? "user intent" : "test case") + " name.",
                     "Invalid Name",
                     javax.swing.JOptionPane.WARNING_MESSAGE
                 );
                 return;
             }
 
+            // User Intent (Reusable) path: create a reusable component and finish
+            if (reusable) {
+                com.ing.datalib.component.TestCase reusableCase = parent
+                    .getApiTester()
+                    .convertRequestToReusable(request, selectedScenario, testCaseName);
+
+                if (reusableCase != null) {
+                    int navigateResult = javax.swing.JOptionPane.showConfirmDialog(
+                        this,
+                        "Successfully created user intent '" +
+                        testCaseName +
+                        "' in reusable scenario '" +
+                        selectedScenario.getName() +
+                        "'.\n\nWould you like to open it in Test Design?",
+                        "Conversion Successful",
+                        javax.swing.JOptionPane.YES_NO_OPTION,
+                        javax.swing.JOptionPane.INFORMATION_MESSAGE
+                    );
+
+                    if (navigateResult == javax.swing.JOptionPane.YES_OPTION) {
+                        parent.getApiTester().navigateToTestCase(reusableCase);
+                    }
+                } else {
+                    javax.swing.JOptionPane.showMessageDialog(
+                        this,
+                        "Failed to convert request to user intent. Check the logs for details.",
+                        "Conversion Failed",
+                        javax.swing.JOptionPane.ERROR_MESSAGE
+                    );
+                }
+                return;
+            }
+            // Resolve environment variables for conversion only.
+            // Do not mutate the original request; collections should keep {{var}} placeholders.
+            APIEnvironment activeEnvironment = parent.getApiTester().getActiveEnvironment();
+            APIRequest requestForConversion = createResolvedRequestForConversion(
+                request,
+                activeEnvironment
+            );
+
+            // Proxy handling: if the request uses a proxy, ask where to persist the details
+            String proxyConfigAlias = null;
+            ProxyConfig proxyConfig = requestForConversion.getProxyConfig();
+            if (proxyConfig != null && proxyConfig.hasValidConfig()) {
+                Object[] options = { "Default API Config", "New API Config", "Cancel" };
+                int proxyChoice = javax.swing.JOptionPane.showOptionDialog(
+                    this,
+                    "This request uses a proxy.\nWhere would you like to save the proxy details?",
+                    "Save Proxy Details",
+                    javax.swing.JOptionPane.YES_NO_CANCEL_OPTION,
+                    javax.swing.JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    options,
+                    options[0]
+                );
+
+                if (proxyChoice == javax.swing.JOptionPane.CLOSED_OPTION || proxyChoice == 2) {
+                    return; // user cancelled
+                }
+
+                if (proxyChoice == 0) {
+                    // Save into the default API config
+                    proxyConfigAlias = "default";
+                } else {
+                    // Create a new API config — prompt for an alias name
+                    String alias = javax.swing.JOptionPane.showInputDialog(
+                        this,
+                        "Enter a name/alias for the new API config:",
+                        "New API Config",
+                        javax.swing.JOptionPane.QUESTION_MESSAGE
+                    );
+                    if (alias == null || alias.trim().isEmpty()) {
+                        return; // user cancelled
+                    }
+                    proxyConfigAlias = alias.trim();
+                }
+
+                // Persist the proxy details into the chosen API config
+                boolean saved = parent
+                    .getApiTester()
+                    .saveProxyToApiConfig(proxyConfig, proxyConfigAlias);
+                if (!saved) {
+                    javax.swing.JOptionPane.showMessageDialog(
+                        this,
+                        "Failed to save proxy details to the API config. Check the logs for details.",
+                        "Proxy Save Failed",
+                        javax.swing.JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+            }
+
             // Perform conversion
             com.ing.datalib.component.TestCase testCase = parent
                 .getApiTester()
-                .convertRequestToTestCase(request, selectedScenario, testCaseName);
+                .convertRequestToTestCase(
+                    requestForConversion,
+                    selectedScenario,
+                    testCaseName,
+                    proxyConfigAlias
+                );
 
             if (testCase != null) {
                 // Ask user if they want to navigate to Test Design
@@ -357,6 +501,158 @@ public class RequestPanel extends JPanel {
                 );
             }
         }
+    }
+
+    /**
+     * Creates a resolved copy of the request for test-case conversion.
+     *
+     * Important: this does not mutate the original API request. The API Tester should
+     * keep {{variable}} placeholders in the saved request, but the generated test case
+     * should receive concrete values from the active environment.
+     */
+    private APIRequest createResolvedRequestForConversion(
+        APIRequest source,
+        APIEnvironment environment
+    ) {
+        if (source == null || environment == null) {
+            return source;
+        }
+
+        APIRequest resolved = new APIRequest();
+
+        resolved.setId(source.getId());
+        resolved.setName(source.getName());
+        resolved.setMethod(source.getMethod());
+        resolved.setUrl(resolveValue(source.getUrl(), environment));
+
+        resolved.setQueryParams(resolveKeyValuePairs(source.getQueryParams(), environment));
+        resolved.setHeaders(resolveKeyValuePairs(source.getHeaders(), environment));
+        resolved.setBody(resolveBody(source.getBody(), environment));
+        resolved.setAuth(resolveAuth(source.getAuth(), environment));
+
+        resolved.setFollowRedirects(source.isFollowRedirects());
+        resolved.setSslVerificationEnabled(source.isSslVerificationEnabled());
+        resolved.setTimeout(source.getTimeout());
+
+        resolved.setProxyConfig(resolveProxyConfig(source.getProxyConfig(), environment));
+        resolved.setCertificateConfig(
+            resolveCertificateConfig(source.getCertificateConfig(), environment)
+        );
+
+        return resolved;
+    }
+
+    private String resolveValue(String value, APIEnvironment environment) {
+        if (value == null || environment == null) {
+            return value;
+        }
+        return environment.resolve(value);
+    }
+
+    private List<KeyValuePair> resolveKeyValuePairs(
+        List<KeyValuePair> pairs,
+        APIEnvironment environment
+    ) {
+        if (pairs == null) {
+            return null;
+        }
+
+        List<KeyValuePair> resolvedPairs = new ArrayList<>();
+
+        for (KeyValuePair pair : pairs) {
+            if (pair == null) {
+                continue;
+            }
+
+            resolvedPairs.add(
+                new KeyValuePair(
+                    resolveValue(pair.getKey(), environment),
+                    resolveValue(pair.getValue(), environment),
+                    pair.isEnabled()
+                )
+            );
+        }
+
+        return resolvedPairs;
+    }
+
+    private RequestBody resolveBody(RequestBody body, APIEnvironment environment) {
+        if (body == null) {
+            return null;
+        }
+
+        RequestBody resolvedBody = new RequestBody();
+        resolvedBody.setBodyType(body.getBodyType());
+        resolvedBody.setRawFormat(body.getRawFormat());
+        resolvedBody.setRawContent(resolveValue(body.getRawContent(), environment));
+
+        return resolvedBody;
+    }
+
+    private AuthConfig resolveAuth(AuthConfig auth, APIEnvironment environment) {
+        if (auth == null) {
+            return null;
+        }
+
+        AuthConfig resolvedAuth = new AuthConfig();
+        resolvedAuth.setAuthType(auth.getAuthType());
+
+        resolvedAuth.setBasicUsername(resolveValue(auth.getBasicUsername(), environment));
+        resolvedAuth.setBasicPassword(resolveValue(auth.getBasicPassword(), environment));
+
+        resolvedAuth.setBearerToken(resolveValue(auth.getBearerToken(), environment));
+        resolvedAuth.setBearerPrefix(resolveValue(auth.getBearerPrefix(), environment));
+
+        resolvedAuth.setApiKeyName(resolveValue(auth.getApiKeyName(), environment));
+        resolvedAuth.setApiKeyValue(resolveValue(auth.getApiKeyValue(), environment));
+        resolvedAuth.setApiKeyLocation(auth.getApiKeyLocation());
+
+        return resolvedAuth;
+    }
+
+    private ProxyConfig resolveProxyConfig(ProxyConfig proxyConfig, APIEnvironment environment) {
+        if (proxyConfig == null) {
+            return null;
+        }
+
+        ProxyConfig resolvedProxyConfig = new ProxyConfig();
+        resolvedProxyConfig.setEnabled(proxyConfig.isEnabled());
+        resolvedProxyConfig.setHost(resolveValue(proxyConfig.getHost(), environment));
+        resolvedProxyConfig.setPort(resolveValue(proxyConfig.getPort(), environment));
+
+        return resolvedProxyConfig;
+    }
+
+    private CertificateConfig resolveCertificateConfig(
+        CertificateConfig certificateConfig,
+        APIEnvironment environment
+    ) {
+        if (certificateConfig == null) {
+            return null;
+        }
+
+        CertificateConfig resolvedCertificateConfig = new CertificateConfig();
+
+        resolvedCertificateConfig.setEnabled(certificateConfig.isEnabled());
+        resolvedCertificateConfig.setCertificateType(certificateConfig.getCertificateType());
+
+        resolvedCertificateConfig.setCaCertPath(
+            resolveValue(certificateConfig.getCaCertPath(), environment)
+        );
+        resolvedCertificateConfig.setClientCertPath(
+            resolveValue(certificateConfig.getClientCertPath(), environment)
+        );
+        resolvedCertificateConfig.setClientKeyPath(
+            resolveValue(certificateConfig.getClientKeyPath(), environment)
+        );
+        resolvedCertificateConfig.setPfxPath(
+            resolveValue(certificateConfig.getPfxPath(), environment)
+        );
+        resolvedCertificateConfig.setPassphrase(
+            resolveValue(certificateConfig.getPassphrase(), environment)
+        );
+
+        return resolvedCertificateConfig;
     }
 
     private String extractPathName(String url) {
@@ -513,6 +809,11 @@ public class RequestPanel extends JPanel {
         // Refresh settings panel colors
         if (settingsPanel != null) {
             settingsPanel.refreshThemeColors();
+        }
+
+        // Refresh proxy panel colors
+        if (proxyPanel != null) {
+            proxyPanel.refreshThemeColors();
         }
 
         // Refresh params and headers panels
@@ -862,6 +1163,8 @@ class AuthPanel extends JPanel {
     // Basic Auth
     private JTextField basicUsername;
     private JPasswordField basicPassword;
+    private JToggleButton basicPasswordVisibilityToggle;
+    private char basicPasswordDefaultEchoChar;
 
     // Bearer Token
     private JTextField bearerToken;
@@ -938,8 +1241,24 @@ class AuthPanel extends JPanel {
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
+
         basicPassword = new JPasswordField(30);
-        panel.add(basicPassword, gbc);
+        basicPasswordDefaultEchoChar = basicPassword.getEchoChar();
+
+        basicPasswordVisibilityToggle = new JToggleButton("Show");
+        basicPasswordVisibilityToggle.setFont(
+            basicPasswordVisibilityToggle.getFont().deriveFont(11f)
+        );
+        basicPasswordVisibilityToggle.setFocusPainted(false);
+        basicPasswordVisibilityToggle.setToolTipText("Show or hide password");
+        basicPasswordVisibilityToggle.addActionListener(e -> updateBasicPasswordVisibility());
+
+        JPanel passwordPanel = new JPanel(new BorderLayout(5, 0));
+        passwordPanel.setOpaque(false);
+        passwordPanel.add(basicPassword, BorderLayout.CENTER);
+        passwordPanel.add(basicPasswordVisibilityToggle, BorderLayout.EAST);
+
+        panel.add(passwordPanel, gbc);
 
         return panel;
     }
@@ -1011,6 +1330,17 @@ class AuthPanel extends JPanel {
         return panel;
     }
 
+    private void updateBasicPasswordVisibility() {
+        if (basicPassword == null || basicPasswordVisibilityToggle == null) {
+            return;
+        }
+
+        boolean showPassword = basicPasswordVisibilityToggle.isSelected();
+
+        basicPassword.setEchoChar(showPassword ? (char) 0 : basicPasswordDefaultEchoChar);
+        basicPasswordVisibilityToggle.setText(showPassword ? "Hide" : "Show");
+    }
+
     private void updateAuthPanel() {
         AuthConfig.AuthType type = (AuthConfig.AuthType) typeSelector.getSelectedItem();
         cardLayout.show(authPanel, type.name());
@@ -1026,6 +1356,10 @@ class AuthPanel extends JPanel {
 
         basicUsername.setText(auth.getBasicUsername() != null ? auth.getBasicUsername() : "");
         basicPassword.setText(auth.getBasicPassword() != null ? auth.getBasicPassword() : "");
+        if (basicPasswordVisibilityToggle != null) {
+            basicPasswordVisibilityToggle.setSelected(false);
+            updateBasicPasswordVisibility();
+        }
         bearerToken.setText(auth.getBearerToken() != null ? auth.getBearerToken() : "");
         bearerPrefix.setText(auth.getBearerPrefix() != null ? auth.getBearerPrefix() : "Bearer");
         apiKeyName.setText(auth.getApiKeyName() != null ? auth.getApiKeyName() : "");
@@ -1066,6 +1400,10 @@ class AuthPanel extends JPanel {
             basicPassword.setBackground(UIManager.getColor("TextField.background"));
             basicPassword.setForeground(UIManager.getColor("TextField.foreground"));
         }
+        if (basicPasswordVisibilityToggle != null) {
+            basicPasswordVisibilityToggle.setBackground(UIManager.getColor("Button.background"));
+            basicPasswordVisibilityToggle.setForeground(UIManager.getColor("Button.foreground"));
+        }
         if (bearerToken != null) {
             bearerToken.setBackground(UIManager.getColor("TextField.background"));
             bearerToken.setForeground(UIManager.getColor("TextField.foreground"));
@@ -1101,10 +1439,37 @@ class AuthPanel extends JPanel {
         // Refresh child panels
         for (Component c : authPanel.getComponents()) {
             if (c instanceof JPanel) {
-                c.setBackground(UIManager.getColor("Panel.background"));
+                refreshAuthChildColors((Container) c);
             }
         }
+
         repaint();
+    }
+
+    private void refreshAuthChildColors(Container container) {
+        for (Component c : container.getComponents()) {
+            if (c instanceof JPanel) {
+                c.setBackground(UIManager.getColor("Panel.background"));
+            }
+            if (c instanceof JTextField) {
+                c.setBackground(UIManager.getColor("TextField.background"));
+                c.setForeground(UIManager.getColor("TextField.foreground"));
+            }
+            if (c instanceof JPasswordField) {
+                c.setBackground(UIManager.getColor("TextField.background"));
+                c.setForeground(UIManager.getColor("TextField.foreground"));
+            }
+            if (c instanceof AbstractButton) {
+                c.setBackground(UIManager.getColor("Button.background"));
+                c.setForeground(UIManager.getColor("Button.foreground"));
+            }
+            if (c instanceof JComboBox) {
+                c.setBackground(UIManager.getColor("ComboBox.background"));
+            }
+            if (c instanceof Container) {
+                refreshAuthChildColors((Container) c);
+            }
+        }
     }
 }
 
@@ -1511,6 +1876,175 @@ class SettingsPanel extends JPanel {
             }
             if (c instanceof JComboBox) {
                 c.setBackground(UIManager.getColor("ComboBox.background"));
+            }
+            if (c instanceof Container) {
+                refreshChildColors((Container) c);
+            }
+        }
+    }
+}
+
+/**
+ * Panel for configuring an HTTP proxy for the request.
+ * The host and port fields are enabled only when "Use Proxy" is checked.
+ */
+class ProxyPanel extends JPanel {
+    private JCheckBox useProxyCheckbox;
+    private JTextField hostField;
+    private JTextField portField;
+    private JLabel hostLabel;
+    private JLabel portLabel;
+
+    public ProxyPanel() {
+        setLayout(new BorderLayout());
+        setBorder(new EmptyBorder(12, 12, 12, 12));
+        initComponents();
+    }
+
+    private void initComponents() {
+        JPanel grid = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(8, 8, 8, 8);
+
+        // Section header
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        JLabel header = new JLabel("Proxy");
+        header.setFont(header.getFont().deriveFont(Font.BOLD, 13f));
+        grid.add(header, gbc);
+
+        // Use Proxy checkbox
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        useProxyCheckbox = new JCheckBox("Use Proxy");
+        useProxyCheckbox.setFont(useProxyCheckbox.getFont().deriveFont(12f));
+        useProxyCheckbox.addActionListener(e -> updateFieldsEnabled());
+        grid.add(useProxyCheckbox, gbc);
+
+        // Host
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 1;
+        hostLabel = new JLabel("Host:");
+        hostLabel.setFont(hostLabel.getFont().deriveFont(12f));
+        grid.add(hostLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        hostField = new JTextField(30);
+        hostField.setToolTipText("Proxy host (e.g., proxy.example.com or 127.0.0.1)");
+        grid.add(hostField, gbc);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+
+        // Port
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        portLabel = new JLabel("Port:");
+        portLabel.setFont(portLabel.getFont().deriveFont(12f));
+        grid.add(portLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        portField = new JTextField(10);
+        portField.setToolTipText("Proxy port (e.g., 8080)");
+        grid.add(portField, gbc);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+
+        // Note
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        JLabel note = new JLabel(
+            "When enabled, the request is routed through the configured proxy."
+        );
+        note.setFont(note.getFont().deriveFont(Font.ITALIC, 11f));
+        note.setForeground(UIManager.getColor("Label.disabledForeground"));
+        note.setName("proxyNoteLabel");
+        grid.add(note, gbc);
+
+        // Push to top
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.weighty = 1;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        grid.add(Box.createVerticalGlue(), gbc);
+
+        add(grid, BorderLayout.CENTER);
+        updateFieldsEnabled();
+    }
+
+    private void updateFieldsEnabled() {
+        boolean enabled = useProxyCheckbox.isSelected();
+        hostField.setEnabled(enabled);
+        portField.setEnabled(enabled);
+        hostLabel.setEnabled(enabled);
+        portLabel.setEnabled(enabled);
+    }
+
+    /**
+     * Loads proxy settings from a ProxyConfig into this panel.
+     */
+    public void loadProxy(ProxyConfig config) {
+        if (config == null) {
+            useProxyCheckbox.setSelected(false);
+            hostField.setText("");
+            portField.setText("");
+        } else {
+            useProxyCheckbox.setSelected(config.isEnabled());
+            hostField.setText(config.getHost() != null ? config.getHost() : "");
+            portField.setText(config.getPort() != null ? config.getPort() : "");
+        }
+        updateFieldsEnabled();
+    }
+
+    /**
+     * Updates an APIRequest with the values from this panel.
+     */
+    public void updateRequest(APIRequest request) {
+        ProxyConfig config = request.getProxyConfig();
+        if (config == null) {
+            config = new ProxyConfig();
+            request.setProxyConfig(config);
+        }
+        config.setEnabled(useProxyCheckbox.isSelected());
+        config.setHost(hostField.getText().trim());
+        config.setPort(portField.getText().trim());
+    }
+
+    /**
+     * Refresh theme colors.
+     */
+    public void refreshThemeColors() {
+        setBackground(UIManager.getColor("Panel.background"));
+        for (Component c : getComponents()) {
+            if (c instanceof JPanel) {
+                c.setBackground(UIManager.getColor("Panel.background"));
+                refreshChildColors((Container) c);
+            }
+        }
+        repaint();
+    }
+
+    private void refreshChildColors(Container container) {
+        for (Component c : container.getComponents()) {
+            if (c instanceof JPanel) {
+                c.setBackground(UIManager.getColor("Panel.background"));
+            }
+            if (c instanceof JCheckBox) {
+                c.setBackground(UIManager.getColor("Panel.background"));
+            }
+            if (c instanceof JLabel && "proxyNoteLabel".equals(c.getName())) {
+                c.setForeground(UIManager.getColor("Label.disabledForeground"));
+            }
+            if (c instanceof JTextField) {
+                c.setBackground(UIManager.getColor("TextField.background"));
+                c.setForeground(UIManager.getColor("TextField.foreground"));
             }
             if (c instanceof Container) {
                 refreshChildColors((Container) c);

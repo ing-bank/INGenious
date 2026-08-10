@@ -4,12 +4,16 @@ import com.ing.datalib.testdata.TestDataFactory;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.util.Validator;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 
 public class NewProject extends javax.swing.JDialog {
     private final AppMainFrame sMainFrame;
@@ -19,6 +23,7 @@ public class NewProject extends javax.swing.JDialog {
     public NewProject(AppMainFrame sMainFrame) throws IOException {
         this.sMainFrame = sMainFrame;
         initComponents();
+        installEscapeCloseHandler();
 
         setIconImage(
             com.ing.ide.main.fx.INGIcons.toImage(
@@ -30,6 +35,25 @@ public class NewProject extends javax.swing.JDialog {
         "Projects";
         fileChooser.setCurrentDirectory(new File(currDirectory));
         projLocation.setText(fileChooser.getCurrentDirectory().getAbsolutePath());
+    }
+
+    private void installEscapeCloseHandler() {
+        getRootPane()
+            .registerKeyboardAction(
+                this::handleEscapeClose,
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_IN_FOCUSED_WINDOW
+            );
+    }
+
+    private void handleEscapeClose(ActionEvent event) {
+        dispose();
+    }
+
+    private boolean hasPendingInput() {
+        String name = projName.getText() == null ? "" : projName.getText().trim();
+        boolean changedName = !name.isEmpty() && !"NewProject".equals(name);
+        return changedName;
     }
 
     public void createNew() {

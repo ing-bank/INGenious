@@ -25,7 +25,9 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
     private CollectionTree collectionTree;
     private JList<APIRequest> historyList;
     private DefaultListModel<APIRequest> historyModel;
-    private JComboBox<APIEnvironment> environmentSelector;
+    private JButton environmentSelectorButton;
+    private JPopupMenu environmentPopup;
+    private boolean updatingEnvironmentSelector;
 
     // Right panel components
     private RequestPanel requestPanel;
@@ -38,6 +40,8 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
     private APICollection sourceCollection; // Tracks which collection the request came from
     private APICollection sourceFolder; // Tracks which folder the request came from (null if in collection root)
     private boolean sourceHistory; // Tracks if request came from history
+
+    private static final Color ENVIRONMENT_PURPLE = new Color(0x6E40C9);
 
     public APITesterUI(APITester apiTester) {
         this.apiTester = apiTester;
@@ -80,6 +84,8 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
 
         // Recursively refresh all child panels
         refreshColorsRecursive(this);
+
+        updateEnvironmentSelectorButtonStyle();
 
         // Force repaint
         revalidate();
@@ -201,8 +207,8 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
 
         // Note: Temporarily disabled until Environment parameter is implemented.
         // Toolbar with environment selector
-        // JPanel toolbar = createLeftToolbar();
-        // panel.add(toolbar, BorderLayout.NORTH);
+        JPanel toolbar = createLeftToolbar();
+        panel.add(toolbar, BorderLayout.NORTH);
 
         // Tabbed pane for Collections and History
         JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
@@ -245,32 +251,21 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
         JLabel envLabel = new JLabel("Environment:");
         envLabel.setFont(envLabel.getFont().deriveFont(11f));
 
-        environmentSelector = new JComboBox<>();
-        environmentSelector.setFont(environmentSelector.getFont().deriveFont(11f));
-        environmentSelector.setPreferredSize(new Dimension(150, 26));
-        environmentSelector.addItem(null); // No environment option
-        environmentSelector.setRenderer(new EnvironmentComboRenderer());
-        environmentSelector.addActionListener(
-            e -> {
-                APIEnvironment selected = (APIEnvironment) environmentSelector.getSelectedItem();
-                apiTester.setActiveEnvironment(selected);
-            }
-        );
-
-        // New collection button
-        JButton newCollectionBtn = new JButton("+");
-        newCollectionBtn.setToolTipText("New Collection");
-        newCollectionBtn.setFont(newCollectionBtn.getFont().deriveFont(Font.BOLD, 14f));
-        newCollectionBtn.setPreferredSize(new Dimension(32, 26));
-        newCollectionBtn.addActionListener(e -> showNewCollectionDialog());
+        environmentSelectorButton = new JButton();
+        environmentSelectorButton.setFont(environmentSelectorButton.getFont().deriveFont(11f));
+        environmentSelectorButton.setPreferredSize(new Dimension(170, 28));
+        environmentSelectorButton.setHorizontalAlignment(SwingConstants.LEFT);
+        environmentSelectorButton.setFocusPainted(false);
+        environmentSelectorButton.setText(getEnvironmentSelectorButtonText());
+        environmentSelectorButton.addActionListener(e -> showEnvironmentDropdown());
+        updateEnvironmentSelectorButtonStyle();
 
         JPanel leftPart = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         leftPart.setOpaque(false);
         leftPart.add(envLabel);
-        leftPart.add(environmentSelector);
+        leftPart.add(environmentSelectorButton);
 
         toolbar.add(leftPart, BorderLayout.CENTER);
-        toolbar.add(newCollectionBtn, BorderLayout.EAST);
 
         return toolbar;
     }
@@ -413,6 +408,78 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
         return false;
     }
 
+    public void notifyRequestDeleted(APIRequest deletedRequest) {
+        if (deletedRequest == null || sourceRequest == null) {
+            return;
+        }
+
+        if (sameRequest(sourceRequest, deletedRequest)) {
+            clearSourceTracking();
+
+            currentRequest = new APIRequest();
+            requestPanel.loadRequest(currentRequest);
+            responsePanel.clear();
+            updateEditingHeader();
+        }
+    }
+
+    private boolean sameRequest(APIRequest a, APIRequest b) {
+        if (a == null || b == null) {
+            return false;
+        }
+
+        String aId = a.getId();
+        String bId = b.getId();
+
+        if (aId != null && bId != null) {
+            return aId.equals(bId);
+        }
+
+        return a == b;
+    }
+
+    private void removeRequestFromRoot(APICollection collection, APIRequest requestToRemove) {
+        if (collection == null || requestToRemove == null || collection.getRequests() == null) {
+            return;
+        }
+
+        collection.getRequests().removeIf(request -> sameRequest(request, requestToRemove));
+    }
+
+    private void saveRequestToFolder(
+        APIRequest request,
+        APICollection parentCollection,
+        APICollection folder
+    ) {
+        if (request == null || parentCollection == null || folder == null) {
+            return;
+        }
+
+        String requestId = request.getId();
+
+        boolean updated = false;
+
+        for (int i = 0; i < folder.getRequests().size(); i++) {
+            APIRequest existing = folder.getRequests().get(i);
+
+            if (sameRequest(existing, request)) {
+                folder.getRequests().set(i, request);
+                updated = true;
+                break;
+            }
+        }
+
+        if (!updated) {
+            folder.addRequest(request);
+        }
+
+        // Important: remove accidental root-level duplicate
+        removeRequestFromRoot(parentCollection, request);
+
+        apiTester.saveCollection(parentCollection);
+        refreshCollectionsTree();
+    }
+
     /**
      * Force saves the current request to backend file if it's from a collection.
      * Called by IDE's save/autosave to persist all edited requests to disk.
@@ -420,12 +487,67 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
      */
     public void forceSaveCurrentRequest() {
         if (sourceCollection != null && sourceRequest != null && currentRequest != null) {
+            // Do not resurrect a request that was deleted from its collection/folder.
+            if (!sourceRequestStillExists()) {
+                clearSourceTracking();
+                return;
+            }
+
             // Update the request with current UI values
             requestPanel.updateRequest(currentRequest);
 
-            // Always save to ensure all changes are persisted to backend
-            apiTester.saveRequestToCollection(currentRequest, sourceCollection);
+            // Save to the correct location
+            if (sourceFolder != null) {
+                saveRequestToFolder(currentRequest, sourceCollection, sourceFolder);
+            } else {
+                apiTester.saveRequestToCollection(currentRequest, sourceCollection);
+            }
         }
+    }
+
+    private boolean sourceRequestStillExists() {
+        if (sourceCollection == null || sourceRequest == null) {
+            return false;
+        }
+
+        if (sourceFolder != null) {
+            return containsRequest(sourceFolder.getRequests(), sourceRequest);
+        }
+
+        return containsRequest(sourceCollection.getRequests(), sourceRequest);
+    }
+
+    private boolean containsRequest(List<APIRequest> requests, APIRequest target) {
+        if (requests == null || target == null) {
+            return false;
+        }
+
+        String targetId = target.getId();
+
+        for (APIRequest request : requests) {
+            if (request == null) {
+                continue;
+            }
+
+            String requestId = request.getId();
+
+            if (targetId != null && requestId != null) {
+                if (targetId.equals(requestId)) {
+                    return true;
+                }
+            } else if (request == target) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void clearSourceTracking() {
+        this.sourceRequest = null;
+        this.sourceCollection = null;
+        this.sourceFolder = null;
+        this.sourceHistory = false;
     }
 
     public void setCurrentRequest(APIRequest request) {
@@ -590,14 +712,25 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
 
         // Scenario: Editing an existing request from a collection
         if (sourceRequest != null && sourceCollection != null) {
-            // Update the existing request directly - no prompts needed
-            apiTester.saveRequestToCollection(currentRequest, sourceCollection);
-            Notification.show(
-                "Request \"" +
-                currentRequest.getName() +
-                "\" updated in " +
-                sourceCollection.getName()
-            );
+            if (sourceFolder != null) {
+                saveRequestToFolder(currentRequest, sourceCollection, sourceFolder);
+                Notification.show(
+                    "Request \"" +
+                    currentRequest.getName() +
+                    "\" updated in " +
+                    sourceCollection.getName() +
+                    " / " +
+                    sourceFolder.getName()
+                );
+            } else {
+                apiTester.saveRequestToCollection(currentRequest, sourceCollection);
+                Notification.show(
+                    "Request \"" +
+                    currentRequest.getName() +
+                    "\" updated in " +
+                    sourceCollection.getName()
+                );
+            }
             return;
         }
 
@@ -682,13 +815,15 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
      * Updates the environment selector.
      */
     public void updateEnvironmentSelector() {
-        if (environmentSelector != null) {
-            environmentSelector.removeAllItems();
-            environmentSelector.addItem(null); // No environment
-            for (APIEnvironment env : apiTester.getEnvironments()) {
-                environmentSelector.addItem(env);
+        if (environmentSelectorButton != null) {
+            updatingEnvironmentSelector = true;
+            try {
+                environmentSelectorButton.setText(getEnvironmentSelectorButtonText());
+                environmentSelectorButton.setToolTipText(getEnvironmentSelectorToolTipText());
+                updateEnvironmentSelectorButtonStyle();
+            } finally {
+                updatingEnvironmentSelector = false;
             }
-            environmentSelector.setSelectedItem(apiTester.getActiveEnvironment());
         }
     }
 
@@ -705,6 +840,363 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
         String name = JOptionPane.showInputDialog(this, "Collection name:", "New Collection");
         if (name != null && !name.trim().isEmpty()) {
             apiTester.createNewCollection(name.trim());
+        }
+    }
+
+    private String getEnvironmentSelectorButtonText() {
+        APIEnvironment activeEnvironment = apiTester.getActiveEnvironment();
+
+        if (activeEnvironment == null || activeEnvironment.getName() == null) {
+            return "No Environment  \u25BE";
+        }
+
+        String name = activeEnvironment.getName();
+
+        if (name.length() > 18) {
+            name = name.substring(0, 18) + "...";
+        }
+
+        return name + "  \u25BE";
+    }
+
+    private String getEnvironmentSelectorToolTipText() {
+        APIEnvironment activeEnvironment = apiTester.getActiveEnvironment();
+
+        if (activeEnvironment == null || activeEnvironment.getName() == null) {
+            return "No Environment";
+        }
+
+        return activeEnvironment.getName();
+    }
+
+    private void showEnvironmentDropdown() {
+        if (environmentSelectorButton == null) {
+            return;
+        }
+
+        if (environmentPopup != null && environmentPopup.isVisible()) {
+            environmentPopup.setVisible(false);
+            return;
+        }
+
+        environmentPopup = createEnvironmentPopup();
+
+        int width = Math.max(environmentSelectorButton.getWidth(), 260);
+        int height = Math.max(240, Math.min(420, 120 + apiTester.getEnvironments().size() * 42));
+
+        environmentPopup.setPreferredSize(new Dimension(width, height));
+        environmentPopup.show(environmentSelectorButton, 0, environmentSelectorButton.getHeight());
+    }
+
+    private JPopupMenu createEnvironmentPopup() {
+        JPopupMenu popup = new JPopupMenu();
+        popup.setBorder(
+            BorderFactory.createLineBorder(
+                UIManager.getColor("Separator.foreground") != null
+                    ? UIManager.getColor("Separator.foreground")
+                    : Color.GRAY
+            )
+        );
+
+        JPanel root = new JPanel(new BorderLayout(0, 0));
+        root.setBackground(APITesterColors.panelBackground());
+        root.setBorder(new EmptyBorder(10, 10, 0, 10));
+
+        root.add(createEnvironmentPopupHeader(), BorderLayout.NORTH);
+        root.add(createEnvironmentPopupList(), BorderLayout.CENTER);
+        root.add(createEnvironmentPopupFooter(popup), BorderLayout.SOUTH);
+
+        popup.add(root);
+
+        return popup;
+    }
+
+    private JPanel createEnvironmentPopupHeader() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+        headerPanel.setBorder(new EmptyBorder(0, 6, 8, 6));
+
+        JLabel title = new JLabel("Environments");
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 14f));
+        title.setForeground(UIManager.getColor("Label.foreground"));
+
+        JPanel underlineWrapper = new JPanel(new BorderLayout());
+        underlineWrapper.setOpaque(false);
+        underlineWrapper.setBorder(
+            BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(0x6E40C9))
+        );
+        underlineWrapper.add(title, BorderLayout.CENTER);
+
+        headerPanel.add(underlineWrapper, BorderLayout.WEST);
+
+        return headerPanel;
+    }
+
+    private JPanel createEnvironmentPopupList() {
+        JPanel listPanel = new JPanel();
+        listPanel.setOpaque(false);
+        listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
+        listPanel.setBorder(new EmptyBorder(8, 0, 8, 0));
+
+        APIEnvironment activeEnvironment = apiTester.getActiveEnvironment();
+
+        listPanel.add(
+            createEnvironmentPopupRow(
+                "No Environment",
+                activeEnvironment == null,
+                true,
+                () -> {
+                    apiTester.setActiveEnvironment(null);
+                    updateEnvironmentSelector();
+                }
+            )
+        );
+
+        for (APIEnvironment environment : apiTester.getEnvironments()) {
+            if (environment == null) {
+                continue;
+            }
+
+            String environmentName = environment.getName();
+
+            if (environmentName == null || environmentName.trim().isEmpty()) {
+                environmentName = "Unnamed Environment";
+            }
+
+            APIEnvironment envToSelect = environment;
+            String rowText = environmentName;
+
+            listPanel.add(
+                createEnvironmentPopupRow(
+                    rowText,
+                    isActiveEnvironment(envToSelect),
+                    false,
+                    () -> {
+                        apiTester.setActiveEnvironment(envToSelect);
+                        updateEnvironmentSelector();
+                    }
+                )
+            );
+        }
+
+        return listPanel;
+    }
+
+    private JPanel createEnvironmentPopupFooter(JPopupMenu popup) {
+        JPanel footerPanel = new JPanel(new BorderLayout());
+        footerPanel.setOpaque(false);
+        footerPanel.setBorder(
+            BorderFactory.createMatteBorder(
+                1,
+                0,
+                0,
+                0,
+                UIManager.getColor("Separator.foreground") != null
+                    ? UIManager.getColor("Separator.foreground")
+                    : Color.GRAY
+            )
+        );
+
+        JPanel configureRow = createEnvironmentPopupRow(
+            "\u2699  Configure",
+            false,
+            false,
+            () -> {
+                popup.setVisible(false);
+                showEnvironmentConfigurationWindow();
+            }
+        );
+
+        configureRow.setBorder(new EmptyBorder(7, 12, 7, 12));
+
+        JPanel configureWrapper = new JPanel(new BorderLayout());
+        configureWrapper.setOpaque(false);
+        configureWrapper.setBorder(new EmptyBorder(10, 10, 10, 10));
+        configureWrapper.add(configureRow, BorderLayout.CENTER);
+
+        footerPanel.add(configureWrapper, BorderLayout.CENTER);
+
+        return footerPanel;
+    }
+
+    private JPanel createEnvironmentPopupRow(
+        String text,
+        boolean selected,
+        boolean dottedSelectedOutline,
+        Runnable action
+    ) {
+        JPanel row = new JPanel(new BorderLayout());
+        row.setOpaque(true);
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        row.setPreferredSize(new Dimension(220, 34));
+        row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        Color normalBackground = APITesterColors.panelBackground();
+
+        Color hoverBackground = APITesterColors.isDarkMode()
+            ? new Color(70, 70, 70)
+            : new Color(235, 235, 235);
+
+        Color selectedBackground = APITesterColors.isDarkMode()
+            ? new Color(110, 64, 201, 70)
+            : new Color(110, 64, 201, 25);
+
+        row.setBackground(selected ? selectedBackground : normalBackground);
+
+        javax.swing.border.Border paddingBorder = new EmptyBorder(5, 12, 5, 12);
+
+        if (selected && dottedSelectedOutline) {
+            row.setBorder(
+                BorderFactory.createCompoundBorder(
+                    new DottedBorder(new Color(110, 64, 201, 120), 2, 6),
+                    paddingBorder
+                )
+            );
+        } else {
+            row.setBorder(paddingBorder);
+        }
+
+        JLabel label = new JLabel(text);
+        label.setFont(label.getFont().deriveFont(Font.BOLD, 12f));
+
+        if (selected) {
+            label.setForeground(ENVIRONMENT_PURPLE);
+        } else {
+            label.setForeground(UIManager.getColor("Label.foreground"));
+        }
+
+        row.add(label, BorderLayout.CENTER);
+
+        row.addMouseListener(
+            new java.awt.event.MouseAdapter() {
+
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent e) {
+                    if (environmentPopup != null) {
+                        environmentPopup.setVisible(false);
+                    }
+
+                    action.run();
+                }
+
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    if (!selected) {
+                        row.setBackground(hoverBackground);
+                    }
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    row.setBackground(selected ? selectedBackground : normalBackground);
+                }
+            }
+        );
+
+        return row;
+    }
+
+    private boolean isActiveEnvironment(APIEnvironment environment) {
+        APIEnvironment activeEnvironment = apiTester.getActiveEnvironment();
+
+        if (activeEnvironment == null || environment == null) {
+            return false;
+        }
+
+        String activeId = activeEnvironment.getId();
+        String environmentId = environment.getId();
+
+        if (activeId != null && environmentId != null) {
+            return activeId.equals(environmentId);
+        }
+
+        return activeEnvironment == environment;
+    }
+
+    private void showEnvironmentConfigurationWindow() {
+        Window owner = SwingUtilities.getWindowAncestor(this);
+
+        APIEnvironmentConfigWindow window = new APIEnvironmentConfigWindow(owner, apiTester, this);
+
+        window.setVisible(true);
+    }
+
+    private static class DottedBorder implements javax.swing.border.Border {
+        private final Color color;
+        private final int thickness;
+        private final int arc;
+
+        DottedBorder(Color color, int thickness, int arc) {
+            this.color = color;
+            this.thickness = thickness;
+            this.arc = arc;
+        }
+
+        @Override
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            Graphics2D g2 = (Graphics2D) g.create();
+
+            try {
+                g2.setColor(color);
+                g2.setStroke(
+                    new BasicStroke(
+                        thickness,
+                        BasicStroke.CAP_ROUND,
+                        BasicStroke.JOIN_ROUND,
+                        0,
+                        new float[] { 6f, 4f },
+                        0
+                    )
+                );
+
+                int offset = thickness;
+                g2.drawRoundRect(
+                    x + offset,
+                    y + offset,
+                    width - thickness * 2 - 1,
+                    height - thickness * 2 - 1,
+                    arc,
+                    arc
+                );
+            } finally {
+                g2.dispose();
+            }
+        }
+
+        @Override
+        public Insets getBorderInsets(Component c) {
+            return new Insets(thickness, thickness, thickness, thickness);
+        }
+
+        @Override
+        public boolean isBorderOpaque() {
+            return false;
+        }
+    }
+
+    private void updateEnvironmentSelectorButtonStyle() {
+        if (environmentSelectorButton == null) {
+            return;
+        }
+
+        boolean noActualEnvironmentSelected = apiTester.getActiveEnvironment() == null;
+
+        javax.swing.border.Border paddingBorder = new EmptyBorder(4, 10, 4, 10);
+
+        if (noActualEnvironmentSelected) {
+            environmentSelectorButton.setBorder(
+                BorderFactory.createCompoundBorder(
+                    new DottedBorder(new Color(110, 64, 201, 120), 2, 6),
+                    paddingBorder
+                )
+            );
+        } else {
+            environmentSelectorButton.setBorder(
+                BorderFactory.createCompoundBorder(
+                    UIManager.getBorder("Button.border"),
+                    paddingBorder
+                )
+            );
         }
     }
 

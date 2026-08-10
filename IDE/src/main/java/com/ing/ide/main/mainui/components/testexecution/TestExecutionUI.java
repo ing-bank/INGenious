@@ -1,6 +1,7 @@
 package com.ing.ide.main.mainui.components.testexecution;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
@@ -25,6 +26,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
@@ -309,6 +311,19 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         }
     }
 
+    /**
+     * Refreshes the Test Plan tag filter when switching to the Execution tab.
+     * Prunes stale tags (renamed/deleted) from the active filter, then always
+     * reloads the tree model so test cases that were recently tagged with an
+     * already-selected filter tag appear in the results.
+     */
+    public void refreshTagFilter() {
+        List<Tag> allTags = testExecution.getProject().getInfo().getAllTags(null);
+        testPullPanel.pruneFilter(allTags);
+        // Always reload so test cases that newly received a matching tag show up
+        testPullPanel.reloadModel();
+    }
+
     public void adjustUI() {
         treeSNTableSplitPane.setDividerLocation(0.25);
         testSetCompNtestPlan.setDividerLocation(0.8);
@@ -384,27 +399,44 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         }
 
         private void showFilterTag() {
+            // Prune stale tags from the current filter: if a tag was renamed or deleted
+            // since the filter was applied, remove it from the active filter so the tree
+            // doesn't show stale (empty) results.
+            List<Tag> allTags = testExecution.getProject().getInfo().getAllTags(null);
+            if (tags != null && !tags.isEmpty()) {
+                Set<String> currentTagValues = allTags.stream().map(Tag::getValue).collect(toSet());
+                List<Tag> validTags = tags
+                    .stream()
+                    .filter(t -> currentTagValues.contains(t.getValue()))
+                    .collect(toList());
+                if (validTags.size() != tags.size()) {
+                    // Some tags were deleted/renamed; update the filter so the tree shows
+                    // unfiltered results instead of stale filter matches
+                    setFilterTags(validTags);
+                }
+            }
+
             TagEditorDialog
-                .build(
-                    testExecution.getsMainFrame(),
-                    testExecution.getProject().getInfo().getAllTags(null),
-                    tags,
-                    null,
-                    null
-                )
+                .build(testExecution.getsMainFrame(), allTags, tags, null, null, null)
                 .withTitle("Filter Tags")
                 .show(this::setFilterTags);
         }
 
         private void setFilterTags(List<Tag> tags) {
-            this.tags = tags.stream().distinct().collect(toList());
-            this.sTags = tags.stream().map(Tag::getValue).distinct().collect(toList());
-            reloadModel();
-            if (tags.isEmpty()) {
+            if (tags == null || tags.isEmpty()) {
+                this.tags = new ArrayList<>();
+                this.sTags = new ArrayList<>();
                 resetFilter();
-            } else {
-                enableFilter();
+                reloadModel();
+                return;
             }
+
+            this.tags = tags.stream().distinct().collect(toList());
+
+            this.sTags = this.tags.stream().map(Tag::getValue).distinct().collect(toList());
+
+            enableFilter();
+            reloadModel();
         }
 
         private JToolBar createToolbar() {
@@ -453,6 +485,39 @@ public class TestExecutionUI extends JPanel implements ActionListener {
 
         private void enableFilter() {
             filterButton.setIcon(Utils.getIconByResourceName("/ui/resources/toolbar/tagsel"));
+        }
+
+        /**
+         * Prunes stale tags from the active filter and always refreshes sTags.
+         *
+         * Important:
+         * Filtering uses sTags, not tags directly. If a selected Tag is renamed,
+         * the Tag object may already contain the new value, but sTags can still
+         * contain the old value. Therefore, sTags must be rebuilt whenever the
+         * Execution tab is opened/refreshed.
+         */
+        private void pruneFilter(List<Tag> allTags) {
+            if (tags == null || tags.isEmpty()) {
+                sTags = null;
+                return;
+            }
+
+            Set<String> currentTagValues = allTags.stream().map(Tag::getValue).collect(toSet());
+
+            List<Tag> validTags = tags
+                .stream()
+                .filter(t -> currentTagValues.contains(t.getValue()))
+                .distinct()
+                .collect(toList());
+
+            this.tags = validTags;
+            this.sTags = validTags.stream().map(Tag::getValue).distinct().collect(toList());
+
+            if (validTags.isEmpty()) {
+                resetFilter();
+            } else {
+                enableFilter();
+            }
         }
 
         private void resetFilter() {

@@ -1,8 +1,5 @@
 package com.ing.ide.main.utils.table;
 
-import static javax.swing.JTable.AUTO_RESIZE_OFF;
-import static javax.swing.JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS;
-
 import com.ing.datalib.undoredo.UndoRedoModel;
 import com.ing.ide.main.Main;
 import com.ing.ide.main.utils.keys.ClipboardKeyAdapter;
@@ -11,6 +8,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontFormatException;
+import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -49,6 +47,12 @@ public class XTable extends JTable {
     private SearchRenderer searchRenderer;
 
     private EditHeader editHeader;
+
+    // Insert row prompt feature
+    private InsertRowPromptFeature insertRowPromptFeature;
+
+    // Insert column prompt feature
+    private InsertColumnPromptFeature insertColumnPromptFeature;
 
     public XTable() {
         init();
@@ -165,6 +169,16 @@ public class XTable extends JTable {
                 }
             );
         TableCellDrag.install(this);
+
+        // Insert row prompt feature
+        insertRowPromptFeature = new InsertRowPromptFeature(this);
+        insertRowPromptFeature.install();
+
+        // Insert column prompt feature.
+        // Disabled by default. Individual tables must opt in explicitly.
+        insertColumnPromptFeature = new InsertColumnPromptFeature(this);
+        insertColumnPromptFeature.install();
+        insertColumnPromptFeature.setEnabled(false);
     }
 
     /**
@@ -369,6 +383,38 @@ public class XTable extends JTable {
         return flag;
     }
 
+    public void setInsertRowHandler(java.util.function.IntConsumer insertRowHandler) {
+        if (insertRowPromptFeature != null) {
+            insertRowPromptFeature.setInsertRowHandler(insertRowHandler);
+        }
+    }
+
+    public void setInsertColumnPromptEnabled(boolean enabled) {
+        if (insertColumnPromptFeature != null) {
+            insertColumnPromptFeature.setEnabled(enabled);
+        }
+    }
+
+    public boolean isInsertColumnPromptEnabled() {
+        return insertColumnPromptFeature != null && insertColumnPromptFeature.isEnabled();
+    }
+
+    public void setInsertColumnHandler(java.util.function.IntConsumer insertColumnHandler) {
+        if (insertColumnPromptFeature != null) {
+            insertColumnPromptFeature.setInsertColumnHandler(insertColumnHandler);
+        }
+    }
+
+    public void setInsertRowPromptEnabled(boolean enabled) {
+        if (insertRowPromptFeature != null) {
+            insertRowPromptFeature.setEnabled(enabled);
+        }
+    }
+
+    public boolean isInsertRowPromptEnabled() {
+        return insertRowPromptFeature != null && insertRowPromptFeature.isEnabled();
+    }
+
     public void setActionFor(String value, Action action) {
         getActionMap().put(value, action);
     }
@@ -379,6 +425,10 @@ public class XTable extends JTable {
 
     public void setColumnRename(Action onColumnRenameAction, Integer... dontEditTheseColumns) {
         editHeader = EditHeader.setEditableHeader(this, onColumnRenameAction, dontEditTheseColumns);
+
+        if (insertColumnPromptFeature != null) {
+            insertColumnPromptFeature.install();
+        }
     }
 
     public void disableColumnRename() {
@@ -567,6 +617,73 @@ public class XTable extends JTable {
             }
         }
     }
+
+    // -----------------------------------------------------------------------------
+    // Insert row/column prompt feature
+    // -----------------------------------------------------------------------------
+
+    /**
+     * Paints the table and any active insert-row indicators.
+     *
+     * @param g graphics context
+     */
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        if (insertRowPromptFeature != null) {
+            insertRowPromptFeature.paint(g);
+        }
+
+        if (insertColumnPromptFeature != null) {
+            insertColumnPromptFeature.paint(g);
+        }
+    }
+
+    /**
+     * Allows the insert-row feature to handle mouse events before standard table
+     * processing.
+     *
+     * @param e mouse event
+     */
+    @Override
+    protected void processMouseEvent(java.awt.event.MouseEvent e) {
+        if (insertRowPromptFeature != null && insertRowPromptFeature.processMouseEvent(e)) {
+            return;
+        }
+
+        super.processMouseEvent(e);
+    }
+
+    /**
+     * Allows the insert-row feature to intercept mouse motion events before
+     * standard table processing.
+     *
+     * @param e mouse event
+     */
+    @Override
+    protected void processMouseMotionEvent(java.awt.event.MouseEvent e) {
+        if (insertRowPromptFeature != null && insertRowPromptFeature.processMouseMotionEvent(e)) {
+            return;
+        }
+
+        super.processMouseMotionEvent(e);
+    }
+
+    /**
+     * Sets the minimum column index where the insert-column prompt can appear.
+     *
+     * @param minimumInsertColumn minimum allowed insertion column index
+     */
+    public void setMinimumInsertColumn(int minimumInsertColumn) {
+        if (insertColumnPromptFeature != null) {
+            insertColumnPromptFeature.setMinimumInsertColumn(minimumInsertColumn);
+        }
+    }
+
+    // -----------------------------------------------------------------------------
+    // End of insert row/column prompt feature
+    // -----------------------------------------------------------------------------
 
     public class CustomTableCellEditor extends DefaultCellEditor {
 

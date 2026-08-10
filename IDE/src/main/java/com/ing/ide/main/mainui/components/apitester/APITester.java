@@ -14,17 +14,21 @@ import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.structureddata.StructuredDataORObject;
 import com.ing.datalib.or.structureddata.StructuredDataORPage;
 import com.ing.datalib.or.web.WebOR;
+import com.ing.datalib.settings.DriverProperties;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.mainui.SlideShow;
 import com.ing.ide.main.mainui.components.apitester.util.APIHttpClient;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.checkerframework.checker.units.qual.A;
 
 /**
  * Main controller for the API Tester feature.
@@ -82,22 +86,38 @@ public class APITester implements SlideShow.SlideChangeListener {
 
     /**
      * Executes an API request asynchronously.
+     *
+     * The saved/UI request keeps {{variable}} placeholders.
+     * A resolved copy is created only for execution.
      */
     public void executeRequest(APIRequest request, RequestCallback callback) {
+        if (request == null) {
+            if (callback != null) {
+                callback.onError(new IllegalArgumentException("Request is null"));
+            }
+            return;
+        }
+
+        // Snapshot the raw request so background execution is not affected by later UI edits.
+        APIRequest rawRequest = request.copy();
+
+        // Resolve environment variables for execution only.
+        APIRequest requestToExecute = createResolvedRequest(rawRequest, activeEnvironment);
+
         // Update HTTP client environment
         httpClient.setEnvironment(activeEnvironment);
 
         // Set SSL verification based on per-request setting
-        httpClient.setTrustAllCertificates(!request.isSslVerificationEnabled());
+        httpClient.setTrustAllCertificates(!requestToExecute.isSslVerificationEnabled());
 
         // Execute in background thread
         new Thread(
             () -> {
                 try {
-                    APIResponse response = httpClient.execute(request);
+                    APIResponse response = httpClient.execute(requestToExecute);
 
-                    // Add to history
-                    addToHistory(request);
+                    // Add unresolved/raw request to history so secrets/resolved values are not persisted.
+                    addToHistory(rawRequest);
 
                     // Callback on EDT
                     javax.swing.SwingUtilities.invokeLater(
@@ -117,6 +137,150 @@ public class APITester implements SlideShow.SlideChangeListener {
             "API-Request-Executor"
         )
         .start();
+    }
+
+    /**
+     * Creates a resolved copy of the request for execution.
+     *
+     * This does not mutate the original request. Saved collections/history should keep
+     * {{variable}} placeholders, while the HTTP client receives concrete values.
+     */
+    private APIRequest createResolvedRequest(APIRequest source, APIEnvironment environment) {
+        if (source == null) {
+            return null;
+        }
+
+        if (environment == null) {
+            return source.copy();
+        }
+
+        APIRequest resolved = source.copy();
+
+        resolved.setUrl(resolveValue(source.getUrl(), environment));
+        resolved.setQueryParams(resolveKeyValuePairs(source.getQueryParams(), environment));
+        resolved.setHeaders(resolveKeyValuePairs(source.getHeaders(), environment));
+        resolved.setBody(resolveBody(source.getBody(), environment));
+        resolved.setAuth(resolveAuth(source.getAuth(), environment));
+        resolved.setProxyConfig(resolveProxyConfig(source.getProxyConfig(), environment));
+        resolved.setCertificateConfig(
+            resolveCertificateConfig(source.getCertificateConfig(), environment)
+        );
+
+        return resolved;
+    }
+
+    private String resolveValue(String value, APIEnvironment environment) {
+        if (value == null || environment == null) {
+            return value;
+        }
+
+        return environment.resolve(value);
+    }
+
+    private List<KeyValuePair> resolveKeyValuePairs(
+        List<KeyValuePair> pairs,
+        APIEnvironment environment
+    ) {
+        if (pairs == null) {
+            return null;
+        }
+
+        List<KeyValuePair> resolvedPairs = new ArrayList<>();
+
+        for (KeyValuePair pair : pairs) {
+            if (pair == null) {
+                continue;
+            }
+
+            resolvedPairs.add(
+                new KeyValuePair(
+                    resolveValue(pair.getKey(), environment),
+                    resolveValue(pair.getValue(), environment),
+                    pair.isEnabled()
+                )
+            );
+        }
+
+        return resolvedPairs;
+    }
+
+    private RequestBody resolveBody(RequestBody body, APIEnvironment environment) {
+        if (body == null) {
+            return null;
+        }
+
+        RequestBody resolvedBody = new RequestBody();
+        resolvedBody.setBodyType(body.getBodyType());
+        resolvedBody.setRawFormat(body.getRawFormat());
+        resolvedBody.setRawContent(resolveValue(body.getRawContent(), environment));
+
+        return resolvedBody;
+    }
+
+    private AuthConfig resolveAuth(AuthConfig auth, APIEnvironment environment) {
+        if (auth == null) {
+            return null;
+        }
+
+        AuthConfig resolvedAuth = new AuthConfig();
+        resolvedAuth.setAuthType(auth.getAuthType());
+
+        resolvedAuth.setBasicUsername(resolveValue(auth.getBasicUsername(), environment));
+        resolvedAuth.setBasicPassword(resolveValue(auth.getBasicPassword(), environment));
+
+        resolvedAuth.setBearerToken(resolveValue(auth.getBearerToken(), environment));
+        resolvedAuth.setBearerPrefix(resolveValue(auth.getBearerPrefix(), environment));
+
+        resolvedAuth.setApiKeyName(resolveValue(auth.getApiKeyName(), environment));
+        resolvedAuth.setApiKeyValue(resolveValue(auth.getApiKeyValue(), environment));
+        resolvedAuth.setApiKeyLocation(auth.getApiKeyLocation());
+
+        return resolvedAuth;
+    }
+
+    private ProxyConfig resolveProxyConfig(ProxyConfig proxyConfig, APIEnvironment environment) {
+        if (proxyConfig == null) {
+            return null;
+        }
+
+        ProxyConfig resolvedProxyConfig = new ProxyConfig();
+        resolvedProxyConfig.setEnabled(proxyConfig.isEnabled());
+        resolvedProxyConfig.setHost(resolveValue(proxyConfig.getHost(), environment));
+        resolvedProxyConfig.setPort(resolveValue(proxyConfig.getPort(), environment));
+
+        return resolvedProxyConfig;
+    }
+
+    private CertificateConfig resolveCertificateConfig(
+        CertificateConfig certificateConfig,
+        APIEnvironment environment
+    ) {
+        if (certificateConfig == null) {
+            return null;
+        }
+
+        CertificateConfig resolvedCertificateConfig = new CertificateConfig();
+
+        resolvedCertificateConfig.setEnabled(certificateConfig.isEnabled());
+        resolvedCertificateConfig.setCertificateType(certificateConfig.getCertificateType());
+
+        resolvedCertificateConfig.setCaCertPath(
+            resolveValue(certificateConfig.getCaCertPath(), environment)
+        );
+        resolvedCertificateConfig.setClientCertPath(
+            resolveValue(certificateConfig.getClientCertPath(), environment)
+        );
+        resolvedCertificateConfig.setClientKeyPath(
+            resolveValue(certificateConfig.getClientKeyPath(), environment)
+        );
+        resolvedCertificateConfig.setPfxPath(
+            resolveValue(certificateConfig.getPfxPath(), environment)
+        );
+        resolvedCertificateConfig.setPassphrase(
+            resolveValue(certificateConfig.getPassphrase(), environment)
+        );
+
+        return resolvedCertificateConfig;
     }
 
     public interface RequestCallback {
@@ -197,20 +361,92 @@ public class APITester implements SlideShow.SlideChangeListener {
         apiTesterUI.updateEnvironmentSelector();
     }
 
-    public void removeEnvironment(APIEnvironment environment) {
+    public void deleteEnvironment(APIEnvironment environment) {
+        if (environment == null) {
+            return;
+        }
+
         environments.remove(environment);
+
         if (activeEnvironment == environment) {
             activeEnvironment = null;
             httpClient.setEnvironment(null);
         }
+
+        Path apiPath = getApiDataPath();
+        if (apiPath != null) {
+            Path filePath = apiPath
+                .resolve("environments")
+                .resolve(sanitizeFileName(environment.getName()) + ".json");
+
+            try {
+                Files.deleteIfExists(filePath);
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, "Failed to delete environment file: " + filePath, e);
+            }
+        }
+
         saveEnvironments();
         apiTesterUI.updateEnvironmentSelector();
     }
 
     public APIEnvironment createNewEnvironment(String name) {
-        APIEnvironment environment = new APIEnvironment(name);
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Environment name is required.");
+        }
+
+        String trimmedName = name.trim();
+
+        if (environmentNameExists(trimmedName, null)) {
+            throw new IllegalArgumentException("An environment with this name already exists.");
+        }
+
+        APIEnvironment environment = new APIEnvironment(trimmedName);
         addEnvironment(environment);
         return environment;
+    }
+
+    public void renameEnvironment(APIEnvironment environment, String newName) {
+        if (environment == null || newName == null || newName.trim().isEmpty()) {
+            return;
+        }
+
+        String trimmedName = newName.trim();
+
+        if (environmentNameExists(trimmedName, environment)) {
+            throw new IllegalArgumentException("An environment with this name already exists.");
+        }
+
+        String oldName = environment.getName();
+
+        Path apiPath = getApiDataPath();
+        if (apiPath != null && oldName != null) {
+            Path oldFilePath = apiPath
+                .resolve("environments")
+                .resolve(sanitizeFileName(oldName) + ".json");
+
+            try {
+                Files.deleteIfExists(oldFilePath);
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, "Failed to delete old environment file: " + oldFilePath, e);
+            }
+        }
+
+        environment.setName(trimmedName);
+
+        saveEnvironments();
+        apiTesterUI.updateEnvironmentSelector();
+    }
+
+    public void saveEnvironment(APIEnvironment environment) {
+        if (environment == null) {
+            return;
+        }
+
+        environment.setUpdatedAt(System.currentTimeMillis());
+
+        saveEnvironments();
+        apiTesterUI.updateEnvironmentSelector();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -437,6 +673,23 @@ public class APITester implements SlideShow.SlideChangeListener {
         try {
             Files.createDirectories(envsPath);
 
+            Files
+                .list(envsPath)
+                .filter(p -> p.toString().endsWith(".json"))
+                .forEach(
+                    p -> {
+                        try {
+                            Files.deleteIfExists(p);
+                        } catch (IOException e) {
+                            LOG.log(
+                                Level.WARNING,
+                                "Failed to delete old environment file: " + p,
+                                e
+                            );
+                        }
+                    }
+                );
+
             for (APIEnvironment env : environments) {
                 Path filePath = envsPath.resolve(sanitizeFileName(env.getName()) + ".json");
                 objectMapper.writeValue(filePath.toFile(), env);
@@ -483,6 +736,29 @@ public class APITester implements SlideShow.SlideChangeListener {
     private String sanitizeFileName(String name) {
         if (name == null) return "unnamed";
         return name.replaceAll("[^a-zA-Z0-9.-]", "_");
+    }
+
+    public boolean environmentNameExists(String name, APIEnvironment excludedEnvironment) {
+        if (name == null) {
+            return false;
+        }
+
+        String normalizedName = name.trim();
+
+        for (APIEnvironment environment : environments) {
+            if (environment == null || environment == excludedEnvironment) {
+                continue;
+            }
+
+            String environmentName = environment.getName();
+            if (
+                environmentName != null && environmentName.trim().equalsIgnoreCase(normalizedName)
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -574,6 +850,27 @@ public class APITester implements SlideShow.SlideChangeListener {
         Scenario scenario,
         String testCaseName
     ) {
+        return convertRequestToTestCase(request, scenario, testCaseName, null);
+    }
+
+    /**
+     * Converts an API request to an INGenious test case with test steps, optionally
+     * binding the {@code setEndPoint} step to a specific API configuration alias so that
+     * proxy (and other) details stored in that config are applied at runtime.
+     *
+     * @param request The API request to convert
+     * @param scenario The target scenario to add the test case to
+     * @param testCaseName The name for the new test case
+     * @param apiConfigAlias The API config alias to reference via the {@code #alias} condition,
+     *                       or {@code null}/"default" to leave the condition empty
+     * @return The created TestCase, or null if conversion failed
+     */
+    public TestCase convertRequestToTestCase(
+        APIRequest request,
+        Scenario scenario,
+        String testCaseName,
+        String apiConfigAlias
+    ) {
         if (request == null || scenario == null || testCaseName == null) {
             return null;
         }
@@ -588,7 +885,9 @@ public class APITester implements SlideShow.SlideChangeListener {
         }
 
         try {
-            buildStepsForRequest(testCase, request);
+            APIRequest requestForConversion = createResolvedRequest(request, activeEnvironment);
+
+            buildStepsForRequest(testCase, requestForConversion, apiConfigAlias);
 
             // Save the test case
             testCase.save();
@@ -614,6 +913,62 @@ public class APITester implements SlideShow.SlideChangeListener {
             // Remove failed test case
             scenario.removeTestCase(testCase);
             return null;
+        }
+    }
+
+    /**
+     * Persists the given proxy details into an API configuration so the engine can apply them
+     * at runtime. When {@code alias} is "default" (or blank/null), the project's default API
+     * config is updated. Otherwise a new API config with the given alias is created (if it does
+     * not already exist) and updated with the proxy details.
+     *
+     * @param proxyConfig the proxy details to store (must be enabled with a valid host/port)
+     * @param alias       the target API config alias, or "default"/null for the default config
+     * @return {@code true} if the proxy details were saved successfully
+     */
+    public boolean saveProxyToApiConfig(ProxyConfig proxyConfig, String alias) {
+        if (proxyConfig == null || !proxyConfig.hasValidConfig()) {
+            return false;
+        }
+        if (mainFrame.getProject() == null) {
+            LOG.warning("Cannot save proxy details: no project is open");
+            return false;
+        }
+        try {
+            DriverProperties driverProps = mainFrame
+                .getProject()
+                .getProjectSettings()
+                .getDriverSettings();
+
+            String targetAlias = (alias == null || alias.trim().isEmpty())
+                ? "default"
+                : alias.trim();
+
+            // Create the config if it doesn't exist yet (non-default aliases)
+            if (!driverProps.doesAPIconfigExist(targetAlias)) {
+                driverProps.addAPIName(targetAlias);
+                driverProps.addAPIProperty(targetAlias);
+            }
+
+            Properties prop = driverProps.getAPIPropertiesFor(targetAlias);
+            if (prop == null) {
+                LOG.warning(
+                    "Cannot save proxy details: API config '" + targetAlias + "' not found"
+                );
+                return false;
+            }
+
+            prop.setProperty("useProxy", "true");
+            prop.setProperty("proxyHost", proxyConfig.getHost().trim());
+            prop.setProperty("proxyPort", proxyConfig.getPort().trim());
+
+            driverProps.save();
+
+            LOG.info("Saved proxy details to API config '" + targetAlias + "'");
+            return true;
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Failed to save proxy details to API config", e);
+            return false;
         }
     }
 
@@ -653,7 +1008,9 @@ public class APITester implements SlideShow.SlideChangeListener {
         }
 
         try {
-            buildStepsForRequest(testCase, request);
+            APIRequest requestForConversion = createResolvedRequest(request, activeEnvironment);
+            buildStepsForRequest(testCase, requestForConversion);
+
             testCase.save();
 
             // Refresh Reusables tree so the new reusable appears immediately
@@ -685,12 +1042,32 @@ public class APITester implements SlideShow.SlideChangeListener {
      * authentication, the HTTP method call, and assertions.
      */
     private void buildStepsForRequest(TestCase testCase, APIRequest request) {
+        buildStepsForRequest(testCase, request, null);
+    }
+
+    /**
+     * Shared step-building logic. When {@code apiConfigAlias} is a non-blank value other than
+     * "default", the {@code setEndPoint} step's Condition column is set to {@code #alias} so the
+     * engine loads that API configuration (including any proxy details) before sending the request.
+     */
+    private void buildStepsForRequest(
+        TestCase testCase,
+        APIRequest request,
+        String apiConfigAlias
+    ) {
         // Step 1: Set the endpoint URL
         TestStep setEndpointStep = testCase.addNewStep();
         setEndpointStep.setObject("Webservice");
         setEndpointStep.setDescription("Set API Endpoint");
         setEndpointStep.setAction("setEndPoint");
         setEndpointStep.setInput("@" + resolveUrl(request));
+        if (
+            apiConfigAlias != null &&
+            !apiConfigAlias.trim().isEmpty() &&
+            !"default".equalsIgnoreCase(apiConfigAlias.trim())
+        ) {
+            setEndpointStep.setCondition("#" + apiConfigAlias.trim());
+        }
 
         // Step 2: Add headers if present
         if (request.getHeaders() != null && !request.getHeaders().isEmpty()) {
@@ -791,15 +1168,23 @@ public class APITester implements SlideShow.SlideChangeListener {
         switch (auth.getAuthType()) {
             case BASIC:
                 {
-                    authStep.setDescription("Add Basic Auth Header");
-                    String basicAuth =
-                        "Basic " +
-                        java
-                            .util.Base64.getEncoder()
-                            .encodeToString(
-                                (auth.getBasicUsername() + ":" + auth.getBasicPassword()).getBytes()
-                            );
-                    authStep.setInput("@Authorization=" + basicAuth);
+                    authStep.setDescription("Add Header: Authorization");
+
+                    String username = auth.getBasicUsername() != null
+                        ? auth.getBasicUsername()
+                        : "";
+
+                    String password = auth.getBasicPassword() != null
+                        ? auth.getBasicPassword()
+                        : "";
+
+                    String credentials = username + ":" + password;
+
+                    String encodedCredentials = java
+                        .util.Base64.getEncoder()
+                        .encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+
+                    authStep.setInput("@Authorization=Basic " + encodedCredentials);
                     break;
                 }
             case BEARER:
@@ -1167,13 +1552,25 @@ public class APITester implements SlideShow.SlideChangeListener {
     }
 
     /**
-     * Gets all scenarios from the current project.
+     * Gets all Test Plan scenarios from the current project.
      */
     public List<Scenario> getAvailableScenarios() {
         List<Scenario> scenarios = new ArrayList<>();
         Project project = mainFrame.getProject();
         if (project != null) {
             scenarios.addAll(project.getScenarios());
+        }
+        return scenarios;
+    }
+
+    /**
+     * Gets all Reusable Components scenarios from the current project.
+     */
+    public List<Scenario> getAvailableReusableScenarios() {
+        List<Scenario> scenarios = new ArrayList<>();
+        Project project = mainFrame.getProject();
+        if (project != null) {
+            scenarios.addAll(project.getReusableScenarios());
         }
         return scenarios;
     }

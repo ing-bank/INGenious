@@ -5,7 +5,9 @@ import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.settings.AppSettings;
 import com.ing.ide.settings.AppSettings.APP_SETTINGS;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
@@ -14,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 
 /**
  *
@@ -21,13 +25,31 @@ import javax.swing.ImageIcon;
  */
 public class Options extends javax.swing.JDialog {
     private Boolean saved;
+    private boolean discardUnsavedOnClose;
 
     private final List<String> themes = new ArrayList<>();
     private final Map<String, Object> previewMap = new HashMap();
 
     public Options() {
         initComponents();
+        installEscapeCloseHandler();
         load();
+    }
+
+    private void installEscapeCloseHandler() {
+        getRootPane()
+            .registerKeyboardAction(
+                this::handleEscapeClose,
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_IN_FOCUSED_WINDOW
+            );
+    }
+
+    private void handleEscapeClose(ActionEvent event) {
+        if (!saved) {
+            discardUnsavedOnClose = true;
+        }
+        dispose();
     }
 
     private void load() {
@@ -131,6 +153,7 @@ public class Options extends javax.swing.JDialog {
         if (isVisible()) {
             toFront();
         } else {
+            discardUnsavedOnClose = false;
             setLocationRelativeTo(null);
             setVisible(true);
         }
@@ -624,7 +647,7 @@ public class Options extends javax.swing.JDialog {
     } // </editor-fold>//GEN-END:initComponents
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) { //GEN-FIRST:event_formWindowClosing
-        if (!saved) {
+        if (!saved && !discardUnsavedOnClose) {
             AppSettings.store("Options Changed");
             storeDefaultTheme();
         }

@@ -2,11 +2,13 @@ package com.ing.ide.main.mainui.components.testdesign.testcase;
 
 import static com.ing.datalib.component.TestStep.HEADERS.Description;
 
+import com.ing.datalib.component.ReusableRef;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.component.TestStep.HEADERS;
 import com.ing.datalib.component.utils.SaveListener;
+import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebORPage;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.LiveRecordingHook;
@@ -74,6 +76,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -337,15 +340,16 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         if (tcText.length() > 20) {
             tcText = tcText.substring(0, 20) + "...";
         }
+        String scopeLabel = getCurrentTestCase().getScenario().getScopeLabel();
         //        String toolTip
         //                = getCurrentTestCase().getScenario().getName()
         //                + " - "
         //                + getCurrentTestCase().getName();
-        toolBar.setPlaceHolderText(scText + " - " + tcText, null);
+        toolBar.setPlaceHolderText(scText + " - " + tcText + " (" + scopeLabel + ")", null);
     }
 
     public void load() {
-        tcAutoSuggest = new TestCaseAutoSuggest(testDesign.getProject(), testCaseTable);
+        tcAutoSuggest = new TestCaseAutoSuggest(testDesign.getProject(), testCaseTable, testDesign);
         testCaseHistory.clear();
         loadBrowsers();
     }
@@ -779,8 +783,15 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                     PlaywrightRecordingParser baseParser = new PlaywrightRecordingParser(
                         sMainFrame
                     );
-                    WebORPage objectPage = baseParser.createLiveRecordingPage(target.getName());
-                    liveRecordingPageName = baseParser.getLiveRecordingPageName();
+                    WebORPage objectPage = resolveExistingProjectPage(target);
+                    boolean preserveExistingObjects = false;
+                    if (objectPage != null) {
+                        liveRecordingPageName = objectPage.getName();
+                        preserveExistingObjects = true;
+                    } else {
+                        objectPage = baseParser.createLiveRecordingPage(target.getName());
+                        liveRecordingPageName = baseParser.getLiveRecordingPageName();
+                    }
                     String reference = "[Project] " + liveRecordingPageName;
                     liveRecordingParser =
                         new LiveRecordingParser(
@@ -788,7 +799,8 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                             target,
                             firstInsertIndex,
                             reference,
-                            objectPage
+                            objectPage,
+                            preserveExistingObjects
                         );
 
                     liveRecordingOutputFile = prepareLiveRecordingOutputFile();
@@ -1241,8 +1253,6 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         }
 
         switch (selection.getMode()) {
-            case CURRENT_OPEN_TEST_CASE:
-                return getCurrentTestCase();
             case NEW_TEST_SCENARIO:
                 return createOrResolveTarget(
                     selection.getScenarioName(),
@@ -1254,12 +1264,6 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                     selection.getScenarioName(),
                     selection.getTestCaseName(),
                     true
-                );
-            case EXISTING_TEST_CASE:
-                return findExistingTarget(
-                    selection.getExistingScenarioName(),
-                    selection.getTestCaseName(),
-                    selection.isExistingReusable()
                 );
             default:
                 return null;
@@ -1282,13 +1286,37 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             return null;
         }
 
-        TestCase testCase = scenario.getTestCaseByName(testCaseName);
-        if (testCase == null) {
-            testCase = scenario.addTestCase(testCaseName);
-        }
+        String resolvedName = resolveUniqueTestCaseName(scenario, testCaseName, reusable);
+        TestCase testCase = scenario.addTestCase(resolvedName);
 
         registerTargetInTree(testCase, reusable);
         return testCase;
+    }
+
+    private String resolveUniqueTestCaseName(
+        Scenario scenario,
+        String requestedName,
+        boolean reusable
+    ) {
+        String baseName = (requestedName == null || requestedName.trim().isEmpty())
+            ? (reusable ? "LiveRecordingReusableTestCase" : "LiveRecordingTestCase")
+            : requestedName.trim();
+        String candidate = baseName;
+        int counter = 1;
+        while (hasTestCaseNameIgnoreCase(scenario, candidate)) {
+            candidate = baseName + "_" + counter;
+            counter++;
+        }
+        return candidate;
+    }
+
+    private boolean hasTestCaseNameIgnoreCase(Scenario scenario, String name) {
+        for (TestCase existing : scenario.getTestCases()) {
+            if (existing.getName().equalsIgnoreCase(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1369,6 +1397,47 @@ public class TestCaseComponent extends JPanel implements ActionListener {
 
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private WebORPage resolveExistingProjectPage(TestCase target) {
+        if (
+            target == null ||
+            sMainFrame == null ||
+            sMainFrame.getProject() == null ||
+            sMainFrame.getProject().getObjectRepository() == null
+        ) {
+            return null;
+        }
+
+        WebOR webOR = sMainFrame.getProject().getObjectRepository().getWebOR();
+        if (webOR == null) {
+            return null;
+        }
+
+        for (TestStep step : target.getTestSteps()) {
+            String pageName = extractProjectPageName(step == null ? null : step.getReference());
+            if (pageName == null) {
+                continue;
+            }
+            WebORPage page = webOR.getPageByName(pageName);
+            if (page != null) {
+                return page;
+            }
+        }
+        return null;
+    }
+
+    private String extractProjectPageName(String reference) {
+        if (reference == null) {
+            return null;
+        }
+        String trimmed = reference.trim();
+        String prefix = "[Project]";
+        if (!trimmed.startsWith(prefix)) {
+            return null;
+        }
+        String pageName = trimmed.substring(prefix.length()).trim();
+        return pageName.isEmpty() ? null : pageName;
     }
 
     private File prepareLiveRecordingOutputFile() throws IOException {
@@ -1637,12 +1706,25 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 current.getProject()
             );
             if (result != null) {
-                Scenario targetScenario = current
-                    .getProject()
-                    .getReusableScenarioByName(result.getScenarioName());
-                if (targetScenario == null) {
+                Scenario targetScenario;
+                if (result.isSharedScope()) {
                     targetScenario =
-                        current.getProject().addReusableScenario(result.getScenarioName());
+                        current
+                            .getProject()
+                            .getSharedReusableScenarioByName(result.getScenarioName());
+                    if (targetScenario == null) {
+                        targetScenario =
+                            current
+                                .getProject()
+                                .addSharedReusableScenario(result.getScenarioName());
+                    }
+                } else {
+                    targetScenario =
+                        current.getProject().getReusableScenarioByName(result.getScenarioName());
+                    if (targetScenario == null) {
+                        targetScenario =
+                            current.getProject().addReusableScenario(result.getScenarioName());
+                    }
                 }
                 TestCase reusable = current.createAsReusable(
                     targetScenario,
@@ -1652,7 +1734,11 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 );
                 if (reusable != null) {
                     current.save();
-                    testDesign.getReusableTree().getTreeModel().addTestCase(reusable);
+                    if (result.isSharedScope()) {
+                        testDesign.getSharedReusableTree().getTreeModel().addTestCase(reusable);
+                    } else {
+                        testDesign.getReusableTree().getTreeModel().addTestCase(reusable);
+                    }
                 } else {
                     Notification.show("Couldn't Create Reusable - " + result.getReusableName());
                 }
@@ -1719,32 +1805,74 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             TestStep tStep = getCurrentTestCase()
                 .getTestSteps()
                 .get(testCaseTable.getSelectedRow());
+
+            // Go To Reusable is only available for PROJECT and SHARED scope reusables
+            if (!tStep.isReusableStep()) {
+                Notification.showWarning("Selected step is not a reusable step.");
+                return;
+            }
+
             String[] reusableData = tStep.getReusableData();
             if (reusableData != null) {
-                // Try reusable scenarios first, then fall back to regular scenarios
-                Scenario scenario = testDesign
-                    .getProject()
-                    .getReusableScenarioByName(reusableData[0]);
-                if (scenario == null) {
-                    scenario = testDesign.getProject().getScenarioByName(reusableData[0]);
+                ReusableRef ref;
+                try {
+                    ref = tStep.getEffectiveReusableRef();
+                } catch (IllegalArgumentException ex) {
+                    ref =
+                        new ReusableRef(
+                            ReusableRef.Scope.UNSCOPED,
+                            reusableData[0],
+                            reusableData[1]
+                        );
+                }
+                if (ref == null) {
+                    ref =
+                        new ReusableRef(
+                            ReusableRef.Scope.UNSCOPED,
+                            reusableData[0],
+                            reusableData[1]
+                        );
+                }
+
+                // Only allow navigation for PROJECT and SHARED scoped reusables
+                if (ref.getScope() == ReusableRef.Scope.UNSCOPED) {
+                    Notification.showWarning(
+                        "Cannot navigate to unscoped reusable. Please explicitly scope the reference as [Project] or [Shared] in the Action column."
+                    );
+                    return;
+                }
+
+                Scenario scenario = null;
+                if (ref.getScope() == ReusableRef.Scope.PROJECT) {
+                    scenario =
+                        testDesign.getProject().getReusableScenarioByName(ref.getScenarioName());
+                } else if (ref.getScope() == ReusableRef.Scope.SHARED) {
+                    scenario =
+                        testDesign
+                            .getProject()
+                            .getSharedReusableScenarioByName(ref.getScenarioName());
                 }
 
                 if (scenario != null) {
-                    TestCase testCase = scenario.getTestCaseByName(reusableData[1]);
+                    TestCase testCase = scenario.getTestCaseByName(ref.getTestCaseName());
                     if (testCase != null) {
                         testDesign.loadTableModelForSelection(testCase);
                     } else {
                         Notification.show(
                             "TestCase [" +
-                            reusableData[1] +
+                            ref.getTestCaseName() +
                             "] not present in the Scenario [" +
-                            reusableData[0] +
+                            ref.getScenarioName() +
                             "]"
                         );
                     }
                 } else {
                     Notification.show(
-                        "Scenario [" + reusableData[0] + "] not present in the project"
+                        "Scenario [" +
+                        ref.getScenarioName() +
+                        "] not present in " +
+                        ref.getScope() +
+                        " reusable scope"
                     );
                 }
             }
@@ -1816,6 +1944,12 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             AppIcon.applyTo(this);
             setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
+            getRootPane()
+                .registerKeyboardAction(
+                    e -> dispose(),
+                    KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                    JComponent.WHEN_IN_FOCUSED_WINDOW
+                );
         }
 
         public void showConsole() {

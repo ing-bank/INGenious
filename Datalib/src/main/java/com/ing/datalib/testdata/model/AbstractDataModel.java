@@ -4,8 +4,6 @@ import com.ing.datalib.component.utils.SaveListener;
 import com.ing.datalib.testdata.view.TestDataView;
 import com.ing.datalib.undoredo.UndoRedoModel;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,8 +12,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import javax.swing.event.TableModelEvent;
-import javax.swing.table.TableColumnModel;
-import javax.swing.table.TableModel;
 
 /**
  *
@@ -399,12 +395,30 @@ public abstract class AbstractDataModel<T extends List<String>> extends UndoRedo
     private void loadMColumns() {
         if (isFromFile) {
             if (new File(getLocation()).exists()) {
-                setColumns(loadColumns(new File(getLocation())));
+                // Load columns from file
+                java.util.Set<String> fileCols = loadColumns(new File(getLocation()));
+                java.util.List<String> colsList = new java.util.ArrayList<>(fileCols);
+
+                // Allow subclasses to perform column migration (e.g., TestDataModel adds Scope column)
+                colsList = migrateColumnsIfNeeded(colsList);
+
+                setColumns(colsList);
             }
         } else {
             setColumns(loadColumns());
         }
         setSaved(true);
+    }
+
+    /**
+     * Hook for subclasses to perform column migration during load.
+     * Default implementation returns the columns unchanged.
+     *
+     * @param columns the columns loaded from file
+     * @return the potentially migrated column list
+     */
+    protected java.util.List<String> migrateColumnsIfNeeded(java.util.List<String> columns) {
+        return columns;
     }
 
     public abstract Set<String> loadColumns(File location);

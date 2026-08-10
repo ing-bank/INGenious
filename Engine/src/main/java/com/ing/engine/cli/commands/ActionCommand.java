@@ -24,6 +24,7 @@ import picocli.CommandLine.ParentCommand;
 @Command(
     name = "action",
     aliases = { "actions" },
+    mixinStandardHelpOptions = true,
     description = "Discover and document available test actions",
     subcommands = {
         ActionCommand.ListCommand.class,

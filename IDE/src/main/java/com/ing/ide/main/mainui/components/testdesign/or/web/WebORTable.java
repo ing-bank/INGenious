@@ -6,11 +6,13 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
 import com.ing.ide.main.fx.INGIcons;
+import com.ing.ide.main.mainui.components.testdesign.or.ORTableInsertRowPrompt;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.table.PropertyAttributeRenderer;
 import com.ing.ide.main.utils.table.RoleCellEditor;
 import com.ing.ide.main.utils.table.XTable;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -33,6 +35,7 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -109,6 +112,14 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         add(panel, BorderLayout.CENTER);
         add(toolBar, BorderLayout.NORTH);
         table.setComponentPopupMenu(popupMenu);
+
+        ORTableInsertRowPrompt.install(
+            table,
+            this::stopCellEditing,
+            this::getObject,
+            WebORObject::getRowCount,
+            (object, modelInsertIndex) -> object.addNewAttributeAt(modelInsertIndex)
+        );
     }
 
     public XTable getTable() {
@@ -121,6 +132,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         }
         table.setModel(object);
         configureColumns();
+        SwingUtilities.invokeLater(this::adjustColumnsToViewport);
         monitorFrameChange = false;
         frameToolbar.frameText.setText(object.getFrame());
         toolBar.frameToggle.setSelected(!frameToolbar.frameText.getText().isEmpty());
@@ -201,6 +213,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
     }
 
     public void reset() {
+        stopCellEditing();
         table.setModel(new DefaultTableModel());
     }
 
@@ -271,7 +284,33 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
 
     private void addRow() {
         stopCellEditing();
-        getObject().addNewAttribute();
+
+        WebORObject object = getObject();
+        if (object == null) {
+            return;
+        }
+
+        int insertAt = object.getRowCount();
+
+        int[] selectedRows = table.getSelectedRows();
+        if (selectedRows.length > 0) {
+            int lastSelectedModelRow = -1;
+
+            for (int selectedRow : selectedRows) {
+                int modelRow = table.convertRowIndexToModel(selectedRow);
+                lastSelectedModelRow = Math.max(lastSelectedModelRow, modelRow);
+            }
+
+            insertAt = lastSelectedModelRow + 1;
+        }
+
+        int insertedRow = object.addNewAttributeAt(insertAt);
+
+        if (insertedRow >= 0) {
+            int viewRow = table.convertRowIndexToView(insertedRow);
+            table.getSelectionModel().setSelectionInterval(viewRow, viewRow);
+            table.scrollRectToVisible(table.getCellRect(viewRow, 0, true));
+        }
     }
 
     private void removeRow() {
@@ -538,6 +577,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
 
     class FrameToolBar extends JToolBar implements DocumentListener {
         private JTextField frameText;
+        private Color defaultFrameForeground;
 
         public FrameToolBar() {
             init();
@@ -548,6 +588,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
             setFloatable(false);
             setOpaque(false);
             frameText = new JTextField();
+            defaultFrameForeground = frameText.getForeground();
             add(
                 new javax.swing.Box.Filler(
                     new java.awt.Dimension(10, 0),
@@ -565,6 +606,17 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
             );
             add(frameText);
             frameText.getDocument().addDocumentListener(this);
+            // The frame value is already persisted live via the document listener.
+            // On Enter, commit and move focus to the table so the edit visibly
+            // settles, signalling to the user that the value has been saved. The
+            // text also turns grey to reinforce the "saved" state.
+            frameText.addActionListener(
+                e -> {
+                    changeFrameText();
+                    frameText.setForeground(Color.GRAY);
+                    table.requestFocusInWindow();
+                }
+            );
             table.addComponentListener(
                 new ComponentAdapter() {
 
@@ -578,16 +630,19 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
 
         @Override
         public void insertUpdate(DocumentEvent de) {
+            frameText.setForeground(defaultFrameForeground);
             changeFrameText();
         }
 
         @Override
         public void removeUpdate(DocumentEvent de) {
+            frameText.setForeground(defaultFrameForeground);
             changeFrameText();
         }
 
         @Override
         public void changedUpdate(DocumentEvent de) {
+            frameText.setForeground(defaultFrameForeground);
             changeFrameText();
         }
     }

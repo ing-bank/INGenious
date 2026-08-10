@@ -14,6 +14,7 @@ import java.io.IOException;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -35,6 +36,7 @@ public class TestDesignUI extends JPanel {
 
     JPanel appReusablePanel;
     JPanel testPlanPanel;
+    JTabbedPane reusableTreeTabbedPane;
 
     JButton reusableSwitch;
 
@@ -52,8 +54,29 @@ public class TestDesignUI extends JPanel {
         testPlanPanel = getTreeInPanel("Test Plan", testDesign.getProjectTree().getTree());
         projectNReusableTreeSplitPane.setTopComponent(testPlanPanel);
 
-        appReusablePanel =
-            getRTreeInPanel("Reusable Component", testDesign.getReusableTree().getTree());
+        // Create tabbed pane for Project and Shared Reusables with header
+        reusableTreeTabbedPane = new JTabbedPane();
+        JPanel projectReusablesPanel = new JPanel(new BorderLayout());
+        projectReusablesPanel.add(
+            TreeSearch.installFor(testDesign.getReusableTree().getTree()),
+            BorderLayout.CENTER
+        );
+
+        JPanel sharedReusablesPanel = new JPanel(new BorderLayout());
+        sharedReusablesPanel.add(
+            TreeSearch.installFor(testDesign.getSharedReusableTree().getTree()),
+            BorderLayout.CENTER
+        );
+
+        reusableTreeTabbedPane.addTab("Project", projectReusablesPanel);
+        reusableTreeTabbedPane.addTab("Shared", sharedReusablesPanel);
+
+        // Wrap reusable tabbed pane with FXPanelHeader style
+        appReusablePanel = new JPanel(new BorderLayout());
+        FXPanelHeader reusableHeader = new FXPanelHeader("Reusable Components");
+        appReusablePanel.add(reusableHeader, BorderLayout.NORTH);
+        appReusablePanel.add(reusableTreeTabbedPane, BorderLayout.CENTER);
+
         projectNReusableTreeSplitPane.setBottomComponent(appReusablePanel);
 
         testCaseNTestDataSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
@@ -269,23 +292,6 @@ public class TestDesignUI extends JPanel {
             )
         );
 
-        panel.add(header, BorderLayout.NORTH);
-        panel.add(TreeSearch.installFor(tree), BorderLayout.CENTER);
-        return panel;
-    }
-
-    private JPanel getRTreeInPanel(String labelText, JTree tree) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
-
-        registerFont();
-
-        // Reusable panel uses a clickable header (like legacy reusableSwitch button)
-        reusableSwitch = new JButton(labelText);
-        reusableSwitch.setFont(new Font("ING Me", Font.BOLD, 12));
-        reusableSwitch.setContentAreaFilled(false);
-
-        FXPanelHeader header = new FXPanelHeader(labelText);
         panel.add(header, BorderLayout.NORTH);
         panel.add(TreeSearch.installFor(tree), BorderLayout.CENTER);
         return panel;
