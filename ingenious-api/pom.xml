@@ -13,5 +13,11 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
-
+    
+    <distributionManagement>
+        <repository>
+            <id>P33148-outgoing-mvn</id>
+            <url>https://pkgs.dev.azure.com/INGCDaaS/IngOne/_packaging/P33148-outgoing-mvn/maven/v1</url>
+        </repository>
+    </distributionManagement>
 </project>

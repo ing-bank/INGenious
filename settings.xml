@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.1.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd">
+    <servers>
+        <server>
+            <id>P33148-outgoing-mvn</id>
+            <username>INGCDaaS</username>
+            <password>${env.SYSTEM_ACCESSTOKEN}</password>
+        </server>
+        <server>
+            <id>P33148-incoming-mvn</id>
+            <username>INGCDaaS</username>
+            <password>${env.SYSTEM_ACCESSTOKEN}</password>
+        </server>
+    </servers>
+
+</settings>

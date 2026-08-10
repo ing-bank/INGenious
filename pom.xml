@@ -19,7 +19,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <playwright.version>1.58.0</playwright.version>
+        <playwright.version>1.56.0</playwright.version>
         <commons-cli.version>1.4</commons-cli.version>
         <javamail.version>1.4.7</javamail.version>
         <json-simple.version>1.1.1</json-simple.version>
@@ -149,4 +149,43 @@
             </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>P33148-incoming-mvn</id>
+            <url>https://pkgs.dev.azure.com/INGCDaaS/IngOne/_packaging/P33148-incoming-mvn/maven/v1</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>P33148-outgoing-mvn</id>
+            <url>https://pkgs.dev.azure.com/INGCDaaS/IngOne/_packaging/P33148-outgoing-mvn/maven/v1</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>P33148-incoming-mvn</id>
+            <url>
+                https://pkgs.dev.azure.com/INGCDaaS/IngOne/_packaging/P33148-incoming-mvn/maven/v1
+            </url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <distributionManagement>
+        <repository>
+            <id>P33148-outgoing-mvn</id>
+            <url>https://pkgs.dev.azure.com/INGCDaaS/IngOne/_packaging/P33148-outgoing-mvn/maven/v1</url>
+        </repository>
+    </distributionManagement>
 </project>
