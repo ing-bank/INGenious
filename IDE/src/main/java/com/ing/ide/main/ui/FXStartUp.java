@@ -1,6 +1,7 @@
 package com.ing.ide.main.ui;
 
 import com.ing.datalib.testdata.TestDataFactory;
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.ide.main.fx.FXTheme;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.utils.INGeniousFileChooser;
@@ -298,7 +299,7 @@ public class FXStartUp extends JDialog {
         title.setGraphic(titleIcon);
         title.setGraphicTextGap(8);
 
-        Label loc = new Label("Location: " + new File("Projects").getAbsolutePath());
+        Label loc = new Label("Location: " + AppResourcePath.getProjectsPath());
         loc.getStyleClass().add("startup-hint");
 
         // Reuse existing ListView if it was already populated with data
@@ -316,7 +317,9 @@ public class FXStartUp extends JDialog {
                     e.getClickCount() == 2 && appList.getSelectionModel().getSelectedItem() != null
                 ) {
                     String projName = appList.getSelectionModel().getSelectedItem();
-                    loadProject(new File("Projects" + File.separator + projName).getAbsolutePath());
+                    loadProject(
+                        new File(AppResourcePath.getProjectsPath(), projName).getAbsolutePath()
+                    );
                 }
             }
         );
@@ -360,7 +363,7 @@ public class FXStartUp extends JDialog {
         // Project Location
         Label locLabel = new Label("Project Location");
         locLabel.getStyleClass().add("startup-field-label");
-        projLocationField = new TextField(new File("Projects").getAbsolutePath());
+        projLocationField = new TextField(AppResourcePath.getProjectsPath());
         projLocationField.setEditable(false);
         projLocationField.getStyleClass().addAll("startup-field", "startup-field-readonly");
         projLocationField.setMaxWidth(400);
@@ -464,7 +467,7 @@ public class FXStartUp extends JDialog {
 
     private void loadAppProjectsData() {
         ObservableList<String> items = FXCollections.observableArrayList();
-        File projects = new File("Projects");
+        File projects = new File(AppResourcePath.getProjectsPath());
         if (projects.exists()) {
             File[] files = projects.listFiles();
             if (files != null) {
@@ -494,7 +497,7 @@ public class FXStartUp extends JDialog {
             showError("Invalid project name. Use only letters, numbers, spaces and underscores.");
             return;
         }
-        String location = System.getProperty("user.dir") + File.separator + "Projects";
+        String location = AppResourcePath.getProjectsPath();
         File file = new File(location + File.separator + sanitizePathTraversal(name));
         if (file.exists()) {
             showError("Project already exists at this location.");

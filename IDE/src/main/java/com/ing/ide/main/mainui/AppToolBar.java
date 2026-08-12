@@ -91,14 +91,7 @@ public class AppToolBar extends JToolBar {
     }
 
     private JLabel createLabel(String text) {
-        try {
-            Font customFont = Font.createFont(
-                Font.TRUETYPE_FONT,
-                new File("resources/ui/resources/fonts/ingme_regular.ttf")
-            );
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            ge.registerFont(customFont);
-        } catch (IOException | FontFormatException e) {}
+        com.ing.ide.main.utils.AppFonts.register();
         JLabel label = new JLabel(text);
         label.setFont(new Font("ING Me", Font.BOLD, 12));
         label.setForeground(UIManager.getColor("text"));

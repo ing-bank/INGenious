@@ -11,6 +11,7 @@ import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.engine.cli.INGeniousCLI;
 import com.ing.engine.cli.output.Silencer;
 import com.ing.engine.cli.output.Style;
+import com.ing.engine.constants.AppResourcePath;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -632,7 +633,7 @@ public class UpgradeCommand implements Callable<Integer> {
 
     /**
      * Resolves a project argument the same way {@code ValidateCommand} does:
-     * absolute path → relative to cwd → relative to {@code ./Projects/}.
+     * absolute path → relative to cwd → Workspace Projects.
      */
     private static File resolveProjectDir(String name) {
         File abs = new File(name);
@@ -640,7 +641,7 @@ public class UpgradeCommand implements Callable<Integer> {
         String cwd = System.getProperty("user.dir");
         File rel = new File(cwd, name);
         if (rel.isDirectory()) return rel;
-        File underProjects = new File(cwd, "Projects/" + name);
+        File underProjects = new File(AppResourcePath.getProjectsPath(), name);
         if (underProjects.isDirectory()) return underProjects;
         return null;
     }

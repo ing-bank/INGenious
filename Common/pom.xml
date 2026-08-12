@@ -9,7 +9,7 @@
     </parent>
     <artifactId>Common</artifactId>
     <properties>
-        <file.path.target.POM>${project.parent.basedir}${file.separator}Resources${file.separator}Engine${file.separator}pom.xml</file.path.target.POM>
+        <file.path.target.POM>${project.parent.basedir}${file.separator}Resources${file.separator}Runtime${file.separator}Engine${file.separator}pom.xml</file.path.target.POM>
         <file.path.source.POM>${project.parent.basedir}${file.separator}pom.xml</file.path.source.POM>
         <file.path.storyWriter.POM>${project.parent.basedir}${file.separator}StoryWriter${file.separator}pom.xml</file.path.storyWriter.POM>
         <file.path.datalib.POM>${project.parent.basedir}${file.separator}Datalib${file.separator}pom.xml</file.path.datalib.POM>

@@ -64,16 +64,7 @@ public class XTable extends JTable {
     }
 
     private void init() {
-        try {
-            Font customFont = Font.createFont(
-                Font.TRUETYPE_FONT,
-                new File("resources/ui/resources/fonts/ingme_regular.ttf")
-            ); //.deriveFont(12f);
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            ge.registerFont(customFont);
-        } catch (IOException | FontFormatException e) {
-            //  e.printStackTrace();
-        }
+        com.ing.ide.main.utils.AppFonts.register();
         setFont(new Font("ING Me", Font.BOLD, 11));
         searchRenderer = new SearchRenderer();
         setFillsViewportHeight(true);

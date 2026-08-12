@@ -44,13 +44,12 @@ public class FXDashBoard extends javax.swing.JPanel {
     private static final Logger LOG = Logger.getLogger(FXDashBoard.class.getName());
     private static final int TREE_DISCLOSURE_ICON_SIZE = 12;
 
-    private static final String ERR_HTML =
-        "file:///" +
-        System.getProperty("user.dir") +
-        File.separator +
-        "Configuration" +
-        File.separator +
-        "err.html";
+    private static final String ERR_HTML = new File(
+        AppResourcePath.getConfigurationPath(),
+        "err.html"
+    )
+        .toURI()
+        .toString();
 
     private final TestExecution testExecution;
     private final JFXPanel fxPanel;

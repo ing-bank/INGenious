@@ -517,7 +517,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${setupDir}/Engine/src</outputDirectory>
+                            <outputDirectory>${runtimeDir}/Engine/src</outputDirectory>
                             <resources> 
                                 <resource>
                                     <directory>${project.basedir}/src</directory>
@@ -532,7 +532,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${setupDir}/Engine</outputDirectory>
+                            <outputDirectory>${runtimeDir}/Engine</outputDirectory>
                             <resources>        
                                 <resource>
                                     <directory>${project.basedir}</directory>

@@ -22,24 +22,42 @@
 
 **Launch**
 
-* `Windows`
-  
-  Double click on the [`ingenious.bat`](#) in the framework location
+After extracting the setup ZIP, keep `Runtime`, `Workspace`, the launchers,
+and `INGenious.app` together in the extracted folder.
 
-* `Mac or Ubuntu`
+* `Windows`: double-click `ingenious.bat`.
+* `macOS`: double-click `INGenious.app`, or use `ingenious.command`.
+* `Linux`: run `ingenious` from a terminal.
 
-    1. Open Terminal in the installation location and then type 
-    ```shell
-    chmod +x ingenious.command
-    ```
-    2. Then double click on the [`ingenious.command`](#)
-    3. If you see **It's Downloaded From Internet** warning then enter the following command in terminal: 
-     ```shell
-     xattr -d -r com.apple.quarantine "/path/to/the framework"
-     ```
+All launch methods use the same sibling `Workspace` directory. They do not
+depend on the terminal's current working directory.
 
+### Distribution Layout
 
+The extracted distribution contains:
 
+- `INGenious.app` for native macOS use
+- `Runtime` for the traditional launchers
+- `Workspace/Configuration`
+- `Workspace/Projects`
+- `Workspace/Shared`
+- `ingenious`, `ingenious.command`, and `ingenious.bat`
+- `Readme.md`
+
+`Runtime` and `INGenious.app` contain application-owned files. `Workspace`
+contains writable projects, shared resources, configuration, settings,
+reports, results, logs, and the AI token key.
+
+Projects may also be opened or executed from arbitrary absolute locations.
+Only the default Projects location is `Workspace/Projects`.
+
+### Upgrading
+
+Retain the existing `Workspace` directory when upgrading. Replace `Runtime`,
+`INGenious.app`, and the launchers with files from the new release.
+
+Keep `INGenious.app` beside `Workspace`. Moving the application by itself
+changes which sibling Workspace it uses.
 -----------------------
 
 ## **Quick Start with Recording** - **Playwright Recorder (CodeGen)**
