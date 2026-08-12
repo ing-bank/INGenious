@@ -14,13 +14,10 @@ public class SystemDefaultsNGTest {
     public void testGetBuildVersion() {
         System.out.println("getBuildVersion");
         String result = SystemDefaults.getBuildVersion();
-        Pattern pattern = Pattern.compile("^(?:(\\d+)\\.)?(?:(\\d+)\\.)?(\\*|\\d+)$");
-        Pattern previewPattern = Pattern.compile(
-            "^(?:(\\d+)\\.)?(?:(\\d+)\\.)?(\\*|\\d+)-preview$"
-        );
-        assertEquals(
-            (pattern.matcher(result).matches() || previewPattern.matcher(result).matches()),
-            true
+        Pattern pattern = Pattern.compile("^(?:(\\d+)\\.)?(?:(\\d+)\\.)?(\\*|\\d+)(?:-preview)?$");
+        assertTrue(
+            pattern.matcher(result).matches(),
+            "Unexpected Bundle-Version value: [" + result + "]"
         );
     }
 
