@@ -1,14 +1,11 @@
 package com.ing.storywriter.bdd.editor;
 
 import com.ing.storywriter.parser.BDDTokenMaker;
+import com.ing.storywriter.util.AppFonts;
 import java.awt.Font;
-import java.awt.FontFormatException;
-import java.awt.GraphicsEnvironment;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.File;
-import java.io.IOException;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.fife.ui.autocomplete.*;
@@ -114,18 +111,7 @@ public abstract class StyledEditor extends RSyntaxTextArea {
     }
 
     public StyledEditor setup() {
-        try {
-            //create the font to use. Specify the size!
-            Font customFont = Font.createFont(
-                Font.TRUETYPE_FONT,
-                new File("resources/ui/resources/fonts/ingme_regular.ttf")
-            ); //.deriveFont(12f);
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            //register the font
-            ge.registerFont(customFont);
-        } catch (IOException | FontFormatException e) {
-            //  e.printStackTrace();
-        }
+        AppFonts.register();
         setCodeFoldingEnabled(true);
         setSyntaxEditingStyle(getStyleDoc());
         initProvider();
