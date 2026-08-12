@@ -247,13 +247,13 @@ if ($PackagedEngineJars[0].FullName -ne $ExpectedPackagedEngineJar) {
     Fail "Packaged Engine JAR is not in app\lib"
 }
 
+$ConfigText = Get-Content -LiteralPath $ConfigFile -Raw
+
 if (-not $ConfigText.Contains(
     "java-options=-Djdk.internal.httpclient.disableHostnameVerification=true"
 )) {
     Fail "Hostname verification option is missing from INGenious.cfg"
 }
-
-$ConfigText = Get-Content -LiteralPath $ConfigFile -Raw
 
 if (-not $ConfigText.Contains('java-options=-Dingenious.app.home=$APPDIR')) {
     Fail "ingenious.app.home is missing from INGenious.cfg"
