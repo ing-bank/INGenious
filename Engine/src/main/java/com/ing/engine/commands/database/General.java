@@ -176,13 +176,6 @@ public class General extends Command implements DatabasePluginApi {
         return true;
     }
 
-    /**
-     * Asserts that a value exists in the specified column of the result set.
-     *
-     * @param columnName the column to check
-     * @param condition the value to assert
-     * @return true if the value exists, false otherwise
-     */
     public boolean assertDB(String columnName, String condition) {
         boolean isExist = false;
         try {
@@ -368,6 +361,115 @@ public class General extends Command implements DatabasePluginApi {
         return query;
     }
 
+
+
+    public boolean assertDBContains(String columnName, String condition) {
+        boolean isExist = false;
+        try {
+            result.beforeFirst();
+            if (getColumnIndex(columnName) != -1) {
+                while (result.next()) {
+                    String value = result.getString(columnName);
+                    if (value != null && value.trim().contains(condition.trim())) {
+                        isExist = true;
+                        break;
+                    }
+                }
+            } else {
+                Report.updateTestLog(Action, "Column " + columnName + " doesn't exist", Status.FAIL);
+            }
+        } catch (SQLException ex) {
+            Report.updateTestLog(Action, "Error asserting the value in DB " + ex.getMessage(), Status.FAIL);
+            return false;
+        }
+        return isExist;
+    }
+
+
+    //TODO: REVIEW and CHOOSE if assertDBStartsWith is needed or assertDBDataStartsWith is sufficient
+    public boolean assertDBStartsWith(String columnName, String prefix) {
+        try {
+            result.beforeFirst();
+            if (getColumnIndex(columnName) != -1) {
+                while (result.next()) {
+                    String value = result.getString(columnName);
+                    if (value != null && value.startsWith(prefix)) {
+                        return true;
+                    }
+                }
+            } else {
+                Report.updateTestLog(Action, "Column " + columnName + " doesn't exist", Status.FAIL);
+                return false;
+            }
+        } catch (SQLException ex) {
+            Report.updateTestLog(Action, "Error asserting startsWith in DB: " + ex.getMessage(), Status.FAIL);
+            return false;
+        }
+        return false;
+    }
+
+    //TODO: REVIEW and CHOOSE if assertDBPattern is needed or assertDBDataPattern is sufficient
+    public boolean assertDBPattern(String columnName, String pattern) {
+        try {
+            result.beforeFirst();
+            if (getColumnIndex(columnName) != -1) {
+                while (result.next()) {
+                    String value = result.getString(columnName);
+                    if (value != null && value.matches(pattern)) {
+                        return true;
+                    }
+                }
+            } else {
+                Report.updateTestLog(Action, "Column [" + columnName + "] doesn't exist", Status.FAIL);
+                return false;
+            }
+        } catch (SQLException ex) {
+            Report.updateTestLog(Action, "Error asserting pattern in DB: " + ex.getMessage(), Status.FAIL);
+            return false;
+        }
+        return false;
+    }
+
+
+
+    //TODO: REVIEW and CHOOSE if assertDBResultSTARTSWITH is needed or assertDBDataStartsWith is sufficient
+    @Action(object = ObjectType.DATABASE, desc = "Assert the value [<Input>] starts with column [<Condition>]", input = InputType.YES, condition = InputType.YES)
+    public void assertDBResultStartsWith() {
+        if (assertDBStartsWith(Condition, Data)) {
+            Report.updateTestLog(Action, "DB column [" + Condition + "] starts with [" + Data + "]", Status.PASSNS);
+        } else {
+            Report.updateTestLog(Action, " DB column [" + Condition + "] does'nt starts with [" + Data + "]", Status.FAILNS);
+        }
+    }
+
+
+    //TODO: REVIEW and CHOOSE if assertDBResultPATTERN is needed or assertDBDataPattern is sufficient
+    @Action(object = ObjectType.DATABASE, desc = "Assert the value [<Input>] pattern matches column [<Condition>]", input = InputType.YES, condition = InputType.YES)
+    public void assertDBResultPattern() {
+        if (assertDBPattern(Condition, Data)) {
+            Report.updateTestLog(Action, "DB column [" + Condition + "] matches pattern [" + Data + "]", Status.PASSNS);
+        } else {
+            Report.updateTestLog(Action, "DB column [" + Condition + "] does'nt match pattern [" + Data + "]", Status.FAILNS);
+        }
+    }
+
+    public boolean executeStoredProcedure() throws SQLException {
+        String query = Data;
+        query = handleDataSheetVariables(query);
+        query = handleuserDefinedVariables(query);
+        System.out.println("Query :" + query);
+        try (CallableStatement callableStatement = dbconnection.prepareCall(query)) {
+            callableStatement.execute();
+            return true;
+        } catch (SQLException ex) {
+            System.err.println("StoredProcedure execution failed: " + ex.getMessage());
+            System.err.println("SQLState: " + ex.getSQLState() + ", ErrorCode: " + ex.getErrorCode());
+            ex.printStackTrace();
+            return false;
+        }
+
+    }
+}
     /**
      * Returns the current database connection used by this command.
      * <p>
