@@ -5,6 +5,7 @@ import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.component.utils.CSVHParser;
 import com.ing.datalib.component.utils.FileUtils;
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import java.io.File;
 import java.io.FileWriter;
@@ -32,7 +33,7 @@ public class StepMap {
         "Expected Result"
     );
 
-    private final File STEP_MAP_FILE = new File("Configuration" + File.separator + "StepMap.csv");
+    private final File STEP_MAP_FILE = new File(AppResourcePath.getStepMapFile());
     CSVHParser stepMapTemplate;
 
     public StepMap() {

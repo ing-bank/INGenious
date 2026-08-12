@@ -1,5 +1,6 @@
 package com.ing.ide.main.mainui.components.aichat.mcp;
 
+import com.ing.engine.constants.AppResourcePath;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -18,9 +19,7 @@ import java.util.logging.Logger;
 public final class ActionCatalog {
     private static final Logger LOG = Logger.getLogger(ActionCatalog.class.getName());
 
-    private static final File STEP_MAP_FILE = new File(
-        "Configuration" + File.separator + "StepMap.csv"
-    );
+    private static final File STEP_MAP_FILE = new File(AppResourcePath.getStepMapFile());
 
     private final Set<String> actions = new LinkedHashSet<>();
 

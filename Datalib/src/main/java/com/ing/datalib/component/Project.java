@@ -20,6 +20,7 @@ import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import com.ing.datalib.settings.ProjectSettings;
+import com.ing.datalib.util.WorkspacePath;
 import com.ing.datalib.util.data.FileScanner;
 import java.io.File;
 import java.nio.file.Files;
@@ -629,25 +630,8 @@ public class Project {
      * @return Shared Reusable Components directory path
      */
     public static String getSharedReusableComponentsPath() {
-        try {
-            String appRoot = new File(System.getProperty("user.dir")).getCanonicalPath();
-            return (
-                appRoot +
-                File.separator +
-                "Shared" +
-                File.separator +
-                SHARED_REUSABLE_COMPONENTS_DIR
-            );
-        } catch (java.io.IOException ex) {
-            // Fallback to non-canonical path
-            return (
-                System.getProperty("user.dir") +
-                File.separator +
-                "Shared" +
-                File.separator +
-                SHARED_REUSABLE_COMPONENTS_DIR
-            );
-        }
+        return new File(WorkspacePath.getSharedPath(), SHARED_REUSABLE_COMPONENTS_DIR)
+        .getAbsolutePath();
     }
 
     /**

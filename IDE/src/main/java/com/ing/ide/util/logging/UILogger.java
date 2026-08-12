@@ -2,6 +2,7 @@ package com.ing.ide.util.logging;
 
 import static com.ing.engine.reporting.impl.ConsoleReport.resetLogger;
 
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.engine.reporting.impl.ConsoleReport.MultiOutputStream;
 import com.ing.engine.reporting.impl.ConsoleReport.PrintStreamOut;
 import com.ing.ide.settings.AppSettings;
@@ -44,8 +45,8 @@ public final class UILogger {
         // System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, AppSettings.get("defaultLogLevel"));
         //  System.setProperty(org.slf4j.impl.SimpleLogger.SHOW_DATE_TIME_KEY, AppSettings.get("showDateTime"));
         //  System.setProperty(org.slf4j.impl.SimpleLogger.DATE_TIME_FORMAT_KEY, AppSettings.get("dateTimeFormat"));
-        LOG_BKP_LOC = AppSettings.get("logBackupLoc");
-        LOG_FILE = AppSettings.get("logfile");
+        LOG_BKP_LOC = resolveWorkspacePath(AppSettings.get("logBackupLoc"));
+        LOG_FILE = resolveWorkspacePath(AppSettings.get("logfile"));
         //   System.setProperty(org.slf4j.impl.SimpleLogger.LEVEL_IN_BRACKETS_KEY, "true");
         //   System.setProperty(org.slf4j.impl.SimpleLogger.SHOW_THREAD_NAME_KEY, "true");
         try {
@@ -64,10 +65,23 @@ public final class UILogger {
         return LoggerFactory.getLogger(className);
     }
 
+    private static String resolveWorkspacePath(String configuredPath) {
+        File configuredFile = new File(configuredPath);
+        if (configuredFile.isAbsolute()) {
+            return configuredFile.getAbsolutePath();
+        }
+        return new File(AppResourcePath.getWorkspaceRoot(), configuredPath).getAbsolutePath();
+    }
+
     private UILogger() {
         try {
             checkFileBackup();
-            OutputStream logf = new FileOutputStream(LOG_FILE, true);
+            File logFile = new File(LOG_FILE);
+            File parent = logFile.getParentFile();
+            if (parent != null && !parent.exists() && !parent.mkdirs()) {
+                throw new IOException("Could not create log directory: " + parent);
+            }
+            OutputStream logf = new FileOutputStream(logFile, true);
             MultiOutputStream multiErr = new MultiOutputStream(System.err, logf);
             MultiOutputStream multiOut = new MultiOutputStream(System.out, logf);
             log_err = new PrintStream(multiErr);
@@ -213,7 +227,7 @@ public final class UILogger {
         }
     }
 
-    String getLogFile() {
+    public String getLogFile() {
         return LOG_FILE;
     }
 }

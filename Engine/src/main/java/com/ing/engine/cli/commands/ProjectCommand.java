@@ -11,6 +11,7 @@ import com.ing.engine.cli.INGeniousCLI;
 import com.ing.engine.cli.output.OutputFormatter;
 import com.ing.engine.cli.output.Silencer;
 import com.ing.engine.cli.output.Style;
+import com.ing.engine.constants.AppResourcePath;
 import java.io.File;
 import java.io.File;
 import java.nio.file.Files;
@@ -561,7 +562,7 @@ public class ProjectCommand implements Callable<Integer> {
             String cwd = System.getProperty("user.dir");
             File rel = new File(cwd, name);
             if (rel.isDirectory()) return rel;
-            File underProjects = new File(cwd, "Projects/" + name);
+            File underProjects = new File(AppResourcePath.getProjectsPath(), name);
             if (underProjects.isDirectory()) return underProjects;
             return null;
         }

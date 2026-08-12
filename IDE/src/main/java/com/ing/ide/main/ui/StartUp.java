@@ -1,6 +1,7 @@
 package com.ing.ide.main.ui;
 
 import com.ing.datalib.testdata.TestDataFactory;
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.utils.AppIcon;
 import com.ing.ide.main.utils.INGeniousFileChooser;
@@ -87,7 +88,7 @@ public class StartUp extends javax.swing.JDialog {
 
     private void loadAppProjects() {
         DefaultListModel projModel = new DefaultListModel();
-        File projects = new File("Projects");
+        File projects = new File(AppResourcePath.getProjectsPath());
         if (projects.exists()) {
             for (File project : projects.listFiles()) {
                 if (project.isDirectory()) {
@@ -312,7 +313,7 @@ public class StartUp extends javax.swing.JDialog {
         );
 
         projLocation.setEditable(false);
-        projLocation.setText(new File("Projects").getAbsolutePath());
+        projLocation.setText(AppResourcePath.getProjectsPath());
         projLocation.addActionListener(
             new java.awt.event.ActionListener() {
 
@@ -519,7 +520,7 @@ public class StartUp extends javax.swing.JDialog {
             int index = appItems.locationToIndex(evt.getPoint());
             if (index != -1) {
                 loadProject(
-                    new File("Projects" + File.separator + appItems.getSelectedValue())
+                    new File(AppResourcePath.getProjectsPath(), appItems.getSelectedValue())
                     .getAbsolutePath()
                 );
             }
@@ -533,9 +534,9 @@ public class StartUp extends javax.swing.JDialog {
 
     private void createNewProjectActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_createNewProjectActionPerformed
         if (Validator.isValidName(projName.getText().trim())) {
-            String location = System.getProperty("user.dir") + File.separator + "Projects";
+            String location = AppResourcePath.getProjectsPath();
             /*  if (projLocation.getText().trim().isEmpty()) {
-                location = System.getProperty("user.dir") + File.separator + "Projects";
+                location = AppResourcePath.getProjectsPath();
             } else {
                 location = projLocation.getText().trim();
             }
@@ -551,7 +552,7 @@ public class StartUp extends javax.swing.JDialog {
     } //GEN-LAST:event_projNameActionPerformed
 
     private void projLocationActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_projLocationActionPerformed
-        projLocation.setText(System.getProperty("user.dir") + File.separator + "Projects");
+        projLocation.setText(AppResourcePath.getProjectsPath());
     } //GEN-LAST:event_projLocationActionPerformed
 
     private void recentToggleActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_recentToggleActionPerformed
@@ -607,18 +608,7 @@ public class StartUp extends javax.swing.JDialog {
 
     private void toggleView(java.awt.event.ItemEvent evt) {
         JToggleButton toggleButton = ((JToggleButton) evt.getSource());
-        try {
-            //create the font to use. Specify the size!
-            Font customFont = Font.createFont(
-                Font.TRUETYPE_FONT,
-                new File("resources/ui/resources/fonts/ingme_regular.ttf")
-            ); //.deriveFont(12f);
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            //register the font
-            ge.registerFont(customFont);
-        } catch (IOException | FontFormatException e) {
-            // e.printStackTrace();
-        }
+        com.ing.ide.main.utils.AppFonts.register();
         if (evt.getStateChange() == ItemEvent.SELECTED) {
             toggleButton.setFont(new Font("ING Me", Font.BOLD, 12));
             String text = toggleButton.getText();

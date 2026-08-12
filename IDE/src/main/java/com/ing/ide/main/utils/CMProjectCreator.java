@@ -1,5 +1,6 @@
 package com.ing.ide.main.utils;
 
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.ide.main.ui.About;
 import com.ing.ide.util.Notification;
 import java.io.File;
@@ -13,15 +14,13 @@ import org.apache.commons.io.FileUtils;
 public class CMProjectCreator {
     private static CMProjectCreator projCreator;
 
-    private final File engineLoc = new File("Engine");
+    private final File engineLoc = new File(AppResourcePath.getEnginePath());
 
     private final File dotproject = new File(engineLoc, ".project");
 
     private final File dotClassPath = new File(engineLoc, ".classpath");
 
-    private final File sampleScript = new File(
-        "Configuration" + File.separator + "SampleScript.java"
-    );
+    private final File sampleScript = new File(AppResourcePath.getSampleScriptPath());
 
     private final String enginePath =
         "<classpathentry kind=\"lib\" path=\"../lib/ingenious-engine-" +

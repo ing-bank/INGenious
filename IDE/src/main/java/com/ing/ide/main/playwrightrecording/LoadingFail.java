@@ -1,5 +1,6 @@
 package com.ing.ide.main.playwrightrecording;
 
+import com.ing.ide.util.logging.UILogger;
 import java.awt.Color;
 import javax.swing.BorderFactory;
 
@@ -192,7 +193,7 @@ public class LoadingFail extends javax.swing.JFrame implements Runnable {
         Runtime rt = Runtime.getRuntime();
         try {
             //         System.out.println(PlaywriteVariable.line);
-            String logFilePath = System.getProperty("user.dir") + "/log.txt";
+            String logFilePath = UILogger.get().getLogFile();
             logFilePath = logFilePath.replace("\\", "/");
             Process p = rt.exec("rundll32 url.dll,FileProtocolHandler " + logFilePath);
             p.waitFor();

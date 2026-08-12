@@ -1,5 +1,8 @@
 package com.ing.datalib.settings;
 
+import com.ing.datalib.util.RuntimePath;
+import java.io.File;
+
 //# Deprecated as of Sept 2025
 //# Reason: Replaced by new DriverProperties in `Datalib module`
 //# Retained for reference in case rollback is needed
@@ -29,12 +32,13 @@ public class DriverSettings extends AbstractPropSettings {
     }
 
     private static void setDriverPath() {
+        String driversPath = RuntimePath.getDriversPath();
         if (System.getProperty("os.name", "").toLowerCase().contains("win")) {
-            geckoDriverPath = "./lib/Drivers/geckodriver.exe";
-            chromeDriverPath = "./lib/Drivers/chromedriver.exe";
+            geckoDriverPath = new File(driversPath, "geckodriver.exe").getPath();
+            chromeDriverPath = new File(driversPath, "chromedriver.exe").getPath();
         } else {
-            geckoDriverPath = "./lib/Drivers/geckodriver";
-            chromeDriverPath = "./lib/Drivers/chromedriver";
+            geckoDriverPath = new File(driversPath, "geckodriver").getPath();
+            chromeDriverPath = new File(driversPath, "chromedriver").getPath();
         }
     }
 
@@ -71,11 +75,17 @@ public class DriverSettings extends AbstractPropSettings {
     }
 
     public String getIEDriverPath() {
-        return getProperty("IEDriverPath", "./lib/Drivers/IEDriverServer.exe");
+        return getProperty(
+            "IEDriverPath",
+            new File(RuntimePath.getDriversPath(), "IEDriverServer.exe").getPath()
+        );
     }
 
     public String getEdgeDriverPath() {
-        return getProperty("EdgeDriverPath", "./lib/Drivers/MicrosoftWebDriver.exe");
+        return getProperty(
+            "EdgeDriverPath",
+            new File(RuntimePath.getDriversPath(), "MicrosoftWebDriver.exe").getPath()
+        );
     }
 
     public Boolean useProxy() {
