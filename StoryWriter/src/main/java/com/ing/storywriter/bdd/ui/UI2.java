@@ -2,17 +2,15 @@ package com.ing.storywriter.bdd.ui;
 
 import com.ing.storywriter.bdd.data.Story;
 import com.ing.storywriter.bdd.editor.StyledEditor;
+import com.ing.storywriter.util.AppFonts;
 import com.ing.storywriter.util.Notification.Msg;
 import com.ing.storywriter.util.Validator;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.FontFormatException;
-import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -272,18 +270,7 @@ public final class UI2 extends javax.swing.JFrame {
         featurePanel = new javax.swing.JPanel();
         editorHeader = new javax.swing.JPanel();
         name = new javax.swing.JLabel();
-        try {
-            //create the font to use. Specify the size!
-            Font customFont = Font.createFont(
-                Font.TRUETYPE_FONT,
-                new File("resources/fonts/ingme_regular.ttf")
-            ); //.deriveFont(12f);
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            //register the font
-            ge.registerFont(customFont);
-        } catch (IOException | FontFormatException e) {
-            e.printStackTrace();
-        }
+        AppFonts.register();
         editorPanel = new javax.swing.JPanel();
         featuresPanel = new javax.swing.JPanel();
         storytoolPanel = new javax.swing.JPanel();

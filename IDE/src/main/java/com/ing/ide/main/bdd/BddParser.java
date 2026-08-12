@@ -343,8 +343,24 @@ public class BddParser {
                     try {
                         // If already running, do not launch again
                         if (storyWriterProcess == null || !storyWriterProcess.isAlive()) {
+                            boolean windows = System
+                                .getProperty("os.name")
+                                .toLowerCase(Locale.ROOT)
+                                .contains("win");
+                            File javaExecutable = new File(
+                                new File(System.getProperty("java.home"), "bin"),
+                                windows ? "java.exe" : "java"
+                            );
+
+                            if (!javaExecutable.isFile()) {
+                                throw new IOException(
+                                    "Bundled Java executable is missing: " +
+                                    javaExecutable.getAbsolutePath()
+                                );
+                            }
+
                             ProcessBuilder processBuilder = new ProcessBuilder(
-                                "java",
+                                javaExecutable.getAbsolutePath(),
                                 "-jar",
                                 sw.getAbsolutePath()
                             );
