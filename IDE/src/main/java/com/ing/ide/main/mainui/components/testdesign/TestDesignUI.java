@@ -298,16 +298,7 @@ public class TestDesignUI extends JPanel {
     }
 
     private void registerFont() {
-        try {
-            Font customFont = Font.createFont(
-                Font.TRUETYPE_FONT,
-                new File("resources/ui/resources/fonts/ingme_regular.ttf")
-            );
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            ge.registerFont(customFont);
-        } catch (IOException | FontFormatException e) {
-            // Font registration is best-effort
-        }
+        com.ing.ide.main.utils.AppFonts.register();
     }
 
     public void adjustUI() {

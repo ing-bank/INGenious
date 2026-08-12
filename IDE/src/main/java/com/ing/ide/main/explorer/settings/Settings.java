@@ -1,5 +1,6 @@
 package com.ing.ide.main.explorer.settings;
 
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.ide.util.Notification;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -42,18 +43,7 @@ public class Settings {
     }
 
     static String getConfigFileLoc() {
-        try {
-            return (
-                getAppDir() +
-                File.separator +
-                "Configuration" +
-                File.separator +
-                "ExplorerConfig.properties"
-            );
-        } catch (IOException ex) {
-            Logger.getLogger(Settings.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
+        return AppResourcePath.getExplorerConfig();
     }
 
     public static String getDefectModule() {
@@ -100,10 +90,6 @@ public class Settings {
 
     public static Map<String, String> getSettings() {
         return settingsMap;
-    }
-
-    private static String getAppDir() throws IOException {
-        return new File(System.getProperty("user.dir")).getCanonicalPath();
     }
 
     private static void checkFile(File configFile) {

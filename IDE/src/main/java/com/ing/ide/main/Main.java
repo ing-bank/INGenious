@@ -4,6 +4,7 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.ing.datalib.testdata.TestDataFactory;
+import com.ing.datalib.util.WorkspaceInitializer;
 import com.ing.engine.cli.LookUp;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.support.methodInf.MethodInfoManager;
@@ -63,6 +64,8 @@ public class Main {
     }
 
     public static void main(String[] args) {
+        WorkspaceInitializer.initialize();
+
         if (args != null && args.length > 0) {
             commandLineExecution(args);
         } else {
@@ -927,18 +930,7 @@ public class Main {
      * Registers the ING Me custom font from the resources directory.
      */
     private static void registerCustomFont() {
-        try {
-            Font customFont = Font.createFont(
-                Font.TRUETYPE_FONT,
-                new File("resources/ui/resources/fonts/ingme_regular.ttf")
-            );
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            ge.registerFont(customFont);
-        } catch (IOException | FontFormatException e) {
-            Logger
-                .getLogger(Main.class.getName())
-                .log(Level.FINE, "Custom font not found, using defaults", e);
-        }
+        com.ing.ide.main.utils.AppFonts.register();
     }
 
     public static void finish() {

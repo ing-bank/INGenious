@@ -1,5 +1,6 @@
 package com.ing.ide.main.dashboard.server;
 
+import com.ing.engine.constants.AppResourcePath;
 import java.io.File;
 
 /**
@@ -7,7 +8,7 @@ import java.io.File;
  *
  */
 public class DashBoardData {
-    public static final File REPORT = new File("web");
+    public static final File REPORT = new File(AppResourcePath.getWebPath());
     public static final File DASH_BOARD = new File(REPORT, "dashboard");
     public static final File HAR_COMPARE = new File(DASH_BOARD, "harCompare");
 

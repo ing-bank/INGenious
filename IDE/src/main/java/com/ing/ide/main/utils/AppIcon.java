@@ -12,12 +12,10 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 /**
- * Provides elegant application icons for macOS dock and Windows taskbar.
- * Uses the INGenious logo on a purple gradient background with rounded corners.
- * Multi-resolution icon list ensures crisp display on all platforms and HiDPI/Retina screens.
- * <p>
- * On macOS, uses the Taskbar API to set the dock icon for a polished appearance.
- * On Windows, uses the multi-resolution icon list for proper taskbar display.
+ * Provides application icons for windows and dialogs.
+ *
+ * <p>On macOS, the bundled ICNS file remains the authoritative application
+ * and Dock icon. Other platforms use the generated multi-resolution icon list.
  */
 public final class AppIcon {
     private static final Logger LOG = Logger.getLogger(AppIcon.class.getName());
@@ -39,20 +37,29 @@ public final class AppIcon {
      */
     public static void initialize() {
         try {
-            // Generate the multi-resolution icon list
             getAppIconList();
 
-            // Set dock icon on macOS using Taskbar API
+            if (isMacOs()) {
+                LOG.info("Using the bundled macOS application icon");
+                return;
+            }
+
             if (Taskbar.isTaskbarSupported()) {
                 Taskbar taskbar = Taskbar.getTaskbar();
                 if (taskbar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
                     taskbar.setIconImage(getDockIcon());
-                    LOG.info("Set macOS dock icon successfully");
+                    LOG.info("Set application taskbar icon successfully");
                 }
             }
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Could not set application dock icon", e);
+            LOG.log(Level.WARNING, "Could not set application taskbar icon", e);
         }
+    }
+
+    private static boolean isMacOs() {
+        String osName = System.getProperty("os.name");
+
+        return (osName != null && osName.regionMatches(true, 0, "Mac", 0, 3));
     }
 
     /**

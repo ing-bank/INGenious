@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+    <title>INGenious</title>
+
+    <options
+        customize="never"
+        require-scripts="false"
+        rootVolumeOnly="true"
+    />
+
+    <domains
+        enable_anywhere="false"
+        enable_currentUserHome="false"
+        enable_localSystem="true"
+    />
+
+    <choices-outline>
+        <line choice="default"/>
+    </choices-outline>
+
+    <choice
+        id="default"
+        title="INGenious"
+        visible="false"
+    >
+        <pkg-ref id="com.ing.ingenious.pkg"/>
+    </choice>
+
+    <pkg-ref
+        id="com.ing.ingenious.pkg"
+        version="3.1.0"
+        onConclusion="none"
+    >
+        INGenious-component.pkg
+    </pkg-ref>
+</installer-gui-script>

@@ -284,18 +284,7 @@ public abstract class ObjectTree implements ActionListener {
     }
 
     private void setTreeIcon() {
-        try {
-            //create the font to use. Specify the size!
-            Font customFont = Font.createFont(
-                Font.TRUETYPE_FONT,
-                new File("resources/ui/resources/fonts/ingme_regular.ttf")
-            ); //.deriveFont(12f);
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            //register the font
-            ge.registerFont(customFont);
-        } catch (IOException | FontFormatException e) {
-            //  e.printStackTrace();
-        }
+        com.ing.ide.main.utils.AppFonts.register();
         tree.setFont(new Font("ING Me", Font.PLAIN, 11));
         new TreeSelectionRenderer(tree) {
             // State for the pill — updated on each getTreeCellRendererComponent call

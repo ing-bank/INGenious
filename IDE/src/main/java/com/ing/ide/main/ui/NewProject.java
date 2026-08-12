@@ -1,6 +1,7 @@
 package com.ing.ide.main.ui;
 
 import com.ing.datalib.testdata.TestDataFactory;
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.util.Validator;
@@ -30,9 +31,7 @@ public class NewProject extends javax.swing.JDialog {
                 Utils.getIconByResourceName("/ui/resources/main/NewProject")
             )
         );
-        String currDirectory = new File(System.getProperty("user.dir")).getCanonicalPath() +
-        File.separator +
-        "Projects";
+        String currDirectory = AppResourcePath.getProjectsPath();
         fileChooser.setCurrentDirectory(new File(currDirectory));
         projLocation.setText(fileChooser.getCurrentDirectory().getAbsolutePath());
     }
@@ -215,14 +214,14 @@ public class NewProject extends javax.swing.JDialog {
     } //GEN-LAST:event_projNameActionPerformed
 
     private void projLocationActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_projLocationActionPerformed
-        projLocation.setText(System.getProperty("user.dir") + File.separator + "Projects");
+        projLocation.setText(AppResourcePath.getProjectsPath());
     } //GEN-LAST:event_projLocationActionPerformed
 
     private void createProject() {
         if (Validator.isValidName(projName.getText().trim())) {
-            String location = System.getProperty("user.dir") + File.separator + "Projects";
+            String location = AppResourcePath.getProjectsPath();
             /* if (projLocation.getText().trim().isEmpty()) {
-                location = System.getProperty("user.dir") + File.separator + "Projects";
+                location = AppResourcePath.getProjectsPath();
             } else {
                 location = FilenameUtils.getFullPath(projLocation.getText().trim());
             }*/

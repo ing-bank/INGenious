@@ -1,5 +1,6 @@
 package com.ing.ide.settings;
 
+import com.ing.engine.constants.AppResourcePath;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -13,7 +14,7 @@ import java.util.logging.Logger;
  *
  */
 public class AppSettings {
-    private static final File APPSETT = new File("Configuration" + File.separator + "app.settings");
+    private static final File APPSETT = new File(AppResourcePath.getAppSettings());
     private static Properties settings;
 
     public enum APP_SETTINGS {
@@ -101,6 +102,10 @@ public class AppSettings {
     public static void store(String cmnt) {
         check();
         try {
+            File parent = APPSETT.getParentFile();
+            if (parent != null && !parent.exists() && !parent.mkdirs()) {
+                throw new IOException("Could not create configuration directory: " + parent);
+            }
             settings.store(new FileOutputStream(APPSETT.getAbsolutePath()), cmnt);
         } catch (IOException ex) {
             Logger.getLogger(AppSettings.class.getName()).log(Level.SEVERE, null, ex);

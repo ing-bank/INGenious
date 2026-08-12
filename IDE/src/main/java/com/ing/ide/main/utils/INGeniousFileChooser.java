@@ -2,6 +2,7 @@ package com.ing.ide.main.utils;
 
 import static com.ing.ide.main.utils.Utils.getFavIcon;
 
+import com.ing.engine.constants.AppResourcePath;
 import java.awt.Component;
 import java.awt.HeadlessException;
 import java.awt.Image;
@@ -55,7 +56,7 @@ public class INGeniousFileChooser extends JFileChooser implements PropertyChange
     private final ImageIcon ICON_14;
 
     public enum Dir {
-        PROJECTS(new File(System.getProperty("user.dir"), "Projects"));
+        PROJECTS(new File(AppResourcePath.getProjectsPath()));
 
         private final File f;
 

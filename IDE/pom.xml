@@ -283,51 +283,16 @@
 							<goal>copy-dependencies</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${setupDir}/lib</outputDirectory>
+							<outputDirectory>${runtimeDir}/lib</outputDirectory>
 							<overWriteIfNewer>true</overWriteIfNewer>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>3.0.2</version>
-				<executions>
-					<execution>
-						<id>copy-resources</id>
-						<phase>install</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${setupDir}</outputDirectory>
-							<overWriteIfNewer>true</overWriteIfNewer>
-							<includeEmptyDirs>true</includeEmptyDirs>
-							<resources>
-								<resource>
-									<directory>${resourceDir}</directory>
-									<filtering>true</filtering>
-									<includes>
-										<include>**/*.bat</include>
-										<include>**/*.command</include>
-										<include>**/*.txt</include>
-										<include>**/*.md</include>
-									</includes>
-								</resource>
-								<resource>
-									<directory>${resourceDir}</directory>
-									<filtering>false</filtering>
-									<excludes>
-										<exclude>**/*.bat</exclude>
-										<exclude>**/*.command</exclude>
-										<exclude>**/*.txt</exclude>
-										<exclude>**/*.md</exclude>
-									</excludes>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
+			        <groupId>org.apache.maven.plugins</groupId>
+			        <artifactId>maven-resources-plugin</artifactId>
+			        <version>3.0.2</version>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
