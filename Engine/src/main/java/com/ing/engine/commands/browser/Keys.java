@@ -2,8 +2,11 @@ package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.util.logging.Level;
@@ -16,6 +19,13 @@ public class Keys extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Press the [<Object>] ", input = InputType.YES)
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Control+A",
+        inputHelp = "key or key chord to press on locator (e.g. @Enter, @Control+A)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void KeyPressOnElement() {
         try {
             Locator.press(Data);
@@ -36,6 +46,13 @@ public class Keys extends General {
     }
 
     @Action(object = ObjectType.BROWSER, desc = "Press the [<Object>] ", input = InputType.YES)
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Control+S",
+        inputHelp = "key or key chord to press on page keyboard (e.g. @Enter, @Control+S)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void KeyPress() {
         try {
             Page.keyboard().press(Data);
@@ -52,6 +69,13 @@ public class Keys extends General {
     }
 
     @Action(object = ObjectType.BROWSER, desc = "Press Key Up ", input = InputType.YES)
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Shift",
+        inputHelp = "key to release (e.g. @Shift)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void KeyUp() {
         try {
             Page.keyboard().up(Data);
@@ -68,6 +92,13 @@ public class Keys extends General {
     }
 
     @Action(object = ObjectType.BROWSER, desc = "Press Key Down ", input = InputType.YES)
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Shift",
+        inputHelp = "key to hold down (e.g. @Shift)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void KeyDown() {
         try {
             Page.keyboard().down(Data);
@@ -84,6 +115,13 @@ public class Keys extends General {
     }
 
     @Action(object = ObjectType.BROWSER, desc = "Insert Text via Keyboard", input = InputType.YES)
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Hello world",
+        inputHelp = "text to insert with keyboard.insertText",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void KeyInsertText() {
         try {
             Page.keyboard().insertText(Data);

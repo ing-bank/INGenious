@@ -156,6 +156,20 @@ final class MCPPrompts {
 
         register(
             new Prompt(
+                "discover_browser_flow",
+                "Deterministically discover a browser flow via @playwright/cli when its " +
+                "objects/locators are not yet in the Object Repository, then materialise it " +
+                "into a test case with generated WebOR objects.",
+                arg("project", "Project name or absolute path.", false),
+                arg("scenario", "Target scenario.", true),
+                arg("testcase", "Test case name to create.", true),
+                arg("url", "Start URL to open for discovery.", true),
+                arg("prompt", "The browser flow to discover (plain English, BDD, or steps).", true)
+            )
+        );
+
+        register(
+            new Prompt(
                 "bootstrap_project",
                 "Create a new project and seed it with a sample archetype test case per capability.",
                 arg("name", "New project name.", true),
@@ -181,6 +195,18 @@ final class MCPPrompts {
                 "(user intents), recomposing the test cases with Execute steps.",
                 arg("project", "Project name or absolute path.", false),
                 arg("scenario", "Restrict the analysis to one scenario (optional).", false)
+            )
+        );
+
+        register(
+            new Prompt(
+                "author_load_test",
+                "Turn a functional test case or HAR recording into a k6 load test: export, " +
+                "validate with 1 VU, pick a load profile, run with live metrics, and read " +
+                "the results (the k6-studio flow inside INGenious).",
+                arg("project", "Project name or absolute path.", false),
+                arg("source", "'<Scenario>/<TestCase>' or an absolute .har recording path.", true),
+                arg("profile", "Load profile (smoke/average/stress/spike/soak).", false)
             )
         );
     }
@@ -280,12 +306,16 @@ final class MCPPrompts {
                     return tplTriageRun(bound);
                 case "record_browser_test":
                     return tplRecordBrowserTest(bound);
+                case "discover_browser_flow":
+                    return tplDiscoverBrowserFlow(bound);
                 case "bootstrap_project":
                     return tplBootstrapProject(bound);
                 case "make_data_driven":
                     return tplMakeDataDriven(bound);
                 case "extract_reusable":
                     return tplExtractReusable(bound);
+                case "author_load_test":
+                    return tplAuthorLoadTest(bound);
                 default:
                     return description;
             }
@@ -628,22 +658,64 @@ final class MCPPrompts {
             scenario +
             " / " +
             testcase +
-            " by driving a live Playwright Agent CLI session.\n" +
+            " by driving a live Playwright Agent CLI session (deterministic discovery).\n" +
             "\nProcedure\n---------\n" +
-            "1. Call `ingenious_doctor` to confirm @playwright/cli is available.\n" +
-            "2. Start the session: `ingenious_browser_session_start` name='" +
+            "1. Call `ingenious_object_search` / `ingenious_object_list` to confirm the target\n" +
+            "   objects are NOT already in the Object Repository (i.e. this is a discovery flow).\n" +
+            "2. Call `ingenious_browser_discover` project='" +
+            project +
+            "' scenario='" +
+            scenario +
+            "' testcase='" +
             testcase +
             "' url='" +
             url +
-            "'. Read the returned accessibility snapshot \u2013 elements carry\n" +
-            "   refs like e21.\n" +
-            "3. Perform the flow one step at a time with `ingenious_browser_session_do`\n" +
-            "   (e.g. command='fill e5 \"user@example.com\"', then 'click e21'). Re-read the\n" +
-            "   snapshot after each command to pick the next ref.\n" +
-            "4. When the flow is complete, call `ingenious_browser_session_save` with the\n" +
-            "   scenario and testcase, then `ingenious_browser_session_close`.\n" +
-            "5. Call `ingenious_testcase_show` and harden locators (the ref placeholders\n" +
-            "   should be replaced with Object-Repository entries).\n"
+            "' prompt='<the flow, verbatim>'. Read the returned snapshot \u2013 elements carry\n" +
+            "   refs like e21 \u2013 and follow the returned protocol.\n" +
+            "3. Realise the flow one action at a time with `ingenious_browser_session_do`,\n" +
+            "   using only refs from the latest snapshot. Each call blocks on the CLI.\n" +
+            "4. Call `ingenious_browser_session_save` (scenario/testcase/page are pre-bound):\n" +
+            "   discovered locators become Object-Repository objects and the steps are linked.\n" +
+            "5. Call `ingenious_browser_session_close`, then `ingenious_testcase_validate`.\n"
+        );
+    }
+
+    private static String tplDiscoverBrowserFlow(JsonNode args) {
+        String project = MCPServer.paramOrDefault(args, "project", "<default>");
+        String scenario = MCPServer.paramOrDefault(args, "scenario", "");
+        String testcase = MCPServer.paramOrDefault(args, "testcase", "");
+        String url = MCPServer.paramOrDefault(args, "url", "");
+        String flow = MCPServer.paramOrDefault(args, "prompt", "");
+        return (
+            "Discover a browser flow whose objects are not yet in the Object Repository, and\n" +
+            "materialise it into " +
+            project +
+            " / " +
+            scenario +
+            " / " +
+            testcase +
+            ".\n" +
+            "\nFlow to discover (verbatim):\n---\n" +
+            flow +
+            "\n---\n" +
+            "\nProcedure (deterministic - the CLI exploration is the only non-deterministic part)\n" +
+            "---------\n" +
+            "1. Confirm with the user that the objects/locators are NOT in the Object\n" +
+            "   Repository (`ingenious_object_list` / `ingenious_object_search`). If they\n" +
+            "   already exist, author the steps directly instead of discovering.\n" +
+            "2. Call `ingenious_browser_discover` url='" +
+            url +
+            "' prompt='<flow>' scenario='" +
+            scenario +
+            "' testcase='" +
+            testcase +
+            "'. Follow the protocol it returns.\n" +
+            "3. Walk the flow with `ingenious_browser_session_do`, one action per call, using\n" +
+            "   only refs from the returned snapshots. Wait for each call to finish.\n" +
+            "4. `ingenious_browser_session_save` translates discovered locators into WebOR\n" +
+            "   objects and links the recorded steps to them.\n" +
+            "5. `ingenious_browser_session_close`, then `ingenious_testcase_validate` and\n" +
+            "   optionally `ingenious_testcase_parameterize` to externalise any @literal data.\n"
         );
     }
 
@@ -723,6 +795,41 @@ final class MCPPrompts {
             "   `ingenious_testcase_remove_step`).\n" +
             "5. Re-run `ingenious_testcase_validate` to confirm everything resolves, then\n" +
             "   summarise the extracted intents.\n"
+        );
+    }
+
+    private static String tplAuthorLoadTest(JsonNode args) {
+        String project = MCPServer.paramOrDefault(args, "project", "<default>");
+        String source = MCPServer.paramOrDefault(args, "source", "");
+        String profile = MCPServer.paramOrDefault(args, "profile", "smoke");
+        return (
+            "Author a k6 load test in " +
+            project +
+            " from '" +
+            source +
+            "' (profile: " +
+            profile +
+            ").\n" +
+            "\nProcedure\n---------\n" +
+            "1. Export the script with `ingenious_perf_export` (target='" +
+            source +
+            "', profile='" +
+            profile +
+            "').\n" +
+            "   * API test cases and .har recordings -> type=http (default).\n" +
+            "   * Web test cases -> type=browser (k6 browser module + Web Vitals).\n" +
+            "   * For .har sources pass autoCorrelate=true so dynamic tokens become\n" +
+            "     correlation rules (persisted in Performance/rules/, review them!).\n" +
+            "2. Read the returned warnings: unsupported actions surface as // TODO\n" +
+            "   comments; dynamic inputs must be parameterized before load-testing.\n" +
+            "3. ALWAYS `ingenious_perf_validate` first (1 VU, 1 iteration, full trace).\n" +
+            "   Fix the script/rules until validate passes.\n" +
+            "4. Short runs: `ingenious_perf_run`. Longer runs: `ingenious_perf_run_async`\n" +
+            "   then poll `ingenious_perf_status` (live vus/rps/p95/error-rate; a\n" +
+            "   dashboardUrl serves live graphs). `ingenious_perf_scale` adjusts VUs,\n" +
+            "   `ingenious_perf_cancel` stops early.\n" +
+            "5. Read results with `ingenious_perf_report`; compare against a baseline run\n" +
+            "   with `ingenious_perf_compare` and report threshold regressions.\n"
         );
     }
 }

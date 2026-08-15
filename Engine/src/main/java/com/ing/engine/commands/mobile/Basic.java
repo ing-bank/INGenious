@@ -3,10 +3,13 @@ package com.ing.engine.commands.mobile;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ForcedException;
 import com.ing.ingenious.api.exception.mobile.ElementException;
 import com.ing.ingenious.api.exception.mobile.ElementException.ExceptionType;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.ing.util.encryption.Encryption;
@@ -29,6 +32,11 @@ public class Basic extends MobileGeneral {
     }
 
     @Action(object = ObjectType.APP, desc = "Tap the [<Object>] ")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void Tap() {
         if (elementEnabled()) {
             Element.click();
@@ -39,6 +47,11 @@ public class Basic extends MobileGeneral {
     }
 
     @Action(object = ObjectType.APP, desc = "Tap the [<Object>] if it exists")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void TapIfExists() {
         if (Element != null) {
             Tap();
@@ -48,6 +61,11 @@ public class Basic extends MobileGeneral {
     }
 
     @Action(object = ObjectType.APP, desc = "Tap the [<Object>] if it is displayed")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void TapIfVisible() {
         if (Element != null) {
             if (Element.isDisplayed()) {
@@ -65,6 +83,11 @@ public class Basic extends MobileGeneral {
     }
 
     @Action(object = ObjectType.APP, desc = "Submit action on the browser")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void Submit() {
         if (elementEnabled()) {
             Element.submit();
@@ -79,6 +102,11 @@ public class Basic extends MobileGeneral {
     }
 
     @Action(object = ObjectType.APP, desc = "Submit the [<Object>] if it exists")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void SubmitIfExists() {
         if (Element != null) {
             Submit();
@@ -91,6 +119,13 @@ public class Basic extends MobileGeneral {
         object = ObjectType.APP,
         desc = "Enter the value [<Data>] in the Field [<Object>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void Set() {
         if (elementEnabled()) {
@@ -111,6 +146,13 @@ public class Basic extends MobileGeneral {
         desc = "Enter the value [<Data>] in the [<Object>] if it exists",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void SetIfExists() {
         if (Element != null) {
             Set();
@@ -123,6 +165,13 @@ public class Basic extends MobileGeneral {
         object = ObjectType.APP,
         desc = "Enter the value [<Data>] in the Field [<Object>] and check [<Data>] matches with [<Object>] value",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void SetAndCheck() {
         if (elementEnabled()) {
@@ -147,6 +196,11 @@ public class Basic extends MobileGeneral {
     }
 
     @Action(object = ObjectType.APP, desc = "Clear text [<Data>] from object [<Object>].")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void clear() {
         if (elementEnabled()) {
             Element.clear();
@@ -160,6 +214,13 @@ public class Basic extends MobileGeneral {
         object = ObjectType.APP,
         desc = "Enter the Decrypted value [<Data>] in the Field [<Object>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void setEncrypted() {
         if (Data != null && Data.matches(".* Enc")) {
@@ -190,6 +251,11 @@ public class Basic extends MobileGeneral {
         object = ObjectType.APP,
         desc = "Move the Browser View to the specified element [<Object>]"
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void moveTo() {
         if (elementDisplayed()) {
             if (Data != null && Data.matches("(\\d)+,(\\d)+")) {
@@ -217,6 +283,13 @@ public class Basic extends MobileGeneral {
         object = ObjectType.MOBILE,
         desc = "changing wait time by [<Data>] seconds",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void changeWaitTime() {
         try {
@@ -246,6 +319,13 @@ public class Basic extends MobileGeneral {
         desc = "Change Default Element finding wait time by [<Data>] seconds",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void setElementTimeOut() {
         if (Data != null && Data.matches("[0-9]+")) {
             SystemDefaults.elementWaitTime = Duration.ofSeconds(Integer.valueOf(Data));
@@ -262,86 +342,4 @@ public class Basic extends MobileGeneral {
             );
         }
     }
-    /*
-
-    @Action(object = ObjectType.BROWSER, desc = "Open the Url [<Data>] in the Browser", input = InputType.YES)
-    public void Open() {
-        Boolean pageTimeOut = false;
-        try {
-            if (Condition.matches("[0-9]+")) {
-                setPageTimeOut(Integer.valueOf(Condition));
-                pageTimeOut = true;
-            }
-            mDriver.get(Data);
-            Report.updateTestLog("Open", "Opened Url: " + Data, Status.DONE);
-        } catch (TimeoutException e) {
-            Report.updateTestLog("Open",
-                    "Opened Url: " + Data + " and cancelled page load after " + Condition + " seconds",
-                    Status.DONE);
-        } catch (Exception e) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Open", e.getMessage(), Status.FAIL);
-            throw new ForcedException("Open", e.getMessage());
-        }
-        if (pageTimeOut) {
-            setPageTimeOut(300);
-        }
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "Start a specified browser", input = InputType.YES)
-    public void StartBrowser() {
-        try {
-            getDriverControl().StartBrowser(Data);
-            Report.setWebDriver(getMobileDriverControl());
-            Report.updateTestLog("StartBrowser", "Browser Started: " + Data,
-                    Status.DONE);
-        } catch (Exception e) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("StartBrowser", "Error: " + e.getMessage(),
-                    Status.FAIL);
-        }
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "Restarts the Browser")
-    public void RestartBrowser() {
-        try {
-            getDriverControl().RestartBrowser();
-            Report.setWebDriver(getMobileDriverControl());
-            Report.updateTestLog("RestartBrowser", "Restarted Browser", Status.DONE);
-        } catch (Exception ex) {
-            Report.updateTestLog("RestartBrowser", "Unable Restart Browser",
-                    Status.FAIL);
-            Logger.getLogger(Basic.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "Stop the current browser")
-    public void StopBrowser() {
-        getMobileDriverControl().StopBrowser();
-        Report.updateTestLog("StopBrowser", "Browser Stopped: ", Status.DONE);
-    }
-
-    private void highlightElement(WebElement element, String color) {
-        JavascriptExecutor js = (JavascriptExecutor) mDriver;
-        js.executeScript("arguments[0].setAttribute('style', arguments[1]);", element, " outline:" + color + " solid 2px;");
-    }
-
-    public void highlightElement(WebElement element) {
-        highlightElement(element, "#f00");
-    }
-
-    @Action(object = ObjectType.APP, desc = "Highlight the element [<Object>]", input = InputType.OPTIONAL)
-    public void highlight() {
-        if (elementDisplayed()) {
-            if (Data != null && !Data.trim().isEmpty()) {
-                highlightElement(Element, Data);
-            } else {
-                highlightElement(Element);
-            }
-            Report.updateTestLog(Action, "Element Highlighted",
-                    Status.PASS);
-        }
-    }
-     */
 }

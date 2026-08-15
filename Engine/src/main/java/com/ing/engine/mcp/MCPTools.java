@@ -907,15 +907,25 @@ final class MCPTools {
         addTool(
             arr,
             "ingenious_object_add",
-            "Add an object (locator) to an Object Repository page (creates the page if missing).",
+            "Add a web object (locator) to an Object Repository page as YAML " +
+            "(ObjectRepository/Web/<page>.yaml); creates the page if missing.",
             schema(json)
                 .optional("project", "string", "Project name or absolute path.")
-                .required("page", "string", "Page name (without .csv).")
+                .required("page", "string", "Object Repository page name.")
                 .required("name", "string", "Object name.")
-                .optional("type", "string", "Object type (default WebElement).")
-                .optional("locator", "string", "Locator type (id, css, xpath, ...).")
-                .optional("value", "string", "Locator value.")
-                .optional("description", "string", "Description.")
+                .optional("type", "string", "Ignored (web objects only); kept for compatibility.")
+                .optional(
+                    "locator",
+                    "string",
+                    "Locator strategy: role, text, label, placeholder, css, xpath, testId, " +
+                    "altText, title, jsPath, chainedLocator. id/name/class map to a css selector."
+                )
+                .optional("value", "string", "Locator value (selector / accessible name).")
+                .optional(
+                    "description",
+                    "string",
+                    "Ignored by the YAML model; kept for compatibility."
+                )
                 .optional(
                     "dryRun",
                     "boolean",
@@ -927,15 +937,24 @@ final class MCPTools {
         addTool(
             arr,
             "ingenious_object_update",
-            "Update fields of an existing object on a page. Only supplied fields change.",
+            "Update the locator of an existing web object on a page (YAML model). " +
+            "Only supplied fields change.",
             schema(json)
                 .optional("project", "string", "Project name or absolute path.")
                 .required("page", "string", "Page name.")
                 .required("name", "string", "Object name to update.")
-                .optional("type", "string", "New type.")
-                .optional("locator", "string", "New locator type.")
+                .optional("type", "string", "Ignored (web objects only); kept for compatibility.")
+                .optional(
+                    "locator",
+                    "string",
+                    "New locator strategy (role, text, label, css, xpath, testId, ...)."
+                )
                 .optional("value", "string", "New locator value.")
-                .optional("description", "string", "New description.")
+                .optional(
+                    "description",
+                    "string",
+                    "Ignored by the YAML model; kept for compatibility."
+                )
                 .build()
         );
 
@@ -1022,9 +1041,195 @@ final class MCPTools {
             arr,
             "ingenious_doctor",
             "Environment health check: JDK, Playwright Agent CLI (@playwright/cli), browser " +
-            "drivers, and (optionally) a project's folder layout.",
+            "drivers, k6 load generator, and (optionally) a project's folder layout.",
             schema(json)
                 .optional("project", "string", "Project to health-check (optional).")
+                .build()
+        );
+
+        // -----------------------------------------------------------
+        // Performance Studio (k6) — Phase 1: export / run / validate / report
+        // -----------------------------------------------------------
+        addTool(
+            arr,
+            "ingenious_perf_export",
+            "Generate a k6 load-test script from a test case or a HAR recording. type=http " +
+            "(default) emits a protocol-level script from API steps or HAR entries; type=browser " +
+            "emits a k6/browser script from web steps + Object Repository locators (test cases " +
+            "only). Writes <project>/Performance/scripts/<name>.js with the load profile baked " +
+            "into the options block. Refuses to overwrite hand-edited scripts unless force=true. " +
+            "Unsupported actions become // TODO comments plus warnings (never dropped silently).",
+            schema(json)
+                .required(
+                    "target",
+                    "string",
+                    "<Project>/<Scenario>/<TestCase> (test case) or an absolute .har file path."
+                )
+                .optional("type", "string", "http (default) or browser.")
+                .optional("project", "string", "Project for .har exports (script destination).")
+                .optional(
+                    "profile",
+                    "string",
+                    "Load profile: smoke (default), average, stress, spike, soak, or a project profile."
+                )
+                .optional("urlFilter", "string", "HAR only: keep requests whose URL contains this.")
+                .optional(
+                    "includeStatic",
+                    "boolean",
+                    "HAR only: keep static assets (default false)."
+                )
+                .optional(
+                    "autoCorrelate",
+                    "boolean",
+                    "HAR only: propose correlation rules (response tokens reappearing in later " +
+                    "requests), persist them to Performance/rules/<script>.rules.yaml and apply " +
+                    "them. Existing rules files are always applied automatically."
+                )
+                .optional("force", "boolean", "Overwrite a hand-edited script (default false).")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_perf_run",
+            "Execute a k6 script (load run) with the preinstalled k6 binary. Blocks until the " +
+            "run finishes; results land in Results/Performance/<script>/<timestamp>/ " +
+            "(summary.json + run.json). Returns headline metrics, threshold pass/fail and the " +
+            "output tail. Exit code 99 = thresholds failed.",
+            schema(json)
+                .required(
+                    "script",
+                    "string",
+                    "Script name (Performance/scripts) or absolute .js path."
+                )
+                .optional("project", "string", "Project name or absolute path.")
+                .optional("vus", "number", "Override: number of virtual users.")
+                .optional("duration", "string", "Override: duration, e.g. 30s or 2m.")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_perf_validate",
+            "Debug-run a k6 script: 1 VU, 1 iteration, full HTTP request/response trace " +
+            "(k6-studio's Validator). Always do this before a load run. Returns the trace tail, " +
+            "check results and headline metrics.",
+            schema(json)
+                .required(
+                    "script",
+                    "string",
+                    "Script name (Performance/scripts) or absolute .js path."
+                )
+                .optional("project", "string", "Project name or absolute path.")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_perf_report",
+            "Read persisted performance runs from Results/Performance/. mode=latest (default) " +
+            "returns the newest run's metadata, headline metrics and thresholds; mode=history " +
+            "lists all runs.",
+            schema(json)
+                .optional("project", "string", "Project name or absolute path.")
+                .optional("mode", "string", "latest (default) or history.")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_perf_record_start",
+            "Start recording browser traffic to a HAR file (Playwright context capture, no " +
+            "proxy). Opens chromium at the URL; interact (or let the flow run), then call " +
+            "ingenious_perf_record_stop with the returned recordingId. The HAR lands in " +
+            "<project>/Performance/recordings/ and feeds ingenious_perf_export.",
+            schema(json)
+                .required("url", "string", "Start URL to open and record.")
+                .optional(
+                    "project",
+                    "string",
+                    "Project name or absolute path (recording destination)."
+                )
+                .optional("headless", "boolean", "Record without a visible window (default false).")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_perf_record_stop",
+            "Stop a running HAR recording (flushes and returns the .har path, ready for " +
+            "ingenious_perf_export).",
+            schema(json)
+                .required("recordingId", "string", "Id returned by ingenious_perf_record_start.")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_perf_run_async",
+            "Start a k6 load run in the background and return immediately with a runId. " +
+            "Enables the k6 REST API (live metrics via ingenious_perf_status) and, when " +
+            "dashboard=true, the k6 web dashboard (live graphs in a browser + report.html " +
+            "export at run end). Control the run with perf_status / perf_logs / perf_scale / " +
+            "perf_cancel.",
+            schema(json)
+                .required(
+                    "script",
+                    "string",
+                    "Script name (Performance/scripts) or absolute .js path."
+                )
+                .optional("project", "string", "Project name or absolute path.")
+                .optional("vus", "number", "Override: number of virtual users.")
+                .optional("duration", "string", "Override: duration, e.g. 30s or 2m.")
+                .optional("dashboard", "boolean", "Enable the k6 web dashboard (default true).")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_perf_status",
+            "Status of an async k6 run: RUNNING with a live metrics snapshot (vus, rps, p95, " +
+            "error rate) polled from the k6 REST API, or FINISHED with the persisted summary + " +
+            "thresholds. Omit runId for the newest running test.",
+            schema(json)
+                .optional("runId", "string", "<script>/<timestamp> from ingenious_perf_run_async.")
+                .optional("project", "string", "Project name or absolute path.")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_perf_logs",
+            "Tail the console output of an async k6 run.",
+            schema(json)
+                .optional("runId", "string", "Run id; default: newest running.")
+                .optional("lines", "number", "Tail this many lines (default 40).")
+                .optional("project", "string", "Project name or absolute path.")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_perf_cancel",
+            "Stop an async k6 run: graceful stop via the k6 REST API, process kill as fallback.",
+            schema(json)
+                .optional("runId", "string", "Run id; default: newest running.")
+                .optional("project", "string", "Project name or absolute path.")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_perf_scale",
+            "Change the VU count of a RUNNING k6 test via the REST API (interactive load " +
+            "shaping). Some executors (e.g. ramping stages) reject external scaling.",
+            schema(json)
+                .required("vus", "number", "Target number of virtual users.")
+                .optional("runId", "string", "Run id; default: newest running.")
+                .optional("project", "string", "Project name or absolute path.")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_perf_compare",
+            "Compare two performance runs metric by metric (iterations, rps, error rate, " +
+            "avg/p95/max) with % deltas, flagging latency/error regressions (>5%) and " +
+            "thresholds that passed in the baseline but fail in the candidate. Use run ids " +
+            "from ingenious_perf_report mode=history.",
+            schema(json)
+                .required("baseline", "string", "Baseline run id (<script>/<timestamp>).")
+                .required("candidate", "string", "Candidate run id (<script>/<timestamp>).")
+                .optional("project", "string", "Project name or absolute path.")
                 .build()
         );
 
@@ -1033,6 +1238,41 @@ final class MCPTools {
         // Requires @playwright/cli (npm i -g @playwright/cli). All tools
         // degrade with a clear message when it is not installed.
         // -----------------------------------------------------------
+        addTool(
+            arr,
+            "ingenious_browser_discover",
+            "Deterministic entry point for browser-flow DISCOVERY: use this whenever the intent " +
+            "is to work out a UI flow whose objects/locators are NOT yet in the Object Repository. " +
+            "Opens a live @playwright/cli session at the URL, returns the first accessibility " +
+            "snapshot plus a fixed discovery protocol, and pre-binds scenario/testcase/page so " +
+            "ingenious_browser_session_save can translate the discovered locators into WebOR " +
+            "objects and linked test steps. Requires @playwright/cli.",
+            schema(json)
+                .optional("project", "string", "Project name or absolute path.")
+                .required("url", "string", "Start URL to open for discovery.")
+                .required(
+                    "prompt",
+                    "string",
+                    "The browser flow to discover, in any format (plain English, BDD, steps)."
+                )
+                .optional("scenario", "string", "Target scenario for the generated test case.")
+                .optional("testcase", "string", "Target test case name to create on save.")
+                .optional(
+                    "page",
+                    "string",
+                    "Object Repository page for discovered locators (default derived from testcase)."
+                )
+                .optional(
+                    "browser",
+                    "string",
+                    "chromium | firefox | webkit | chrome (default chromium)."
+                )
+                .optional("headed", "boolean", "Run headed (default false = headless).")
+                .optional("reusable", "boolean", "Save as a reusable component (default false).")
+                .optional("session", "string", "Session name (default derived from testcase).")
+                .build()
+        );
+
         addTool(
             arr,
             "ingenious_browser_session_start",
@@ -1072,12 +1312,26 @@ final class MCPTools {
             arr,
             "ingenious_browser_session_save",
             "Flush the recorded steps of a session into an INGenious test case " +
-            "(wrapped with OpenBrowser / CloseBrowser).",
+            "(wrapped with OpenBrowser / CloseBrowser). Discovered locators are translated into " +
+            "Object-Repository objects on 'page' and the steps are linked to them.",
             schema(json)
                 .optional("project", "string", "Project name or absolute path.")
                 .required("name", "string", "Session name.")
-                .required("scenario", "string", "Target scenario.")
-                .required("testcase", "string", "Target test case name.")
+                .optional(
+                    "scenario",
+                    "string",
+                    "Target scenario (defaults to the value bound by ingenious_browser_discover)."
+                )
+                .optional(
+                    "testcase",
+                    "string",
+                    "Target test case name (defaults to the value bound by ingenious_browser_discover)."
+                )
+                .optional(
+                    "page",
+                    "string",
+                    "Object Repository page for discovered locators (default derived from testcase)."
+                )
                 .optional("reusable", "boolean", "Create as a reusable component (default false).")
                 .build()
         );
@@ -1362,6 +1616,32 @@ final class MCPTools {
                 return MCPServer.jsonContent(json, runDry(json, args));
             case "ingenious_doctor":
                 return MCPServer.jsonContent(json, doctor(json, args));
+            case "ingenious_perf_export":
+                return MCPServer.jsonContent(json, perfExport(json, args));
+            case "ingenious_perf_run":
+                return MCPServer.jsonContent(json, perfRun(json, args));
+            case "ingenious_perf_validate":
+                return MCPServer.jsonContent(json, perfValidate(json, args));
+            case "ingenious_perf_report":
+                return MCPServer.jsonContent(json, perfReport(json, args));
+            case "ingenious_perf_record_start":
+                return MCPServer.jsonContent(json, perfRecordStart(json, args));
+            case "ingenious_perf_record_stop":
+                return MCPServer.jsonContent(json, perfRecordStop(json, args));
+            case "ingenious_perf_run_async":
+                return MCPServer.jsonContent(json, perfRunAsync(json, args));
+            case "ingenious_perf_status":
+                return MCPServer.jsonContent(json, perfStatus(json, args));
+            case "ingenious_perf_logs":
+                return MCPServer.jsonContent(json, perfLogs(json, args));
+            case "ingenious_perf_cancel":
+                return MCPServer.jsonContent(json, perfCancel(json, args));
+            case "ingenious_perf_scale":
+                return MCPServer.jsonContent(json, perfScale(json, args));
+            case "ingenious_perf_compare":
+                return MCPServer.jsonContent(json, perfCompare(json, args));
+            case "ingenious_browser_discover":
+                return MCPServer.jsonContent(json, browserDiscover(json, args));
             case "ingenious_browser_session_start":
                 return MCPServer.jsonContent(json, browserSessionStart(json, args));
             case "ingenious_browser_session_do":
@@ -1767,17 +2047,22 @@ final class MCPTools {
         String action = MCPServer.paramOrDefault(raw, "action", "");
         String object = MCPServer.paramOrDefault(raw, "object", "");
         String input = MCPServer.paramOrDefault(raw, "input", "");
+        String condition = MCPServer.paramOrDefault(raw, "condition", "");
         StepNormalizer.Result norm = StepNormalizer.normalize(
             "step " + tc.getTestSteps().size(),
             action,
             object,
-            input
+            input,
+            condition
         );
+        if (!norm.errors.isEmpty()) {
+            throw new MCPServer.MCPException(-32602, String.join("; ", norm.errors));
+        }
         warnings.addAll(norm.warnings);
         step.setAction(action);
         step.setObject(object);
         step.setInput(norm.input);
-        step.setCondition(MCPServer.paramOrDefault(raw, "condition", ""));
+        step.setCondition(norm.condition);
         step.setDescription(MCPServer.paramOrDefault(raw, "description", ""));
         step.setReference(MCPServer.paramOrDefault(raw, "reference", ""));
         return ConventionCatalog.isParameterizableLiteral(norm.input);
@@ -1945,6 +2230,24 @@ final class MCPTools {
         n.put("description", a.description);
         n.put("inputRequired", a.inputRequired);
         n.put("conditionSupported", a.conditionSupported);
+        // Format spec (from @Args / sidecar, or inferred) so callers author the
+        // Input/Condition in the exact expected grammar.
+        ArgSpec spec = ActionSpecCatalog.forAction(a.name);
+        n.put("inputType", spec.inputType().name());
+        n.put("inputTypeLabel", spec.inputType().label());
+        if (!spec.inputExample().isEmpty()) n.put("inputExample", spec.inputExample());
+        n.put("inputAllowsData", spec.inputAllowsData());
+        n.put("conditionKind", spec.conditionKind().name());
+        if (!spec.conditionValues().isEmpty()) {
+            ArrayNode cv = n.putArray("conditionValues");
+            for (String v : spec.conditionValues()) cv.add(v);
+        }
+        if (!spec.conditionExample().isEmpty()) n.put("conditionExample", spec.conditionExample());
+        if (!spec.help().isEmpty()) n.put("help", spec.help());
+        // Field-specific hints (what the Input and Condition columns each expect).
+        if (!spec.inputHint().isEmpty()) n.put("inputHint", spec.inputHint());
+        if (!spec.conditionHint().isEmpty()) n.put("conditionHint", spec.conditionHint());
+        n.put("formatSpecified", spec.isExplicit());
         return n;
     }
 
@@ -2847,6 +3150,7 @@ final class MCPTools {
                     String action = safeTrim(st.getAction());
                     String object = safeTrim(st.getObject());
                     String input = st.getInput() == null ? "" : st.getInput();
+                    String condition = st.getCondition() == null ? "" : st.getCondition();
                     String desc = safeTrim(st.getDescription());
                     String reference = safeTrim(st.getReference());
 
@@ -2935,6 +3239,12 @@ final class MCPTools {
                             input +
                             "' in step input; use a data-sheet cell + Sheet:Column [E6]"
                         );
+                    }
+                    // E11 – input/condition format must match the action's spec.
+                    for (String v : ActionSpecCatalog
+                        .forAction(action)
+                        .validate(input, condition)) {
+                        errors.add(where + ": " + v + " [E11]");
                     }
                     // E2 – OR page reference must exist.
                     String refPage = referencedPage(reference);
@@ -3868,25 +4178,61 @@ final class MCPTools {
     // ==================================================================
 
     private JsonNode objectList(ObjectMapper json, JsonNode args) {
-        File orDir = new File(resolveProject(projectArg(args)), "ObjectRepository");
+        Project p = loadProject(resolveProject(projectArg(args)));
         ArrayNode out = json.createArrayNode();
-        if (!orDir.isDirectory()) return out;
-        File[] pages = orDir.listFiles(
+        LinkedHashMap<String, Integer> counts = new LinkedHashMap<>();
+        com.ing.datalib.or.web.WebOR web = projectWebOR(p);
+        if (web != null) {
+            for (com.ing.datalib.or.web.WebORPage pg : web.getPages()) {
+                counts.put(pg.getName(), pg.getObjectGroups().size());
+            }
+        }
+        // Legacy CSV pages authored by older tool versions (kept for compatibility).
+        File orDir = new File(p.getLocation(), "ObjectRepository");
+        File[] csvPages = orDir.listFiles(
             f -> f.isFile() && f.getName().toLowerCase(Locale.ROOT).endsWith(".csv")
         );
-        if (pages == null) return out;
-        Arrays.sort(pages, Comparator.comparing(File::getName));
-        for (File page : pages) {
-            ObjectNode n = out.addObject();
-            n.put("page", page.getName().replaceFirst("(?i)\\.csv$", ""));
-            n.put("objects", countDataRows(page));
+        if (csvPages != null) {
+            Arrays.sort(csvPages, Comparator.comparing(File::getName));
+            for (File page : csvPages) {
+                String pn = page.getName().replaceFirst("(?i)\\.csv$", "");
+                if (!counts.containsKey(pn)) counts.put(pn, countDataRows(page));
+            }
+        }
+        for (Map.Entry<String, Integer> e : counts.entrySet()) {
+            out.addObject().put("page", e.getKey()).put("objects", e.getValue());
         }
         return out;
     }
 
     private JsonNode objectShow(ObjectMapper json, JsonNode args) {
-        File orDir = new File(resolveProject(projectArg(args)), "ObjectRepository");
+        Project p = loadProject(resolveProject(projectArg(args)));
         String page = MCPServer.requiredParam(args, "page");
+        com.ing.datalib.or.web.WebOR web = projectWebOR(p);
+        com.ing.datalib.or.web.WebORPage pg = web == null ? null : web.getPageByName(page);
+        if (pg != null) {
+            ObjectNode out = json.createObjectNode();
+            out.put("page", pg.getName());
+            out.put("format", "yaml");
+            ArrayNode objs = out.putArray("objects");
+            for (com.ing.datalib.or.common.ObjectGroup<com.ing.datalib.or.web.WebORObject> g : pg.getObjectGroups()) {
+                for (com.ing.datalib.or.web.WebORObject o : g.getObjects()) {
+                    ObjectNode on = objs.addObject();
+                    on.put("name", o.getName());
+                    on.put("type", "WebElement");
+                    ObjectNode locs = on.putObject("locators");
+                    for (String prop : com.ing.datalib.or.web.WebOR.OBJECT_PROPS) {
+                        String v = getWebAttr(o, prop);
+                        if (!v.isEmpty()) locs.put(yamlLocatorKey(prop), v);
+                    }
+                    String frame = o.getFrame();
+                    if (frame != null && !frame.isEmpty()) on.put("frame", frame);
+                }
+            }
+            return out;
+        }
+        // Fallback: legacy CSV page authored by older tool versions.
+        File orDir = new File(p.getLocation(), "ObjectRepository");
         File f = new File(orDir, page + ".csv");
         if (!f.isFile()) throw notFound(
             -32602,
@@ -3896,6 +4242,7 @@ final class MCPTools {
         );
         ObjectNode out = json.createObjectNode();
         out.put("page", page);
+        out.put("format", "csv");
         ArrayNode objs = out.putArray("objects");
         List<String> lines = readLines(f);
         for (int i = 1; i < lines.size(); i++) {
@@ -3912,29 +4259,60 @@ final class MCPTools {
     }
 
     private JsonNode objectSearch(ObjectMapper json, JsonNode args) {
-        File orDir = new File(resolveProject(projectArg(args)), "ObjectRepository");
+        Project p = loadProject(resolveProject(projectArg(args)));
         String q = MCPServer.requiredParam(args, "query").toLowerCase(Locale.ROOT);
         ArrayNode out = json.createArrayNode();
-        if (!orDir.isDirectory()) return out;
+        Set<String> modelPages = new LinkedHashSet<>();
+        com.ing.datalib.or.web.WebOR web = projectWebOR(p);
+        if (web != null) {
+            for (com.ing.datalib.or.web.WebORPage pg : web.getPages()) {
+                modelPages.add(pg.getName());
+                for (com.ing.datalib.or.common.ObjectGroup<com.ing.datalib.or.web.WebORObject> g : pg.getObjectGroups()) {
+                    for (com.ing.datalib.or.web.WebORObject o : g.getObjects()) {
+                        StringBuilder hay = new StringBuilder(
+                            o.getName() == null ? "" : o.getName()
+                        );
+                        ObjectNode locs = json.createObjectNode();
+                        for (String prop : com.ing.datalib.or.web.WebOR.OBJECT_PROPS) {
+                            String v = getWebAttr(o, prop);
+                            if (!v.isEmpty()) {
+                                hay.append(' ').append(v);
+                                locs.put(yamlLocatorKey(prop), v);
+                            }
+                        }
+                        if (hay.toString().toLowerCase(Locale.ROOT).contains(q)) {
+                            ObjectNode on = out.addObject();
+                            on.put("page", pg.getName());
+                            on.put("name", o.getName());
+                            on.set("locators", locs);
+                        }
+                    }
+                }
+            }
+        }
+        // Legacy CSV pages not shadowed by a model page.
+        File orDir = new File(p.getLocation(), "ObjectRepository");
         File[] pages = orDir.listFiles(
             f -> f.isFile() && f.getName().toLowerCase(Locale.ROOT).endsWith(".csv")
         );
-        if (pages == null) return out;
-        Arrays.sort(pages, Comparator.comparing(File::getName));
-        for (File page : pages) {
-            String pageName = page.getName().replaceFirst("(?i)\\.csv$", "");
-            List<String> lines = readLines(page);
-            for (int i = 1; i < lines.size(); i++) {
-                String line = lines.get(i);
-                if (line.trim().isEmpty()) continue;
-                if (!line.toLowerCase(Locale.ROOT).contains(q)) continue;
-                String[] c = line.split(",", -1);
-                ObjectNode o = out.addObject();
-                o.put("page", pageName);
-                o.put("name", c.length > 0 ? c[0] : "");
-                o.put("type", c.length > 1 ? c[1] : "");
-                o.put("locator", c.length > 2 ? c[2] : "");
-                o.put("value", c.length > 3 ? c[3] : "");
+        if (pages != null) {
+            Arrays.sort(pages, Comparator.comparing(File::getName));
+            for (File page : pages) {
+                String pageName = page.getName().replaceFirst("(?i)\\.csv$", "");
+                if (modelPages.contains(pageName)) continue;
+                List<String> lines = readLines(page);
+                for (int i = 1; i < lines.size(); i++) {
+                    String line = lines.get(i);
+                    if (line.trim().isEmpty()) continue;
+                    if (!line.toLowerCase(Locale.ROOT).contains(q)) continue;
+                    String[] c = line.split(",", -1);
+                    ObjectNode o = out.addObject();
+                    o.put("page", pageName);
+                    o.put("name", c.length > 0 ? c[0] : "");
+                    o.put("type", c.length > 1 ? c[1] : "");
+                    o.put("locator", c.length > 2 ? c[2] : "");
+                    o.put("value", c.length > 3 ? c[3] : "");
+                }
             }
         }
         return out;
@@ -4200,9 +4578,14 @@ final class MCPTools {
             "step " + (idx + 1),
             step.getAction(),
             step.getObject(),
-            step.getInput()
+            step.getInput(),
+            step.getCondition()
         );
+        if (!norm.errors.isEmpty()) {
+            throw new MCPServer.MCPException(-32602, String.join("; ", norm.errors));
+        }
         step.setInput(norm.input);
+        step.setCondition(norm.condition);
         tc.save();
         ObjectNode out = json.createObjectNode().put("edited", true).put("index", idx + 1);
         if (!norm.warnings.isEmpty()) {
@@ -4223,16 +4606,21 @@ final class MCPTools {
         TestStep step = tc.addNewStepAt(idx);
         String action = MCPServer.paramOrDefault(args, "action", "");
         String object = MCPServer.paramOrDefault(args, "object", "");
+        String condition = MCPServer.paramOrDefault(args, "condition", "");
         StepNormalizer.Result norm = StepNormalizer.normalize(
             "step " + (idx + 1),
             action,
             object,
-            MCPServer.paramOrDefault(args, "input", "")
+            MCPServer.paramOrDefault(args, "input", ""),
+            condition
         );
+        if (!norm.errors.isEmpty()) {
+            throw new MCPServer.MCPException(-32602, String.join("; ", norm.errors));
+        }
         step.setAction(action);
         step.setObject(object);
         step.setInput(norm.input);
-        step.setCondition(MCPServer.paramOrDefault(args, "condition", ""));
+        step.setCondition(norm.condition);
         step.setDescription(MCPServer.paramOrDefault(args, "description", ""));
         tc.save();
         ObjectNode out = json
@@ -4297,8 +4685,6 @@ final class MCPTools {
     // object repository write (Phase 2)
     // ==================================================================
 
-    private static final String OBJECT_HEADER = "Name,Type,Locator,Value,Description";
-
     private File objectPageFile(JsonNode args, boolean createDir) {
         File orDir = new File(resolveProject(projectArg(args)), "ObjectRepository");
         if (createDir) orDir.mkdirs();
@@ -4306,23 +4692,19 @@ final class MCPTools {
     }
 
     private JsonNode objectAdd(ObjectMapper json, JsonNode args) {
-        File f = objectPageFile(args, true);
+        Project p = loadProject(resolveProject(projectArg(args)));
         String page = MCPServer.requiredParam(args, "page");
         String name = MCPServer.requiredParam(args, "name");
-        String type = MCPServer.paramOrDefault(args, "type", "WebElement");
         String locator = MCPServer.paramOrDefault(args, "locator", "");
         String value = MCPServer.paramOrDefault(args, "value", "");
-        String desc = MCPServer.paramOrDefault(args, "description", "");
-        List<String> lines = f.isFile() ? readLines(f) : new ArrayList<>();
-        if (lines.isEmpty()) lines.add(OBJECT_HEADER);
-        boolean exists = false;
-        for (int i = 1; i < lines.size(); i++) {
-            String[] c = lines.get(i).split(",", -1);
-            if (c.length > 0 && c[0].equals(name)) {
-                exists = true;
-                break;
-            }
-        }
+        com.ing.datalib.or.ObjectRepository orRepo = p.getObjectRepository();
+        com.ing.datalib.or.web.WebOR web = orRepo == null ? null : orRepo.getWebOR();
+        if (web == null) throw new MCPServer.MCPException(
+            -32603,
+            "Object Repository model unavailable for project."
+        );
+        com.ing.datalib.or.web.WebORPage orPage = web.getPageByName(page);
+        boolean exists = orPage != null && orPage.getObjectGroupByName(name) != null;
         if (boolArg(args, "dryRun", false)) {
             return json
                 .createObjectNode()
@@ -4336,15 +4718,86 @@ final class MCPTools {
             -32602,
             "Object already exists on page: " + name
         );
-        lines.add(csvRow(name, type, locator, value, desc));
-        writeLines(f, lines);
-        return json.createObjectNode().put("added", true).put("page", page).put("name", name);
+        if (orPage == null) orPage = web.addPage(page);
+        com.ing.datalib.or.web.WebORObject o = orPage.addObject(name);
+        if (o == null) throw new MCPServer.MCPException(-32603, "Failed to add object: " + name);
+        if (!locator.isEmpty() || !value.isEmpty()) {
+            String[] mapped = mapLocatorToAttr(locator, value);
+            setWebAttr(o, mapped[0], mapped[1]);
+        }
+        orRepo.saveWebPageNow(orPage);
+        return json
+            .createObjectNode()
+            .put("added", true)
+            .put("page", page)
+            .put("name", name)
+            .put("format", "yaml");
     }
 
     private JsonNode objectUpdate(ObjectMapper json, JsonNode args) {
+        Project p = loadProject(resolveProject(projectArg(args)));
+        String page = MCPServer.requiredParam(args, "page");
+        String name = MCPServer.requiredParam(args, "name");
+        com.ing.datalib.or.web.WebOR web = projectWebOR(p);
+        com.ing.datalib.or.web.WebORPage orPage = web == null ? null : web.getPageByName(page);
+        com.ing.datalib.or.web.WebORObject o = null;
+        if (orPage != null) {
+            com.ing.datalib.or.common.ObjectGroup<com.ing.datalib.or.web.WebORObject> g = orPage.getObjectGroupByName(
+                name
+            );
+            if (g != null && !g.getObjects().isEmpty()) o = g.getObjects().get(0);
+        }
+        if (o != null) {
+            String locator = MCPServer.paramOrDefault(args, "locator", null);
+            String value = MCPServer.paramOrDefault(args, "value", null);
+            if (locator != null) {
+                // An explicit strategy change replaces the object's locators so
+                // no stale strategy is left behind.
+                String[] mapped = mapLocatorToAttr(locator, value == null ? "" : value);
+                clearWebLocators(o);
+                setWebAttr(o, mapped[0], mapped[1]);
+            } else if (value != null) {
+                String prim = primaryLocatorProp(o);
+                setWebAttr(o, prim == null ? "css" : prim, value);
+            }
+            p.getObjectRepository().saveWebPageNow(orPage);
+            return json
+                .createObjectNode()
+                .put("updated", true)
+                .put("page", page)
+                .put("name", name)
+                .put("format", "yaml");
+        }
+        // Fallback: legacy CSV page authored by older tool versions.
+        return objectUpdateCsv(json, args);
+    }
+
+    private JsonNode objectDelete(ObjectMapper json, JsonNode args) {
+        Project p = loadProject(resolveProject(projectArg(args)));
+        String page = MCPServer.requiredParam(args, "page");
+        String name = MCPServer.requiredParam(args, "name");
+        com.ing.datalib.or.web.WebOR web = projectWebOR(p);
+        com.ing.datalib.or.web.WebORPage orPage = web == null ? null : web.getPageByName(page);
+        if (orPage != null && orPage.getObjectGroupByName(name) != null) {
+            orPage.deleteObjectGroup(name);
+            p.getObjectRepository().saveWebPageNow(orPage);
+            return json
+                .createObjectNode()
+                .put("deleted", true)
+                .put("page", page)
+                .put("name", name)
+                .put("format", "yaml");
+        }
+        // Fallback: legacy CSV page authored by older tool versions.
+        return objectDeleteCsv(json, args);
+    }
+
+    // ---- legacy CSV fallbacks (only hit for pre-existing *.csv OR pages) ----
+
+    private JsonNode objectUpdateCsv(ObjectMapper json, JsonNode args) {
         File f = objectPageFile(args, false);
         String name = MCPServer.requiredParam(args, "name");
-        if (!f.isFile()) throw new MCPServer.MCPException(-32602, "Page not found: " + f.getName());
+        if (!f.isFile()) throw new MCPServer.MCPException(-32602, "Object not found: " + name);
         List<String> lines = readLines(f);
         boolean found = false;
         for (int i = 1; i < lines.size(); i++) {
@@ -4365,13 +4818,13 @@ final class MCPTools {
         }
         if (!found) throw new MCPServer.MCPException(-32602, "Object not found: " + name);
         writeLines(f, lines);
-        return json.createObjectNode().put("updated", true).put("name", name);
+        return json.createObjectNode().put("updated", true).put("name", name).put("format", "csv");
     }
 
-    private JsonNode objectDelete(ObjectMapper json, JsonNode args) {
+    private JsonNode objectDeleteCsv(ObjectMapper json, JsonNode args) {
         File f = objectPageFile(args, false);
         String name = MCPServer.requiredParam(args, "name");
-        if (!f.isFile()) throw new MCPServer.MCPException(-32602, "Page not found: " + f.getName());
+        if (!f.isFile()) throw new MCPServer.MCPException(-32602, "Object not found: " + name);
         List<String> lines = readLines(f);
         boolean removed = false;
         for (int i = 1; i < lines.size(); i++) {
@@ -4384,7 +4837,74 @@ final class MCPTools {
         }
         if (!removed) throw new MCPServer.MCPException(-32602, "Object not found: " + name);
         writeLines(f, lines);
-        return json.createObjectNode().put("deleted", true).put("name", name);
+        return json.createObjectNode().put("deleted", true).put("name", name).put("format", "csv");
+    }
+
+    /**
+     * Map a user-facing locator strategy (id, css, xpath, role, text, label,
+     * testId, ...) and value onto the WebOR model's attribute name + value.
+     * Strategies with no native attribute (id, name, class, tag) are expressed
+     * as an equivalent CSS selector so they remain resolvable.
+     */
+    private static String[] mapLocatorToAttr(String strategy, String value) {
+        String s = strategy == null ? "" : strategy.trim().toLowerCase(Locale.ROOT);
+        String v = value == null ? "" : value;
+        switch (s) {
+            case "xpath":
+            case "xpath1":
+                return new String[] { "xpath", v };
+            case "role":
+                return new String[] { "Role", v };
+            case "text":
+            case "linktext":
+            case "link":
+            case "partiallinktext":
+                return new String[] { "Text", v };
+            case "label":
+                return new String[] { "Label", v };
+            case "placeholder":
+                return new String[] { "Placeholder", v };
+            case "alttext":
+            case "alt":
+                return new String[] { "AltText", v };
+            case "title":
+                return new String[] { "Title", v };
+            case "testid":
+            case "data-testid":
+            case "datatestid":
+                return new String[] { "TestId", v };
+            case "chainedlocator":
+            case "chained":
+                return new String[] { "ChainedLocator", v };
+            case "jspath":
+            case "js":
+                return new String[] { "JSPath", v };
+            case "id":
+                return new String[] { "css", v.isEmpty() || v.startsWith("#") ? v : "#" + v };
+            case "name":
+                return new String[] { "css", v.isEmpty() ? v : "[name=\"" + v + "\"]" };
+            case "class":
+            case "classname":
+                return new String[] { "css", v.isEmpty() || v.startsWith(".") ? v : "." + v };
+            case "tag":
+            case "tagname":
+            case "css":
+            default:
+                return new String[] { "css", v };
+        }
+    }
+
+    /** First OBJECT_PROP with a non-empty value on the object, or null. */
+    private static String primaryLocatorProp(com.ing.datalib.or.web.WebORObject o) {
+        for (String prop : com.ing.datalib.or.web.WebOR.OBJECT_PROPS) {
+            if (!getWebAttr(o, prop).isEmpty()) return prop;
+        }
+        return null;
+    }
+
+    /** Clear every locator attribute on an object (used when replacing the locator). */
+    private static void clearWebLocators(com.ing.datalib.or.web.WebORObject o) {
+        for (String prop : com.ing.datalib.or.web.WebOR.OBJECT_PROPS) setWebAttr(o, prop, "");
     }
 
     private static String csvRow(String... cells) {
@@ -4671,6 +5191,14 @@ final class MCPTools {
             n.put("driver", d);
             n.put("present", onPath(d));
         }
+        // k6 load generator (Performance Studio)
+        ObjectNode k6 = out.putObject("k6");
+        String k6Path = com.ing.engine.perf.K6Locator.resolve();
+        k6.put("available", k6Path != null);
+        k6.put("path", k6Path == null ? "" : k6Path);
+        String k6Version = k6Path == null ? null : com.ing.engine.perf.K6Locator.version(k6Path);
+        k6.put("version", k6Version == null ? "" : k6Version);
+        k6.put("hint", k6Path == null ? com.ing.engine.perf.K6Locator.installHint() : "OK");
         // optional project health
         String proj = MCPServer.paramOrDefault(args, "project", defaultProject);
         if (proj != null && !proj.isEmpty()) {
@@ -4697,6 +5225,648 @@ final class MCPTools {
                 out.putObject("project").put("error", ex.getMessage());
             }
         }
+        return out;
+    }
+
+    // ==================================================================
+    // Performance Studio (k6) — Phase 1
+    // ==================================================================
+
+    private JsonNode perfExport(ObjectMapper json, JsonNode args) {
+        String target = MCPServer.requiredParam(args, "target");
+        String profileName = MCPServer.paramOrDefault(args, "profile", "smoke");
+        boolean force = boolArg(args, "force", false);
+        boolean isHar = target.toLowerCase(Locale.ROOT).endsWith(".har");
+        String type = MCPServer.paramOrDefault(args, "type", "http");
+        boolean browserType = "browser".equalsIgnoreCase(type);
+        if (!browserType && !"http".equalsIgnoreCase(type)) {
+            throw new MCPServer.MCPException(-32602, "type must be http or browser");
+        }
+        if (browserType && isHar) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "type=browser applies to test cases only; HAR recordings export as type=http"
+            );
+        }
+
+        File projectDir;
+        String baseName;
+        String source;
+        String regenerate;
+        java.util.List<com.ing.engine.perf.HttpRequestSpec> requests = null;
+        com.ing.engine.perf.K6BrowserScriptGenerator.Result browserGen = null;
+        com.ing.engine.perf.RuleEngine.Result appliedRules = null;
+        int proposedRules = 0;
+        java.util.List<String> warnings;
+
+        if (isHar) {
+            File har = new File(target);
+            if (!har.isFile()) {
+                throw new MCPServer.MCPException(-32602, "HAR file not found: " + target);
+            }
+            projectDir = resolveProject(MCPServer.paramOrDefault(args, "project", defaultProject));
+            com.ing.engine.perf.HarReader.Result read;
+            try {
+                read =
+                    com.ing.engine.perf.HarReader.read(
+                        har,
+                        MCPServer.paramOrDefault(args, "urlFilter", null),
+                        boolArg(args, "includeStatic", false)
+                    );
+            } catch (Exception e) {
+                throw new MCPServer.MCPException(-32603, "Failed to parse HAR: " + e.getMessage());
+            }
+            requests = read.requests;
+            warnings = read.warnings;
+            baseName = har.getName().replaceAll("\\.har$", "");
+            source = har.getName();
+            regenerate =
+                "ingenious perf export \"" + target + "\" --type http --profile " + profileName;
+            // rules: load persisted set, optionally auto-propose, then apply
+            try {
+                File rulesFile = com.ing.engine.perf.PerfRule.defaultRulesFile(
+                    new com.ing.engine.perf.PerfWorkspace(projectDir),
+                    baseName
+                );
+                java.util.List<com.ing.engine.perf.PerfRule> ruleList = com.ing.engine.perf.PerfRule.load(
+                    rulesFile
+                );
+                if (boolArg(args, "autoCorrelate", false)) {
+                    for (com.ing.engine.perf.PerfRule proposal : com.ing.engine.perf.RuleEngine.proposeCorrelations(
+                        requests
+                    )) {
+                        boolean duplicate = false;
+                        for (com.ing.engine.perf.PerfRule existing : ruleList) {
+                            if (
+                                existing.type.equals(proposal.type) &&
+                                existing.value.equals(proposal.value)
+                            ) {
+                                duplicate = true;
+                                break;
+                            }
+                        }
+                        if (!duplicate) {
+                            ruleList.add(proposal);
+                            proposedRules++;
+                        }
+                    }
+                    if (proposedRules > 0) {
+                        com.ing.engine.perf.PerfRule.save(ruleList, rulesFile);
+                    }
+                }
+                if (!ruleList.isEmpty()) {
+                    appliedRules = com.ing.engine.perf.RuleEngine.apply(requests, ruleList);
+                    warnings.addAll(appliedRules.warnings);
+                }
+            } catch (Exception e) {
+                warnings.add("Rules processing failed: " + e.getMessage());
+            }
+        } else {
+            String[] parts = target.split("/");
+            if (parts.length != 3) {
+                throw new MCPServer.MCPException(
+                    -32602,
+                    "target must be <Project>/<Scenario>/<TestCase> or a .har path"
+                );
+            }
+            projectDir = resolveProject(parts[0]);
+            Project p = loadProject(projectDir);
+            Scenario s = p.getScenarioByName(parts[1]);
+            if (s == null) {
+                throw notFound(
+                    -32602,
+                    "Scenario not found: " + parts[1],
+                    scenarioNames(p),
+                    parts[1]
+                );
+            }
+            TestCase tc = s.getTestCaseByName(parts[2]);
+            if (tc == null) {
+                throw notFound(
+                    -32602,
+                    "Test case not found: " + parts[1] + "/" + parts[2],
+                    testCaseNames(s),
+                    parts[2]
+                );
+            }
+            if (browserType) {
+                browserGen = com.ing.engine.perf.K6BrowserScriptGenerator.fromTestCase(p, tc);
+                warnings = browserGen.warnings;
+            } else {
+                com.ing.engine.perf.K6HttpScriptGenerator.Result gen = com.ing.engine.perf.K6HttpScriptGenerator.fromTestCase(
+                    p,
+                    tc
+                );
+                requests = gen.requests;
+                warnings = gen.warnings;
+            }
+            baseName = parts[2];
+            source = "TestPlan/" + parts[1] + "/" + parts[2];
+            regenerate =
+                "ingenious perf export \"" +
+                target +
+                "\" --type " +
+                (browserType ? "browser" : "http") +
+                " --profile " +
+                profileName;
+        }
+
+        boolean nothing = browserType
+            ? (browserGen == null || browserGen.actions == 0)
+            : (requests == null || requests.isEmpty());
+        if (nothing) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "Nothing to export: " + String.join("; ", warnings)
+            );
+        }
+        com.ing.engine.perf.PerfProfile profile = com.ing.engine.perf.PerfProfile.resolve(
+            profileName,
+            projectDir
+        );
+        if (profile == null) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "Unknown profile: " +
+                profileName +
+                " (built-ins: smoke, average, stress, spike, soak)"
+            );
+        }
+        String script;
+        int itemCount;
+        if (browserType) {
+            script =
+                com.ing.engine.perf.K6BrowserScriptGenerator.generate(
+                    source,
+                    regenerate,
+                    profile,
+                    browserGen.lines,
+                    browserGen.warnings
+                );
+            itemCount = browserGen.actions;
+        } else {
+            script =
+                com.ing.engine.perf.K6HttpScriptGenerator.generate(
+                    source,
+                    regenerate,
+                    profile,
+                    requests,
+                    warnings,
+                    appliedRules
+                );
+            itemCount = requests.size();
+        }
+        com.ing.engine.perf.PerfWorkspace ws = new com.ing.engine.perf.PerfWorkspace(projectDir);
+        ws.ensure();
+        File scriptFile = new File(ws.scriptsDir(), baseName + ".js");
+        if (
+            scriptFile.exists() &&
+            com.ing.engine.perf.ScriptProvenance.isHandEdited(scriptFile) &&
+            !force
+        ) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "Refusing to overwrite hand-edited script: " + scriptFile + " (pass force=true)"
+            );
+        }
+        try {
+            java.nio.file.Files.write(
+                scriptFile.toPath(),
+                script.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+            );
+        } catch (IOException e) {
+            throw new MCPServer.MCPException(-32603, "Failed to write script: " + e.getMessage());
+        }
+        ObjectNode out = json.createObjectNode();
+        out.put("script", scriptFile.getAbsolutePath());
+        out.put("type", browserType ? "browser" : "http");
+        out.put(browserType ? "actions" : "requests", itemCount);
+        out.put("profile", profile.name);
+        if (appliedRules != null) {
+            out.put("rulesApplied", appliedRules.applied);
+        }
+        if (proposedRules > 0) {
+            out.put("rulesProposed", proposedRules);
+        }
+        ArrayNode warn = out.putArray("warnings");
+        for (String w : warnings) warn.add(w);
+        out.put(
+            "next",
+            "Validate before load: ingenious_perf_validate {script: '" + baseName + "'}"
+        );
+        return out;
+    }
+
+    private JsonNode perfRun(ObjectMapper json, JsonNode args) {
+        return perfExecute(json, args, false);
+    }
+
+    private JsonNode perfValidate(ObjectMapper json, JsonNode args) {
+        return perfExecute(json, args, true);
+    }
+
+    private JsonNode perfExecute(ObjectMapper json, JsonNode args, boolean validate) {
+        String k6 = com.ing.engine.perf.K6Locator.resolve();
+        if (k6 == null) {
+            throw new MCPServer.MCPException(
+                -32603,
+                "k6 not found. " + com.ing.engine.perf.K6Locator.installHint()
+            );
+        }
+        String scriptArg = MCPServer.requiredParam(args, "script");
+        File projectDir = null;
+        String proj = MCPServer.paramOrDefault(args, "project", defaultProject);
+        if (proj != null && !proj.isEmpty()) {
+            projectDir = resolveProject(proj);
+        }
+        File script = com.ing.engine.perf.PerfWorkspace.resolveScript(scriptArg, projectDir);
+        if (script == null) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "Script not found: " + scriptArg + " (export one with ingenious_perf_export)"
+            );
+        }
+        if (projectDir == null) {
+            projectDir = com.ing.engine.perf.PerfWorkspace.projectDirOfScript(script);
+        }
+        if (projectDir == null) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "Cannot determine the project for results; pass 'project'."
+            );
+        }
+        com.ing.engine.perf.PerfWorkspace ws = new com.ing.engine.perf.PerfWorkspace(projectDir);
+        com.ing.engine.perf.K6Runner.RunResult run;
+        try {
+            if (validate) {
+                run = com.ing.engine.perf.K6Runner.validate(k6, script, ws);
+            } else {
+                java.util.List<String> extra = new ArrayList<>();
+                if (args != null && args.has("vus")) {
+                    extra.add("--vus");
+                    extra.add(String.valueOf(args.get("vus").asInt()));
+                }
+                String duration = MCPServer.paramOrDefault(args, "duration", null);
+                if (duration != null) {
+                    extra.add("--duration");
+                    extra.add(duration);
+                }
+                run = com.ing.engine.perf.K6Runner.runCaptured(k6, script, ws, "mcp", extra);
+            }
+        } catch (Exception e) {
+            throw new MCPServer.MCPException(-32603, "k6 execution failed: " + e.getMessage());
+        }
+        ObjectNode out = json.createObjectNode();
+        out.put("script", script.getAbsolutePath());
+        out.put("runDir", run.runDir.getAbsolutePath());
+        out.put("exitCode", run.exitCode);
+        out.put("thresholdsFailed", run.thresholdsFailed);
+        out.put("passed", run.exitCode == 0);
+        perfAttachSummary(out, run.runDir);
+        if (run.output != null) {
+            out.put("outputTail", tailLines(run.output, 60));
+        }
+        return out;
+    }
+
+    private JsonNode perfReport(ObjectMapper json, JsonNode args) {
+        File projectDir = resolveProject(MCPServer.paramOrDefault(args, "project", defaultProject));
+        com.ing.engine.perf.PerfWorkspace ws = new com.ing.engine.perf.PerfWorkspace(projectDir);
+        String mode = MCPServer.paramOrDefault(args, "mode", "latest");
+        ObjectNode out = json.createObjectNode();
+        if ("history".equalsIgnoreCase(mode)) {
+            ArrayNode runs = out.putArray("runs");
+            for (File run : ws.listRuns()) {
+                ObjectNode n = runs.addObject();
+                n.put("script", run.getParentFile().getName());
+                n.put("timestamp", run.getName());
+                n.put("path", run.getAbsolutePath());
+                JsonNode meta = com.ing.engine.perf.PerfReportStore.runMeta(run);
+                if (meta != null) {
+                    n.put("exitCode", meta.path("exitCode").asInt());
+                    n.put("profile", meta.path("profile").asText(""));
+                }
+            }
+            return out;
+        }
+        File latest = com.ing.engine.perf.PerfReportStore.latestRunDir(ws);
+        if (latest == null) {
+            out.put("message", "No performance runs yet. Use ingenious_perf_run first.");
+            return out;
+        }
+        out.put("script", latest.getParentFile().getName());
+        out.put("timestamp", latest.getName());
+        out.put("runDir", latest.getAbsolutePath());
+        JsonNode meta = com.ing.engine.perf.PerfReportStore.runMeta(latest);
+        if (meta != null) {
+            out.set("meta", meta);
+        }
+        perfAttachSummary(out, latest);
+        return out;
+    }
+
+    private void perfAttachSummary(ObjectNode out, File runDir) {
+        Map<String, String> headline = com.ing.engine.perf.PerfReportStore.headline(runDir);
+        if (!headline.isEmpty()) {
+            ObjectNode h = out.putObject("summary");
+            for (Map.Entry<String, String> e : headline.entrySet()) {
+                h.put(e.getKey(), e.getValue());
+            }
+        }
+        Map<String, Boolean> thresholds = com.ing.engine.perf.PerfReportStore.thresholds(runDir);
+        if (!thresholds.isEmpty()) {
+            ObjectNode t = out.putObject("thresholds");
+            for (Map.Entry<String, Boolean> e : thresholds.entrySet()) {
+                t.put(e.getKey(), e.getValue());
+            }
+        }
+    }
+
+    /** Live HAR recordings started via ingenious_perf_record_start. */
+    private final Map<String, com.ing.engine.perf.PerfRecorder.Session> perfRecordings = new ConcurrentHashMap<>();
+
+    private JsonNode perfRecordStart(ObjectMapper json, JsonNode args) {
+        String url = MCPServer.requiredParam(args, "url");
+        File projectDir = resolveProject(MCPServer.paramOrDefault(args, "project", defaultProject));
+        com.ing.engine.perf.PerfWorkspace ws = new com.ing.engine.perf.PerfWorkspace(projectDir);
+        ws.ensure();
+        File harFile = new File(
+            ws.recordingsDir(),
+            com.ing.engine.perf.PerfRecorder.defaultName(url)
+        );
+        com.ing.engine.perf.PerfRecorder.Session session;
+        try {
+            session =
+                com.ing.engine.perf.PerfRecorder.start(
+                    url,
+                    harFile,
+                    boolArg(args, "headless", false)
+                );
+        } catch (Exception e) {
+            throw new MCPServer.MCPException(
+                -32603,
+                "Failed to start recording: " + e.getMessage()
+            );
+        }
+        perfRecordings.put(session.id, session);
+        ObjectNode out = json.createObjectNode();
+        out.put("recordingId", session.id);
+        out.put("url", url);
+        out.put("harFile", harFile.getAbsolutePath());
+        out.put(
+            "next",
+            "Interact with the browser (or drive the flow), then call ingenious_perf_record_stop."
+        );
+        return out;
+    }
+
+    private JsonNode perfRecordStop(ObjectMapper json, JsonNode args) {
+        String id = MCPServer.requiredParam(args, "recordingId");
+        com.ing.engine.perf.PerfRecorder.Session session = perfRecordings.remove(id);
+        if (session == null) {
+            throw new MCPServer.MCPException(-32602, "Unknown recordingId: " + id);
+        }
+        File har = session.stop();
+        ObjectNode out = json.createObjectNode();
+        out.put("harFile", har.getAbsolutePath());
+        out.put("exists", har.isFile());
+        out.put("bytes", har.isFile() ? har.length() : 0);
+        out.put(
+            "next",
+            "Generate a script: ingenious_perf_export {target: '" +
+            har.getAbsolutePath() +
+            "', urlFilter: '<host>'}"
+        );
+        return out;
+    }
+
+    // ==================================================================
+    // Performance Studio — async runs + live metrics (Phase 4)
+    // ==================================================================
+
+    private JsonNode perfRunAsync(ObjectMapper json, JsonNode args) {
+        String k6 = com.ing.engine.perf.K6Locator.resolve();
+        if (k6 == null) {
+            throw new MCPServer.MCPException(
+                -32603,
+                "k6 not found. " + com.ing.engine.perf.K6Locator.installHint()
+            );
+        }
+        String scriptArg = MCPServer.requiredParam(args, "script");
+        File projectDir = null;
+        String proj = MCPServer.paramOrDefault(args, "project", defaultProject);
+        if (proj != null && !proj.isEmpty()) {
+            projectDir = resolveProject(proj);
+        }
+        File script = com.ing.engine.perf.PerfWorkspace.resolveScript(scriptArg, projectDir);
+        if (script == null) {
+            throw new MCPServer.MCPException(-32602, "Script not found: " + scriptArg);
+        }
+        if (projectDir == null) {
+            projectDir = com.ing.engine.perf.PerfWorkspace.projectDirOfScript(script);
+        }
+        if (projectDir == null) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "Cannot determine the project for results; pass 'project'."
+            );
+        }
+        java.util.List<String> extra = new ArrayList<>();
+        if (args != null && args.has("vus")) {
+            extra.add("--vus");
+            extra.add(String.valueOf(args.get("vus").asInt()));
+        }
+        String duration = MCPServer.paramOrDefault(args, "duration", null);
+        if (duration != null) {
+            extra.add("--duration");
+            extra.add(duration);
+        }
+        boolean dashboard = boolArg(args, "dashboard", true);
+        com.ing.engine.perf.PerfRunHandle handle;
+        try {
+            handle =
+                com.ing.engine.perf.K6Runner.startAsync(
+                    k6,
+                    script,
+                    new com.ing.engine.perf.PerfWorkspace(projectDir),
+                    "mcp",
+                    extra,
+                    dashboard
+                );
+        } catch (Exception e) {
+            throw new MCPServer.MCPException(-32603, "Failed to start k6: " + e.getMessage());
+        }
+        ObjectNode out = json.createObjectNode();
+        out.put("runId", handle.runId);
+        out.put("pid", handle.pid);
+        out.put("runDir", handle.runDir.getAbsolutePath());
+        out.put("status", "RUNNING");
+        if (handle.dashboardUrl() != null) {
+            out.put("dashboardUrl", handle.dashboardUrl());
+        }
+        out.put(
+            "next",
+            "Poll ingenious_perf_status {runId: '" +
+            handle.runId +
+            "'} for live metrics; perf_cancel to stop early."
+        );
+        return out;
+    }
+
+    private com.ing.engine.perf.PerfRunHandle resolvePerfRun(JsonNode args) {
+        File projectDir = resolveProject(MCPServer.paramOrDefault(args, "project", defaultProject));
+        com.ing.engine.perf.PerfWorkspace ws = new com.ing.engine.perf.PerfWorkspace(projectDir);
+        String runId = MCPServer.paramOrDefault(args, "runId", null);
+        com.ing.engine.perf.PerfRunHandle handle = runId != null
+            ? com.ing.engine.perf.PerfRunRegistry.find(ws, runId)
+            : com.ing.engine.perf.PerfRunRegistry.latestRunning(ws);
+        if (handle == null) {
+            throw new MCPServer.MCPException(
+                -32602,
+                runId != null
+                    ? "Run not found: " + runId
+                    : "No running k6 run found (pass runId; see ingenious_perf_report mode=history)."
+            );
+        }
+        return handle;
+    }
+
+    private JsonNode perfStatus(ObjectMapper json, JsonNode args) {
+        com.ing.engine.perf.PerfRunHandle handle = resolvePerfRun(args);
+        ObjectNode out = json.createObjectNode();
+        out.put("runId", handle.runId);
+        String phase = handle.phase();
+        out.put("status", phase);
+        if ("DRAINING".equals(phase)) {
+            out.put(
+                "message",
+                "Test complete; k6 is waiting for dashboard viewers to disconnect. " +
+                "Close the dashboard tab (or call ingenious_perf_cancel) to flush the summary."
+            );
+        }
+        if (!"FINISHED".equals(phase)) {
+            Map<String, String> live = com.ing.engine.perf.K6MetricsTap.snapshot(handle.apiPort);
+            ObjectNode metrics = out.putObject("live");
+            for (Map.Entry<String, String> e : live.entrySet()) {
+                metrics.put(e.getKey(), e.getValue());
+            }
+            if (handle.dashboardUrl() != null) {
+                out.put("dashboardUrl", handle.dashboardUrl());
+            }
+        } else {
+            com.ing.engine.perf.K6Runner.reconcileRunMeta(handle);
+            JsonNode meta = com.ing.engine.perf.PerfReportStore.runMeta(handle.runDir);
+            if (meta != null) {
+                out.put("exitCode", meta.path("exitCode").asInt(-1));
+                out.put("thresholdsFailed", meta.path("thresholdsFailed").asBoolean(false));
+            }
+            perfAttachSummary(out, handle.runDir);
+        }
+        return out;
+    }
+
+    private JsonNode perfLogs(ObjectMapper json, JsonNode args) {
+        com.ing.engine.perf.PerfRunHandle handle = resolvePerfRun(args);
+        int lines = args != null && args.has("lines") ? args.get("lines").asInt(40) : 40;
+        File log = new File(handle.runDir, "output.log");
+        ObjectNode out = json.createObjectNode();
+        out.put("runId", handle.runId);
+        if (!log.isFile()) {
+            out.put("logs", "");
+            return out;
+        }
+        try {
+            String content = new String(
+                java.nio.file.Files.readAllBytes(log.toPath()),
+                java.nio.charset.StandardCharsets.UTF_8
+            );
+            out.put("logs", tailLines(content, Math.max(1, lines)));
+        } catch (IOException e) {
+            throw new MCPServer.MCPException(-32603, "Cannot read logs: " + e.getMessage());
+        }
+        return out;
+    }
+
+    private JsonNode perfCancel(ObjectMapper json, JsonNode args) {
+        com.ing.engine.perf.PerfRunHandle handle = resolvePerfRun(args);
+        ObjectNode out = json.createObjectNode();
+        out.put("runId", handle.runId);
+        if (!handle.isAlive()) {
+            out.put("status", "FINISHED");
+            out.put("message", "Run already finished.");
+            return out;
+        }
+        boolean down = handle.cancel();
+        com.ing.engine.perf.K6Runner.reconcileRunMeta(handle);
+        out.put("cancelled", down);
+        out.put("status", down ? "CANCELLED" : "RUNNING");
+        return out;
+    }
+
+    private JsonNode perfScale(ObjectMapper json, JsonNode args) {
+        if (args == null || !args.has("vus")) {
+            throw new MCPServer.MCPException(-32602, "Missing required parameter: vus");
+        }
+        int vus = args.get("vus").asInt();
+        com.ing.engine.perf.PerfRunHandle handle = resolvePerfRun(args);
+        if (!handle.isAlive()) {
+            throw new MCPServer.MCPException(-32602, "Run already finished: " + handle.runId);
+        }
+        boolean ok = com.ing.engine.perf.K6MetricsTap.scale(handle.apiPort, vus);
+        ObjectNode out = json.createObjectNode();
+        out.put("runId", handle.runId);
+        out.put("scaled", ok);
+        out.put("vus", vus);
+        if (!ok) {
+            out.put(
+                "message",
+                "k6 rejected the scale request (executor may not support external VU control)."
+            );
+        }
+        return out;
+    }
+
+    private JsonNode perfCompare(ObjectMapper json, JsonNode args) {
+        String baselineId = MCPServer.requiredParam(args, "baseline");
+        String candidateId = MCPServer.requiredParam(args, "candidate");
+        File projectDir = resolveProject(MCPServer.paramOrDefault(args, "project", defaultProject));
+        com.ing.engine.perf.PerfWorkspace ws = new com.ing.engine.perf.PerfWorkspace(projectDir);
+        File baseline = new File(ws.resultsDir(), baselineId);
+        File candidate = new File(ws.resultsDir(), candidateId);
+        if (!new File(baseline, "summary.json").isFile()) {
+            throw new MCPServer.MCPException(-32602, "No summary.json for baseline: " + baselineId);
+        }
+        if (!new File(candidate, "summary.json").isFile()) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "No summary.json for candidate: " + candidateId
+            );
+        }
+        java.util.List<String> thresholdRegressions = new ArrayList<>();
+        java.util.List<com.ing.engine.perf.PerfReportStore.CompareRow> rows = com.ing.engine.perf.PerfReportStore.compare(
+            baseline,
+            candidate,
+            thresholdRegressions
+        );
+        ObjectNode out = json.createObjectNode();
+        out.put("baseline", baselineId);
+        out.put("candidate", candidateId);
+        ArrayNode metrics = out.putArray("metrics");
+        boolean anyRegression = !thresholdRegressions.isEmpty();
+        for (com.ing.engine.perf.PerfReportStore.CompareRow row : rows) {
+            anyRegression |= row.regression;
+            ObjectNode n = metrics.addObject();
+            n.put("metric", row.metric);
+            n.put("baseline", row.baseline);
+            n.put("candidate", row.candidate);
+            n.put("deltaPercent", Math.round(row.deltaPercent * 10.0) / 10.0);
+            n.put("regression", row.regression);
+        }
+        ArrayNode regressed = out.putArray("thresholdRegressions");
+        for (String t : thresholdRegressions) {
+            regressed.add(t);
+        }
+        out.put("regression", anyRegression);
         return out;
     }
 
@@ -5232,6 +6402,102 @@ final class MCPTools {
     // Playwright Agent CLI - live browser authoring (Phase 4)
     // ==================================================================
 
+    /**
+     * Deterministic entry point for browser-flow discovery. Confirmed-intent
+     * discoveries (objects/locators not yet in the Object Repository) route
+     * here: it opens a live Playwright Agent CLI session at {@code url}, returns
+     * the first accessibility snapshot, and pre-binds the target scenario /
+     * test case / OR page onto the session so the follow-up
+     * {@code ingenious_browser_session_save} can materialize everything with no
+     * extra arguments. The only non-deterministic part is the exploration the
+     * agent performs against the returned snapshot via
+     * {@code ingenious_browser_session_do}.
+     */
+    private JsonNode browserDiscover(ObjectMapper json, JsonNode args) {
+        String url = MCPServer.requiredParam(args, "url");
+        String prompt = MCPServer.requiredParam(args, "prompt");
+        String scenario = MCPServer.paramOrDefault(args, "scenario", null);
+        String testcase = MCPServer.paramOrDefault(args, "testcase", null);
+        String browser = MCPServer.paramOrDefault(args, "browser", "chromium");
+        boolean headed = boolArg(args, "headed", false);
+        boolean reusable = boolArg(args, "reusable", false);
+        String session = MCPServer.paramOrDefault(
+            args,
+            "session",
+            testcase != null && !testcase.isEmpty()
+                ? sanitizeObjectName(testcase)
+                : "discover-" + UUID.randomUUID().toString().substring(0, 8)
+        );
+        String page = MCPServer.paramOrDefault(
+            args,
+            "page",
+            testcase != null && !testcase.isEmpty()
+                ? capitalize(sanitizeObjectName(testcase)) + "Page"
+                : null
+        );
+
+        // Fail fast (deterministically) if the CLI is not installed.
+        if (playwrightCliBase() == null) {
+            throw new MCPServer.MCPException(
+                -32603,
+                "Playwright Agent CLI not found. Install it with 'npm i -g @playwright/cli' " +
+                "(or ensure 'npx' is on PATH), then retry. See ingenious_doctor."
+            );
+        }
+
+        List<String> verb = new ArrayList<>();
+        verb.add("open");
+        verb.add(url);
+        if (headed) verb.add("--headed");
+        if (browser != null && !browser.isEmpty()) verb.add("--browser=" + browser);
+        PwResult r = runPlaywright(session, verb, 120); // blocks until the CLI is ready
+
+        PwSession s = new PwSession();
+        s.name = session;
+        s.browser = browser;
+        s.startUrl = url;
+        s.lastSnapshot = r.output;
+        s.scenario = scenario;
+        s.testcase = testcase;
+        s.page = page;
+        s.prompt = prompt;
+        s.reusable = reusable;
+        pwSessions.put(session, s);
+
+        String protocol =
+            "DETERMINISTIC BROWSER-DISCOVERY PROTOCOL (follow exactly):\n" +
+            "1. Read the 'snapshot' below: interactive elements carry refs like e21.\n" +
+            "2. Realise the flow described in 'prompt' one action at a time with\n" +
+            "   ingenious_browser_session_do (session=\"" +
+            session +
+            "\"), e.g. command='fill e5 \"user@example.com\"' then 'click e21'.\n" +
+            "   Wait for each call to return (it blocks on the CLI) and re-read the fresh\n" +
+            "   snapshot before choosing the next ref. Do NOT invent refs or locators.\n" +
+            "3. When the flow is complete call ingenious_browser_session_save\n" +
+            "   (session=\"" +
+            session +
+            "\"); scenario/testcase/page are already bound. Discovered locators are\n" +
+            "   translated into Object-Repository objects on page '" +
+            (page == null ? "<derived>" : page) +
+            "' and the recorded steps are linked to them automatically.\n" +
+            "4. Finally call ingenious_browser_session_close (session=\"" +
+            session +
+            "\").";
+
+        ObjectNode out = json.createObjectNode();
+        out.put("session", session);
+        out.put("url", url);
+        out.put("prompt", prompt);
+        out.put("browser", browser);
+        if (scenario != null) out.put("scenario", scenario);
+        if (testcase != null) out.put("testcase", testcase);
+        if (page != null) out.put("page", page);
+        out.put("exitCode", r.exitCode);
+        out.put("protocol", protocol);
+        out.put("snapshot", r.output);
+        return out;
+    }
+
     private JsonNode browserSessionStart(ObjectMapper json, JsonNode args) {
         String name = MCPServer.requiredParam(args, "name");
         String url = MCPServer.requiredParam(args, "url");
@@ -5247,6 +6513,7 @@ final class MCPTools {
         s.name = name;
         s.browser = browser;
         s.startUrl = url;
+        s.lastSnapshot = r.output;
         pwSessions.put(name, s);
         return json
             .createObjectNode()
@@ -5267,8 +6534,18 @@ final class MCPTools {
         String command = MCPServer.requiredParam(args, "command");
         List<String> tokens = tokenize(command);
         if (tokens.isEmpty()) throw new MCPServer.MCPException(-32602, "Empty command.");
-        PwResult r = runPlaywright(name, tokens, 60);
         List<PlaywrightCliTranslator.Step> mapped = PlaywrightCliTranslator.translate(command);
+        // Resolve each ref to a durable locator from the CURRENT (pre-action)
+        // snapshot, while the ref is still valid. This is fully deterministic.
+        Map<String, String[]> refs = parseSnapshotRefs(s.lastSnapshot);
+        for (PlaywrightCliTranslator.Step st : mapped) {
+            if (st.ref != null && refs.containsKey(st.ref)) {
+                String[] rn = refs.get(st.ref);
+                st.locator = ariaLocatorValue(rn[0], rn[1]);
+            }
+        }
+        PwResult r = runPlaywright(name, tokens, 60);
+        s.lastSnapshot = r.output;
         s.steps.addAll(mapped);
         ObjectNode out = json.createObjectNode();
         out.put("session", name);
@@ -5277,11 +6554,12 @@ final class MCPTools {
         out.put("recordedSteps", s.steps.size());
         ArrayNode added = out.putArray("mappedSteps");
         for (PlaywrightCliTranslator.Step st : mapped) {
-            added
+            ObjectNode so = added
                 .addObject()
                 .put("action", st.action)
                 .put("object", st.object)
                 .put("input", st.input);
+            if (st.locator != null) so.put("locator", st.locator);
         }
         out.put("snapshot", r.output);
         return out;
@@ -5289,11 +6567,10 @@ final class MCPTools {
 
     private JsonNode browserSessionSnapshot(ObjectMapper json, JsonNode args) {
         String name = MCPServer.requiredParam(args, "name");
-        if (!pwSessions.containsKey(name)) throw new MCPServer.MCPException(
-            -32602,
-            "No such session: " + name
-        );
+        PwSession s = pwSessions.get(name);
+        if (s == null) throw new MCPServer.MCPException(-32602, "No such session: " + name);
         PwResult r = runPlaywright(name, Arrays.asList("snapshot"), 30);
+        s.lastSnapshot = r.output;
         return json.createObjectNode().put("session", name).put("snapshot", r.output);
     }
 
@@ -5301,11 +6578,27 @@ final class MCPTools {
         String name = MCPServer.requiredParam(args, "name");
         PwSession s = pwSessions.get(name);
         if (s == null) throw new MCPServer.MCPException(-32602, "No such session: " + name);
-        String scenName = MCPServer.requiredParam(args, "scenario");
-        String tcName = MCPServer.requiredParam(args, "testcase");
-        boolean reusable = boolArg(args, "reusable", false);
+        // scenario / testcase / reusable default to whatever ingenious_browser_discover
+        // pre-bound on the session, so a discovery flow can save with no extra args.
+        String scenName = MCPServer.paramOrDefault(args, "scenario", s.scenario);
+        if (scenName == null || scenName.isEmpty()) scenName =
+            MCPServer.requiredParam(args, "scenario");
+        String tcName = MCPServer.paramOrDefault(args, "testcase", s.testcase);
+        if (tcName == null || tcName.isEmpty()) tcName = MCPServer.requiredParam(args, "testcase");
+        boolean reusable = boolArg(args, "reusable", s.reusable);
+        String page = MCPServer.paramOrDefault(args, "page", s.page);
+        if (page == null || page.isEmpty()) page = capitalize(sanitizeObjectName(tcName)) + "Page";
         Project p = loadProject(resolveProject(projectArg(args)));
 
+        // ---- Materialize discovered locators into the Object Repository ----
+        // Every recorded ref that carries a durable locator becomes (or reuses)
+        // a WebOR object on `page`; the step is rewritten to reference it as
+        // Page.object. Objects are written through the Datalib ObjectRepository
+        // model, so they land as YAML (ObjectRepository/Web/<page>.yaml) - the
+        // canonical format the engine and IDE actually load.
+        int objectsCreated = materializeDiscoveredObjects(p, page, s.steps);
+
+        // ---- Build the test case from the (now OR-linked) steps ----
         List<PlaywrightCliTranslator.Step> steps = new ArrayList<>();
         steps.add(new PlaywrightCliTranslator.Step("OpenBrowser", "", ""));
         if (s.startUrl != null && !s.startUrl.isEmpty()) {
@@ -5322,7 +6615,191 @@ final class MCPTools {
             .put("scenario", scenName)
             .put("testcase", tcName)
             .put("reusable", reusable)
+            .put("page", page)
+            .put("objectsCreated", objectsCreated)
             .put("steps", tc.getTestSteps().size());
+    }
+
+    /** Derive an Object-Repository object name from an aria locator value. */
+    private static String deriveNameFromAria(String locator) {
+        java.util.regex.Matcher m = java
+            .util.regex.Pattern.compile("name=\"([^\"]*)\"")
+            .matcher(locator == null ? "" : locator);
+        if (m.find() && !m.group(1).trim().isEmpty()) return sanitizeObjectName(m.group(1));
+        java.util.regex.Matcher rm = java
+            .util.regex.Pattern.compile("role=([a-zA-Z]+)")
+            .matcher(locator == null ? "" : locator);
+        return rm.find() ? sanitizeObjectName(rm.group(1)) : "element";
+    }
+
+    private static String uniqueObjectName(String base, Set<String> used) {
+        String candidate = base;
+        int n = 2;
+        while (used.contains(candidate)) candidate = base + "_" + (n++);
+        return candidate;
+    }
+
+    private static String capitalize(String s) {
+        if (s == null || s.isEmpty()) return s;
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+    }
+
+    // ==================================================================
+    // WebOR (YAML) model helpers - the canonical Object Repository format
+    // ==================================================================
+
+    /**
+     * Writes the durable locators discovered during a browser session into the
+     * project's WebOR as YAML (ObjectRepository/Web/&lt;page&gt;.yaml), reusing
+     * existing objects with the same aria signature, and rewrites each step's
+     * {@code object} to {@code page.objectName}. Returns the number of new
+     * objects created.
+     */
+    private int materializeDiscoveredObjects(
+        Project p,
+        String page,
+        List<PlaywrightCliTranslator.Step> steps
+    ) {
+        com.ing.datalib.or.ObjectRepository orRepo = p.getObjectRepository();
+        com.ing.datalib.or.web.WebOR web = orRepo == null ? null : orRepo.getWebOR();
+        if (web == null) return 0; // OR model unavailable - leave refs untouched
+        com.ing.datalib.or.web.WebORPage orPage = web.getPageByName(page);
+        if (orPage == null) orPage = web.addPage(page);
+        if (orPage == null) return 0;
+
+        Set<String> usedNames = new LinkedHashSet<>();
+        Map<String, String> sigToName = new LinkedHashMap<>();
+        for (com.ing.datalib.or.common.ObjectGroup<com.ing.datalib.or.web.WebORObject> g : orPage.getObjectGroups()) {
+            for (com.ing.datalib.or.web.WebORObject o : g.getObjects()) {
+                usedNames.add(o.getName());
+                String sig = ariaSignatureOf(o);
+                if (sig != null && !sig.isEmpty()) sigToName.put(sig, o.getName());
+            }
+        }
+
+        int created = 0;
+        for (PlaywrightCliTranslator.Step st : steps) {
+            if (st.locator == null || st.locator.isEmpty()) continue;
+            String sig = st.locator; // role=<role>[name="<name>"]
+            String objName = sigToName.get(sig);
+            if (objName == null) {
+                objName = uniqueObjectName(deriveNameFromAria(sig), usedNames);
+                usedNames.add(objName);
+                sigToName.put(sig, objName);
+                com.ing.datalib.or.web.WebORObject o = orPage.addObject(objName);
+                if (o != null) {
+                    String role = roleFromAria(sig);
+                    String label = deriveLabelFromAria(sig);
+                    if (role != null && !role.isEmpty()) setWebAttr(o, "Role", role);
+                    if (label != null && !label.isEmpty()) {
+                        setWebAttr(o, isFieldRole(role) ? "Label" : "Text", label);
+                    }
+                    created++;
+                }
+            }
+            st.object = page + "." + objName;
+        }
+        if (created > 0) orRepo.saveWebPageNow(orPage);
+        return created;
+    }
+
+    /** Set a WebOR locator attribute (Role, Text, Label, css, xpath, ...) by name. */
+    private static void setWebAttr(
+        com.ing.datalib.or.web.WebORObject o,
+        String prop,
+        String value
+    ) {
+        if (o.getAttributes() == null) return;
+        for (com.ing.datalib.or.common.ORAttribute a : o.getAttributes()) {
+            if (a.getName() != null && a.getName().equalsIgnoreCase(prop)) {
+                a.setValue(value);
+                return;
+            }
+        }
+    }
+
+    /** Read a WebOR locator attribute value (empty string if unset). */
+    private static String getWebAttr(com.ing.datalib.or.web.WebORObject o, String prop) {
+        if (o.getAttributes() == null) return "";
+        for (com.ing.datalib.or.common.ORAttribute a : o.getAttributes()) {
+            if (a.getName() != null && a.getName().equalsIgnoreCase(prop)) {
+                return a.getValue() == null ? "" : a.getValue();
+            }
+        }
+        return "";
+    }
+
+    /** Reconstruct the aria signature (role=..[name=".."]) of a stored WebOR object. */
+    private static String ariaSignatureOf(com.ing.datalib.or.web.WebORObject o) {
+        String role = getWebAttr(o, "Role");
+        if (role == null || role.isEmpty()) return null;
+        String label = getWebAttr(o, "Label");
+        if (label.isEmpty()) label = getWebAttr(o, "Text");
+        return ariaLocatorValue(role, label);
+    }
+
+    private static String roleFromAria(String aria) {
+        java.util.regex.Matcher m = java
+            .util.regex.Pattern.compile("role=([a-zA-Z]+)")
+            .matcher(aria == null ? "" : aria);
+        return m.find() ? m.group(1) : "";
+    }
+
+    private static String deriveLabelFromAria(String aria) {
+        java.util.regex.Matcher m = java
+            .util.regex.Pattern.compile("name=\"([^\"]*)\"")
+            .matcher(aria == null ? "" : aria);
+        return m.find() ? m.group(1) : "";
+    }
+
+    private static final Set<String> FIELD_ROLES = new LinkedHashSet<>(
+        Arrays.asList(
+            "textbox",
+            "combobox",
+            "searchbox",
+            "checkbox",
+            "radio",
+            "spinbutton",
+            "slider",
+            "listbox"
+        )
+    );
+
+    /** True for form-field roles addressed by label rather than visible text. */
+    private static boolean isFieldRole(String role) {
+        return role != null && FIELD_ROLES.contains(role.toLowerCase(Locale.ROOT));
+    }
+
+    /** The project-scope Web Object Repository (YAML/XML model), or null. */
+    private static com.ing.datalib.or.web.WebOR projectWebOR(Project p) {
+        com.ing.datalib.or.ObjectRepository or = p == null ? null : p.getObjectRepository();
+        return or == null ? null : or.getWebOR();
+    }
+
+    /** Map an internal OR attribute name to the YAML element key used on disk. */
+    private static String yamlLocatorKey(String prop) {
+        switch (prop) {
+            case "Role":
+                return "role";
+            case "Text":
+                return "text";
+            case "Label":
+                return "label";
+            case "Placeholder":
+                return "placeholder";
+            case "AltText":
+                return "altText";
+            case "Title":
+                return "title";
+            case "TestId":
+                return "testId";
+            case "ChainedLocator":
+                return "chainedLocator";
+            case "JSPath":
+                return "jsPath";
+            default:
+                return prop; // xpath, css
+        }
     }
 
     private JsonNode browserSessionClose(ObjectMapper json, JsonNode args) {
@@ -5376,10 +6853,6 @@ final class MCPTools {
                 runPlaywright(session, Arrays.asList("close"), 20);
             } catch (RuntimeException ignored) {}
         }
-        // Parse interactive elements from the accessibility snapshot.
-        java.util.regex.Pattern rowPat = java.util.regex.Pattern.compile(
-            "-\\s*([a-zA-Z]+)\\s+\"([^\"]*)\"(?:.*?\\[ref=([a-zA-Z0-9]+)\\])?"
-        );
         Set<String> interactive = new LinkedHashSet<>(
             Arrays.asList(
                 "button",
@@ -5397,42 +6870,48 @@ final class MCPTools {
                 "spinbutton"
             )
         );
-        File f = new File(
-            new File(resolveProject(projectArg(args)), "ObjectRepository"),
-            page + ".csv"
+        Project p = loadProject(resolveProject(projectArg(args)));
+        com.ing.datalib.or.ObjectRepository orRepo = p.getObjectRepository();
+        com.ing.datalib.or.web.WebOR web = orRepo == null ? null : orRepo.getWebOR();
+        if (web == null) throw new MCPServer.MCPException(
+            -32603,
+            "Object Repository model unavailable for project."
         );
-        List<String> lines = f.isFile() ? readLines(f) : new ArrayList<>();
-        if (lines.isEmpty()) lines.add(OBJECT_HEADER);
+        com.ing.datalib.or.web.WebORPage orPage = web.getPageByName(page);
+        if (orPage == null) orPage = web.addPage(page);
         Set<String> existing = new LinkedHashSet<>();
-        for (int i = 1; i < lines.size(); i++) {
-            String[] c = lines.get(i).split(",", -1);
-            if (c.length > 0) existing.add(c[0]);
+        for (com.ing.datalib.or.common.ObjectGroup<com.ing.datalib.or.web.WebORObject> g : orPage.getObjectGroups()) {
+            for (com.ing.datalib.or.web.WebORObject o : g.getObjects()) existing.add(o.getName());
         }
         int created = 0;
         for (String line : snapshot.split("\\R")) {
-            java.util.regex.Matcher m = rowPat.matcher(line);
+            java.util.regex.Matcher m = SNAPSHOT_ROW.matcher(line);
             if (!m.find()) continue;
             String role = m.group(1).toLowerCase(Locale.ROOT);
             String label = m.group(2);
             if (!interactive.contains(role)) continue;
             String base = (label == null || label.isEmpty()) ? role : label;
-            String objName = sanitizeObjectName(base);
-            String candidate = objName;
-            int n = 2;
-            while (existing.contains(candidate)) candidate = objName + "_" + (n++);
-            existing.add(candidate);
-            // Durable-ish aria locator the user can refine.
-            String value = "role=" + role + (label.isEmpty() ? "" : "[name=\"" + label + "\"]");
-            lines.add(csvRow(candidate, "WebElement", "aria", value, role));
+            String objName = uniqueObjectName(sanitizeObjectName(base), existing);
+            existing.add(objName);
+            com.ing.datalib.or.web.WebORObject o = orPage.addObject(objName);
+            if (o == null) continue;
+            setWebAttr(o, "Role", role);
+            if (label != null && !label.isEmpty()) {
+                setWebAttr(o, isFieldRole(role) ? "Label" : "Text", label);
+            }
             created++;
         }
-        writeLines(f, lines);
+        orRepo.saveWebPageNow(orPage);
         return json
             .createObjectNode()
             .put("page", page)
             .put("url", url)
+            .put("format", "yaml")
             .put("objectsCreated", created)
-            .put("path", f.getAbsolutePath());
+            .put(
+                "path",
+                new File(new File(p.getLocation(), "ObjectRepository"), "Web").getAbsolutePath()
+            );
     }
 
     private static String sanitizeObjectName(String s) {
@@ -5440,6 +6919,39 @@ final class MCPTools {
         if (t.isEmpty()) t = "element";
         if (t.length() > 40) t = t.substring(0, 40);
         return t.toLowerCase(Locale.ROOT);
+    }
+
+    /** Regex for a Playwright accessibility snapshot row: {@code - button "Submit" [ref=e21]}. */
+    private static final java.util.regex.Pattern SNAPSHOT_ROW = java.util.regex.Pattern.compile(
+        "-\\s*([a-zA-Z]+)\\s+\"([^\"]*)\"(?:.*?\\[ref=([a-zA-Z0-9]+)\\])?"
+    );
+
+    /**
+     * Parse a live accessibility snapshot into a ref -&gt; [role, accessibleName]
+     * map. This is the deterministic bridge that lets a recorded Playwright ref
+     * (e.g. {@code e21}) be resolved to a durable Object-Repository locator.
+     */
+    private static Map<String, String[]> parseSnapshotRefs(String snapshot) {
+        Map<String, String[]> out = new LinkedHashMap<>();
+        if (snapshot == null) return out;
+        for (String line : snapshot.split("\\R")) {
+            java.util.regex.Matcher m = SNAPSHOT_ROW.matcher(line);
+            if (!m.find()) continue;
+            String ref = m.group(3);
+            if (ref == null || ref.isEmpty()) continue;
+            out.put(ref, new String[] { m.group(1).toLowerCase(Locale.ROOT), m.group(2) });
+        }
+        return out;
+    }
+
+    /**
+     * Build a durable, comma-free INGenious aria locator value from a role and
+     * accessible name (e.g. {@code role=button[name="Submit"]}). Commas are
+     * avoided so the value survives the naive Object-Repository CSV writer.
+     */
+    private static String ariaLocatorValue(String role, String label) {
+        String safeLabel = label == null ? "" : label.replace("\"", "'").replace(",", " ");
+        return "role=" + role + (safeLabel.isEmpty() ? "" : "[name=\"" + safeLabel + "\"]");
     }
 
     private TestCase buildTestCaseFromSteps(
@@ -5595,6 +7107,14 @@ final class MCPTools {
         String name;
         String browser;
         String startUrl;
+        /** The most recent accessibility snapshot text (holds the live element refs). */
+        String lastSnapshot = "";
+        /** Discovery context pre-bound by ingenious_browser_discover (optional). */
+        String scenario;
+        String testcase;
+        String page;
+        String prompt;
+        boolean reusable;
         final List<PlaywrightCliTranslator.Step> steps = new ArrayList<>();
     }
 
@@ -5678,14 +7198,25 @@ final class MCPTools {
     }
 
     private List<String> objectPageNames(JsonNode args) {
-        File orDir = new File(resolveProject(projectArg(args)), "ObjectRepository");
         List<String> out = new ArrayList<>();
+        try {
+            com.ing.datalib.or.web.WebOR web = projectWebOR(
+                loadProject(resolveProject(projectArg(args)))
+            );
+            if (web != null) for (com.ing.datalib.or.web.WebORPage pg : web.getPages()) out.add(
+                pg.getName()
+            );
+        } catch (RuntimeException ignored) {
+            // best-effort suggestions only
+        }
+        File orDir = new File(resolveProject(projectArg(args)), "ObjectRepository");
         File[] pages = orDir.listFiles(
             f -> f.isFile() && f.getName().toLowerCase(Locale.ROOT).endsWith(".csv")
         );
-        if (pages != null) for (File f : pages) out.add(
-            f.getName().replaceFirst("(?i)\\.csv$", "")
-        );
+        if (pages != null) for (File f : pages) {
+            String pn = f.getName().replaceFirst("(?i)\\.csv$", "");
+            if (!out.contains(pn)) out.add(pn);
+        }
         return out;
     }
 
@@ -5844,7 +7375,15 @@ final class MCPTools {
                 "use Sheet:Column. API payload bodies are raw (not @-prefixed) and may embed " +
                 "{Sheet:Column} tokens. Never place GlobalData #ids here."
             );
-        p.putObject("condition").put("type", "string").put("description", "Optional condition.");
+        p
+            .putObject("condition")
+            .put("type", "string")
+            .put(
+                "description",
+                "Optional per-action condition. Its format depends on the action - check " +
+                "ingenious_action_info (conditionKind / conditionValues / conditionExample). " +
+                "Leave empty when the action takes no condition."
+            );
         p
             .putObject("description")
             .put("type", "string")

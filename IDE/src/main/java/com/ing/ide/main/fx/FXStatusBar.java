@@ -107,7 +107,8 @@ public class FXStatusBar extends JFXPanel {
                             "status-design",
                             "status-execution",
                             "status-dashboard",
-                            "status-apitester"
+                            "status-apitester",
+                            "status-perfstudio"
                         );
 
                     // Update icon to match the dock icon for each view
@@ -128,6 +129,10 @@ public class FXStatusBar extends JFXPanel {
                         case "API Workbench":
                             viewLabel.getStyleClass().add("status-apitester");
                             iconKey = "APITester";
+                            break;
+                        case "Performance Studio":
+                            viewLabel.getStyleClass().add("status-perfstudio");
+                            iconKey = "perfstudio";
                             break;
                         default:
                             iconKey = "testdesign";

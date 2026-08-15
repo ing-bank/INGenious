@@ -1,0 +1,65 @@
+{
+  "_comment": "INGenious action format sidecar. Overrides/augments the @Args annotations at runtime. Loaded from <appRoot>/Configuration/action-argspec.json and from each plugins/<plugin>/action-argspec.json. Use this to spec plugin or not-yet-annotated actions without recompiling. Keys under 'actions' are action (method) names.",
+  "_schema": {
+    "input": "ArgType enum: TEXT|URL|HTTP_STATUS|INTEGER|NUMBER|BOOLEAN|JSONPATH|XPATH|CSS_SELECTOR|LOCATOR|SQL|JSON_BODY|XML_BODY|HEADER_KV|TOPIC|PARTITION|TIMEOUT_MS|DURATION|FILE_PATH|REGEX|ENUM|DATA_REF|ALIAS_DB|ALIAS_API|ALIAS_CONTEXT|GLOBAL_ID|DIRECTIVE",
+    "inputExample": "canonical example, e.g. @200",
+    "inputAllowsData": "true|false (allow Sheet:Column / %var% / =fn)",
+    "secondObject": "ArgType enum (for two-object actions)",
+    "condition": "ConditionKind enum: NONE|PARAM|LOOP|ALIAS_API|ALIAS_CONTEXT|ENUM|VIEWPORT|GLOBAL_OBJECT|TEXT",
+    "conditionValues": ["for ENUM conditions"],
+    "conditionExample": "canonical example",
+    "help": "one-line hint shown in the IDE and action_info"
+  },
+  "actions": {
+    "deleteRestRequest": {
+      "condition": "ALIAS_API",
+      "conditionExample": "#PetStore",
+      "help": "DELETE request. No input. Condition = optional #apiAlias selecting the API config."
+    },
+    "executeAdbShellCommand": {
+      "input": "TEXT",
+      "inputExample": "getprop ro.product.model",
+      "condition": "ALIAS_CONTEXT",
+      "conditionExample": "%adbOutput%",
+      "help": "Runs adb shell <command> on the connected Android device. Condition = optional variable to store output."
+    },
+    "assertAdbShellOutput": {
+      "input": "TEXT",
+      "inputExample": "getprop ro.build.version.sdk",
+      "condition": "TEXT",
+      "conditionExample": "33",
+      "help": "Runs adb shell <command> and asserts the output contains Condition text."
+    },
+    "clearAppData": {
+      "input": "TEXT",
+      "inputExample": "com.example.myapp",
+      "help": "Clears all data for the given Android package (adb shell pm clear)."
+    },
+    "forceStopApp": {
+      "input": "TEXT",
+      "inputExample": "com.example.myapp",
+      "help": "Force-stops the given Android package (adb shell am force-stop)."
+    },
+    "getDeviceProperty": {
+      "input": "TEXT",
+      "inputExample": "ro.product.model",
+      "condition": "ALIAS_CONTEXT",
+      "conditionExample": "%deviceModel%",
+      "help": "Reads an Android system property via getprop and stores it in Condition variable."
+    },
+    "pushFileToDevice": {
+      "input": "FILE_PATH",
+      "inputExample": "/path/to/local/file.csv",
+      "condition": "TEXT",
+      "conditionExample": "/sdcard/Download/file.csv",
+      "help": "Pushes a local file to the connected Android device."
+    },
+    "pullFileFromDevice": {
+      "input": "TEXT",
+      "inputExample": "/sdcard/Download/result.txt",
+      "condition": "FILE_PATH",
+      "conditionExample": "/tmp/result.txt",
+      "help": "Pulls a file from the Android device to a local path."
+    }
+  }
+}
