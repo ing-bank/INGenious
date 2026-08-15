@@ -194,9 +194,33 @@ public class TestStepRunner {
         try {
             parameter.setSubIteration(getSubIterationFromInput(context));
             context.getReport().startComponent(getStep().getAction(), getStep().getDescription());
+            fireLambdaTestCaseMarker(context, "lambda-testCase-start", getStep().getAction());
             new TestCaseRunner(context, stc, parameter).run();
         } finally {
+            fireLambdaTestCaseMarker(context, "lambda-testCase-end", getStep().getAction());
             context.getReport().endComponent(getStep().getAction());
+        }
+    }
+
+    // never throw — a LambdaTest API error must not break test execution
+    private void fireLambdaTestCaseMarker(TestCaseRunner context, String action, String name) {
+        try {
+            com.ing.engine.drivers.PlaywrightDriverCreation pw = context.getControl().Page;
+            if (pw == null || pw.page == null || !pw.isLambdaTestExecutionPlatform()) {
+                return;
+            }
+            String script = String.format(
+                "lambdatest_action: {\"action\": \"%s\", \"arguments\": {\"name\": \"%s\"}}",
+                action,
+                name.replace("\"", "\\\"")
+            );
+            pw.page.evaluate("_ => {}", script);
+        } catch (Exception ex) {
+            LOG.log(
+                java.util.logging.Level.WARNING,
+                "LambdaTest marker [" + action + "] failed: " + ex.getMessage(),
+                ex
+            );
         }
     }
 

@@ -68,4 +68,10 @@ public interface PlaywrightDriverCreationApi {
      * Stop the browser (closes page and context)
      */
     void StopBrowser();
+
+    /**
+     * Check if execution is running on LambdaTest platform
+     * @return true if using LambdaTest remote grid, false otherwise
+     */
+    boolean isLambdaTestExecutionPlatform();
 }

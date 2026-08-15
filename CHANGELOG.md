@@ -1,6 +1,25 @@
 # INGenious Comprehensive Changelog
 
-> Scope: recent codebase changes discussed in the Playwright BrowserContext, WebView context switching, column selection, ADB/mobile actions, IDE input focus, and IntelliSense chats.
+> Scope: recent codebase changes discussed in the Playwright BrowserContext, WebView context switching, column selection, ADB/mobile actions, IDE input focus, IntelliSense, and LambdaTest reusable component markers chats.
+
+## 8. LambdaTest reusable component markers
+
+When a browser-based test runs on LambdaTest (Playwright via grid/CDP), each Reusable Component / User Intent execution now fires a `lambda-testCase-start` marker before it runs and a `lambda-testCase-end` marker after it completes. This creates a named, collapsible sub-test entry in LambdaTest's session report for every reusable, enabling nested reporting.
+
+The markers use the existing `page.evaluate("_ => {}", ...)` pattern already used by `setLambdaStatus`. Failures in the marker call are swallowed with a WARNING log so a LambdaTest API issue can never break test execution.
+
+### What changed
+
+- `PlaywrightDriverCreation` gained `isLambdaTestExecutionPlatform()`, which detects LambdaTest grid execution by checking that `RemoteGridURL` contains `lambdatest.com` and `isGridExecution()` is true. This mirrors the equivalent method already on `WebDriverCreation`.
+- `PlaywrightDriverCreationApi` was extended with `isLambdaTestExecutionPlatform()` so plugins can detect the platform through the API contract.
+- `TestStepRunner.executeTestCase()` now calls `fireLambdaTestCaseMarker()` with `lambda-testCase-start` immediately after `startComponent` and `lambda-testCase-end` in the `finally` block immediately before `endComponent`. The marker name is the step's action string (e.g. `Login:SuccessfulLogin`).
+- `fireLambdaTestCaseMarker()` is a private helper on `TestStepRunner` that guards on `pw != null && pw.page != null && pw.isLambdaTestExecutionPlatform()` and silently logs on exception.
+
+### Files
+
+- [Engine/src/main/java/com/ing/engine/drivers/PlaywrightDriverCreation.java](Engine/src/main/java/com/ing/engine/drivers/PlaywrightDriverCreation.java)
+- [ingenious-api/src/main/java/com/ing/ingenious/api/contract/drivers/PlaywrightDriverCreationApi.java](ingenious-api/src/main/java/com/ing/ingenious/api/contract/drivers/PlaywrightDriverCreationApi.java)
+- [Engine/src/main/java/com/ing/engine/execution/run/TestStepRunner.java](Engine/src/main/java/com/ing/engine/execution/run/TestStepRunner.java)
 
 ## 1. Console and report experience
 
