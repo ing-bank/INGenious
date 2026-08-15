@@ -19,6 +19,11 @@ public interface AiProvider {
     /** Blocking chat completion; returns the assistant message content. */
     String chat(List<ChatMessage> messages) throws AiException;
 
+    /** Cumulative AI consumption (requests/credits + tokens) since this provider was created. */
+    default Usage usage() {
+        return null;
+    }
+
     /** True when this provider supports OpenAI-style tool-calling (the ReAct loop). */
     default boolean supportsTools() {
         return false;

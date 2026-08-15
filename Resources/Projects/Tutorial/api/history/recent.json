@@ -1,1 +1,159 @@
-[ ]
+[ {
+  "id" : "bfc77001-fe71-4b8d-9882-7fecd46b2857",
+  "name" : "POST https://api.practicesoftwaretesting.com/payment/check",
+  "description" : null,
+  "method" : "POST",
+  "url" : "https://api.practicesoftwaretesting.com/payment/check",
+  "queryParams" : [ ],
+  "headers" : [ {
+    "key" : "accept",
+    "value" : "application/json",
+    "description" : null,
+    "enabled" : true
+  }, {
+    "key" : "Content-Type",
+    "value" : "application/json",
+    "description" : null,
+    "enabled" : true
+  } ],
+  "pathVariables" : [ ],
+  "body" : {
+    "bodyType" : "RAW",
+    "rawFormat" : "JSON",
+    "rawContent" : "{\n  \"payment_method\": \"bank-transfer\",\n  \"payment_details\": {\n    \"bank_name\": \"My Bank\",\n    \"account_name\": \"My Account\",\n    \"account_number\": \"12345\"\n  }\n}",
+    "formData" : [ ],
+    "urlEncodedData" : [ ],
+    "binaryFilePath" : null,
+    "graphqlQuery" : null,
+    "graphqlVariables" : null,
+    "contentType" : "application/json"
+  },
+  "auth" : {
+    "authType" : "NONE",
+    "basicUsername" : "",
+    "basicPassword" : "",
+    "bearerToken" : "",
+    "bearerPrefix" : "Bearer",
+    "apiKeyName" : "",
+    "apiKeyValue" : "",
+    "apiKeyLocation" : "HEADER",
+    "oauth2AccessToken" : null,
+    "oauth2TokenUrl" : null,
+    "oauth2ClientId" : null,
+    "oauth2ClientSecret" : null,
+    "oauth2Scope" : null,
+    "oauth2GrantType" : "client_credentials",
+    "apiKeyQueryParam" : null,
+    "authorizationHeader" : null,
+    "apiKeyHeader" : null
+  },
+  "preRequestScript" : null,
+  "testScript" : null,
+  "assertions" : [ ],
+  "createdAt" : 1786370034221,
+  "updatedAt" : 1786370523803,
+  "timeout" : 30000,
+  "followRedirects" : true,
+  "sslVerificationEnabled" : true,
+  "tlsHostnameVerificationEnabled" : true,
+  "certificateConfig" : {
+    "enabled" : false,
+    "certificateType" : "PEM",
+    "caCertPath" : "",
+    "clientCertPath" : "",
+    "clientKeyPath" : "",
+    "pfxPath" : "",
+    "passphrase" : ""
+  },
+  "proxyConfig" : {
+    "enabled" : false,
+    "host" : "",
+    "port" : ""
+  },
+  "enabledQueryParams" : [ ],
+  "enabledHeaders" : [ {
+    "key" : "accept",
+    "value" : "application/json",
+    "description" : null,
+    "enabled" : true
+  }, {
+    "key" : "Content-Type",
+    "value" : "application/json",
+    "description" : null,
+    "enabled" : true
+  } ]
+}, {
+  "id" : "e4c9c6da-861d-4b0e-8d8c-0311b7fb42ad",
+  "name" : "GET https://api.practicesoftwaretesting.com/brands",
+  "description" : null,
+  "method" : "GET",
+  "url" : "https://api.practicesoftwaretesting.com/brands",
+  "queryParams" : [ ],
+  "headers" : [ {
+    "key" : "accept",
+    "value" : "application/json",
+    "description" : null,
+    "enabled" : true
+  } ],
+  "pathVariables" : [ ],
+  "body" : {
+    "bodyType" : "NONE",
+    "rawFormat" : "JSON",
+    "rawContent" : "",
+    "formData" : [ ],
+    "urlEncodedData" : [ ],
+    "binaryFilePath" : null,
+    "graphqlQuery" : null,
+    "graphqlVariables" : null,
+    "contentType" : null
+  },
+  "auth" : {
+    "authType" : "NONE",
+    "basicUsername" : "",
+    "basicPassword" : "",
+    "bearerToken" : "",
+    "bearerPrefix" : "Bearer",
+    "apiKeyName" : "",
+    "apiKeyValue" : "",
+    "apiKeyLocation" : "HEADER",
+    "oauth2AccessToken" : null,
+    "oauth2TokenUrl" : null,
+    "oauth2ClientId" : null,
+    "oauth2ClientSecret" : null,
+    "oauth2Scope" : null,
+    "oauth2GrantType" : "client_credentials",
+    "apiKeyQueryParam" : null,
+    "authorizationHeader" : null,
+    "apiKeyHeader" : null
+  },
+  "preRequestScript" : null,
+  "testScript" : null,
+  "assertions" : [ ],
+  "createdAt" : 1786369898376,
+  "updatedAt" : 1786370523803,
+  "timeout" : 30000,
+  "followRedirects" : true,
+  "sslVerificationEnabled" : true,
+  "tlsHostnameVerificationEnabled" : true,
+  "certificateConfig" : {
+    "enabled" : false,
+    "certificateType" : "PEM",
+    "caCertPath" : "",
+    "clientCertPath" : "",
+    "clientKeyPath" : "",
+    "pfxPath" : "",
+    "passphrase" : ""
+  },
+  "proxyConfig" : {
+    "enabled" : false,
+    "host" : "",
+    "port" : ""
+  },
+  "enabledQueryParams" : [ ],
+  "enabledHeaders" : [ {
+    "key" : "accept",
+    "value" : "application/json",
+    "description" : null,
+    "enabled" : true
+  } ]
+} ]

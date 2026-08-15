@@ -754,6 +754,11 @@
     -fx-text-fill: white !important;
 }
 
+.status-perfstudio {
+    -fx-background-color: #2EA043; /* Green - matches Performance Studio speedometer */
+    -fx-text-fill: white !important;
+}
+
 .status-project-label {
     -fx-text-fill: -ing-text;
     -fx-font-size: 11px;

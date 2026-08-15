@@ -1,6 +1,7 @@
 package com.ing.engine.mcp;
 
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -85,16 +86,12 @@ public final class ActionCatalog {
         "com.ing.engine.commands.mobile.Assertions",
         "com.ing.engine.commands.mobile.Basic",
         "com.ing.engine.commands.mobile.ByLabel",
-        "com.ing.engine.commands.mobile.CheckBox",
         "com.ing.engine.commands.mobile.CommonMethods",
         "com.ing.engine.commands.mobile.DynamicObject",
-        "com.ing.engine.commands.mobile.JSCommands",
         "com.ing.engine.commands.mobile.MobileGeneral",
-        "com.ing.engine.commands.mobile.Performance",
         "com.ing.engine.commands.mobile.RelativeCommand",
         "com.ing.engine.commands.mobile.Scroll",
         "com.ing.engine.commands.mobile.SwitchTo",
-        "com.ing.engine.commands.mobile.Table",
         "com.ing.engine.commands.mobile.WaitFor",
         "com.ing.engine.commands.mobile.WebButton",
         // Database
@@ -291,6 +288,10 @@ public final class ActionCatalog {
                 for (Method method : clazz.getDeclaredMethods()) {
                     if (!method.isAnnotationPresent(Action.class)) continue;
                     Action a = method.getAnnotation(Action.class);
+                    Args argsAnn = method.getAnnotation(Args.class);
+                    ArgSpec spec = argsAnn == null
+                        ? null
+                        : ArgSpec.fromAnnotation(method.getName(), argsAnn);
                     String objType = a.object();
                     // Most @Action methods on browser/mobile classes only set
                     // object() at the class level (or default to "Any"). Fall
@@ -310,7 +311,8 @@ public final class ActionCatalog {
                             effective,
                             a.desc(),
                             a.input().name(),
-                            a.condition().name()
+                            a.condition().name(),
+                            spec
                         )
                     );
                 }
@@ -355,6 +357,8 @@ public final class ActionCatalog {
         public final String description;
         public final String inputRequired;
         public final String conditionSupported;
+        /** Format spec from {@code @Args}; {@code null} when the action is not annotated. */
+        public final ArgSpec argSpec;
 
         public ActionInfo(
             String name,
@@ -362,7 +366,8 @@ public final class ActionCatalog {
             String objectType,
             String description,
             String inputRequired,
-            String conditionSupported
+            String conditionSupported,
+            ArgSpec argSpec
         ) {
             this.name = name;
             this.category = category;
@@ -370,6 +375,7 @@ public final class ActionCatalog {
             this.description = description;
             this.inputRequired = inputRequired;
             this.conditionSupported = conditionSupported;
+            this.argSpec = argSpec;
         }
     }
 }

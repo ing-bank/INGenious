@@ -285,9 +285,16 @@ public class InputMainAutoSuggest extends JComboBox<String> {
     }
 
     private void setSuggestionModel(ComboBoxModel<String> mdl, String str) {
+        // Preserve caret position: setModel/setSelectedIndex(-1) can clear the editor's
+        // text via the combo's selection sync, and re-setting it here would otherwise
+        // always jump the caret to the end, breaking mid-text editing.
+        int caretPos = textField.getCaretPosition();
         setModel(mdl);
         setSelectedIndex(-1);
-        textField.setText(str);
+        if (!str.equals(textField.getText())) {
+            textField.setText(str);
+        }
+        textField.setCaretPosition(Math.min(caretPos, str.length()));
     }
 
     private ComboBoxModel<String> getSuggestedModel() {

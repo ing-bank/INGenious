@@ -421,6 +421,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
             return;
         }
         ui.setGenerating(true);
+        usageTracker.beginTask();
 
         final ChatCompletionRequest request = new ChatCompletionRequest(
             session.getModel(),
@@ -525,6 +526,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
             return;
         }
         ui.setGenerating(true);
+        usageTracker.beginTask();
         final boolean[] mutated = { false };
         final AtomicReference<String> currentId = new AtomicReference<>("tc0");
         final AgentOrchestrator orchestrator = new AgentOrchestrator(client, toolServer);
@@ -552,6 +554,12 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                             ui
                                 .getChatWebView()
                                 .appendToolCall(id, toolName, oneLine(argumentsJson, 80));
+                        }
+
+                        @Override
+                        public void onUsage(TokenUsage usage) {
+                            usageTracker.record(usage);
+                            ui.setFooter(usageTracker.statusText());
                         }
 
                         @Override

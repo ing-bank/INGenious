@@ -218,6 +218,7 @@ public final class Repl {
     private void aiRequest(String input) {
         AiProvider p = ensureProvider();
         if (p == null) return;
+        com.ing.engine.aicli.ai.Usage before = p.usage();
         List<ChatMessage> tail = convo.tail();
         convo.addUser(input);
         Spinner spinner = new Spinner(theme);
@@ -230,6 +231,7 @@ public final class Repl {
             return;
         }
         spinner.stop();
+        printCredits(p, before);
         if (outcome.answer() != null) {
             markdown.print(outcome.answer());
             convo.addAssistant(outcome.answer());
@@ -255,6 +257,7 @@ public final class Repl {
             aiRequest(input);
             return;
         }
+        com.ing.engine.aicli.ai.Usage before = p.usage();
 
         List<AgentMessage> messages = new ArrayList<>();
         messages.add(AgentMessage.system(agentSystemPrompt()));
@@ -363,7 +366,18 @@ public final class Repl {
                 theme.yellow("Agent stopped at the step limit; ask it to continue if needed.")
             );
         }
+        printCredits(p, before);
         session.save();
+    }
+
+    /** Print the AI credits (model requests + tokens) consumed since {@code before}. */
+    private void printCredits(AiProvider p, com.ing.engine.aicli.ai.Usage before) {
+        if (p == null) return;
+        com.ing.engine.aicli.ai.Usage total = p.usage();
+        if (total == null) return;
+        com.ing.engine.aicli.ai.Usage delta = total.since(before);
+        if (delta.isEmpty()) return;
+        System.out.println(theme.dim("AI credits: " + delta.summary()));
     }
 
     private AgentMessage toAgentMessage(ChatMessage m) {

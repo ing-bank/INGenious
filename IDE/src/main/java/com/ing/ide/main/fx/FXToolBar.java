@@ -66,6 +66,7 @@ public class FXToolBar extends JFXPanel {
                 createButton("Archetype Configurations", "BrowserConfiguration"),
                 new Separator(),
                 createAPITesterButton(),
+                createPerfStudioButton(),
                 createSpacer(),
                 createAICopilotButton()
                 //, createDarkModeToggle()
@@ -111,6 +112,24 @@ public class FXToolBar extends JFXPanel {
         }
 
         btn.setOnAction(e -> fireSwingAction("API Workbench"));
+        return btn;
+    }
+
+    private Button createPerfStudioButton() {
+        Button btn = new Button("Perf Studio");
+        btn.getStyleClass().add("workbench-btn");
+        btn.setTooltip(new Tooltip("Open Performance Studio - author & run k6 load tests"));
+
+        org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fx(
+            "perfstudio",
+            16,
+            javafx.scene.paint.Color.BLACK
+        );
+        if (icon != null) {
+            btn.setGraphic(icon);
+        }
+
+        btn.setOnAction(e -> fireSwingAction("Performance Studio"));
         return btn;
     }
 

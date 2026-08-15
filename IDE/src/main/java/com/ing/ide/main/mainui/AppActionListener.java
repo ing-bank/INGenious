@@ -212,6 +212,9 @@ public class AppActionListener implements ActionListener {
             case "API Workbench":
                 sMainFrame.showAPITester();
                 break;
+            case "Performance Studio":
+                sMainFrame.showPerfStudio();
+                break;
             case "AI Assistant":
                 sMainFrame.showAICopilot();
                 break;

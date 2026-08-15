@@ -113,6 +113,8 @@ public class AppMainFrame extends JFrame {
 
     private Project sProject;
 
+    private final com.ing.ide.main.mainui.components.perfstudio.PerfStudioUI perfStudio;
+
     private final LoaderScreen loader;
 
     private QUIT_TYPE quitType = QUIT_TYPE.NORMAL;
@@ -148,6 +150,7 @@ public class AppMainFrame extends JFrame {
         progressed(50);
         apiTester = new APITester(this);
         progressed(52);
+        perfStudio = new com.ing.ide.main.mainui.components.perfstudio.PerfStudioUI(this);
         aiCopilot = new AICopilot(this);
         dashBoard = new FXDashBoard(testExecution);
         progressed(60);
@@ -179,6 +182,7 @@ public class AppMainFrame extends JFrame {
         slideShow.addSlide("TestExecution", testExecution.getTestExecutionUI());
         slideShow.addSlide("DashBoard", dashBoard);
         slideShow.addSlide("APITester", apiTester.getAPITesterUI());
+        slideShow.addSlide("PerfStudio", perfStudio);
         slideShow.addSlideChangeListener(aiCopilot);
         progressed(85);
         add(buildCenter(), BorderLayout.CENTER);
@@ -311,6 +315,13 @@ public class AppMainFrame extends JFrame {
         getGlassPane().setVisible(false);
         slideShow.showSlide("APITester");
         if (fxStatusBar != null) fxStatusBar.setCurrentView("API Workbench");
+    }
+
+    public void showPerfStudio() {
+        getGlassPane().setVisible(false);
+        perfStudio.reload();
+        slideShow.showSlide("PerfStudio");
+        if (fxStatusBar != null) fxStatusBar.setCurrentView("Performance Studio");
     }
 
     public void showAICopilot() {

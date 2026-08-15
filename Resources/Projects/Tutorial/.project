@@ -1,7 +1,7 @@
 {
-  "id" : "NewProject",
-  "name" : "NewProject",
-  "version" : "2.3",
+  "id" : "P1",
+  "name" : "P1",
+  "version" : "3.1.0",
   "attributes" : [ ],
   "tags" : [ ],
   "_meta" : [ {
@@ -32,21 +32,99 @@
     "tags" : [ ]
   }, {
     "type" : "scenario",
-    "name" : "API Testing",
+    "name" : "MortgageCalculation-Browser",
     "ref" : "com.ing.datalib.model.Attribute",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "scenario",
+    "name" : "MortgageFlow",
+    "ref" : "com.ing.datalib.model.Attribute",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "scenario",
+    "name" : "Common",
+    "ref" : "com.ing.datalib.model.Attribute",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "tag",
+    "name" : "regression",
+    "ref" : "com.ing.datalib.model.Tag",
     "attributes" : [ ],
     "tags" : [ ]
   } ],
   "data" : [ {
-    "id" : "API Testing#ConnectedFlow",
-    "name" : "ConnectedFlow",
+    "id" : "MortgageFlow#My maximum mortgage",
+    "name" : "My maximum mortgage",
     "tags" : [ ],
     "attributes" : [ {
       "name" : "type",
-      "value" : "testcase"
+      "value" : "reusable"
     }, {
       "name" : "scenario",
-      "value" : "API Testing"
+      "value" : "MortgageFlow"
+    } ]
+  }, {
+    "id" : "MortgageFlow#My income",
+    "name" : "My income",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "type",
+      "value" : "reusable"
+    }, {
+      "name" : "scenario",
+      "value" : "MortgageFlow"
+    } ]
+  }, {
+    "id" : "MortgageFlow#Mandatory expenses",
+    "name" : "Mandatory expenses",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "type",
+      "value" : "reusable"
+    }, {
+      "name" : "scenario",
+      "value" : "MortgageFlow"
+    } ]
+  }, {
+    "id" : "MortgageFlow#Your plans",
+    "name" : "Your plans",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "type",
+      "value" : "reusable"
+    }, {
+      "name" : "scenario",
+      "value" : "MortgageFlow"
+    } ]
+  }, {
+    "id" : "Common#Launch",
+    "name" : "Launch",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "type",
+      "value" : "reusable"
+    }, {
+      "name" : "scenario",
+      "value" : "Common"
+    } ]
+  }, {
+    "id" : "High Income",
+    "name" : "High Income",
+    "tags" : [ {
+      "value" : "@smoke"
+    }, {
+      "value" : "@uat"
+    }, {
+      "value" : "@load"
+    }, {
+      "value" : "regression"
+    } ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "MortgageCalculation-Browser"
     } ]
   } ]
 }

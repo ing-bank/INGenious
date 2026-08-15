@@ -1,0 +1,40 @@
+schemaVersion: 1
+testCase: My income
+scenario: MortgageFlow
+steps:
+  - step: 1
+    object: Employment
+    description: "Check the [<Object>] element"
+    action: Check
+    reference: "[Project] Personal Situation"
+
+  - step: 2
+    object: Permanent contract
+    description: "Check the [<Object>] element"
+    action: Check
+    reference: "[Project] Personal Situation"
+
+  - step: 3
+    object: "[Next] Button"
+    description: "Click the [<Object>] "
+    action: Click
+    reference: "[Project] Personal Situation"
+
+  - step: 4
+    object: What is your gross yearly
+    description: "Click the [<Object>] "
+    action: Click
+    reference: "[Project] Personal Situation"
+
+  - step: 5
+    object: What is your gross yearly
+    description: "Enter the value [<Data>] in the Field [<Object>]"
+    action: Fill
+    input: Situation:Income
+    reference: "[Project] Personal Situation"
+
+  - step: 6
+    object: "[Next] Button"
+    description: "Click the [<Object>] "
+    action: Click
+    reference: "[Project] Personal Situation"

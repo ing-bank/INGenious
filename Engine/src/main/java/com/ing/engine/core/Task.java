@@ -7,6 +7,7 @@ import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.settings.RunSettings;
+import com.ing.engine.commands.browser.Command;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.drivers.SAPSessionCreation;
@@ -234,6 +235,15 @@ public class Task implements Runnable {
                 LOG.log(Level.SEVERE, ex.getMessage(), ex);
             }
         }
+        // Quit any mid-test device sessions opened via launchAndSwitchToDevice
+        com.ing.engine.commands.browser.Command.deviceSessions.forEach(
+            (alias, driver) -> {
+                try {
+                    driver.quit();
+                } catch (Exception ignore) {}
+            }
+        );
+        com.ing.engine.commands.browser.Command.deviceSessions.clear();
     }
 
     private void launchPlaywright() throws UnCaughtException, UnsupportedEncodingException {
@@ -246,6 +256,11 @@ public class Task implements Runnable {
     private void launchWebDriver() throws UnCaughtException {
         if (!getRunSettings().useExistingDriver() || webDriver.driver == null) {
             webDriver.launchDriver(runContext);
+            // Register primary device in deviceSessions for switchToDevice lookup
+            if (webDriver.driver != null && !Command.deviceSessions.containsKey("default")) {
+                Command.deviceSessions.put("default", webDriver.driver);
+                Command.deviceSessions.put(runContext.BrowserName, webDriver.driver);
+            }
         }
         report.setWebDriver(webDriver);
     }

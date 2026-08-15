@@ -2,8 +2,11 @@ package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.microsoft.playwright.FileChooser;
@@ -22,6 +25,13 @@ public class UploadFiles extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Set Single InputFile path in [<Object>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.FILE_PATH,
+        inputExample = "@/tmp/upload.txt",
+        inputHelp = "single file path to upload",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void SetInputFile() {
         try {
@@ -47,6 +57,13 @@ public class UploadFiles extends General {
         desc = "Set InputFile path in [<Object>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.FILE_PATH,
+        inputExample = "@/tmp/upload.txt",
+        inputHelp = "file path to upload via file chooser",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void FileChooser() {
         try {
             FileChooser fileChooser = Page.waitForFileChooser(() -> Locator.click());
@@ -71,6 +88,13 @@ public class UploadFiles extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Set Multiple InputFile paths in [<Object>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.FILE_PATH,
+        inputExample = "@/tmp/a.txt|/tmp/b.txt",
+        inputHelp = "multiple file paths separated by '|'",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void SetInputFiles() {
         try {
@@ -100,6 +124,11 @@ public class UploadFiles extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Remove all selected files from [<Object>]",
         input = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void RemoveInputFile() {
         try {
