@@ -3,176 +3,186 @@ package com.ing.engine.commands.mobile;
 import com.galenframework.specs.SpecText;
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.core.RunContext;
+import com.ing.engine.drivers.MobileObject;
+import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ForcedException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
 
 public class SwitchTo extends Command {
 
     public SwitchTo(CommandControl cc) {
         super(cc);
     }
-    /*
-    @Action(object = ObjectType.MOBILE, desc = "Switch to frame by name: [<Data>]", input = InputType.YES)
-    public void switchToFrame() {
-        String strTargetFrame = Data;
+
+    @Action(
+        object = ObjectType.MOBILE,
+        desc = "Launch a new device session and switch to it",
+        input = InputType.NO,
+        condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.TEXT,
+        conditionHelp = "device alias prefixed with # (e.g. #Pixel9Pro)"
+    )
+    public void launchAndSwitchToDevice() {
         try {
-            mDriver.switchTo().frame(strTargetFrame);
-            Report.updateTestLog(Action,
-                    "Webdriver switched to new frame by name[" + strTargetFrame + "]",
-                    Status.DONE);
+            if (!Condition.startsWith("#")) {
+                Report.updateTestLog(
+                    Action,
+                    "Device alias must be prefixed with '#' (e.g. #Pixel9Pro)",
+                    Status.FAIL
+                );
+                return;
+            }
+            String alias = Condition.substring(1);
+
+            // Primary driver is registered in Task.launchWebDriver; fallback check for non-standard setups
+            if (!Command.deviceSessions.containsKey("default") && mDriver != null) {
+                Command.deviceSessions.put("default", mDriver);
+            }
+
+            RunContext ctx = new RunContext();
+            ctx.BrowserName = alias;
+            ctx.PlatformValue = System.getProperty("os.name");
+            ctx.BrowserVersion = "default";
+            ctx.Scenario = "DeviceSession";
+            ctx.TestCase = alias;
+            ctx.Iteration = "Single";
+
+            WebDriverCreation newDriverCreation = new WebDriverCreation();
+            newDriverCreation.launchDriver(ctx);
+            WebDriver newDriver = newDriverCreation.driver;
+
+            Command.deviceSessions.put(alias, newDriver);
+            switchActiveWebDriver(newDriver);
+
+            Report.updateTestLog(
+                Action,
+                "Successfully launched and switched to device session [" + alias + "]",
+                Status.DONE
+            );
         } catch (Exception e) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog(Action, e.getMessage(), Status.DEBUG);
+            Report.updateTestLog(Action, "Something went wrong: " + e.getMessage(), Status.DEBUG);
+            throw new com.ing.ingenious.api.exception.ActionException(e);
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Switch to frame which has index: [<Data>]", input = InputType.YES)
-    public void switchToFrameByIndex() {
-        if (Data != null && Data.matches("[0-9]+")) {
-            int frameIndex = Integer.parseInt(Data);
-            try {
-                mDriver.switchTo().frame(frameIndex);
-                Report.updateTestLog(Action,
-                        "Webdriver switched to new frame by index[" + frameIndex + "]", Status.DONE);
-            } catch (Exception e) {
-                Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-                Report.updateTestLog(Action, e.getMessage(),
-                        Status.DEBUG);
-            }
-        } else {
-            Report.updateTestLog(Action,
-                    "Invalid Frame Index[" + Data + "]", Status.DEBUG);
-        }
-    }
-
-
-    private void switchToWindow(String title, SpecText.Type type) {
-        Boolean windowFlag = false;
-        Set<String> Handles = mDriver.getWindowHandles();
-        for (String handle : Handles) {
-            mDriver.switchTo().window(handle);
-            String drivertitle = mDriver.getTitle().trim();
-            switch (type) {
-                case IS:
-                    windowFlag = drivertitle.equals(title);
-                    break;
-                case CONTAINS:
-                    windowFlag = drivertitle.contains(title);
-                    break;
-                case STARTS:
-                    windowFlag = drivertitle.startsWith(title);
-                    break;
-                case ENDS:
-                    windowFlag = drivertitle.endsWith(title);
-                    break;
-                case MATCHES:
-                    windowFlag = drivertitle.matches(title);
-                    break;
-            }
-            if (windowFlag) {
-                break;
-            }
-        }
-
-        if (windowFlag) {
-            Report.updateTestLog(Action, "Webdriver switched to new window by title[" + title + "]", Status.DONE);
-        } else {
-            throw new ForcedException(Action, "Can't find a Window by the given Title [" + Data + "]");
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "switching to window by title [<Data>] is done", input = InputType.YES)
-    public void switchToWindowByTitle() {
-        switchToWindow(Data, SpecText.Type.IS);
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "switching to window by title [<Data>]", input = InputType.YES)
-    public void switchToWindowByTitleContains() {
-        switchToWindow(Data, SpecText.Type.CONTAINS);
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "switching to window by title starts with [<Data>]", input = InputType.YES)
-    public void switchToWindowByTitleStartsWith() {
-        switchToWindow(Data, SpecText.Type.STARTS);
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "switching to window by title ends with [<Data>]", input = InputType.YES)
-    public void switchToWindowByTitleEndsWith() {
-        switchToWindow(Data, SpecText.Type.ENDS);
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "switching to window by title matches with [<Data>]", input = InputType.YES)
-
-    public void switchToWindowByTitleMatches() {
-        switchToWindow(Data, SpecText.Type.MATCHES);
-    }
-
-
-    @Action(object
-            = ObjectType.MOBILE, desc = "Switch to Window by Index: [<Data>]", input
-            = InputType.YES)
-
-    public void switchToWindowByIndex() {
-        int wndIndex
-                = Integer.parseInt(Data);
-        Set<String> handles = mDriver.getWindowHandles();
-        if (handles.size() > wndIndex) {
-            String handle
-                    = handles.toArray()[wndIndex].toString();
-            mDriver.switchTo().window(handle);
-            Report.updateTestLog("switchToWindowByIndex", "Webdriver switched to new window            ", Status.DONE);
-        } else {
-            throw new ForcedException(Action,
-                    "There are only[" + handles.size() + "]"
-                    + " windows present at the moment.Requested window is[" + wndIndex + "] which is out of range  ");
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc ="Switching control to the default window")
-
-    public void switchToDefaultContent() {
+    @Action(
+        object = ObjectType.MOBILE,
+        desc = "Switch to an already-launched device session",
+        input = InputType.NO,
+        condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.TEXT,
+        conditionHelp = "device alias prefixed with # (e.g. #Pixel9Pro or #default)"
+    )
+    public void switchToDevice() {
         try {
-            mDriver.switchTo().defaultContent();
-            Report.updateTestLog(Action,
-                    "Webdriver switched to default content", Status.DONE);
+            if (!Condition.startsWith("#")) {
+                Report.updateTestLog(
+                    Action,
+                    "Device alias must be prefixed with '#' (e.g. #Pixel9Pro)",
+                    Status.FAIL
+                );
+                return;
+            }
+            String alias = Condition.substring(1);
+            WebDriver target = Command.deviceSessions.get(alias);
+            if (target == null) {
+                Report.updateTestLog(
+                    Action,
+                    "No device session found for alias [" +
+                    alias +
+                    "]. " +
+                    "Use launchAndSwitchToDevice first.",
+                    Status.FAIL
+                );
+                return;
+            }
+            switchActiveWebDriver(target);
+            Report.updateTestLog(
+                Action,
+                "Successfully switched to device session [" + alias + "]",
+                Status.DONE
+            );
         } catch (Exception e) {
-            Report.updateTestLog(Action, e.getMessage(),
-                    Status.DEBUG);
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
+            Report.updateTestLog(Action, "Something went wrong: " + e.getMessage(), Status.DEBUG);
+            throw new com.ing.ingenious.api.exception.ActionException(e);
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Open a new Browser window", input =InputType.OPTIONAL)
-    public void createAndSwitchToWindow() {
+    @Action(
+        object = ObjectType.MOBILE,
+        desc = "Close a device session by alias",
+        input = InputType.YES,
+        condition = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "#Pixel9Pro",
+        inputHelp = "device alias prefixed with # (e.g. #Pixel9Pro)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "#default",
+        conditionHelp = "optional alias to switch to after closing (e.g. #default)"
+    )
+    public void closeDeviceSession() {
         try {
-            JavascriptExecutor js = (JavascriptExecutor) Driver;
-            js.executeScript("window.open(arguments[0])", Data);
-            Set<String> Handles = mDriver.getWindowHandles();
-            mDriver.switchTo().window((String) Handles.toArray()[Handles.size() - 1]);
-            Report.updateTestLog(Action, "New Window Created and Switched to that ", Status.DONE);
-        } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in Switching Window -" + ex.getMessage(), Status.DEBUG);
+            if (!Data.startsWith("#")) {
+                Report.updateTestLog(
+                    Action,
+                    "Device alias must be prefixed with '#' (e.g. #Pixel9Pro)",
+                    Status.FAIL
+                );
+                return;
+            }
+            String alias = Data.substring(1);
+            WebDriver target = Command.deviceSessions.remove(alias);
+            if (target != null) {
+                try {
+                    target.quit();
+                } catch (Exception ignore) {}
+            }
+            // Optionally switch active driver to another session
+            if (Condition != null && !Condition.isEmpty() && Condition.startsWith("#")) {
+                String switchAlias = Condition.substring(1);
+                WebDriver switchTarget = Command.deviceSessions.get(switchAlias);
+                if (switchTarget != null) {
+                    switchActiveWebDriver(switchTarget);
+                    Report.updateTestLog(
+                        Action,
+                        "Closed device session [" +
+                        alias +
+                        "] and switched to [" +
+                        switchAlias +
+                        "]",
+                        Status.DONE
+                    );
+                    return;
+                }
+            }
+            Report.updateTestLog(
+                Action,
+                "Successfully closed device session [" + alias + "]",
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(Action, "Something went wrong: " + e.getMessage(), Status.DEBUG);
+            throw new com.ing.ingenious.api.exception.ActionException(e);
         }
     }
-
-    @Action(object = ObjectType.MOBILE, desc ="Close the current window and switch to default window")
-    public void closeAndSwitchToWindow() {
-        try {
-            mDriver.close();
-           mDriver.switchTo().window((String) mDriver.getWindowHandles().toArray()[0]);
-            Report.updateTestLog(Action, "Current Window Closed and Switched to Default window ", Status.DONE);
-        } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in Switching Window -" + ex.getMessage(), Status.FAIL);
-        }
-    }
-*/
 }

@@ -367,6 +367,8 @@ public class Main {
             FlatLaf.updateUI();
             // Sync JavaFX theme
             FXTheme.toggleTheme(isDarkMode);
+            // Sync the live-streaming Console webview(s)
+            com.ing.ide.main.utils.ConsoleWebView.applyThemeToAll(isDarkMode);
         } catch (Exception ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "Failed to toggle theme", ex);
         }
@@ -584,6 +586,7 @@ public class Main {
         UIManager.put("ing.webserviceStopForeground", Color.decode("#8D6E00"));
         UIManager.put("ing.webserviceRequestForeground", Color.decode("#00994D"));
         UIManager.put("ing.reusableForeground", Color.decode("#349651"));
+        UIManager.put("ing.mutedForeground", Color.decode("#9AA0A6"));
         UIManager.put("ing.errorForeground", Color.decode("#D32F2F"));
         UIManager.put("ing.borderFocus", Color.decode("#13BEFF"));
         UIManager.put("ing.borderThumb", Color.decode("#9E9E9E"));
@@ -859,6 +862,7 @@ public class Main {
         UIManager.put("ing.webserviceStopForeground", Color.decode("#FFD54F"));
         UIManager.put("ing.webserviceRequestForeground", Color.decode("#81C784"));
         UIManager.put("ing.reusableForeground", Color.decode("#66BB6A"));
+        UIManager.put("ing.mutedForeground", Color.decode("#7E8894"));
         UIManager.put("ing.errorForeground", Color.decode("#EF5350"));
         UIManager.put("ing.borderFocus", Color.decode("#BB86FC"));
         UIManager.put("ing.borderThumb", Color.decode("#4A4555"));

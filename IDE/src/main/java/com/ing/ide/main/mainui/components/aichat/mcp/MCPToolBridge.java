@@ -92,6 +92,7 @@ public class MCPToolBridge implements ToolProvider {
             "ingenious_object_update",
             "ingenious_object_delete",
             "ingenious_object_import_page",
+            "ingenious_browser_session_save",
             "ingenious_data_sheet_create",
             "ingenious_data_column_add",
             "ingenious_data_row_add",

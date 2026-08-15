@@ -96,6 +96,16 @@ public final class ConventionCatalog {
             "Object reference must not be @-prefixed (except engine specials such as @Browser)."
         );
         rule("E8", ERROR, "Step is missing an action.");
+        rule(
+            "E9",
+            ERROR,
+            "Action input requirement mismatch (action takes no input, or requires one that is missing)."
+        );
+        rule(
+            "E11",
+            ERROR,
+            "Step Input/Condition does not match the action's declared format (see ingenious_action_info)."
+        );
         // ---- warnings ------------------------------------------------
         rule(
             "W1",
@@ -226,6 +236,9 @@ public final class ConventionCatalog {
             "  never place them in a step input. Environment names come from the project's\n" +
             "  GlobalData sheet; never assume them.\n" +
             "* Object references are never @-prefixed (engine specials like @Browser excepted).\n" +
+            "* Each action declares the exact Input/Condition format. Before authoring a step,\n" +
+            "  check ingenious_action_info: inputType, inputExample, conditionKind, conditionValues.\n" +
+            "  The write tools auto-correct known formats and REJECT values that are clearly wrong.\n" +
             "\n" +
             "AUTHORING WORKFLOW\n" +
             "1. Discover real action names first (ingenious_action_search/list) - never invent them.\n" +
@@ -244,10 +257,39 @@ public final class ConventionCatalog {
             "  action=\"<ReusableScenario>:<ReusableName>\", reference=\"[Project]\".\n" +
             "* Reuse existing reusables and data-sheet rows before creating new ones.\n" +
             "\n" +
+            "BROWSER FLOW DISCOVERY (deterministic routing - do not improvise)\n" +
+            "* When a request is a browser test (plain English, BDD, or any format), first\n" +
+            "  decide the intent: is it DISCOVERY, i.e. the objects/locators are NOT yet in\n" +
+            "  the Object Repository? Check with ingenious_object_list / ingenious_object_search.\n" +
+            "* If yes (objects unknown), confirm with the user, then ALWAYS drive discovery\n" +
+            "  through @playwright/cli - never hand-write locators or guess the flow:\n" +
+            "  1. Call ingenious_browser_discover with the url and the user's prompt verbatim.\n" +
+            "  2. Explore the flow with ingenious_browser_session_do, using only the element\n" +
+            "     refs from each returned snapshot. Each call blocks until the CLI finishes.\n" +
+            "  3. Call ingenious_browser_session_save: discovered locators are translated into\n" +
+            "     Object-Repository (WebOR) objects and the steps are linked to them.\n" +
+            "  4. Call ingenious_browser_session_close, then ingenious_testcase_validate.\n" +
+            "* The exploration outcome is the only non-deterministic part; the routing,\n" +
+            "  waiting, and WebOR/step translation are fixed. If objects already exist in the\n" +
+            "  Object Repository, author steps normally without a discovery session.\n" +
+            "\n" +
             "QUALITY\n" +
             "* Never use fixed sleeps; use waitFor* actions.\n" +
             "* Every test case ends with at least one assertion.\n" +
             "* Never copy plaintext passwords into steps or data sheets.\n" +
+            "\n" +
+            "PERFORMANCE (k6 load tests - Performance Studio)\n" +
+            "* Functional test cases and HAR recordings export to k6 scripts:\n" +
+            "  ingenious_perf_export (type=http for API/HAR, type=browser for web flows).\n" +
+            "* ALWAYS ingenious_perf_validate (1 VU, 1 iteration) before a load run.\n" +
+            "* Load shape comes from profiles (smoke/average/stress/spike/soak or project\n" +
+            "  YAML under Performance/profiles/) - never hand-edit generated options.\n" +
+            "* Long runs: ingenious_perf_run_async + poll ingenious_perf_status (live vus/\n" +
+            "  rps/p95/errors); perf_cancel stops early; dashboardUrl shows live graphs.\n" +
+            "* Dynamic values (tokens, session ids) in HAR exports: pass autoCorrelate=true -\n" +
+            "  proposed correlation rules are persisted to Performance/rules/ and applied;\n" +
+            "  credential headers are scrubbed by default and re-injected only via rules.\n" +
+            "* Regression gates: ingenious_perf_compare baseline vs candidate run ids.\n" +
             "Full reference: read the ingenious://docs/conventions resource."
         );
     }
@@ -308,6 +350,47 @@ public final class ConventionCatalog {
             .append("   test case and rewrites inputs as `Sheet:Column` / `{Sheet:Column}`.\n")
             .append("4. `ingenious_testcase_validate` - lint against the rules below.\n")
             .append("5. `ingenious_run` / `ingenious_report_failures` - execute and triage.\n\n")
+            .append("## Browser flow discovery\n\n")
+            .append("When a browser test (plain English, BDD, or any format) needs objects that\n")
+            .append("are **not yet in the Object Repository**, this is a *discovery* flow. It is\n")
+            .append("handled deterministically through `@playwright/cli`; only the exploration\n")
+            .append("outcome is non-deterministic:\n\n")
+            .append(
+                "1. Confirm the intent and check `ingenious_object_list` / `ingenious_object_search`.\n"
+            )
+            .append(
+                "2. `ingenious_browser_discover` (url + the user's prompt verbatim) opens a live\n"
+            )
+            .append("   session and returns the first ref'd snapshot plus the fixed protocol.\n")
+            .append(
+                "3. `ingenious_browser_session_do` - realise the flow one action at a time using\n"
+            )
+            .append("   only refs from the returned snapshots; each call waits for the CLI.\n")
+            .append(
+                "4. `ingenious_browser_session_save` - discovered locators become WebOR objects\n"
+            )
+            .append("   and the recorded steps are linked to them.\n")
+            .append("5. `ingenious_browser_session_close`, then `ingenious_testcase_validate`.\n\n")
+            .append("Never hand-write locators or guess a flow for a discovery request. If the\n")
+            .append("objects already exist in the Object Repository, author steps normally.\n\n")
+            .append("## Performance testing (k6 Performance Studio)\n\n")
+            .append("Functional assets double as load tests. The pipeline is deterministic:\n\n")
+            .append("1. `ingenious_perf_export` - generate a k6 script from an API test case,\n")
+            .append("   a web test case (`type=browser`), or a HAR recording\n")
+            .append("   (`ingenious_perf_record_start/stop` captures one without a proxy).\n")
+            .append("2. `ingenious_perf_validate` - ALWAYS debug-run (1 VU, 1 iteration) first.\n")
+            .append("3. `ingenious_perf_run` (blocking) or `ingenious_perf_run_async` + \n")
+            .append("   `ingenious_perf_status` polling (live vus/rps/p95/error-rate; the k6 web\n")
+            .append("   dashboard URL is returned for live graphs). `ingenious_perf_scale` and\n")
+            .append("   `ingenious_perf_cancel` control a running test.\n")
+            .append("4. `ingenious_perf_report` / `ingenious_perf_compare` - persisted results\n")
+            .append("   under `Results/Performance/`, with regression detection for CI gates.\n\n")
+            .append("Rules files (`Performance/rules/<script>.rules.yaml`) hold correlation,\n")
+            .append(
+                "parameterization, verification and header-filter rules; `autoCorrelate=true`\n"
+            )
+            .append("proposes correlation rules from the recording. Credential headers are\n")
+            .append("scrubbed at import and only re-enter scripts via correlation rules.\n\n")
             .append("## Rules\n\n")
             .append("| Id | Severity | Rule |\n")
             .append("|----|----------|------|\n");

@@ -3,7 +3,10 @@ package com.ing.engine.commands.structuredData;
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.jayway.jsonpath.*;
@@ -71,6 +74,13 @@ public class StructuredData extends General {
         desc = "Assert JsonPath Result Contains ",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@active",
+        inputHelp = "expected substring in JsonPath result (e.g. @active)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void assertJsonPathResultContains() {
         try {
             String response = responsebodies.get(key);
@@ -116,6 +126,13 @@ public class StructuredData extends General {
         desc = "Assert JsonPath Result Not Contains ",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@error",
+        inputHelp = "substring that must not be present in JsonPath result (e.g. @error)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void assertJsonPathResultNotContains() {
         try {
             String response = responsebodies.get(key);
@@ -159,6 +176,13 @@ public class StructuredData extends General {
         object = ObjectType.STRUCTUREDDATA,
         desc = "Assert JsonPath Result Equals ",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@SUCCESS",
+        inputHelp = "expected exact JsonPath result value (e.g. @SUCCESS)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
     )
     public void assertJsonPathResultEquals() {
         try {
@@ -205,6 +229,13 @@ public class StructuredData extends General {
         desc = "Assert JsonPath Result Not Equals ",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@FAILED",
+        inputHelp = "value that JsonPath result must not equal (e.g. @FAILED)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void assertJsonPathResultNotEquals() {
         try {
             String response = responsebodies.get(key);
@@ -248,6 +279,13 @@ public class StructuredData extends General {
         object = ObjectType.STRUCTUREDDATA,
         desc = "Assert JsonPath Result Count ",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.INTEGER,
+        inputExample = "@3",
+        inputHelp = "expected JsonPath result count (e.g. @3)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
     )
     public void assertJsonPathResultCount() {
         try {
@@ -318,6 +356,13 @@ public class StructuredData extends General {
         desc = "Assert JsonPath Result Starts With ",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@INV-",
+        inputHelp = "expected prefix for JsonPath result (e.g. @INV-)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void assertJsonPathResultStartsWith() {
         try {
             String response = responsebodies.get(key);
@@ -361,6 +406,13 @@ public class StructuredData extends General {
         object = ObjectType.STRUCTUREDDATA,
         desc = "Assert JsonPath Result Ends With ",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@.pdf",
+        inputHelp = "expected suffix for JsonPath result (e.g. @.pdf)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
     )
     public void assertJsonPathResultEndsWith() {
         try {
@@ -406,6 +458,13 @@ public class StructuredData extends General {
         desc = "Assert JsonPath Result Matches Regex ",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@^[A-Z]{3}-\\d+$",
+        inputHelp = "Java regex that JsonPath result must match (e.g. @^[A-Z]{3}-\\d+$)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void assertJsonPathResultMatchesRegex() {
         try {
             String response = responsebodies.get(key);
@@ -449,6 +508,13 @@ public class StructuredData extends General {
         object = ObjectType.STRUCTUREDDATA,
         desc = "Assert JsonPath Result Greater Than ",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@100.5",
+        inputHelp = "numeric threshold that JsonPath result must be greater than (e.g. @100.5)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
     )
     public void assertJsonPathResultGreaterThan() {
         try {
@@ -512,6 +578,13 @@ public class StructuredData extends General {
         desc = "Assert JsonPath Result Less Than ",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@100.5",
+        inputHelp = "numeric threshold that JsonPath result must be less than (e.g. @100.5)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void assertJsonPathResultLessThan() {
         try {
             String response = responsebodies.get(key);
@@ -571,6 +644,11 @@ public class StructuredData extends General {
         object = ObjectType.STRUCTUREDDATA,
         desc = "Assert JsonPath Exists ",
         input = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
     )
     public void assertJsonPathExists() {
         try {
@@ -632,6 +710,11 @@ public class StructuredData extends General {
         desc = "Assert JsonPath Not Exists ",
         input = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void assertJsonPathNotExists() {
         try {
             String response = responsebodies.get(key);
@@ -689,6 +772,13 @@ public class StructuredData extends General {
         object = ObjectType.STRUCTUREDDATA,
         desc = "Store JsonPath Result count in Datasheet ",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "ApiData:ItemCount",
+        inputHelp = "destination datasheet reference in Sheet:Column format (e.g. ApiData:ItemCount)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
     )
     public void storeJsonPathResultCountInDataSheet() {
         try {
@@ -750,6 +840,13 @@ public class StructuredData extends General {
         desc = "Store JsonPath Result count in variable ",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%itemCount%",
+        inputHelp = "destination variable in %var% format (e.g. %itemCount%)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void storeJsonPathResultCountInVariable() {
         try {
             String varName = Input;
@@ -803,6 +900,13 @@ public class StructuredData extends General {
         object = ObjectType.STRUCTUREDDATA,
         desc = "Store JsonPath Result In DataSheet ",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "ApiData:Token",
+        inputHelp = "destination datasheet reference in Sheet:Column format (e.g. ApiData:Token)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
     )
     public void storeJsonPathResultInDataSheet() {
         try {
@@ -863,6 +967,13 @@ public class StructuredData extends General {
         desc = "Store JsonPath Result",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%token%",
+        inputHelp = "destination variable in %var% format (e.g. %token%)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; JsonPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void storeJsonPathResultInVariable() {
         try {
             String variableName = Input;
@@ -898,6 +1009,13 @@ public class StructuredData extends General {
         object = ObjectType.STRUCTUREDDATA,
         desc = "Assert XmlPath Result Contains ",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@approved",
+        inputHelp = "expected substring in XmlPath result (e.g. @approved)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; XmlPath is resolved from OR object or Data (e.g. leave empty)"
     )
     public void assertXmlPathResultContains() {
         try {
@@ -959,6 +1077,13 @@ public class StructuredData extends General {
         object = ObjectType.STRUCTUREDDATA,
         desc = "Assert XmlPath Result Not Contains ",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@error",
+        inputHelp = "substring that must not be present in XmlPath result (e.g. @error)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; XmlPath is resolved from OR object or Data (e.g. leave empty)"
     )
     public void assertXmlPathResultNotContains() {
         try {
@@ -1024,6 +1149,13 @@ public class StructuredData extends General {
         desc = "Assert XmlPath Result Equals ",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@SUCCESS",
+        inputHelp = "expected exact XmlPath result value (e.g. @SUCCESS)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; XmlPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void assertXmlPathResultEquals() {
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -1085,6 +1217,13 @@ public class StructuredData extends General {
         desc = "Assert XmlPath Result Not Equals ",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@FAILED",
+        inputHelp = "value that XmlPath result must not equal (e.g. @FAILED)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; XmlPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void assertXmlPathResultNotEquals() {
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -1145,6 +1284,13 @@ public class StructuredData extends General {
         desc = "Assert XmlPath Result Starts With ",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@INV-",
+        inputHelp = "expected prefix for XmlPath result (e.g. @INV-)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; XmlPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void assertXmlPathResultStartsWith() {
         try {
             String value = readXmlPathValue(resolveStructuredDataPath());
@@ -1191,6 +1337,13 @@ public class StructuredData extends General {
         object = ObjectType.STRUCTUREDDATA,
         desc = "Assert XmlPath Result Ends With ",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@.xml",
+        inputHelp = "expected suffix for XmlPath result (e.g. @.xml)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; XmlPath is resolved from OR object or Data (e.g. leave empty)"
     )
     public void assertXmlPathResultEndsWith() {
         try {
@@ -1239,6 +1392,13 @@ public class StructuredData extends General {
         desc = "Assert XmlPath Result Matches Regex ",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@^[A-Z]{3}-\\d+$",
+        inputHelp = "Java regex that XmlPath result must match (e.g. @^[A-Z]{3}-\\d+$)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; XmlPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void assertXmlPathResultMatchesRegex() {
         try {
             String value = readXmlPathValue(resolveStructuredDataPath());
@@ -1282,6 +1442,13 @@ public class StructuredData extends General {
         object = ObjectType.STRUCTUREDDATA,
         desc = "Assert XmlPath Result Greater Than ",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@100.5",
+        inputHelp = "numeric threshold that XmlPath result must be greater than (e.g. @100.5)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; XmlPath is resolved from OR object or Data (e.g. leave empty)"
     )
     public void assertXmlPathResultGreaterThan() {
         try {
@@ -1345,6 +1512,13 @@ public class StructuredData extends General {
         desc = "Assert XmlPath Result Less Than ",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@100.5",
+        inputHelp = "numeric threshold that XmlPath result must be less than (e.g. @100.5)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; XmlPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void assertXmlPathResultLessThan() {
         try {
             String value = readXmlPathValue(resolveStructuredDataPath());
@@ -1406,6 +1580,11 @@ public class StructuredData extends General {
         desc = "Assert XmlPath Exists ",
         input = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; XmlPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void assertXmlPathExists() {
         try {
             String expression = resolveStructuredDataPath();
@@ -1452,6 +1631,11 @@ public class StructuredData extends General {
         object = ObjectType.STRUCTUREDDATA,
         desc = "Assert XmlPath Not Exists ",
         input = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; XmlPath is resolved from OR object or Data (e.g. leave empty)"
     )
     public void assertXmlPathNotExists() {
         try {
@@ -1538,6 +1722,13 @@ public class StructuredData extends General {
         desc = "Store XmlPath Result In DataSheet ",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "ApiData:XmlValue",
+        inputHelp = "destination datasheet reference in Sheet:Column format (e.g. ApiData:XmlValue)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; XmlPath is resolved from OR object or Data (e.g. leave empty)"
+    )
     public void storeXmlPathResultInDataSheet() {
         try {
             String strObj = Input;
@@ -1614,6 +1805,13 @@ public class StructuredData extends General {
         object = ObjectType.STRUCTUREDDATA,
         desc = "Store XmlPath Result",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%xmlValue%",
+        inputHelp = "destination variable in %var% format (e.g. %xmlValue%)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required; XmlPath is resolved from OR object or Data (e.g. leave empty)"
     )
     public void storeXmlPathResultInVariable() {
         try {

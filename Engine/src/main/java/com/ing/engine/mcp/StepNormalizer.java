@@ -27,21 +27,39 @@ final class StepNormalizer {
     /** Outcome of normalizing one step. */
     static final class Result {
         final String input;
+        final String condition;
         final List<String> warnings;
+        final List<String> errors;
 
-        Result(String input, List<String> warnings) {
+        Result(String input, String condition, List<String> warnings, List<String> errors) {
             this.input = input;
+            this.condition = condition;
             this.warnings = warnings;
+            this.errors = errors;
         }
     }
 
-    /**
-     * Normalizes {@code input} for {@code action} and reports convention
-     * warnings for the whole step. {@code stepLabel} is used to prefix
-     * warning messages (e.g. {@code "step 3"}).
-     */
+    /** Back-compat overload without a condition. */
     static Result normalize(String stepLabel, String action, String object, String input) {
+        return normalize(stepLabel, action, object, input, "");
+    }
+
+    /**
+     * Normalizes {@code input} and {@code condition} for {@code action} and
+     * reports convention warnings (soft) and errors (hard) for the whole step.
+     * The action's {@link ArgSpec} (from {@code @Args} or a sidecar) drives
+     * type-specific auto-correction, validation and condition handling; only
+     * explicit specs raise errors. {@code stepLabel} prefixes messages.
+     */
+    static Result normalize(
+        String stepLabel,
+        String action,
+        String object,
+        String input,
+        String condition
+    ) {
         List<String> warnings = new ArrayList<>();
+        List<String> errors = new ArrayList<>();
         String act = action == null ? "" : action.trim();
         String in = input == null ? "" : input;
         String obj = object == null ? "" : object.trim();
@@ -56,34 +74,27 @@ final class StepNormalizer {
             );
         }
 
-        if (!in.isEmpty()) {
-            // GlobalData ids never belong in a step input (E6).
-            if (ConventionCatalog.isGlobalDataId(in)) {
-                warnings.add(
-                    stepLabel +
-                    ": input '" +
-                    in +
-                    "' is a GlobalData environment id; put #ids in data-sheet cells and " +
-                    "reference them as Sheet:Column [E6]"
-                );
-            } else if (needsAtPrefix(act, in)) {
-                in = "@" + in;
-            }
+        // GlobalData ids never belong in a step input (E6).
+        if (!in.isEmpty() && ConventionCatalog.isGlobalDataId(in)) {
+            warnings.add(
+                stepLabel +
+                ": input '" +
+                in +
+                "' is a GlobalData environment id; put #ids in data-sheet cells and " +
+                "reference them as Sheet:Column [E6]"
+            );
         }
-        return new Result(in, warnings);
-    }
 
-    /**
-     * True when a bare literal must be {@code @}-prefixed: it is not already
-     * grammar-conformant and the action does not take a raw payload body.
-     */
-    private static boolean needsAtPrefix(String action, String input) {
-        if (ConventionCatalog.isPayloadAction(action)) return false;
-        char c = input.charAt(0);
-        if (c == '@' || c == '#' || c == '%' || c == '{') return false;
-        if (ConventionCatalog.isDataRef(input)) return false;
-        if (ConventionCatalog.containsPayloadTokens(input)) return false;
-        return true;
+        // Type-specific input/condition normalization + validation via the spec.
+        ArgSpec spec = ActionSpecCatalog.forAction(act);
+        ArgSpec.Result sr = spec.normalize(in, condition);
+        for (String w : sr.warnings) {
+            warnings.add(stepLabel + ": " + w);
+        }
+        for (String e : sr.errors) {
+            errors.add(stepLabel + ": " + e);
+        }
+        return new Result(sr.input, sr.condition, warnings, errors);
     }
 
     /**

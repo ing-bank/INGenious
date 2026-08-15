@@ -3,12 +3,14 @@ package com.ing.ide.main.mainui.components.testdesign.testcase;
 import com.ing.datalib.component.TestStep;
 import com.ing.ide.main.mainui.components.testdesign.testcase.validation.ActionRenderer;
 import com.ing.ide.main.mainui.components.testdesign.testcase.validation.ConditionRenderer;
+import com.ing.ide.main.mainui.components.testdesign.testcase.validation.DescriptionRenderer;
 import com.ing.ide.main.mainui.components.testdesign.testcase.validation.InputRenderer;
 import com.ing.ide.main.mainui.components.testdesign.testcase.validation.ObjectRenderer;
 import com.ing.ide.main.mainui.components.testdesign.testcase.validation.ReferenceRenderer;
 import com.ing.ide.main.mainui.components.testdesign.testcase.validation.StepRenderer;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
+import javax.swing.table.TableCellRenderer;
 
 public class TestCaseValidator {
     StepRenderer stepRenderer;
@@ -17,6 +19,7 @@ public class TestCaseValidator {
     ActionRenderer actionRenderer;
     InputRenderer inputRenderer;
     ConditionRenderer conditionRenderer;
+    DescriptionRenderer descriptionRenderer;
 
     private Boolean validate = true;
     private final JTable testCaseTable;
@@ -33,64 +36,45 @@ public class TestCaseValidator {
         actionRenderer = new ActionRenderer();
         inputRenderer = new InputRenderer();
         conditionRenderer = new ConditionRenderer();
+        descriptionRenderer = new DescriptionRenderer();
     }
 
     public void initValidations() {
         validate();
     }
 
+    /**
+     * Assign a cell renderer to the column identified by its model index,
+     * resolving to the current view index. Columns hidden by the user return a
+     * view index of -1 and are skipped, so renderer wiring stays correct
+     * regardless of which columns are visible.
+     */
+    private void setRenderer(TestStep.HEADERS header, TableCellRenderer renderer) {
+        int view = testCaseTable.convertColumnIndexToView(header.getIndex());
+        if (view != -1) {
+            testCaseTable.getColumnModel().getColumn(view).setCellRenderer(renderer);
+        }
+    }
+
     private void setValidations() {
-        testCaseTable
-            .getColumnModel()
-            .getColumn(TestStep.HEADERS.Step.getIndex())
-            .setCellRenderer(stepRenderer);
-        testCaseTable
-            .getColumnModel()
-            .getColumn(TestStep.HEADERS.ObjectName.getIndex())
-            .setCellRenderer(objectRenderer);
-        testCaseTable
-            .getColumnModel()
-            .getColumn(TestStep.HEADERS.Reference.getIndex())
-            .setCellRenderer(referenceRenderer);
-        testCaseTable
-            .getColumnModel()
-            .getColumn(TestStep.HEADERS.Action.getIndex())
-            .setCellRenderer(actionRenderer);
-        testCaseTable
-            .getColumnModel()
-            .getColumn(TestStep.HEADERS.Input.getIndex())
-            .setCellRenderer(inputRenderer);
-        testCaseTable
-            .getColumnModel()
-            .getColumn(TestStep.HEADERS.Condition.getIndex())
-            .setCellRenderer(conditionRenderer);
+        setRenderer(TestStep.HEADERS.Step, stepRenderer);
+        setRenderer(TestStep.HEADERS.ObjectName, objectRenderer);
+        setRenderer(TestStep.HEADERS.Description, descriptionRenderer);
+        setRenderer(TestStep.HEADERS.Reference, referenceRenderer);
+        setRenderer(TestStep.HEADERS.Action, actionRenderer);
+        setRenderer(TestStep.HEADERS.Input, inputRenderer);
+        setRenderer(TestStep.HEADERS.Condition, conditionRenderer);
     }
 
     private void removeValidations() {
-        testCaseTable
-            .getColumnModel()
-            .getColumn(TestStep.HEADERS.Step.getIndex())
-            .setCellRenderer(null);
-        testCaseTable
-            .getColumnModel()
-            .getColumn(TestStep.HEADERS.ObjectName.getIndex())
-            .setCellRenderer(null);
-        testCaseTable
-            .getColumnModel()
-            .getColumn(TestStep.HEADERS.Reference.getIndex())
-            .setCellRenderer(null);
-        testCaseTable
-            .getColumnModel()
-            .getColumn(TestStep.HEADERS.Action.getIndex())
-            .setCellRenderer(null);
-        testCaseTable
-            .getColumnModel()
-            .getColumn(TestStep.HEADERS.Input.getIndex())
-            .setCellRenderer(null);
-        testCaseTable
-            .getColumnModel()
-            .getColumn(TestStep.HEADERS.Condition.getIndex())
-            .setCellRenderer(null);
+        setRenderer(TestStep.HEADERS.Step, null);
+        setRenderer(TestStep.HEADERS.ObjectName, null);
+        // Description stays muted even when validation is toggled off.
+        setRenderer(TestStep.HEADERS.Description, descriptionRenderer);
+        setRenderer(TestStep.HEADERS.Reference, null);
+        setRenderer(TestStep.HEADERS.Action, null);
+        setRenderer(TestStep.HEADERS.Input, null);
+        setRenderer(TestStep.HEADERS.Condition, null);
     }
 
     public final void enableValidation() {
