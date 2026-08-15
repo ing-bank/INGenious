@@ -3,8 +3,11 @@ package com.ing.engine.commands.mobile;
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.mobile.ElementException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import org.openqa.selenium.WebElement;
@@ -65,6 +68,12 @@ public class RelativeCommand extends Command {
         desc = "Tap on element based on parent [<Object>]",
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
+    )
     public void Tap_Relative() {
         doRelative(RelativeAction.TAP);
     }
@@ -74,6 +83,14 @@ public class RelativeCommand extends Command {
         desc = "Set [<Data>] on element based on parent [<Object>]",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
     )
     public void set_Relative() {
         doRelative(RelativeAction.SET);

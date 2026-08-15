@@ -39,6 +39,7 @@ public final class CopilotProvider implements AiProvider {
         .build();
 
     private final ObjectMapper mapper = new ObjectMapper();
+    private final Usage usage = new Usage();
     private final TokenStore store;
     private final String model;
 
@@ -67,6 +68,11 @@ public final class CopilotProvider implements AiProvider {
             (loggedIn ? "logged in" : "not logged in — run /login") +
             ")"
         );
+    }
+
+    @Override
+    public Usage usage() {
+        return usage.copy();
     }
 
     public boolean isLoggedIn() {
@@ -110,12 +116,9 @@ public final class CopilotProvider implements AiProvider {
                     "Copilot returned HTTP " + resp.statusCode() + ": " + truncate(resp.body())
                 );
             }
-            JsonNode content = mapper
-                .readTree(resp.body())
-                .path("choices")
-                .path(0)
-                .path("message")
-                .path("content");
+            JsonNode root = mapper.readTree(resp.body());
+            usage.addResponse(root.path("usage"));
+            JsonNode content = root.path("choices").path(0).path("message").path("content");
             if (!content.isTextual()) {
                 throw new AiException("Unexpected Copilot response: " + truncate(resp.body()));
             }

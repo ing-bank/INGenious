@@ -4,7 +4,10 @@ import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.MobileObject;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.util.HashMap;
@@ -21,6 +24,14 @@ public class DynamicObject extends Command {
         desc = "Set  all objects property to [<Data>] at runtime.",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
     )
     public void setMobileglobalObjectProperty() {
         if (!Data.isEmpty()) {
@@ -49,6 +60,14 @@ public class DynamicObject extends Command {
         desc = "Set object [<Object>] property  as [<Data>] at runtime",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
     )
     public void setMobileObjectProperty() {
         if (!Data.isEmpty()) {

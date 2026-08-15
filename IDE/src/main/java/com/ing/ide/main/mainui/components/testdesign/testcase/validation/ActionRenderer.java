@@ -145,8 +145,9 @@ public class ActionRenderer extends AbstractRenderer {
         }
 
         if (isWebObject(step)) {
+            // Web OR pages are also valid targets for mobile (APP) actions during WebView execution
             return MethodInfoManager
-                .getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB)
+                .getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB, ObjectType.APP)
                 .contains(action);
         }
 

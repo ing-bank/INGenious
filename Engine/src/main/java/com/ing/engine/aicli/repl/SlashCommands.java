@@ -477,6 +477,10 @@ final class SlashCommands {
             (repl.session.project() == null ? t.dim("(none)") : t.bold(repl.session.project()))
         );
         System.out.println("  AI:       " + t.dim(repl.currentProviderUnchecked().describe()));
+        com.ing.engine.aicli.ai.Usage usage = repl.currentProviderUnchecked().usage();
+        if (usage != null && !usage.isEmpty()) {
+            System.out.println("  Credits:  " + t.dim(usage.summary() + " this session"));
+        }
         System.out.println(
             "  Pending:  " +
             (

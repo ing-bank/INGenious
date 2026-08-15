@@ -22,6 +22,11 @@ npm-debug.log
 /Dist/release
 /Dist/release/**
 
+# Docs folders
+/docs/
+/Engine/docs/
+/IDE/docs/
+
 #Plugins
 /Resources/Plugins/**
 

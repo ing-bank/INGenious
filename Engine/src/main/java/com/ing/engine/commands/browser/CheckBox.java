@@ -2,8 +2,11 @@ package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.microsoft.playwright.PlaywrightException;
@@ -17,6 +20,11 @@ public class CheckBox extends Command {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Check the [<Object>] element")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void Check() {
         if (Locator != null) {
             if (Locator.isEnabled()) {
@@ -49,6 +57,11 @@ public class CheckBox extends Command {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Uncheck the [<Object>] element")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void Uncheck() {
         if (Locator != null) {
             if (Locator.isEnabled()) {
@@ -85,6 +98,13 @@ public class CheckBox extends Command {
         desc = "Check/Uncheck the [<Object>] element based on Data",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.BOOLEAN,
+        inputExample = "@true",
+        inputHelp = "checked state as boolean (e.g. @true or @false)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void SetChecked() {
         try {
             Locator.setChecked(Boolean.parseBoolean(Data));
@@ -108,6 +128,11 @@ public class CheckBox extends Command {
         object = ObjectType.PLAYWRIGHT,
         desc = "Check [<Object>] if visible",
         input = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (input column ignored)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void CheckifVisible() {
         try {
@@ -136,6 +161,13 @@ public class CheckBox extends Command {
         object = ObjectType.PLAYWRIGHT,
         desc = "Check/Uncheck the [<Object>] element based on Data",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.BOOLEAN,
+        inputExample = "@true",
+        inputHelp = "checked state as boolean; action is skipped when input is empty",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void SetCheckedifDataExists() {
         if (!Data.isEmpty()) {

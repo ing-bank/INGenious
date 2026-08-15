@@ -24,13 +24,32 @@ public final class PlaywrightCliTranslator {
     /** A minimal INGenious step: action + object + input. */
     public static final class Step {
         public final String action;
-        public final String object;
+        public String object;
         public final String input;
 
+        /**
+         * The Playwright accessibility ref (e.g. {@code e21}) this step acted
+         * on, or {@code null} for ref-less commands. Used to bind the step to a
+         * durable Object-Repository locator at materialization time.
+         */
+        public final String ref;
+
+        /**
+         * The durable, comma-free INGenious locator resolved for {@link #ref}
+         * (e.g. {@code role=button[name="Submit"]}), or {@code null} if not yet
+         * resolved. Populated deterministically from the live snapshot.
+         */
+        public String locator;
+
         public Step(String action, String object, String input) {
+            this(action, object, input, null);
+        }
+
+        public Step(String action, String object, String input, String ref) {
             this.action = action;
             this.object = object;
             this.input = input;
+            this.ref = ref;
         }
     }
 
@@ -57,28 +76,28 @@ public final class PlaywrightCliTranslator {
                 steps.add(new Step("NavigateTo", "", a1));
                 break;
             case "click":
-                steps.add(new Step("Click", a1, ""));
+                steps.add(new Step("Click", a1, "", a1));
                 break;
             case "dblclick":
-                steps.add(new Step("DoubleClick", a1, ""));
+                steps.add(new Step("DoubleClick", a1, "", a1));
                 break;
             case "fill":
-                steps.add(new Step("SetText", a1, restFrom2));
+                steps.add(new Step("SetText", a1, restFrom2, a1));
                 break;
             case "type":
                 steps.add(new Step("Type", "", rest));
                 break;
             case "check":
-                steps.add(new Step("Check", a1, ""));
+                steps.add(new Step("Check", a1, "", a1));
                 break;
             case "uncheck":
-                steps.add(new Step("Uncheck", a1, ""));
+                steps.add(new Step("Uncheck", a1, "", a1));
                 break;
             case "select":
-                steps.add(new Step("SelectByValue", a1, restFrom2));
+                steps.add(new Step("SelectByValue", a1, restFrom2, a1));
                 break;
             case "hover":
-                steps.add(new Step("Hover", a1, ""));
+                steps.add(new Step("Hover", a1, "", a1));
                 break;
             case "press":
                 steps.add(new Step("PressKey", "", rest));

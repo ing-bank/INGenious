@@ -111,9 +111,10 @@ public class Control {
         FilePath.initDateTime();
         MethodExecutor.init();
         ConsoleReport.init();
-        SystemDefaults.printSystemInfo();
 
-        // Print INGenious ASCII Banner
+        // Print INGenious ASCII Banner (system info is already in the run
+        // banner/report; a separate "=====" system-info dump right before it
+        // just duplicated the separator and bloated every run's log).
         printExecutionBanner();
 
         WebDriverFactory.initDriverLocation(exe.getProject().getProjectSettings());
@@ -299,6 +300,8 @@ public class Control {
             "actions",
             "import",
             "run",
+            "perf",
+            "performance",
             "report",
             "config",
             "server",
@@ -347,7 +350,15 @@ public class Control {
     }
 
     /**
-     * Print INGenious ASCII banner at execution start
+     * Print the INGenious execution banner at run start.
+     *
+     * <p>The IDE's live Console view sets the {@code ingenious.console.webview}
+     * system property (see {@code ConsolePanel.start()}) when it starts capturing
+     * output, since {@code System.console() != null} is unreliable here (the IDE
+     * itself may have been launched from a terminal). When that property is set, a
+     * single {@code [INGENIOUS]}-tagged line is printed instead of the box-drawing
+     * ASCII art, which the IDE console renders as a compact brand pill; real CLI
+     * usage is unaffected and still gets the full ASCII art.</p>
      */
     private void printExecutionBanner() {
         String projectName = exe.getProject() != null ? exe.getProject().getName() : "Unknown";
@@ -356,6 +367,23 @@ public class Control {
             browser = "Default";
         }
         String platform = System.getProperty("os.name", "Unknown");
+        String version = com.ing.engine.constants.SystemDefaults.getBuildVersion();
+
+        if (isWebViewConsole()) {
+            System.out.println();
+            System.out.println(
+                "[INGENIOUS] Test Automation Framework v" +
+                version +
+                " | Project: " +
+                projectName +
+                " | Browser: " +
+                browser +
+                " | Platform: " +
+                platform
+            );
+            System.out.println();
+            return;
+        }
 
         System.out.println();
         System.out.println(
@@ -385,12 +413,7 @@ public class Control {
         System.out.println(
             "║                                                                              ║"
         );
-        System.out.println(
-            formatVersionBannerLine(
-                "🚀 Test Automation Framework v" +
-                com.ing.engine.constants.SystemDefaults.getBuildVersion()
-            )
-        );
+        System.out.println(formatVersionBannerLine("🚀 Test Automation Framework v" + version));
         System.out.println(
             "║                                                                              ║"
         );
@@ -408,6 +431,14 @@ public class Control {
             "══════════════════════════════════════════════════════════════════════════════"
         );
         System.out.println();
+    }
+
+    /**
+     * Whether output is being captured by the IDE's live Console webview rather
+     * than a real terminal (see {@code ConsolePanel.start()} in the IDE module).
+     */
+    public static boolean isWebViewConsole() {
+        return "true".equalsIgnoreCase(System.getProperty("ingenious.console.webview"));
     }
 
     /**

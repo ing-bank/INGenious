@@ -87,6 +87,13 @@ public class RunCommand implements Callable<Integer> {
     )
     private boolean rerun;
 
+    @Option(
+        names = { "--record-har" },
+        description = "Record browser network traffic (HAR) during the run and copy it" +
+        " into Performance/recordings/ for k6 export (ingenious perf export <file>.har)."
+    )
+    private boolean recordHar;
+
     @Mixin
     OverrideOptions overrides;
 
@@ -204,13 +211,87 @@ public class RunCommand implements Callable<Integer> {
             args.add("-op_setHeadless");
             args.add("true");
         }
+        if (recordHar) {
+            args.add("-setEnv");
+            args.add("run.enableHAR=true");
+        }
 
         try {
             com.ing.engine.core.Control.main(args.toArray(new String[0]));
+            if (recordHar) {
+                harvestHarRecordings(cli, projectDir, group, name, isTestCase);
+            }
             return 0;
         } catch (Exception e) {
             cli.printError("Execution failed: " + e.getMessage());
             return 1;
+        }
+    }
+
+    /**
+     * After a {@code --record-har} run, copy every .har the engine wrote under
+     * the latest results ({@code .../Latest/har/}) into
+     * {@code Performance/recordings/} so the Performance Studio can export
+     * k6 scripts from them.
+     */
+    private static void harvestHarRecordings(
+        INGeniousCLI cli,
+        File projectDir,
+        String group,
+        String name,
+        boolean isTestCase
+    ) {
+        // The engine writes HARs to Results/.../<run timestamp>/har/; "Latest"
+        // may or may not mirror it depending on the reporter, so scan every
+        // run folder and take the most recently modified har directory.
+        File base = new File(
+            projectDir,
+            (isTestCase ? "Results/TestDesign/" : "Results/TestExecution/") + group + "/" + name
+        );
+        File harDir = null;
+        File[] runDirs = base.listFiles(File::isDirectory);
+        if (runDirs != null) {
+            for (File runDir : runDirs) {
+                File candidate = new File(runDir, "har");
+                if (
+                    candidate.isDirectory() &&
+                    (harDir == null || candidate.lastModified() > harDir.lastModified())
+                ) {
+                    harDir = candidate;
+                }
+            }
+        }
+        File[] hars = harDir == null
+            ? null
+            : harDir.listFiles(f -> f.isFile() && f.getName().endsWith(".har"));
+        if (hars == null || hars.length == 0) {
+            cli.printWarning(
+                "--record-har: no HAR files found under " +
+                base +
+                " (browser steps only; API-only runs produce no HAR)."
+            );
+            return;
+        }
+        com.ing.engine.perf.PerfWorkspace ws = new com.ing.engine.perf.PerfWorkspace(projectDir);
+        ws.ensure();
+        for (File har : hars) {
+            File target = new File(ws.recordingsDir(), har.getName());
+            try {
+                Files.copy(
+                    har.toPath(),
+                    target.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                );
+                cli.printSuccess("Recording saved: " + target);
+                cli.printInfo(
+                    "Generate a script: ingenious perf export \"" +
+                    target.getPath() +
+                    "\" -p " +
+                    projectDir.getName()
+                );
+            } catch (Exception e) {
+                cli.printWarning("Could not copy " + har + ": " + e.getMessage());
+            }
         }
     }
 

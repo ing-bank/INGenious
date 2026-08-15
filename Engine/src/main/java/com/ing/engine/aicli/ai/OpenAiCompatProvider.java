@@ -24,6 +24,7 @@ public final class OpenAiCompatProvider implements AiProvider {
         .build();
 
     private final ObjectMapper mapper = new ObjectMapper();
+    private final Usage usage = new Usage();
     private final String baseUrl;
     private final String apiKey;
     private final String model;
@@ -47,6 +48,11 @@ public final class OpenAiCompatProvider implements AiProvider {
     @Override
     public String describe() {
         return "openai-compatible @ " + baseUrl + " (model " + model + ")";
+    }
+
+    @Override
+    public Usage usage() {
+        return usage.copy();
     }
 
     @Override
@@ -79,6 +85,7 @@ public final class OpenAiCompatProvider implements AiProvider {
                 );
             }
             JsonNode root = mapper.readTree(resp.body());
+            usage.addResponse(root.path("usage"));
             JsonNode content = root.path("choices").path(0).path("message").path("content");
             if (!content.isTextual()) {
                 throw new AiException("Unexpected provider response: " + truncate(resp.body()));
@@ -167,7 +174,9 @@ public final class OpenAiCompatProvider implements AiProvider {
                     "Provider returned HTTP " + resp.statusCode() + ": " + truncate(resp.body())
                 );
             }
-            JsonNode message = mapper.readTree(resp.body()).path("choices").path(0).path("message");
+            JsonNode root = mapper.readTree(resp.body());
+            usage.addResponse(root.path("usage"));
+            JsonNode message = root.path("choices").path(0).path("message");
             String content = message.path("content").isTextual()
                 ? message.path("content").asText()
                 : null;

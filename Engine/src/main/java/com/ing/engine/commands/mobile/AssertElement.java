@@ -2,8 +2,11 @@ package com.ing.engine.commands.mobile;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ForcedException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import org.openqa.selenium.JavascriptExecutor;
@@ -15,41 +18,81 @@ public class AssertElement extends MobileGeneral {
     }
 
     @Action(object = ObjectType.APP, desc = "Assert if [<Object>] is not present")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void assertElementNotPresent() {
         assertNotElement(!elementPresent());
     }
 
     @Action(object = ObjectType.APP, desc = "Assert if [<Object>] is not selected")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void assertElementNotSelected() {
         assertNotElement(!elementSelected());
     }
 
     @Action(object = ObjectType.APP, desc = "Assert if [<Object>] is not displayed")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void assertElementNotDisplayed() {
         assertNotElement(!elementDisplayed());
     }
 
     @Action(object = ObjectType.APP, desc = "Assert if [<Object>] is not enabled")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void assertElementNotEnabled() {
         assertNotElement(!elementEnabled());
     }
 
     @Action(object = ObjectType.APP, desc = "Assert if [<Object>] is present")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void assertElementPresent() {
         assertElement(elementPresent());
     }
 
     @Action(object = ObjectType.APP, desc = "Assert if [<Object>] element is selected")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void assertElementSelected() {
         assertElement(elementSelected());
     }
 
     @Action(object = ObjectType.APP, desc = "Assert if [<Object>] element is displayed")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void assertElementDisplayed() {
         assertElement(elementDisplayed());
     }
 
     @Action(object = ObjectType.APP, desc = "Assert if [<Object>] is enabled on the current page")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void assertElementEnabled() {
         assertElement(elementEnabled());
     }
@@ -71,60 +114,4 @@ public class AssertElement extends MobileGeneral {
     private void assertNotElement(Boolean status) {
         assertElement(status, status ? "not " : "");
     }
-    /*
-    @Action(object = ObjectType.MOBILE, desc = "Assert if Page source of current page is: [<Data>]", input = InputType.YES)
-    public void assertPageSource() {
-        if (mDriver.getPageSource().equals(Data)) {
-            Report.updateTestLog(Action, "Current Page Source is matched with the expected Page Source", Status.DONE);
-        } else {
-            throw new ForcedException(Action, "Current Page Source doesn't match with the expected Page Source");
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "Assert if the Horizontal Scrollbar is present")
-    public void assertHScrollBarPresent() {
-        assertHScorllBar(isHScrollBarPresent());
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "Assert if the Horizontal Scrollbar is not present")
-    public void assertHScrollBarNotPresent() {
-        assertHScorllBar(isHScrollBarPresent());
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "Assert if the Vertical Scrollbar is present")
-    public void assertVScrollBarPresent() {
-        assertVScorllBar(isvScrollBarPresent());
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "Assert if the Vertical Scrollbar is not present")
-    public void assertVScrollBarNotPresent() {
-        assertVScorllBar(isvScrollBarPresent());
-    }
-
-    private void assertHScorllBar(Boolean value) {
-        assertScorllBar("Horizontal", value);
-    }
-
-    private void assertVScorllBar(Boolean value) {
-        assertScorllBar("Vertical", value);
-    }
-
-    private void assertScorllBar(String type, Boolean value) {
-        if (value) {
-            String desc = type + " Scrollbar is " + " present";
-            if (Action.contains("Not")) {
-                Report.updateTestLog(Action, desc, Status.FAIL);
-            } else {
-                Report.updateTestLog(Action, desc, Status.PASS);
-            }
-        } else {
-            String desc = type + " Scrollbar is not" + " present";
-            if (Action.contains("Not")) {
-                Report.updateTestLog(Action, desc, Status.PASS);
-            } else {
-                Report.updateTestLog(Action, desc, Status.FAIL);
-            }
-        }
-    }
-     */
 }

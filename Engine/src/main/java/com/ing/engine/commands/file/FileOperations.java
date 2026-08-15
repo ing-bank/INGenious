@@ -4,7 +4,10 @@ import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.io.File;
@@ -28,6 +31,13 @@ public class FileOperations extends General {
         input = InputType.YES,
         condition = InputType.OPTIONAL
     ) // MyFiles/
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "Hello {name}\nYour id is {id}",
+        inputHelp = "file content or template text to populate before saving; can also be a path to an existing template file",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void populateData() {
         try {
             String fileName = getVar("%fileName%");
