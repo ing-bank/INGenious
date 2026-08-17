@@ -62,7 +62,8 @@ public class PluginLoader {
                     try {
                         entryClasses = getEntryClasses(pluginJar);
                         for (String entryClass : entryClasses) {
-                            classes.add(pluginClassLoader.loadClass(entryClass));
+                            Class<?> loadedClass = pluginClassLoader.loadClass(entryClass);
+                            classes.add(loadedClass);
                         }
                     } catch (Exception ex) {
                         System.err.println(
