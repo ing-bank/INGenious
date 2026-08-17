@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Version 3.1.0
+## Version 4.0.0
 
 Release Date: <insert date of release>
 
