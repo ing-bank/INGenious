@@ -276,7 +276,9 @@ public class CsvDataProvider extends TestData {
 
     /**
      * Creates a backup of the test data CSV file and its associated TestData directory.
-     * Backs up to <project>/.migration-backup/TestData/ preserving the relative path.
+     * Backs up to <project>/.migration-backup/TestData/ (or
+     * <project>/.migration-backup/TestData/<Environment>/ for non-Default environments),
+     * preserving the relative path so each environment's files are backed up separately.
      *
      * @param csvData the test data model to backup
      */
@@ -296,9 +298,18 @@ public class CsvDataProvider extends TestData {
                 // Path: <project>/TestData/Accp/SomeData.csv or <project>/TestData/Test/SomeData.csv
                 projectRoot = immediateParent.getParentFile().getParentFile(); // TestData/Env/ -> TestData/ -> Project/
             }
-            
-            // Create backup at project root under .migration-backup/TestData/
-            File backupFolder = new File(projectRoot, BACKUP_DIR + File.separator + "TestData");
+
+            // Create backup at project root under .migration-backup/, mirroring the
+            // TestData/ or TestData/<Environment>/ structure so each environment's
+            // files land in their own subfolder instead of colliding into one.
+            String relativeTestDataPath = projectRoot
+                .toPath()
+                .relativize(immediateParent.toPath())
+                .toString();
+            File backupFolder = new File(
+                projectRoot,
+                BACKUP_DIR + File.separator + relativeTestDataPath
+            );
 
             if (!backupFolder.exists()) {
                 backupFolder.mkdirs();

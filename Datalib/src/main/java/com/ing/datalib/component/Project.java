@@ -916,6 +916,19 @@ public class Project {
         if (!backup.exists()) {
             xmlFile.renameTo(backup);
         }
+
+        if (moved > 0) {
+            // moveTestCaseFile() only updates the source scenario's in-memory test case
+            // list; it never adds the moved test case to the target ReusableComponents
+            // scenario (that scenario may not even exist in memory yet if this is its
+            // first test case). Re-scan from disk so reusableScenarios reflects the files
+            // that were just moved - otherwise the UI tree stays stale for this session
+            // even though the files are correctly migrated on disk.
+            loadScenariosFromTestPlan();
+            loadScenariosFromReusableComponents();
+            loadScenariosFromSharedReusableComponents();
+        }
+
         LOGGER.log(Level.INFO, "Migrated reusable testcases: {0}", moved);
     }
 
