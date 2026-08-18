@@ -1,6 +1,10 @@
 param(
     [Parameter(Mandatory = $true)]
-    [string]$JdkHome
+    [string]$JdkHome,
+
+    [Parameter(Mandatory = $true)]
+    [ValidatePattern('^[0-9]+([.][0-9]+){0,2}$')]
+    [string]$AppVersion
 )
 
 Set-StrictMode -Version Latest
@@ -28,7 +32,9 @@ $ReleaseWorkspace = Join-Path $Release "Workspace"
 $WorkspaceSource = Join-Path $RepoRoot "Resources\Workspace"
 $ReleaseApp = Join-Path $Release "INGenious-Windows"
 $InstallerOutput = Join-Path $RepoRoot "Dist\target"
-$Installer = Join-Path $InstallerOutput "INGenious-3.1.0.msi"
+$Installer = Join-Path $InstallerOutput "INGenious-$AppVersion.msi"
+$GuiJarName = "ingenious-ide-$AppVersion.jar"
+$EngineJarName = "ingenious-engine-$AppVersion.jar"
 
 $InputDir = Join-Path $RepoRoot "Dist\target\jpackage\windows-input"
 $OutputDir = Join-Path $RepoRoot "Dist\target\jpackage\windows-output"
@@ -60,10 +66,10 @@ if (-not (Test-Path -LiteralPath $WorkspaceSource -PathType Container)) {
     Fail "Workspace template does not exist: $WorkspaceSource"
 }
 
-$GuiJar = Join-Path $ReleaseRuntime "ingenious-ide-3.1.0.jar"
+$GuiJar = Join-Path $ReleaseRuntime $GuiJarName
 
 if (-not (Test-Path -LiteralPath $GuiJar -PathType Leaf)) {
-    Fail "Release Runtime is missing ingenious-ide-3.1.0.jar"
+    Fail "Release Runtime is missing $GuiJarName"
 }
 
 if (-not (Test-Path -LiteralPath $Jpackage -PathType Leaf)) {
@@ -112,7 +118,7 @@ $RequiredInputItems = @(
     (Join-Path $InputDir "web"),
     (Join-Path $InputDir "Configuration"),
     (Join-Path $InputDir "WorkspaceTemplate"),
-    (Join-Path $InputDir "ingenious-ide-3.1.0.jar")
+    (Join-Path $InputDir $GuiJarName)
 )
 
 foreach ($Item in $RequiredInputItems) {
@@ -125,14 +131,14 @@ foreach ($Item in $RequiredInputItems) {
 
 $EngineJars = @(
     Get-ChildItem -LiteralPath $InputDir -Recurse -File |
-        Where-Object { $_.Name -eq "ingenious-engine-3.1.0.jar" }
+        Where-Object { $_.Name -eq $EngineJarName }
 )
 
 if ($EngineJars.Count -ne 1) {
     Fail "Expected one staged Engine JAR; found $($EngineJars.Count)"
 }
 
-$ExpectedEngineJar = Join-Path $InputDir "lib\ingenious-engine-3.1.0.jar"
+$ExpectedEngineJar = Join-Path $InputDir "lib\$EngineJarName"
 
 if ($EngineJars[0].FullName -ne $ExpectedEngineJar) {
     Fail "Engine JAR is not in the required input\lib directory"
@@ -168,13 +174,13 @@ New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
 $JpackageArguments = @(
     "--type", "app-image",
     "--name", "INGenious",
-    "--app-version", "3.1.0",
+    "--app-version", $AppVersion,
     "--vendor", "ING",
     "--description", "INGenious Playwright Studio",
     "--icon", $AppIcon,
     "--input", $InputDir,
     "--dest", $OutputDir,
-    "--main-jar", "ingenious-ide-3.1.0.jar",
+    "--main-jar", $GuiJarName,
     "--main-class", "com.ing.ide.main.Main",
     "--jlink-options", "--strip-debug --no-man-pages --no-header-files",
     "--java-options", '-Dingenious.app.home=$APPDIR',
@@ -210,7 +216,7 @@ $RequiredPackagedItems = @(
     (Join-Path $AppDir "web"),
     (Join-Path $AppDir "Configuration"),
     (Join-Path $AppDir "WorkspaceTemplate"),
-    (Join-Path $AppDir "ingenious-ide-3.1.0.jar")
+    (Join-Path $AppDir $GuiJarName)
 )
 
 foreach ($Item in $RequiredPackagedItems) {
@@ -234,14 +240,14 @@ foreach ($Item in $WritableConfigurationItems) {
 
 $PackagedEngineJars = @(
     Get-ChildItem -LiteralPath $AppDir -Recurse -File |
-        Where-Object { $_.Name -eq "ingenious-engine-3.1.0.jar" }
+        Where-Object { $_.Name -eq $EngineJarName }
 )
 
 if ($PackagedEngineJars.Count -ne 1) {
     Fail "Expected one packaged Engine JAR; found $($PackagedEngineJars.Count)"
 }
 
-$ExpectedPackagedEngineJar = Join-Path $AppDir "lib\ingenious-engine-3.1.0.jar"
+$ExpectedPackagedEngineJar = Join-Path $AppDir "lib\$EngineJarName"
 
 if ($PackagedEngineJars[0].FullName -ne $ExpectedPackagedEngineJar) {
     Fail "Packaged Engine JAR is not in app\lib"
@@ -267,7 +273,7 @@ if (-not $ConfigText.Contains("app.mainclass=com.ing.ide.main.Main")) {
     Fail "GUI main class is missing from INGenious.cfg"
 }
 
-if (-not $ConfigText.Contains('app.classpath=$APPDIR\ingenious-ide-3.1.0.jar')) {
+if (-not $ConfigText.Contains("app.classpath=`$APPDIR\$GuiJarName")) {
     Fail "GUI main JAR is missing from INGenious.cfg"
 }
 
@@ -301,7 +307,7 @@ if (Test-Path -LiteralPath $Installer) {
 $MsiArguments = @(
     "--type", "msi",
     "--name", "INGenious",
-    "--app-version", "3.1.0",
+    "--app-version", $AppVersion,
     "--vendor", "ING",
     "--description", "INGenious Playwright Studio",
     "--app-image", $GeneratedApp,
