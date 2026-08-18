@@ -135,10 +135,11 @@ public class UpgradeCommand implements Callable<Integer> {
         if (plan.testDataSheets > 0) {
             System.out.println(); // Add blank line for separation
             cli.printHeader("Step 1: Test Data Migration");
+            String verb = dryRun ? "Would migrate" : "Migrating";
             cli.printInfo(
-                "Migrating " + plan.testDataSheets + " test datasheet(s) to add Scope field..."
+                verb + " " + plan.testDataSheets + " test datasheet(s) to add Scope field..."
             );
-            totalChanges += migrateTestDataSheets(cli, projectDir);
+            totalChanges += migrateTestDataSheets(cli, projectDir, plan.testDataSheets);
             System.out.println(); // Add blank line after migration
         }
 
@@ -516,8 +517,22 @@ public class UpgradeCommand implements Callable<Integer> {
      * This is automatically applied when test cases are migrated or when the
      * project is loaded. This method reports the migration statistics to the user.
      * Reports how many test datasheets were processed and any failures.
+     *
+     * <p>In {@code --dry-run} mode this returns immediately, before constructing a
+     * {@link Project} at all - unlike the other upgrade steps, loading a project is not a
+     * read-only inspection here: it is the same code path that performs and persists the
+     * migration (see {@code CsvDataProvider.load()}), so it must not run when dry-run is set.
      */
-    private int migrateTestDataSheets(INGeniousCLI cli, File projectDir) {
+    private int migrateTestDataSheets(INGeniousCLI cli, File projectDir, int testDataSheetCount) {
+        if (dryRun) {
+            cli.printInfo(
+                "  → would migrate/repair the Scope field for up to " +
+                testDataSheetCount +
+                " test datasheet(s)"
+            );
+            return testDataSheetCount;
+        }
+
         int processedCount = 0;
         int failedCount = 0;
 
