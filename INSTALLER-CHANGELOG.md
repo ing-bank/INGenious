@@ -1,9 +1,12 @@
 # INGenious Installer Integration Changelog
 
-**Base branch:** `release/3.1.0`  
-**Feature branch:** `poc/installer-3`  
-**Integration commit:** `ab309c57`  
-**Target version:** `3.1.0`
+**Base branch:** `release/4.0.0`
+
+**Feature branch:** `poc/installer-4`
+
+**Integration commit:** `f7ca09b7`
+
+**Target version:** `4.0.0`
 
 ## Overview
 
@@ -87,7 +90,7 @@ Added Apple Silicon macOS application-image generation using Java 17 `jpackage`.
 
 - Produces `Dist/release/INGenious.app`.
 - Bundles a Java runtime.
-- Uses application version `3.1.0` and package identifier `com.ing.ingenious`.
+- Receives the application version from Maven `${project.version}` and uses package identifier `com.ing.ingenious`.
 - Uses the INGenious `.icns` icon.
 - Packages application-owned Runtime resources.
 - Excludes writable Workspace content from the application bundle.
@@ -109,19 +112,20 @@ Added macOS PKG generation.
 
 - Packages `INGenious.app` for installation under `/Applications`.
 - Includes a Workspace template for user initialization.
-- Produces `Dist/target/INGenious-3.1.0.pkg`.
-- Validates the component property list, Distribution XML, post-install script, and application signature.
+- Produces `Dist/target/INGenious-<version>.pkg`, currently `INGenious-4.0.0.pkg`.
+- Receives the package version from Maven `${project.version}`.
+- Renders the versioned Distribution definition under `Dist/target`.
+- Uses a fixed root payload containing `/Applications/INGenious.app`.
+- Validates the Distribution template, rendered Distribution XML, post-install script, and application signature.
 - Uses `pkgbuild` and `productbuild`.
 
 The current POC package is unsigned.
 
 ### `scripts/macos-pkg/Distribution.xml`
 
-Added the fixed system-level macOS product-archive definition for package `com.ing.ingenious.pkg`, version `3.1.0`.
+Added the fixed system-level macOS product-archive template for package `com.ing.ingenious.pkg`.
 
-### `scripts/macos-pkg/components.plist`
-
-Added macOS bundle component and upgrade metadata.
+The package version is represented by `@APP_VERSION@` and is rendered from Maven `${project.version}` during packaging. The PKG uses a non-relocatable root payload installed at `/`, with the application located under `/Applications/INGenious.app`.
 
 ### `scripts/macos-pkg/postinstall`
 
@@ -150,7 +154,8 @@ Added a utility for generating INGenious macOS icon artwork.
 Added Windows application-image and MSI generation using Java 17 `jpackage`.
 
 - Produces a Windows application image.
-- Produces `Dist/target/INGenious-3.1.0.msi`.
+- Produces `Dist/target/INGenious-<version>.msi`, currently `INGenious-4.0.0.msi`.
+- Receives the application version from Maven `${project.version}`.
 - Bundles a Java runtime.
 - Uses the INGenious Windows icon.
 - Packages `WorkspaceTemplate` for per-user initialization.
@@ -693,9 +698,9 @@ No major user-facing feature was intentionally removed.
 ### Generated artifacts
 
     Dist/release/INGenious.app
-    Dist/target/INGenious-3.1.0.pkg
-    Dist/release/Runtime/ingenious-ide-3.1.0.jar
-    Dist/release/Runtime/lib/ingenious-engine-3.1.0.jar
+    Dist/target/INGenious-4.0.0.pkg
+    Dist/release/Runtime/ingenious-ide-4.0.0.jar
+    Dist/release/Runtime/lib/ingenious-engine-4.0.0.jar
 
 ---
 

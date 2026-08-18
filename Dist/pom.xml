@@ -233,6 +233,7 @@
                                     <executable>/bin/zsh</executable>
                                     <arguments>
                                         <argument>${maven.multiModuleProjectDirectory}/scripts/package-macos-app.zsh</argument>
+                                        <argument>${project.version}</argument>
                                     </arguments>
                                     <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
                                 </configuration>
@@ -247,6 +248,7 @@
                                     <executable>/bin/zsh</executable>
                                     <arguments>
                                         <argument>${maven.multiModuleProjectDirectory}/scripts/package-macos-pkg.zsh</argument>
+                                        <argument>${project.version}</argument>
                                     </arguments>
                                     <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
                                 </configuration>
@@ -283,6 +285,8 @@
                                         <argument>${maven.multiModuleProjectDirectory}/scripts/package-windows-app.ps1</argument>
                                         <argument>-JdkHome</argument>
                                         <argument>${java.home}</argument>
+                                        <argument>-AppVersion</argument>
+                                        <argument>${project.version}</argument>
                                     </arguments>
                                     <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
                                 </configuration>
