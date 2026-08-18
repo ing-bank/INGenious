@@ -9,10 +9,13 @@ Release Date: <insert date of release>
 ### General/UI
 
 #### Added
+- Added multi-cell deletion support in the Test Datasheet for improved data management and editing efficiency.
+
 #### Changed
 #### Deprecated
 #### Removed
 #### Fixed
+- Fixed incorrect cell deletion mapping in Test Datasheet data columns to ensure correct cell references is removed
 
 ### Browser/Playwright Testing
 

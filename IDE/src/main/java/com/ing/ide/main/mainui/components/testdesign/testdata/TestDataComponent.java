@@ -24,6 +24,7 @@ import java.awt.Frame;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -51,6 +52,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
@@ -1087,6 +1089,26 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
                 // Apply popup menu to fixed table as well
                 frozenScrollPane.getFixedTable().setComponentPopupMenu(popupMenu);
+
+                // Keep Delete behavior consistent between main and fixed tables.
+                frozenScrollPane
+                    .getFixedTable()
+                    .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                    .put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Clear");
+                frozenScrollPane
+                    .getFixedTable()
+                    .getActionMap()
+                    .put(
+                        "Clear",
+                        new AbstractAction() {
+
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                clearValuesFromFixedTable();
+                            }
+                        }
+                    );
+
                 // Set cell editor provider for fixed columns (columns 0-4: Scenario, Flow, Scope, Iteration, SubIteration)
 
                 frozenScrollPane.setCellEditorProvider(
@@ -1447,7 +1469,23 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         private void clearValues() {
             stopCellEditing();
             if (table.getSelectedRowCount() > 0) {
-                std.clearValues(table.getSelectedRows(), table.getSelectedColumns());
+                std.clearValues(table.getSelectedRows(), getSelectedModelColumns());
+            }
+        }
+
+        private void clearValuesFromFixedTable() {
+            stopCellEditing();
+
+            if (
+                isGlobalData || frozenScrollPane == null || frozenScrollPane.getFixedTable() == null
+            ) {
+                clearValues();
+                return;
+            }
+
+            JTable fixedTable = frozenScrollPane.getFixedTable();
+            if (fixedTable.getSelectedRowCount() > 0) {
+                std.clearValues(table.getSelectedRows(), getSelectedModelColumnsFromFixedTable());
             }
         }
 
@@ -1501,10 +1539,33 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
         private List<String> getSelectedColumns() {
             List<String> colList = new ArrayList<>();
-            for (int col : table.getSelectedColumns()) {
+            for (int col : getSelectedModelColumns()) {
                 colList.add(std.getColumnName(col));
             }
             return colList;
+        }
+
+        private int[] getSelectedModelColumns() {
+            int[] selectedColumns = table.getSelectedColumns();
+            int[] modelColumns = new int[selectedColumns.length];
+
+            for (int i = 0; i < selectedColumns.length; i++) {
+                modelColumns[i] = table.convertColumnIndexToModel(selectedColumns[i]);
+            }
+
+            return modelColumns;
+        }
+
+        private int[] getSelectedModelColumnsFromFixedTable() {
+            JTable fixedTable = frozenScrollPane.getFixedTable();
+            int[] selectedColumns = fixedTable.getSelectedColumns();
+            int[] modelColumns = new int[selectedColumns.length];
+
+            for (int i = 0; i < selectedColumns.length; i++) {
+                modelColumns[i] = fixedTable.convertColumnIndexToModel(selectedColumns[i]);
+            }
+
+            return modelColumns;
         }
 
         private TableModel createCustomTableModel(
