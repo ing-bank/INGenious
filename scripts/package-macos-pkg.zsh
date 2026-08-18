@@ -2,29 +2,37 @@
 
 set -euo pipefail
 
+fail() {
+  print -u2 -- ""
+  print -u2 -- "ERROR: $1"
+  exit 1
+}
+
+(( $# == 1 )) ||
+  fail "Usage: package-macos-pkg.zsh <application-version>"
+
+readonly PACKAGE_VERSION="$1"
+
+print -r -- "$PACKAGE_VERSION" |
+  grep -Eq '^[0-9]+([.][0-9]+){0,2}$' ||
+  fail "Invalid application version: $PACKAGE_VERSION"
+
 readonly SCRIPT_DIR="${0:A:h}"
 readonly REPO_ROOT="${SCRIPT_DIR:h}"
 
 readonly RELEASE_APP="$REPO_ROOT/Dist/release/INGenious.app"
 readonly WORKSPACE_SOURCE="$REPO_ROOT/Resources/Workspace"
 readonly POSTINSTALL_SOURCE="$SCRIPT_DIR/macos-pkg/postinstall"
-readonly COMPONENT_PLIST="$SCRIPT_DIR/macos-pkg/components.plist"
-readonly DISTRIBUTION_FILE="$SCRIPT_DIR/macos-pkg/Distribution.xml"
+readonly DISTRIBUTION_TEMPLATE="$SCRIPT_DIR/macos-pkg/Distribution.xml"
 
 readonly STAGING_ROOT="$REPO_ROOT/Dist/target/macos-pkg"
 readonly PAYLOAD_ROOT="$STAGING_ROOT/root"
 readonly PACKAGE_SCRIPTS="$STAGING_ROOT/package-scripts"
 readonly COMPONENT_PACKAGE="$STAGING_ROOT/INGenious-component.pkg"
-readonly OUTPUT_PACKAGE="$REPO_ROOT/Dist/target/INGenious-3.1.0.pkg"
+readonly RENDERED_DISTRIBUTION="$STAGING_ROOT/Distribution.xml"
+readonly OUTPUT_PACKAGE="$REPO_ROOT/Dist/target/INGenious-${PACKAGE_VERSION}.pkg"
 
 readonly PACKAGE_IDENTIFIER="com.ing.ingenious.pkg"
-readonly PACKAGE_VERSION="3.1.0"
-
-fail() {
-  print -u2 -- ""
-  print -u2 -- "ERROR: $1"
-  exit 1
-}
 
 print -- ""
 print -- "========================================"
@@ -55,17 +63,14 @@ print -- ""
 
 [[ -f "$POSTINSTALL_SOURCE" ]] ||
   fail "Post-install script is missing: $POSTINSTALL_SOURCE"
-[[ -f "$COMPONENT_PLIST" ]] ||
-  fail "Component property list is missing: $COMPONENT_PLIST"
+[[ -f "$DISTRIBUTION_TEMPLATE" ]] ||
+  fail "Distribution template is missing: $DISTRIBUTION_TEMPLATE"
 
-[[ -f "$DISTRIBUTION_FILE" ]] ||
-  fail "Distribution definition is missing: $DISTRIBUTION_FILE"
+/usr/bin/xmllint --noout "$DISTRIBUTION_TEMPLATE" ||
+  fail "Distribution template is invalid."
 
-/usr/bin/plutil -lint "$COMPONENT_PLIST" >/dev/null ||
-  fail "Component property list is invalid."
-
-/usr/bin/xmllint --noout "$DISTRIBUTION_FILE" ||
-  fail "Distribution definition is invalid."
+[[ "$(grep -o '@APP_VERSION@' "$DISTRIBUTION_TEMPLATE" | wc -l | tr -d ' ')" == "1" ]] ||
+  fail "Distribution template must contain exactly one @APP_VERSION@ token."
 
 zsh -n "$POSTINSTALL_SOURCE" ||
   fail "Post-install script failed syntax validation."
@@ -89,6 +94,18 @@ rm -f -- "$OUTPUT_PACKAGE"
 
 mkdir -p -- "$PAYLOAD_ROOT/Applications"
 mkdir -p -- "$PACKAGE_SCRIPTS"
+
+/usr/bin/sed   "s/@APP_VERSION@/$PACKAGE_VERSION/g"   "$DISTRIBUTION_TEMPLATE"   > "$RENDERED_DISTRIBUTION"
+
+/usr/bin/xmllint --noout "$RENDERED_DISTRIBUTION" ||
+  fail "Rendered Distribution definition is invalid."
+
+grep -Fq "version=\"$PACKAGE_VERSION\"" "$RENDERED_DISTRIBUTION" ||
+  fail "Rendered Distribution definition has the wrong package version."
+
+if grep -Fq '@APP_VERSION@' "$RENDERED_DISTRIBUTION"; then
+  fail "Rendered Distribution definition still contains the version token."
+fi
 
 print -- ""
 print -- "[3/5] Staging application and Workspace template"
@@ -124,7 +141,6 @@ print -- "[4/5] Building component package"
 
 /usr/bin/pkgbuild \
   --root "$PAYLOAD_ROOT" \
-  --component-plist "$COMPONENT_PLIST" \
   --scripts "$PACKAGE_SCRIPTS" \
   --identifier "$PACKAGE_IDENTIFIER" \
   --version "$PACKAGE_VERSION" \
@@ -139,7 +155,7 @@ print -- ""
 print -- "[5/5] Building fixed-destination product archive"
 
 /usr/bin/productbuild \
-  --distribution "$DISTRIBUTION_FILE" \
+  --distribution "$RENDERED_DISTRIBUTION" \
   --package-path "$STAGING_ROOT" \
   "$OUTPUT_PACKAGE"
 

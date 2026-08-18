@@ -2,6 +2,23 @@
 
 set -euo pipefail
 
+fail() {
+  print -u2 -- "ERROR: $1"
+  exit 1
+}
+
+(( $# == 1 )) ||
+  fail "Usage: package-macos-app.zsh <application-version>"
+
+readonly APP_VERSION="$1"
+
+print -r -- "$APP_VERSION" |
+  grep -Eq '^[0-9]+([.][0-9]+){0,2}$' ||
+  fail "Invalid application version: $APP_VERSION"
+
+readonly IDE_JAR_NAME="ingenious-ide-${APP_VERSION}.jar"
+readonly ENGINE_JAR_NAME="ingenious-engine-${APP_VERSION}.jar"
+
 readonly SCRIPT_DIR="${0:A:h}"
 readonly REPO_ROOT="${SCRIPT_DIR:h}"
 readonly RELEASE="$REPO_ROOT/Dist/release"
@@ -16,11 +33,6 @@ readonly CFG="$APP_DIR/INGenious.cfg"
 readonly LAUNCHER="$GUI_APP/Contents/MacOS/INGenious"
 readonly JVM_LIBRARY="$GUI_APP/Contents/runtime/Contents/Home/lib/server/libjvm.dylib"
 readonly APP_ICON="$REPO_ROOT/Resources/INGenious.icns"
-
-fail() {
-  print -u2 -- "ERROR: $1"
-  exit 1
-}
 
 print -- ""
 print -- "========================================"
@@ -41,8 +53,8 @@ print -- ""
 [[ -d "$RELEASE_WORKSPACE" ]] ||
   fail "Release Workspace directory does not exist: $RELEASE_WORKSPACE"
 
-[[ -f "$RELEASE_RUNTIME/ingenious-ide-3.1.0.jar" ]] ||
-  fail "Release Runtime is missing ingenious-ide-3.1.0.jar"
+[[ -f "$RELEASE_RUNTIME/${IDE_JAR_NAME}" ]] ||
+  fail "Release Runtime is missing ${IDE_JAR_NAME}"
 
 [[ -f "$APP_ICON" ]] ||
   fail "Application icon is missing: $APP_ICON"
@@ -80,7 +92,7 @@ for item in \
   "$INPUT/Tools" \
   "$INPUT/web" \
   "$INPUT/Configuration" \
-  "$INPUT/ingenious-ide-3.1.0.jar"
+  "$INPUT/${IDE_JAR_NAME}"
 do
   [[ -e "$item" ]] ||
     fail "Required staged resource is missing: $item"
@@ -89,7 +101,7 @@ do
 done
 
 engine_jars=(
-  "${(@f)$(find "$INPUT" -type f -name 'ingenious-engine-3.1.0.jar' -print)}"
+  "${(@f)$(find "$INPUT" -type f -name "$ENGINE_JAR_NAME" -print)}"
 )
 
 if (( ${#engine_jars[@]} != 1 )); then
@@ -99,10 +111,10 @@ if (( ${#engine_jars[@]} != 1 )); then
     print -u2 -- "$item"
   done
 
-  fail "Expected exactly one ingenious-engine-3.1.0.jar"
+  fail "Expected exactly one ${ENGINE_JAR_NAME}"
 fi
 
-[[ "${engine_jars[1]}" == "$INPUT/lib/ingenious-engine-3.1.0.jar" ]] ||
+[[ "${engine_jars[1]}" == "$INPUT/lib/${ENGINE_JAR_NAME}" ]] ||
   fail "Engine JAR is not in the required input/lib location"
 
 print -- "OK: exactly one Engine JAR at ${engine_jars[1]}"
@@ -131,13 +143,13 @@ mkdir -p -- "$OUTPUT"
 "$JPACKAGE" \
   --type app-image \
   --name INGenious \
-  --app-version 3.1.0 \
+  --app-version "$APP_VERSION" \
   --vendor "ING" \
   --description "INGenious Playwright Studio" \
   --icon "$APP_ICON" \
   --input "$INPUT" \
   --dest "$OUTPUT" \
-  --main-jar ingenious-ide-3.1.0.jar \
+  --main-jar "$IDE_JAR_NAME" \
   --main-class com.ing.ide.main.Main \
   --jlink-options "--strip-debug --no-man-pages --no-header-files" \
   --java-options '-Dingenious.app.home=$APPDIR' \
@@ -172,7 +184,7 @@ for item in \
   "$APP_DIR/Tools" \
   "$APP_DIR/web" \
   "$APP_DIR/Configuration" \
-  "$APP_DIR/ingenious-ide-3.1.0.jar"
+  "$APP_DIR/${IDE_JAR_NAME}"
 do
   [[ -e "$item" ]] ||
     fail "Required packaged resource is missing: $item"
@@ -189,7 +201,7 @@ do
 done
 
 packaged_engine_jars=(
-  "${(@f)$(find "$APP_DIR" -type f -name 'ingenious-engine-3.1.0.jar' -print)}"
+  "${(@f)$(find "$APP_DIR" -type f -name "$ENGINE_JAR_NAME" -print)}"
 )
 
 if (( ${#packaged_engine_jars[@]} != 1 )); then
@@ -199,10 +211,10 @@ if (( ${#packaged_engine_jars[@]} != 1 )); then
     print -u2 -- "$item"
   done
 
-  fail "Expected exactly one packaged ingenious-engine-3.1.0.jar"
+  fail "Expected exactly one packaged ${ENGINE_JAR_NAME}"
 fi
 
-[[ "${packaged_engine_jars[1]}" == "$APP_DIR/lib/ingenious-engine-3.1.0.jar" ]] ||
+[[ "${packaged_engine_jars[1]}" == "$APP_DIR/lib/${ENGINE_JAR_NAME}" ]] ||
   fail "Packaged Engine JAR is not in Contents/app/lib"
 
 grep -Fq 'java-options=-Dingenious.app.home=$APPDIR' "$CFG" ||
@@ -218,7 +230,7 @@ grep -Fq 'java-options=-Djdk.internal.httpclient.disableHostnameVerification=tru
 grep -Fq 'app.mainclass=com.ing.ide.main.Main' "$CFG" ||
   fail "GUI main class is missing from launcher configuration"
 
-grep -Fq 'app.classpath=$APPDIR/ingenious-ide-3.1.0.jar' "$CFG" ||
+grep -Fq "app.classpath=\$APPDIR/$IDE_JAR_NAME" "$CFG" ||
   fail "GUI main JAR is missing from launcher configuration"
 
 launcher_info="$(file "$LAUNCHER")"

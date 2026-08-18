@@ -28,7 +28,7 @@
 
     <pkg-ref
         id="com.ing.ingenious.pkg"
-        version="3.1.0"
+        version="@APP_VERSION@"
         onConclusion="none"
     >
         INGenious-component.pkg
