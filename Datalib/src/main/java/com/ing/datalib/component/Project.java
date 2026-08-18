@@ -318,6 +318,9 @@ public class Project {
                         LOGGER.log(Level.WARNING, "Migration error: {0}", error);
                     }
                 }
+
+                // Reload test cases in all scenarios to pick up newly created YAML files
+                reloadScenariosAfterMigration();
             } else {
                 LOGGER.log(
                     Level.FINE,
@@ -332,6 +335,35 @@ public class Project {
             );
             // Don't throw - allow project to load even if migration fails
         }
+    }
+
+    /**
+     * Reloads test cases for all scenarios after CSV-to-YAML migration.
+     * This ensures that Scenario objects pick up the newly created YAML files
+     * instead of still pointing to the now-migrated CSV files.
+     */
+    private void reloadScenariosAfterMigration() {
+        int reloadedCount = 0;
+
+        // Reload test plan scenarios
+        for (Scenario scenario : scenarios) {
+            scenario.reloadTestCases();
+            reloadedCount++;
+        }
+
+        // Reload reusable component scenarios
+        for (Scenario scenario : reusableScenarios) {
+            scenario.reloadTestCases();
+            reloadedCount++;
+        }
+
+        // Reload shared reusable scenarios
+        for (Scenario scenario : sharedReusableScenarios) {
+            scenario.reloadTestCases();
+            reloadedCount++;
+        }
+
+        LOGGER.log(Level.INFO, "Reloaded {0} scenario(s) to reflect YAML migration", reloadedCount);
     }
 
     /**

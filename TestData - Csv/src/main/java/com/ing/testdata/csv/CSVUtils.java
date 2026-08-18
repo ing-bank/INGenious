@@ -91,10 +91,24 @@ public class CSVUtils {
             FileWriter out = new FileWriter(new File(testData.getLocation()));
             CSVPrinter printer = new CSVPrinter(out, CSVFormat.EXCEL.withIgnoreEmptyLines());
         ) {
-            for (String header : testData.getColumns()) {
+            // Write headers (including Scope column at index 2)
+            List<String> columns = testData.getColumns();
+            for (String header : columns) {
                 printer.print(header);
             }
             printer.println();
+
+            // Defensive check: warn if Scope column is missing
+            if (columns.size() > 2 && !"Scope".equals(columns.get(2))) {
+                Logger
+                    .getLogger(CSVUtils.class.getName())
+                    .log(
+                        Level.WARNING,
+                        "Scope column expected at index 2 but found: {0}",
+                        columns.get(2)
+                    );
+            }
+
             testData.removeEmptyRecords();
             for (Record record : testData.getRecords()) {
                 for (String value : record) {

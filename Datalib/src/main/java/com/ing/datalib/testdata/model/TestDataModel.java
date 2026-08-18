@@ -197,6 +197,7 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
     ) {
         Boolean clearOnExit = getRecords().isEmpty();
         loadTableModel();
+        boolean scopeUpdated = false;
         for (Record record : getRecords()) {
             if (
                 record.getScenario().equals(scenarioName) &&
@@ -205,10 +206,14 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
             ) {
                 record.setScope(newScope);
                 fireTableCellUpdated(getRecords().indexOf(record), 2);
+                scopeUpdated = true;
             }
         }
-        if (clearOnExit) {
+        // Always save if scope was updated to persist changes to CSV
+        if (scopeUpdated) {
             save();
+        }
+        if (clearOnExit) {
             getRecords().clear();
         }
     }
