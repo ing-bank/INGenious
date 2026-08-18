@@ -33,11 +33,15 @@ public class CsvDataProvider extends TestData {
                     CsvTestData csvData = new CsvTestData(tData.getAbsolutePath());
                     // ensure model is loaded so we can migrate records if the file lacks the Scope column
                     csvData.loadTableModel();
-                    // Scope is persisted, static data once written. Only a file whose Scope column was
-                    // just spliced in this load (legacy pre-Scope CSV) needs one-time population; a file
-                    // that already had the column keeps whatever values it already has, untouched.
+                    // A resolved (non-blank) Scope is persisted, static data - never recomputed. Only a
+                    // file whose Scope column was just spliced in this load (legacy pre-Scope CSV) gets
+                    // the full one-time population; a file that already had the column still gets a
+                    // pass to retry any row left blank by a prior ambiguous resolution (or by a file
+                    // touched before this retry existed), without touching rows that already resolved.
                     if (csvData.isScopeColumnMigrated()) {
                         migrateLegacyRecords(csvData);
+                    } else {
+                        retryUnresolvedScopes(csvData);
                     }
                     addTestData(csvData);
                 }
@@ -95,6 +99,34 @@ public class CsvDataProvider extends TestData {
         // The Scope column itself was just spliced into this file's structure (isScopeColumnMigrated()),
         // so persist that structural change regardless of whether every row's value could be resolved.
         csvData.saveChanges();
+    }
+
+    /**
+     * Retries Scope resolution for rows still blank - left that way by a prior ambiguous
+     * migration (same scenario+testcase name found in more than one scope), or carried over from
+     * a file touched before this retry pass existed. Rows that already carry a Scope value are
+     * never touched here - once resolved, a Scope is trusted permanently. A blank row that still
+     * doesn't uniquely resolve (or that genuinely belongs to the Test Plan, whose Scope is blank
+     * by convention) is a no-op, so this is safe to run on every load.
+     */
+    private void retryUnresolvedScopes(CsvTestData csvData) {
+        boolean changed = false;
+        for (Record record : csvData.getRecords()) {
+            String currentScope = java.util.Objects.toString(record.get(2), "").trim();
+            if (!currentScope.isEmpty()) {
+                continue;
+            }
+            String scenario = java.util.Objects.toString(record.get(0), "").trim();
+            String testcase = java.util.Objects.toString(record.get(1), "").trim();
+            String resolved = resolveScopeByUniqueMatch(scenario, testcase);
+            if (resolved != null && !resolved.isEmpty()) {
+                record.set(2, resolved);
+                changed = true;
+            }
+        }
+        if (changed) {
+            csvData.saveChanges();
+        }
     }
 
     /**

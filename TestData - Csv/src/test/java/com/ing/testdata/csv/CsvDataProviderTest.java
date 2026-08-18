@@ -154,4 +154,52 @@ public class CsvDataProviderTest {
         assertThat(lines.get(0)).isEqualTo("Scenario,Flow,Scope,Iteration,SubIteration,User");
         assertThat(lines.get(1)).isEqualTo("Login,Step1,,1,1,some-user");
     }
+
+    @Test
+    public void previouslyUnresolved_ResolvesOnLaterReload_OnceCollisionIsGone()
+        throws IOException {
+        // Scope column already exists (a prior load already migrated the file's structure) but
+        // this row was left blank because "Login"/"Step1" was ambiguous at that time. The
+        // colliding scenario has since been removed/renamed elsewhere, so on this load
+        // "Login"/"Step1" now uniquely resolves to Shared Reusables - the blank row should be
+        // retried and populated, without a full "migration" (Scope column stays where it is).
+        Scenario sharedLogin = scenarioWithTestCase("Step1");
+        when(project.getSharedReusableScenarioByName("Login")).thenReturn(sharedLogin);
+
+        File csvFile = new File(testDataDir(), "PreviouslyAmbiguousData.csv");
+        try (FileWriter fw = new FileWriter(csvFile)) {
+            fw.write("Scenario,Flow,Scope,Iteration,SubIteration,User\n");
+            fw.write("Login,Step1,,1,1,shared-user\n");
+        }
+
+        CsvDataProvider provider = new CsvDataProvider(project, "Default");
+        provider.load();
+
+        List<String> lines = readLines(csvFile);
+        assertThat(lines.get(1)).isEqualTo("Login,Step1,[Shared],1,1,shared-user");
+    }
+
+    @Test
+    public void stillAmbiguousOnReload_StaysBlank_NoSpuriousWrite() throws IOException {
+        // Scope column already exists, row is blank, and the collision is still present on this
+        // load - must remain blank (never guess) and must not rewrite the file needlessly.
+        Scenario projectLogin = scenarioWithTestCase("Step1");
+        Scenario sharedLogin = scenarioWithTestCase("Step1");
+        when(project.getReusableScenarioByName("Login")).thenReturn(projectLogin);
+        when(project.getSharedReusableScenarioByName("Login")).thenReturn(sharedLogin);
+
+        File csvFile = new File(testDataDir(), "StillAmbiguousData.csv");
+        try (FileWriter fw = new FileWriter(csvFile)) {
+            fw.write("Scenario,Flow,Scope,Iteration,SubIteration,User\n");
+            fw.write("Login,Step1,,1,1,some-user\n");
+        }
+        long originalModified = csvFile.lastModified();
+
+        CsvDataProvider provider = new CsvDataProvider(project, "Default");
+        provider.load();
+
+        List<String> lines = readLines(csvFile);
+        assertThat(lines.get(1)).isEqualTo("Login,Step1,,1,1,some-user");
+        assertThat(csvFile.lastModified()).isEqualTo(originalModified);
+    }
 }

@@ -13,6 +13,7 @@ Release Date: <insert date of release>
 #### Deprecated
 #### Removed
 #### Fixed
+- Fixed Test Data `Scope` values left blank by an earlier ambiguous migration (duplicate scenario/test case name across Test Plan, Project Reusables, and Shared Reusables) never being retried on later project loads; resolution is now retried on every load for still-blank rows, without touching rows that already resolved.
 
 ### Browser/Playwright Testing
 
