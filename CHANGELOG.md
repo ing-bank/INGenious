@@ -16,6 +16,7 @@ Release Date: <insert date of release>
 #### Removed
 #### Fixed
 - Fixed incorrect cell deletion mapping in Test Datasheet data columns to ensure correct cell references is removed
+- Fixed an issue where adding a new column in the Test Datasheet's user-defined data columns could incorrectly disable an unrelated column (most often the third column)
 
 ### Browser/Playwright Testing
 
