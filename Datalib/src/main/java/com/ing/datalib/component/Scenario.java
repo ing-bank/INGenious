@@ -697,8 +697,11 @@ public class Scenario extends DataModel {
         Scenario existing = getProject().getTestPlanScenarioByName(newName);
         if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName)) {
-                getProject().refactorScenario(name, newName);
+                String oldName = name;
+                // Update name before refactoring so getLocation() resolves to the
+                // already-renamed directory when this scenario's own test cases are loaded.
                 name = newName;
+                getProject().refactorScenario(oldName, newName);
                 return true;
             }
         }
@@ -714,15 +717,23 @@ public class Scenario extends DataModel {
 
     public Boolean renameReusable(String newName) {
         Project p = getProject();
-        // Clean up stale reusable scenarios first
+        // Clean up stale reusable scenarios first. Never evict `this`: a scenario
+        // that hasn't had a test case saved yet has no directory on disk although
+        // it's perfectly valid, and evicting it here would permanently drop it
+        // from the project's canonical list even though it stays visible in the
+        // tree (which holds its own reference), causing later "reusable not
+        // available" false positives until the project is reloaded.
         List<Scenario> reusables = p.getReusableScenarios();
-        reusables.removeIf(s -> !new File(s.getLocation()).exists());
+        reusables.removeIf(s -> s != this && !new File(s.getLocation()).exists());
 
         Scenario existing = p.getReusableScenarioByName(newName);
         if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName)) {
-                p.refactorScenario(name, newName);
+                String oldName = name;
+                // Update name before refactoring so getLocation() resolves to the
+                // already-renamed directory when this scenario's own test cases are loaded.
                 name = newName;
+                p.refactorScenario(oldName, newName);
                 return true;
             }
         }
@@ -738,14 +749,19 @@ public class Scenario extends DataModel {
      */
     public Boolean renameSharedReusable(String newName) {
         Project p = getProject();
-        // Clean up stale shared reusable scenarios first
+        // Clean up stale shared reusable scenarios first. Never evict `this` --
+        // see renameReusable() for why a not-yet-persisted scenario's missing
+        // directory must not cause it to be dropped from the project's list.
         List<Scenario> sharedReusables = p.getSharedScenarios();
-        sharedReusables.removeIf(s -> !new File(s.getLocation()).exists());
+        sharedReusables.removeIf(s -> s != this && !new File(s.getLocation()).exists());
 
         if (p.getSharedReusableScenarioByName(newName) == null) {
             if (FileUtils.renameFile(getLocation(), newName)) {
-                p.refactorScenario(name, newName);
+                String oldName = name;
+                // Update name before refactoring so getLocation() resolves to the
+                // already-renamed directory when this scenario's own test cases are loaded.
                 name = newName;
+                p.refactorScenario(oldName, newName);
                 return true;
             }
         }
