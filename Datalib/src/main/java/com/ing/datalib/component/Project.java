@@ -320,7 +320,7 @@ public class Project {
                 }
 
                 // Reload test cases in all scenarios to pick up newly created YAML files
-                reloadScenariosAfterMigration();
+                reloadScenarios();
             } else {
                 LOGGER.log(
                     Level.FINE,
@@ -338,11 +338,11 @@ public class Project {
     }
 
     /**
-     * Reloads test cases for all scenarios after CSV-to-YAML migration.
-     * This ensures that Scenario objects pick up the newly created YAML files
-     * instead of still pointing to the now-migrated CSV files.
+     * Reloads test cases for all scenarios (test plan, reusable, and shared reusable).
+     * This ensures that Scenario objects pick up the latest test case data on disk,
+     * such as after a CSV-to-YAML migration replaces the underlying files.
      */
-    private void reloadScenariosAfterMigration() {
+    private void reloadScenarios() {
         int reloadedCount = 0;
 
         // Reload test plan scenarios
