@@ -16,6 +16,7 @@ Release Date: <insert date of release>
 #### Removed
 #### Fixed
 - Fixed incorrect cell deletion mapping in Test Datasheet data columns to ensure correct cell references is removed
+- Fixed false red validation indicator for Reusable Components in main Test Cases
 
 ### Browser/Playwright Testing
 
