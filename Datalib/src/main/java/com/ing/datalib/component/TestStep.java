@@ -305,11 +305,47 @@ public class TestStep {
     }
 
     public Boolean isTestDataStep() {
+        if (isScopedTestDataRef(getInput())) {
+            return true;
+        }
         if (
             getInput().startsWith("<") || getInput().startsWith("{") || getInput().startsWith("[")
         ) return false; else if (
             getInput().matches("(?!(@|=|%)).+:.+")
         ) return true; else return false; // return getInput().matches("(?!(@|=|%)).+:.+");
+    }
+
+    /**
+     * "[Shared] Sheet:Column" / "[Project] Sheet:Column" - bare or braced - an explicit Test
+     * Data scope tag, mirroring ReusableRef.Scope's [Project]/[Shared] convention. Checked
+     * ahead of the generic "starts with [/{ " rule above (which would otherwise reject it),
+     * mirroring DataProcessor.isInputPatternDataSheet on the execution side.
+     */
+    private boolean isScopedTestDataRef(String inp) {
+        return unwrapBraces(inp)
+            .matches("(\\[Shared\\]|\\[Project\\])\\s+[^:{}\\[\\]]+:[^:{}\\[\\]]+");
+    }
+
+    private String unwrapBraces(String inp) {
+        String t = Objects.toString(inp, "").trim();
+        if (t.startsWith("{") && t.endsWith("}")) {
+            t = t.substring(1, t.length() - 1).trim();
+        }
+        return t;
+    }
+
+    /**
+     * Returns the "[Shared]"/"[Project]" scope tag this step's Input carries, or "" if unscoped.
+     */
+    public String getTestDataScopeTag() {
+        String t = unwrapBraces(getInput());
+        if (t.startsWith("[Shared]")) {
+            return "[Shared]";
+        }
+        if (t.startsWith("[Project]")) {
+            return "[Project]";
+        }
+        return "";
     }
 
     public Boolean isEmpty() {
@@ -450,7 +486,12 @@ public class TestStep {
 
     public String[] getTestDataFromInput() {
         if (isTestDataStep()) {
-            return getInput().split(":");
+            String inp = unwrapBraces(getInput());
+            String tag = getTestDataScopeTag();
+            if (!tag.isEmpty()) {
+                inp = inp.substring(tag.length()).trim();
+            }
+            return inp.split(":");
         }
         return null;
     }

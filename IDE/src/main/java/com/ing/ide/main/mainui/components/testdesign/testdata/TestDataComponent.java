@@ -1,5 +1,6 @@
 package com.ing.ide.main.mainui.components.testdesign.testdata;
 
+import com.ing.datalib.component.EnvTestData;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestData;
@@ -75,6 +76,8 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     private final TestDesign testDesign;
 
+    private final boolean shared;
+
     private final XJTabbedPane envTab;
 
     private final TestDataToolBar toolBar;
@@ -90,7 +93,17 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private final StylizedEnvironment environmentPanel;
 
     public TestDataComponent(TestDesign sProxy) {
+        this(sProxy, false);
+    }
+
+    /**
+     * @param sProxy owning test design
+     * @param shared when true, this component browses/edits Shared Test Data
+     *     (Project.getSharedTestData()) instead of the project's own test data
+     */
+    public TestDataComponent(TestDesign sProxy, boolean shared) {
         this.testDesign = sProxy;
+        this.shared = shared;
         envTab = new XJTabbedPane();
         toolBar = new TestDataToolBar(this);
         popupMenu = new TestDataPopupMenu(this);
@@ -181,6 +194,16 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         loadTestData();
     }
 
+    /**
+     * Returns the environment test data this component browses/edits - the project's own
+     * test data, or, when this is the Shared Test Data tab, the app-root shared test data.
+     */
+    private EnvTestData envTestData() {
+        return shared
+            ? testDesign.getProject().getSharedTestData()
+            : testDesign.getProject().getTestData();
+    }
+
     private void loadTestData() {
         if (testDesign.getProject() != null) {
             for (TestData sTestData : getEnvironmentsInSavedOrder()) {
@@ -199,9 +222,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
      * @return ordered environment test data list
      */
     private List<TestData> getEnvironmentsInSavedOrder() {
-        List<TestData> allEnvironments = new ArrayList<>(
-            testDesign.getProject().getTestData().getAllEnvironments()
-        );
+        List<TestData> allEnvironments = new ArrayList<>(envTestData().getAllEnvironments());
         List<String> savedOrder = getSavedOrder(ENV_TAB_ORDER_KEY);
         if (savedOrder.isEmpty()) {
             return allEnvironments;
@@ -424,15 +445,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             panel.load();
             toolBar.switchOptionsForGlobalData(!panel.isGlobalData);
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            toolBar.setSearchText(panel.std.getName(), envName);
+            toolBar.setSearchText(panel.std.getName(), envName, shared);
         }
     }
 
     private void addNewTestData(Object source) {
         JTabbedPane tab = (JTabbedPane) source;
-        TestDataModel model = testDesign
-            .getProject()
-            .getTestData()
+        TestDataModel model = envTestData()
             .getTestDataFor(envTab.getTitleAt(envTab.getSelectedIndex()))
             .addTestData();
         TestCase testcase = testDesign.getTestCaseComp().getCurrentTestCase();
@@ -497,9 +516,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 JOptionPane.YES_NO_OPTION
             );
             if (option == JOptionPane.YES_OPTION) {
-                Boolean flag = testDesign
-                    .getProject()
-                    .getTestData()
+                Boolean flag = envTestData()
                     .getTestDataFor(envTab.getTitleAt(envTab.getSelectedIndex()))
                     .deleteTestData(name);
                 if (flag) {
@@ -536,7 +553,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         int index = envTab.getSelectedIndex();
         String envName = envTab.getTitleAt(index);
         envTab.removeTabAt(index);
-        TestData sTestData = testDesign.getProject().getTestData().getTestDataFor(envName);
+        TestData sTestData = envTestData().getTestDataFor(envName);
         envTab.insertTab(
             sTestData.getEnviroment(),
             null,
@@ -564,7 +581,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private TestData getCurrentEnviromentData() {
         if (envTab.getSelectedComponent() instanceof JTabbedPane) {
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            return testDesign.getProject().getTestData().getTestDataFor(envName);
+            return envTestData().getTestDataFor(envName);
         }
         return null;
     }
@@ -717,16 +734,12 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     Set<String> getListOfEnvironements() {
-        return testDesign.getProject().getTestData().getEnvironments();
+        return envTestData().getEnvironments();
     }
 
     List<String> getListOfTestDatas(String env) {
         List<String> tdL = new ArrayList<>();
-        for (AbstractDataModel std : testDesign
-            .getProject()
-            .getTestData()
-            .getTestDataFor(env)
-            .getTestDataList()) {
+        for (AbstractDataModel std : envTestData().getTestDataFor(env).getTestDataList()) {
             tdL.add(std.getName());
         }
         return tdL;
@@ -746,10 +759,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         TestDataTablePanel panel = getSelectedData();
         if (!panel.isGlobalData) {
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            testDesign
-                .getProject()
-                .getTestData()
-                .duplicateSheetsInOtherEnv(envName, (TestDataModel) panel.std);
+            envTestData().duplicateSheetsInOtherEnv(envName, (TestDataModel) panel.std);
             reloadAllExcept(envTab.getSelectedIndex());
         }
     }
@@ -769,7 +779,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             envTab.insertTab(
                 envName,
                 null,
-                createNewTestDataTab(testDesign.getProject().getTestData().getTestDataFor(envName)),
+                createNewTestDataTab(envTestData().getTestDataFor(envName)),
                 null,
                 index
             );
@@ -791,13 +801,11 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         List<String> duplicateSheets,
         Boolean globalDataAsWell
     ) {
-        if (testDesign.getProject().getTestData().getTestDataFor(envName) == null) {
+        if (envTestData().getTestDataFor(envName) == null) {
             if (duplicateDataFromEnv == null) {
-                testDesign.getProject().getTestData().createNewEnvironment(envName);
+                envTestData().createNewEnvironment(envName);
             } else {
-                testDesign
-                    .getProject()
-                    .getTestData()
+                envTestData()
                     .createNewEnvironment(
                         envName,
                         duplicateDataFromEnv,
@@ -805,7 +813,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                         globalDataAsWell
                     );
             }
-            addNewEnvironment(testDesign.getProject().getTestData().getTestDataFor(envName));
+            addNewEnvironment(envTestData().getTestDataFor(envName));
             return true;
         } else {
             Notification.show("An Environment with name '" + envName + "' is already present");
@@ -817,10 +825,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         if (!tdPanel.isGlobalData) {
             List<String> colList = tdPanel.getSelectedColumns();
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            testDesign
-                .getProject()
-                .getTestData()
-                .duplicateColumnInOtherEnv(envName, (TestDataModel) tdPanel.std, colList);
+            envTestData().duplicateColumnInOtherEnv(envName, (TestDataModel) tdPanel.std, colList);
         }
     }
 
@@ -828,10 +833,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         if (!tdPanel.isGlobalData) {
             int[] rows = tdPanel.table.getSelectedRows();
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            testDesign
-                .getProject()
-                .getTestData()
-                .duplicateRowsInOtherEnv(envName, (TestDataModel) tdPanel.std, rows);
+            envTestData().duplicateRowsInOtherEnv(envName, (TestDataModel) tdPanel.std, rows);
         }
     }
 
@@ -892,10 +894,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private Boolean renameEnvironment(String newName) {
         String envName = envTab.getTitleAt(envTab.getSelectedIndex());
         if (!envName.equals("Default") && !envName.equals(newName.trim())) {
-            boolean renamed = testDesign
-                .getProject()
-                .getTestData()
-                .renameEnvironment(envName, newName);
+            boolean renamed = envTestData().renameEnvironment(envName, newName);
             if (renamed) {
                 String oldKey = getTestDataTabOrderKey(envName);
                 String newKey = getTestDataTabOrderKey(newName);
@@ -936,7 +935,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             );
             if (option == JOptionPane.YES_OPTION) {
                 envTab.removeTabAt(envTab.getSelectedIndex());
-                testDesign.getProject().getTestData().deleteEnvironment(envName);
+                envTestData().deleteEnvironment(envName);
                 testDesign
                     .getProject()
                     .getProjectSettings()
@@ -1074,7 +1073,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             }
             tDAutoSuggest = new TestDataAutoSuggest(testDesign.getProject(), table);
             table.setDragEnabled(true);
-            table.setTransferHandler(new TestDataDnD());
+            table.setTransferHandler(new TestDataDnD(shared));
             table.setComponentPopupMenu(popupMenu);
 
             table.addMouseListener(
@@ -1214,9 +1213,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 @Override
                 public void actionPerformed(ActionEvent ae) {
                     assignThePreviouslySelected();
-                    Boolean flag = testDesign
-                        .getProject()
-                        .getTestData()
+                    Boolean flag = envTestData()
                         .renameTestDataColumn(
                             std.getName(),
                             getValue("oldvalue").toString(),
@@ -1573,9 +1570,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
 
             // Check for duplicates in other environments
-            List<String> otherEnvsWithSameName = testDesign
-                .getProject()
-                .getTestData()
+            List<String> otherEnvsWithSameName = envTestData()
                 .findOtherEnvironmentsWithDatasheet(oldName, envName);
 
             if (!otherEnvsWithSameName.isEmpty()) {
@@ -1596,12 +1591,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
                 if (selectedEnvs == null) {
                     // User chose to rename current environment only
-                    if (
-                        testDesign
-                            .getProject()
-                            .getTestData()
-                            .renameTestData(oldName, newName, envName)
-                    ) {
+                    if (envTestData().renameTestData(oldName, newName, envName)) {
                         renameTestDataTabs(oldName, newName);
                         return true;
                     } else {
@@ -1616,12 +1606,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     List<String> allEnvs = new ArrayList<>(selectedEnvs);
                     allEnvs.add(envName);
 
-                    if (
-                        testDesign
-                            .getProject()
-                            .getTestData()
-                            .renameTestDataAcrossEnvironments(oldName, newName, allEnvs)
-                    ) {
+                    if (envTestData().renameTestDataAcrossEnvironments(oldName, newName, allEnvs)) {
                         // Update tabs in all affected environments
                         renameTestDataTabsInEnvironments(oldName, newName, allEnvs);
                         return true;
@@ -1636,9 +1621,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 }
             } else {
                 // No duplicates in other environments, proceed with normal rename
-                if (
-                    testDesign.getProject().getTestData().renameTestData(oldName, newName, envName)
-                ) {
+                if (envTestData().renameTestData(oldName, newName, envName)) {
                     renameTestDataTabs(oldName, newName);
                     return true;
                 } else {
