@@ -82,6 +82,19 @@ Coverage includes path precedence, packaged platform defaults, portable behavior
 
 ---
 
+## Platform-specific JavaFX packaging
+
+Native installer inputs now exclude JavaFX libraries for other operating systems.
+
+- macOS packages retain generic and macOS ARM64 JavaFX libraries.
+- Windows packages retain generic and Windows JavaFX libraries.
+- Portable distributions retain JavaFX libraries for all supported platforms.
+- No Maven dependencies, project resources, or Workspace files are removed.
+- The macOS application size was reduced by approximately 91 MB.
+- The macOS PKG size was reduced by approximately 89 MB.
+
+---
+
 ## Native macOS Packaging
 
 ### `scripts/package-macos-app.zsh`

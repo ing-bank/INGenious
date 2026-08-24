@@ -101,6 +101,23 @@ New-Item -ItemType Directory -Path $InputDir -Force | Out-Null
 Get-ChildItem -LiteralPath $ReleaseRuntime -Force |
     Copy-Item -Destination $InputDir -Recurse -Force
 
+Write-Host ""
+Write-Host "Removing JavaFX libraries for non-Windows platforms"
+
+$ForeignJavaFxJars = @(
+    Get-ChildItem -LiteralPath (Join-Path $InputDir "lib") -File |
+        Where-Object {
+            $_.Name -match '^javafx-.+-(linux|mac-aarch64)[.]jar$'
+        }
+)
+
+foreach ($ForeignJavaFxJar in $ForeignJavaFxJars) {
+    Write-Host "Removed: $($ForeignJavaFxJar.Name)"
+    Remove-Item -LiteralPath $ForeignJavaFxJar.FullName -Force
+}
+
+Write-Host "Removed JavaFX JARs: $($ForeignJavaFxJars.Count)"
+
 Copy-Item `
     -LiteralPath $WorkspaceSource `
     -Destination (Join-Path $InputDir "WorkspaceTemplate") `

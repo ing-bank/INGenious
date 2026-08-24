@@ -83,6 +83,23 @@ mkdir -p -- "$INPUT"
 ditto "$RELEASE_RUNTIME" "$INPUT"
 
 print -- ""
+print -- "Removing JavaFX libraries for non-macOS platforms"
+
+removed_javafx_count=0
+
+while IFS= read -r foreign_javafx_jar; do
+  rm -f -- "$foreign_javafx_jar"
+  print -- "Removed: ${foreign_javafx_jar:t}"
+  removed_javafx_count=$((removed_javafx_count + 1))
+done < <(
+  find "$INPUT/lib" -maxdepth 1 -type f -print |
+    grep -E '/javafx-.+-(linux|win)[.]jar$' ||
+    true
+)
+
+print -- "Removed JavaFX JARs: $removed_javafx_count"
+
+print -- ""
 print -- "[2/5] Validating staged resources"
 
 for item in \
