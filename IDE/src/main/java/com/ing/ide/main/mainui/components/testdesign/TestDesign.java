@@ -29,6 +29,8 @@ public class TestDesign {
 
     private final TestDataComponent testDataComp;
 
+    private final TestDataComponent sharedTestDataComp;
+
     private final JPanel testcaseMirage;
 
     private final ProjectTree projectTree;
@@ -53,6 +55,7 @@ public class TestDesign {
         scenarioComp = new ScenarioComponent(this);
         testcaseComp = new TestCaseComponent(this, this.sMainFrame);
         testDataComp = new TestDataComponent(this);
+        sharedTestDataComp = new TestDataComponent(this, true);
         objectRepo = new ObjectRepo(this);
         testcaseMirage = new JPanel();
         testDesignUI = new TestDesignUI(this);
@@ -102,6 +105,10 @@ public class TestDesign {
         return testDataComp;
     }
 
+    public TestDataComponent getSharedTestDataComp() {
+        return sharedTestDataComp;
+    }
+
     public ScenarioComponent getScenarioComp() {
         return scenarioComp;
     }
@@ -149,6 +156,7 @@ public class TestDesign {
         scenarioComp.load();
         testcaseComp.load();
         testDataComp.load();
+        sharedTestDataComp.load();
         reusableTree.load();
         sharedReusableTree.load();
         projectTree.load();

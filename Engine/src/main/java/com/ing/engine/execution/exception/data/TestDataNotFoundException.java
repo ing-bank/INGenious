@@ -31,6 +31,7 @@ public class TestDataNotFoundException extends DataNotFoundException {
                 getTemplate(context.isReusable()),
                 getMessage(),
                 context.executor().runEnv(),
+                scopeLabel(),
                 sheet,
                 field,
                 context.getRoot().scenario(),
@@ -45,8 +46,19 @@ public class TestDataNotFoundException extends DataNotFoundException {
 
     public static String getTemplate(Boolean isReusable) {
         return (
-            "{0} \n[Env : {1} | Sheet : {2} | Field : {3} | TestCase : {4}/{5}" +
-            (isReusable ? " | Reusable : {6}/{7} ]" : " ]")
+            "{0} \n[Env : {1} | Scope : {2} | Sheet : {3} | Field : {4} | TestCase : {5}/{6}" +
+            (isReusable ? " | Reusable : {7}/{8} ]" : " ]")
         );
+    }
+
+    /**
+     * "Shared" or "Project" - which Test Data location this sheet reference was resolved
+     * against, based on the [Shared]/[Project] scope tag the sheet reference carries (no tag
+     * defaults to Project). Included in every message so it's always clear where the lookup
+     * happened, not just when the sheet couldn't be found anywhere at all.
+     */
+    private String scopeLabel() {
+        String s = sheet == null ? "" : sheet.trim();
+        return s.startsWith("[Shared]") ? "Shared" : "Project";
     }
 }

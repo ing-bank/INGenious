@@ -55,7 +55,7 @@ public class TestDataToolBar extends JToolBar {
         searchField.setText("");
     }
 
-    public void setSearchText(String tdName, String envName) {
+    public void setSearchText(String tdName, String envName, boolean shared) {
         String scText = tdName;
         if (scText.length() > 20) {
             scText = scText.substring(0, 20) + "...";
@@ -64,12 +64,8 @@ public class TestDataToolBar extends JToolBar {
         if (tcText.length() > 20) {
             tcText = tcText.substring(0, 20) + "...";
         }
-        String text = scText + " [" + tcText + " ]";
-        //        String toolTip
-        //                = tdName
-        //                + " ["
-        //                + envName
-        //                + " ]";
+        String scope = shared ? "Shared" : "Project";
+        String text = "Search in [ " + scText + " (" + scope + ") [" + tcText + "] ]";
         searchField.setPlaceHolder(text, null);
     }
 

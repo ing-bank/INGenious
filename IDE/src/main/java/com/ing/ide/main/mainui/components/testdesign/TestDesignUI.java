@@ -37,6 +37,7 @@ public class TestDesignUI extends JPanel {
     JPanel appReusablePanel;
     JPanel testPlanPanel;
     JTabbedPane reusableTreeTabbedPane;
+    JTabbedPane testDataTabbedPane;
 
     JButton reusableSwitch;
 
@@ -84,7 +85,12 @@ public class TestDesignUI extends JPanel {
         testCaseNTestDataSplitPane.setResizeWeight(0.5);
 
         testCaseNTestDataSplitPane.setTopComponent(testDesign.getTestCaseComponent());
-        testCaseNTestDataSplitPane.setBottomComponent(testDesign.getTestDatacomp());
+
+        // Create tabbed pane for Project and Shared Test Data, mirroring the Reusable Components tabs above
+        testDataTabbedPane = new JTabbedPane();
+        testDataTabbedPane.addTab("Project", testDesign.getTestDatacomp());
+        testDataTabbedPane.addTab("Shared", testDesign.getSharedTestDataComp());
+        testCaseNTestDataSplitPane.setBottomComponent(testDataTabbedPane);
 
         oneTwo = new JSplitPane();
         oneTwo.setOneTouchExpandable(true);
@@ -104,6 +110,16 @@ public class TestDesignUI extends JPanel {
 
         // Apply initial pane backgrounds
         applyPaneBackgrounds();
+    }
+
+    /**
+     * Switches the visible Test Data tab, so "Go to Test Data" navigation is actually seen by
+     * the user rather than silently updating a panel hidden behind the other tab.
+     */
+    public void selectTestDataTab(boolean shared) {
+        if (testDataTabbedPane != null) {
+            testDataTabbedPane.setSelectedIndex(shared ? 1 : 0);
+        }
     }
 
     /**
@@ -143,8 +159,10 @@ public class TestDesignUI extends JPanel {
         // Object Repository pane (dark black in dark mode)
         applyBackgroundRecursively(testDesign.getObjectRepo(), sidebarColor, dividerColor);
 
-        // Test Data pane (dark black in dark mode)
-        applyBackgroundRecursively(testDesign.getTestDatacomp(), sidebarColor, dividerColor);
+        // Test Data pane, both Project and Shared tabs (dark black in dark mode)
+        if (testDataTabbedPane != null) {
+            applyBackgroundRecursively(testDataTabbedPane, sidebarColor, dividerColor);
+        }
 
         // Test Steps pane (slightly lighter in dark mode)
         applyBackgroundRecursively(testDesign.getTestCaseComponent(), editorColor, dividerColor);

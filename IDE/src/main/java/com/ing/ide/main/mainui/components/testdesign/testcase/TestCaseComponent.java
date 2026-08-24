@@ -1835,9 +1835,12 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 .get(testCaseTable.getSelectedRow());
             String[] tdFromInput = tStep.getTestDataFromInput();
             if (tdFromInput != null) {
-                if (
-                    !testDesign.getTestDatacomp().navigateToTestData(tdFromInput[0], tdFromInput[1])
-                ) {
+                boolean shared = "[Shared]".equals(tStep.getTestDataScopeTag());
+                com.ing.ide.main.mainui.components.testdesign.testdata.TestDataComponent tdComp = shared
+                    ? testDesign.getSharedTestDataComp()
+                    : testDesign.getTestDatacomp();
+                testDesign.getTestDesignUI().selectTestDataTab(shared);
+                if (!tdComp.navigateToTestData(tdFromInput[0], tdFromInput[1])) {
                     Notification.show(
                         "Test Data [" +
                         tdFromInput[0] +

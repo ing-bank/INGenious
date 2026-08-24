@@ -20,8 +20,11 @@ import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import com.ing.datalib.settings.ProjectSettings;
+import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.datalib.util.data.FileScanner;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -61,6 +64,8 @@ public class Project {
 
     public static final String SHARED_REUSABLE_COMPONENTS_DIR = "SharedReusableComponents";
 
+    public static final String SHARED_TEST_DATA_DIR = "SharedTestData";
+
     private List<Scenario> scenarios = new ArrayList<>();
 
     private final List<Scenario> reusableScenarios = new ArrayList<>();
@@ -72,6 +77,8 @@ public class Project {
     private String testdataType;
 
     private EnvTestData testData;
+
+    private EnvTestData sharedTestData;
 
     private String location;
 
@@ -229,6 +236,16 @@ public class Project {
                     .getLogger(Project.class.getName())
                     .log(Level.WARNING, "Failed to reconcile shared reusable projects items", ex);
             }
+
+            // Reconcile shared test data project tracking to clean stale entries
+            try {
+                reconcileSharedTestDataProjectsItems();
+            } catch (Exception ex) {
+                Logger
+                    .getLogger(Project.class.getName())
+                    .log(Level.WARNING, "Failed to reconcile shared test data projects items", ex);
+            }
+            registerSharedTestDataUsage();
         }
     }
 
@@ -399,6 +416,125 @@ public class Project {
             Logger
                 .getLogger(Project.class.getName())
                 .log(Level.WARNING, "Error reconciling shared reusable projects.items", ex);
+        }
+    }
+
+    /**
+     * Reconciles the shared test data projects.items file by removing stale project entries.
+     * Validates that all projects in the file still exist at their recorded paths.
+     */
+    private void reconcileSharedTestDataProjectsItems() {
+        try {
+            File sharedRoot = new File(getSharedTestDataPath());
+            File projectsFile = new File(sharedRoot, "projects.items");
+
+            if (!projectsFile.exists()) {
+                return; // No projects.items file to reconcile
+            }
+
+            try {
+                String content = FileScanner.readFile(projectsFile);
+                if (content == null || content.isEmpty()) {
+                    return; // Empty file, nothing to reconcile
+                }
+
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                java.util.List<java.util.Map<String, String>> projects = mapper.readValue(
+                    content,
+                    mapper
+                        .getTypeFactory()
+                        .constructCollectionType(java.util.List.class, java.util.Map.class)
+                );
+
+                // Filter out stale entries - keep only projects that still exist on disk
+                java.util.List<java.util.Map<String, String>> validProjects = new java.util.ArrayList<>();
+                for (java.util.Map<String, String> proj : projects) {
+                    String projectPath = proj.get("path");
+                    if (projectPath != null && !projectPath.isEmpty()) {
+                        File projectDir = new File(projectPath);
+                        // Keep entry if the project directory exists
+                        if (projectDir.exists() && projectDir.isDirectory()) {
+                            validProjects.add(proj);
+                        }
+                    }
+                }
+
+                // Write reconciled list back only if changes were made
+                if (validProjects.size() != projects.size()) {
+                    String jsonOutput = mapper
+                        .writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(validProjects);
+
+                    // Atomic write: write to temp and rename
+                    File tmp = new File(projectsFile.getPath() + ".tmp");
+                    FileScanner.writeFile(tmp, jsonOutput);
+                    if (tmp.exists()) {
+                        if (!tmp.renameTo(projectsFile)) {
+                            // Fallback if rename fails
+                            FileScanner.writeFile(projectsFile, jsonOutput);
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                Logger
+                    .getLogger(Project.class.getName())
+                    .log(Level.WARNING, "Failed to read projects.items during reconciliation", ex);
+            }
+        } catch (Exception ex) {
+            Logger
+                .getLogger(Project.class.getName())
+                .log(Level.WARNING, "Error reconciling shared test data projects.items", ex);
+        }
+    }
+
+    /**
+     * Registers this project as a consumer of Shared Test Data by recording it in the
+     * shared root's projects.items file, mirroring the shared reusable components convention.
+     * No-op if the project has no shared test data sheets to consume.
+     */
+    private void registerSharedTestDataUsage() {
+        try {
+            File sharedRoot = new File(getSharedTestDataPath());
+            if (!sharedRoot.exists() || !sharedRoot.isDirectory()) {
+                return;
+            }
+
+            File projectsFile = new File(sharedRoot, "projects.items");
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            java.util.List<java.util.Map<String, String>> projects = new java.util.ArrayList<>();
+            if (projectsFile.exists()) {
+                String content = FileScanner.readFile(projectsFile);
+                if (content != null && !content.isEmpty()) {
+                    projects =
+                        mapper.readValue(
+                            content,
+                            mapper
+                                .getTypeFactory()
+                                .constructCollectionType(java.util.List.class, java.util.Map.class)
+                        );
+                }
+            }
+
+            boolean alreadyRegistered = projects
+                .stream()
+                .anyMatch(p -> location.equals(p.get("path")));
+            if (alreadyRegistered) {
+                return;
+            }
+
+            java.util.Map<String, String> entry = new java.util.LinkedHashMap<>();
+            entry.put("name", name);
+            entry.put("path", location);
+            projects.add(entry);
+
+            String jsonOutput = mapper
+                .writerWithDefaultPrettyPrinter()
+                .writeValueAsString(projects);
+            FileScanner.writeFile(projectsFile, jsonOutput);
+        } catch (Exception ex) {
+            Logger
+                .getLogger(Project.class.getName())
+                .log(Level.WARNING, "Failed to register shared test data usage", ex);
         }
     }
 
@@ -614,6 +750,27 @@ public class Project {
                 "Shared" +
                 File.separator +
                 SHARED_REUSABLE_COMPONENTS_DIR
+            );
+        }
+    }
+
+    /**
+     * Returns the absolute path to the Shared Test Data directory at app root level.
+     * This directory is global across all projects and shared at the application level.
+     * @return Shared Test Data directory path
+     */
+    public static String getSharedTestDataPath() {
+        try {
+            String appRoot = new File(System.getProperty("user.dir")).getCanonicalPath();
+            return appRoot + File.separator + "Shared" + File.separator + SHARED_TEST_DATA_DIR;
+        } catch (java.io.IOException ex) {
+            // Fallback to non-canonical path
+            return (
+                System.getProperty("user.dir") +
+                File.separator +
+                "Shared" +
+                File.separator +
+                SHARED_TEST_DATA_DIR
             );
         }
     }
@@ -1430,10 +1587,109 @@ public class Project {
     }
 
     /**
+     * Returns the Shared Test Data, loaded from the app-root Shared/SharedTestData location.
+     * @return shared environment test data
+     */
+    public EnvTestData getSharedTestData() {
+        return sharedTestData;
+    }
+
+    /**
      * Loads test data from disk.
      */
     private void loadTestDatas() {
         testData = new EnvTestData(this);
+        sharedTestData = new EnvTestData(this, true);
+    }
+
+    /**
+     * Copies a project test data sheet to Shared Test Data.
+     * If a sheet with the same file name already exists in the shared location, it is overwritten.
+     * @param sheet the sheet to copy
+     * @param environment the environment the sheet belongs to
+     * @throws IOException if the file could not be copied
+     */
+    public void copyTestDataSheetToShared(TestDataModel sheet, String environment)
+        throws IOException {
+        transferTestDataSheet(sheet, environment, getSharedTestDataPath(), false);
+    }
+
+    /**
+     * Moves a project test data sheet to Shared Test Data.
+     * @param sheet the sheet to move
+     * @param environment the environment the sheet belongs to
+     * @throws IOException if the file could not be moved
+     */
+    public void moveTestDataSheetToShared(TestDataModel sheet, String environment)
+        throws IOException {
+        transferTestDataSheet(sheet, environment, getSharedTestDataPath(), true);
+    }
+
+    /**
+     * Copies a Shared Test Data sheet into this project.
+     * @param sheet the sheet to copy
+     * @param environment the environment the sheet belongs to
+     * @throws IOException if the file could not be copied
+     */
+    public void copyTestDataSheetToProject(TestDataModel sheet, String environment)
+        throws IOException {
+        transferTestDataSheet(
+            sheet,
+            environment,
+            getLocation() + File.separator + "TestData",
+            false
+        );
+    }
+
+    /**
+     * Moves a Shared Test Data sheet into this project.
+     * @param sheet the sheet to move
+     * @param environment the environment the sheet belongs to
+     * @throws IOException if the file could not be moved
+     */
+    public void moveTestDataSheetToProject(TestDataModel sheet, String environment)
+        throws IOException {
+        transferTestDataSheet(
+            sheet,
+            environment,
+            getLocation() + File.separator + "TestData",
+            true
+        );
+    }
+
+    private void transferTestDataSheet(
+        TestDataModel sheet,
+        String environment,
+        String targetRoot,
+        boolean move
+    )
+        throws IOException {
+        File sourceFile = new File(sheet.getLocation());
+        if (!sourceFile.exists()) {
+            throw new FileNotFoundException("Test data sheet file does not exist: " + sourceFile);
+        }
+
+        String envSuffix = "Default".equals(environment) ? "" : File.separator + environment;
+        File targetDir = new File(targetRoot + envSuffix);
+        targetDir.mkdirs();
+        File targetFile = new File(targetDir, sourceFile.getName());
+
+        if (move) {
+            Files.move(
+                sourceFile.toPath(),
+                targetFile.toPath(),
+                StandardCopyOption.REPLACE_EXISTING
+            );
+        } else {
+            Files.copy(
+                sourceFile.toPath(),
+                targetFile.toPath(),
+                StandardCopyOption.REPLACE_EXISTING
+            );
+        }
+
+        // Reload so both the project and shared TestData reflect the transferred sheet
+        loadTestDatas();
     }
 
     /**

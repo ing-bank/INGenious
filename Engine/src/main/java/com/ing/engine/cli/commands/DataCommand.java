@@ -35,6 +35,14 @@ public class DataCommand implements Callable<Integer> {
     }
 
     /**
+     * Resolves the app-root Shared Test Data directory (Shared/SharedTestData), global across
+     * all projects. Mirrors Project.getSharedTestDataPath() without depending on Datalib.
+     */
+    static File sharedTestDataDir() {
+        return new File(new File(System.getProperty("user.dir"), "Shared"), "SharedTestData");
+    }
+
+    /**
      * List data sheets/environments.
      */
     @Command(name = "list", description = "List data sheets")
@@ -45,20 +53,31 @@ public class DataCommand implements Callable<Integer> {
         @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
+        @Option(
+            names = { "--shared" },
+            description = "List sheets from Shared Test Data instead of the project"
+        )
+        private boolean shared;
+
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
 
-            String path = projectPath != null ? projectPath : cli.getProjectPath();
-            if (path == null || path.isEmpty()) {
-                cli.printError("Project path required.");
-                return 1;
+            File testDataDir;
+            if (shared) {
+                testDataDir = sharedTestDataDir();
+            } else {
+                String path = projectPath != null ? projectPath : cli.getProjectPath();
+                if (path == null || path.isEmpty()) {
+                    cli.printError("Project path required.");
+                    return 1;
+                }
+                testDataDir = new File(path, "TestData");
             }
 
             try {
-                File testDataDir = new File(path, "TestData");
                 if (!testDataDir.exists()) {
-                    cli.printWarning("No test data found.");
+                    cli.printWarning(shared ? "No shared test data found." : "No test data found.");
                     return 0;
                 }
 
@@ -125,21 +144,33 @@ public class DataCommand implements Callable<Integer> {
         @Option(names = { "--limit" }, description = "Number of rows to show", defaultValue = "20")
         private int limit;
 
+        @Option(
+            names = { "--shared" },
+            description = "Show a sheet from Shared Test Data instead of the project"
+        )
+        private boolean shared;
+
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
 
-            String path = projectPath != null ? projectPath : cli.getProjectPath();
-            if (path == null || path.isEmpty()) {
-                cli.printError("Project path required.");
-                return 1;
+            File testDataDir;
+            if (shared) {
+                testDataDir = sharedTestDataDir();
+            } else {
+                String path = projectPath != null ? projectPath : cli.getProjectPath();
+                if (path == null || path.isEmpty()) {
+                    cli.printError("Project path required.");
+                    return 1;
+                }
+                testDataDir = new File(path, "TestData");
             }
 
             try {
-                File dataFile = new File(path, "TestData/" + sheetName);
+                File dataFile = new File(testDataDir, sheetName);
                 if (!dataFile.exists()) {
                     // Try with .csv extension
-                    dataFile = new File(path, "TestData/" + sheetName + ".csv");
+                    dataFile = new File(testDataDir, sheetName + ".csv");
                 }
 
                 if (!dataFile.exists()) {

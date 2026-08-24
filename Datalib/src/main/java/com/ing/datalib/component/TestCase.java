@@ -1356,7 +1356,7 @@ public class TestCase extends DataModel {
             String[] values = testStep.getTestDataFromInput();
             if (values != null) {
                 if (values[0].equals(oldTDName)) {
-                    testStep.setInput(newTDName + ":" + values[1]);
+                    testStep.setInput(withScopeTag(testStep, newTDName + ":" + values[1]));
                 }
             }
         }
@@ -1364,6 +1364,15 @@ public class TestCase extends DataModel {
             save();
             getTestSteps().clear();
         }
+    }
+
+    /**
+     * Re-applies the "[Shared]"/"[Project]" scope tag a test data reference carried, since
+     * refactorTestData/refactorTestDataColumn rebuild the Input from bare sheet/column names.
+     */
+    private String withScopeTag(TestStep testStep, String bareInput) {
+        String tag = testStep.getTestDataScopeTag();
+        return tag.isEmpty() ? bareInput : tag + " " + bareInput;
     }
 
     public void refactorTestDataColumn(
@@ -1377,7 +1386,7 @@ public class TestCase extends DataModel {
             String[] values = testStep.getTestDataFromInput();
             if (values != null) {
                 if (values[0].equals(testDataName) && values[1].equals(oldColumnName)) {
-                    testStep.setInput(testDataName + ":" + newColumnName);
+                    testStep.setInput(withScopeTag(testStep, testDataName + ":" + newColumnName));
                 }
             }
         }
