@@ -61,7 +61,7 @@ public class DataAccess extends DataAccessInternal {
         if (val == null) {
             throwErrorWithCause(context, sheet, field, subIter);
         }
-        return DataProcessor.resolve(val, context, field);
+        return DataProcessor.resolve(inheritSheetScopeForGlobalDataRef(val, sheet), context, field);
     }
 
     /**
@@ -196,7 +196,7 @@ public class DataAccess extends DataAccessInternal {
         if (val == null) {
             throwErrorWithCause(context, sheet, field, subIter);
         }
-        return DataProcessor.resolve(val, context, field);
+        return DataProcessor.resolve(inheritSheetScopeForGlobalDataRef(val, sheet), context, field);
     }
 
     /**
@@ -271,21 +271,46 @@ public class DataAccess extends DataAccessInternal {
     public static String getGlobalData(TestCaseRunner context, String gid, String field)
         throws DataNotFoundException {
         Object val;
-        GlobalDataModel env;
-        GlobalDataModel def = context.executor().dataProvider().defData().getGlobalData();
-        if (validEnv(context)) {
-            env =
-                context
+        boolean shared = isSharedScopeRef(gid);
+        String bareGid = shared ? stripSharedScopeTag(gid) : stripProjectScopeTag(gid);
+
+        if (shared) {
+            com.ing.datalib.component.EnvTestData sharedProvider = context
+                .project()
+                .getSharedTestData();
+            if (sharedProvider == null) {
+                val = null;
+            } else {
+                GlobalDataModel sharedDef = sharedProvider.defData().getGlobalData();
+                if (validEnv(context)) {
+                    com.ing.datalib.component.TestData sharedEnvTd = sharedProvider.getTestDataFor(
+                        context.executor().runEnv()
+                    );
+                    GlobalDataModel sharedEnv = sharedEnvTd == null
+                        ? null
+                        : sharedEnvTd.getGlobalData();
+                    val = getGlobal(sharedEnv, sharedDef, bareGid, field);
+                } else {
+                    val = getGlobal(sharedDef, bareGid, field);
+                }
+            }
+        } else {
+            GlobalDataModel def = context.executor().dataProvider().defData().getGlobalData();
+            if (validEnv(context)) {
+                GlobalDataModel env = context
                     .executor()
                     .dataProvider()
                     .getTestDataFor(context.executor().runEnv())
                     .getGlobalData();
-            val = getGlobal(env, def, gid, field);
-        } else {
-            val = getGlobal(def, gid, field);
+                val = getGlobal(env, def, bareGid, field);
+            } else {
+                val = getGlobal(def, bareGid, field);
+            }
         }
+
         if (val == null) {
-            throw new GlobalDataNotFoundException(context, gid, field);
+            String scopedField = field + " (" + (shared ? "Shared" : "Project") + " GlobalData)";
+            throw new GlobalDataNotFoundException(context, gid, scopedField);
         }
         return DataProcessor.resolve(val, context, field);
     }
@@ -312,19 +337,25 @@ public class DataAccess extends DataAccessInternal {
         String value
     )
         throws DataNotFoundException {
-        GlobalDataModel env = context.executor().dataProvider().defData().getGlobalData();
-        if (validEnv(context)) {
-            env =
-                context
-                    .executor()
-                    .dataProvider()
-                    .getTestDataFor(context.executor().runEnv())
-                    .getGlobalData();
-        } else if (isNull(env)) {
-            throw new GlobalDataNotFoundException(context, gid, field);
+        boolean shared = isSharedScopeRef(gid);
+        String bareGid = shared ? stripSharedScopeTag(gid) : stripProjectScopeTag(gid);
+        com.ing.datalib.component.EnvTestData provider = shared
+            ? context.project().getSharedTestData()
+            : context.executor().dataProvider();
+
+        GlobalDataModel env = provider == null ? null : provider.defData().getGlobalData();
+        if (provider != null && validEnv(context)) {
+            com.ing.datalib.component.TestData envTd = provider.getTestDataFor(
+                context.executor().runEnv()
+            );
+            env = envTd == null ? null : envTd.getGlobalData();
+        }
+        if (isNull(env)) {
+            String scopedField = field + " (" + (shared ? "Shared" : "Project") + " GlobalData)";
+            throw new GlobalDataNotFoundException(context, gid, scopedField);
         }
         env.load();
-        env.setValueAt(value, env.getRecordIndexByKey(gid), env.findColumn(field));
+        env.setValueAt(value, env.getRecordIndexByKey(bareGid), env.findColumn(field));
         env.saveChanges();
     }
 

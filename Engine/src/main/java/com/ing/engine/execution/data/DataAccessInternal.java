@@ -1,6 +1,8 @@
 package com.ing.engine.execution.data;
 
+import com.ing.datalib.component.EnvTestData;
 import com.ing.datalib.component.ReusableRef;
+import com.ing.datalib.component.TestData;
 import com.ing.datalib.testdata.model.GlobalDataModel;
 import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.datalib.testdata.view.TestDataView;
@@ -480,6 +482,13 @@ public class DataAccessInternal {
                 sheet,
                 field
             );
+            if (!sheetExists(context, sheet)) {
+                String where = isSharedScopeRef(sheet)
+                    ? "in Shared Test Data"
+                    : "in the project's test data";
+                scopedField =
+                    scopedField + " (datasheet '" + sheet + "' was not found " + where + ")";
+            }
             TestDataNotFoundException ex = new TestDataNotFoundException(
                 context,
                 sheet,
@@ -541,16 +550,101 @@ public class DataAccessInternal {
         }
     }
 
+    /**
+     * Explicit scope tag a Test Data reference (sheet name or global data GID) can carry, e.g.
+     * "{[Shared] LoginData:Username}" or "[Shared] #url" - mirrors ReusableRef.Scope's
+     * [Project]/[Shared]/unscoped convention. With no tag (or an explicit [Project] tag), a
+     * reference resolves against the project's own test data only; Shared Test Data is only
+     * consulted when a reference explicitly carries the [Shared] tag.
+     */
+    protected static final String SHARED_SCOPE_TAG = "[Shared]";
+
+    protected static final String PROJECT_SCOPE_TAG = "[Project]";
+
+    protected static boolean isSharedScopeRef(String ref) {
+        return ref != null && ref.trim().startsWith(SHARED_SCOPE_TAG);
+    }
+
+    protected static String stripSharedScopeTag(String ref) {
+        return ref.trim().substring(SHARED_SCOPE_TAG.length()).trim();
+    }
+
+    protected static String stripProjectScopeTag(String ref) {
+        String trimmed = ref.trim();
+        return trimmed.startsWith(PROJECT_SCOPE_TAG)
+            ? trimmed.substring(PROJECT_SCOPE_TAG.length()).trim()
+            : trimmed;
+    }
+
     protected static TestDataModel getModel(TestCaseRunner context, String sheet) {
-        return context
+        if (isSharedScopeRef(sheet)) {
+            return getSharedModel(context, context.executor().runEnv(), stripSharedScopeTag(sheet));
+        }
+        String name = stripProjectScopeTag(sheet);
+        TestData env = context
             .executor()
             .dataProvider()
-            .getTestDataFor(context.executor().runEnv())
-            .getByName(sheet);
+            .getTestDataFor(context.executor().runEnv());
+        return notNull(env) ? env.getByName(name) : null;
     }
 
     protected static TestDataModel getDefModel(TestCaseRunner context, String sheet) {
-        return context.executor().dataProvider().defData().getByName(sheet);
+        if (isSharedScopeRef(sheet)) {
+            return getSharedModel(
+                context,
+                context.executor().dataProvider().defEnv(),
+                stripSharedScopeTag(sheet)
+            );
+        }
+        return context.executor().dataProvider().defData().getByName(stripProjectScopeTag(sheet));
+    }
+
+    /**
+     * Resolves a sheet explicitly tagged "[Shared] &lt;name&gt;" against the app-root Shared Test
+     * Data (Shared/SharedTestData), independent of the running project's own test data.
+     */
+    private static TestDataModel getSharedModel(
+        TestCaseRunner context,
+        String env,
+        String sheetName
+    ) {
+        EnvTestData shared = context.project().getSharedTestData();
+        if (isNull(shared)) {
+            return null;
+        }
+        TestData sharedEnv = shared.getTestDataFor(env);
+        if (isNull(sharedEnv)) {
+            sharedEnv = shared.defData();
+        }
+        return notNull(sharedEnv) ? sharedEnv.getByName(sheetName) : null;
+    }
+
+    /**
+     * If val is a bare (untagged) Global Data reference ("#gid"), inherits the containing
+     * sheet's [Shared]/[Project] scope, so a cell inside a Shared sheet that references global
+     * data without its own explicit tag resolves against Shared GlobalData too, rather than
+     * always defaulting to Project. An already-tagged cell value ("[Shared] #gid" / "[Project]
+     * #gid") is left untouched - explicit wins - as is any non-global-data value.
+     */
+    protected static Object inheritSheetScopeForGlobalDataRef(Object val, String sheet) {
+        if (!(val instanceof String)) {
+            return val;
+        }
+        String s = ((String) val).trim();
+        if (!s.startsWith("#")) {
+            return val;
+        }
+        return isSharedScopeRef(sheet) ? (SHARED_SCOPE_TAG + " " + s) : val;
+    }
+
+    /**
+     * Whether the given sheet is defined anywhere resolvable for this context - the project's
+     * own test data or, as a fallback, Shared Test Data. Used to give a precise error message
+     * when a referenced sheet doesn't exist anywhere, as opposed to existing but lacking the
+     * requested iteration/field.
+     */
+    private static boolean sheetExists(TestCaseRunner context, String sheet) {
+        return notNull(getModel(context, sheet)) || notNull(getDefModel(context, sheet));
     }
 
     protected static boolean validEnv(TestCaseRunner context) {

@@ -26,6 +26,12 @@ public abstract class TestData {
      */
     private boolean readOnlyMode = false;
 
+    /**
+     * When set, used as the root directory instead of the project-relative TestData path.
+     * Used by Shared Test Data to point this instance at the app-root shared location.
+     */
+    private String locationOverride;
+
     public TestData(Project sProject, String enviroment) {
         this.sProject = sProject;
         this.enviroment = enviroment;
@@ -69,12 +75,20 @@ public abstract class TestData {
     }
 
     public String getLocation() {
-        return (
-            sProject.getLocation() +
-            File.separator +
-            "TestData" +
-            (getEnviroment().equals("Default") ? "" : File.separator + getEnviroment())
-        );
+        String root = locationOverride != null
+            ? locationOverride
+            : sProject.getLocation() + File.separator + "TestData";
+        return root + (getEnviroment().equals("Default") ? "" : File.separator + getEnviroment());
+    }
+
+    /**
+     * Points this instance at a root directory other than the owning project's TestData folder.
+     * Used to make this instance read/write the app-root Shared Test Data location instead.
+     *
+     * @param locationOverride absolute path to use as the root, or null to use the default
+     */
+    public void setLocationOverride(String locationOverride) {
+        this.locationOverride = locationOverride;
     }
 
     public List<TestDataModel> getTestDataList() {
