@@ -259,6 +259,16 @@ public class Scenario extends DataModel {
     }
 
     /**
+     * Reloads test cases from disk, clearing existing in-memory test cases first.
+     * This is useful after CSV-to-YAML migration to ensure test cases reflect
+     * the newly created YAML files.
+     */
+    public void reloadTestCases() {
+        testCases.clear();
+        loadTestcases();
+    }
+
+    /**
      * Loads table models for all test cases.
      */
     public void loadTestCasesTableModel() {

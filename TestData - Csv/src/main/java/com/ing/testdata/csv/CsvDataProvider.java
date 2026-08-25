@@ -38,6 +38,15 @@ public class CsvDataProvider extends TestData {
                     // that already had the column keeps whatever values it already has, untouched.
                     if (csvData.isScopeColumnMigrated()) {
                         migrateLegacyRecords(csvData);
+                    } else if (hasEmptyScopeValues(csvData)) {
+                        // Also populate Scope for files where column exists but values are empty
+                        // This can happen if previous migration was interrupted or file was manually edited
+                        LOGGER.log(
+                            Level.INFO,
+                            "Populating empty Scope values in {0}",
+                            csvData.getName()
+                        );
+                        populateEmptyScopeValues(csvData);
                     }
                     addTestData(csvData);
                 }
@@ -94,7 +103,94 @@ public class CsvDataProvider extends TestData {
         }
         // The Scope column itself was just spliced into this file's structure (isScopeColumnMigrated()),
         // so persist that structural change regardless of whether every row's value could be resolved.
+        // Create backup before saving changes
+        CSVUtils.backupTestDataFile(csvData, getEnviroment());
         csvData.saveChanges();
+    }
+
+    /**
+     * Checks if any records have empty Scope values (column exists but value is null/empty).
+     * @param csvData the test data to check
+     * @return true if any record has an empty Scope value
+     */
+    private boolean hasEmptyScopeValues(CsvTestData csvData) {
+        if (csvData.getColumns().size() <= 2) {
+            return false; // Scope column doesn't exist
+        }
+        String scopeColumn = csvData.getColumns().get(2);
+        if (!"Scope".equals(scopeColumn)) {
+            return false; // Not the Scope column at index 2
+        }
+        // Check if any record has empty Scope
+        for (Record record : csvData.getRecords()) {
+            if (record.size() > 2) {
+                String scopeValue = java.util.Objects.toString(record.get(2), "").trim();
+                if (scopeValue.isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Populates empty Scope values in records where Scope column exists but values are missing.
+     * Similar to migrateLegacyRecords but only updates records with empty Scope values.
+     * @param csvData the test data to populate
+     */
+    private void populateEmptyScopeValues(CsvTestData csvData) {
+        boolean hasChanges = false;
+        for (Record record : csvData.getRecords()) {
+            if (record.size() <= 2) {
+                continue; // Skip malformed records
+            }
+
+            String currentScope = java.util.Objects.toString(record.get(2), "").trim();
+            if (!currentScope.isEmpty()) {
+                continue; // Skip records that already have a Scope value
+            }
+
+            String scenario = java.util.Objects.toString(record.get(0), "").trim();
+            String testcase = java.util.Objects.toString(record.get(1), "").trim();
+            String scope;
+            String normalized = scenario;
+
+            // Check scenario for explicit scope markers
+            if (normalized.startsWith("[Project] ")) {
+                scope = "[Project]";
+                normalized = normalized.substring("[Project] ".length());
+            } else if (normalized.startsWith("[Shared] ")) {
+                scope = "[Shared]";
+                normalized = normalized.substring("[Shared] ".length());
+            } else if (normalized.startsWith("[TestPlan] ")) {
+                scope = "";
+                normalized = normalized.substring("[TestPlan] ".length());
+            } else {
+                scope = resolveScopeByUniqueMatch(normalized, testcase);
+            }
+
+            if (scope == null) {
+                LOGGER.log(
+                    Level.WARNING,
+                    "Cannot uniquely resolve Scope for Scenario=[{0}] TestCase=[{1}] in {2} - " +
+                    "found in multiple scopes. Leaving Scope empty; please set it explicitly.",
+                    new Object[] { normalized, testcase, csvData.getName() }
+                );
+                record.set(0, normalized);
+                continue;
+            }
+
+            record.set(2, scope);
+            record.set(0, normalized);
+            hasChanges = true;
+        }
+
+        if (hasChanges) {
+            // Create backup before saving changes
+            CSVUtils.backupTestDataFile(csvData, getEnviroment());
+            csvData.saveChanges();
+            LOGGER.log(Level.INFO, "Saved populated Scope values to {0}", csvData.getName());
+        }
     }
 
     /**

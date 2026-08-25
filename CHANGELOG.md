@@ -16,6 +16,8 @@ Release Date: <insert date of release>
 #### Removed
 #### Fixed
 - Fixed incorrect cell deletion mapping in Test Datasheet data columns to ensure correct cell references is removed
+- Fixed migration issue on Test Data scope field not persisting on first migrate
+- Fixed migration issue on Reusable Components not loading test cases in tree (UI)
 
 ### Browser/Playwright Testing
 
