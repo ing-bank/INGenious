@@ -48,7 +48,9 @@ public class AppToolBar extends JToolBar {
         //add(createButton("Mobile Spy")); /**** This is disabled to ensure that the mobile capabilities are captured from Appium Inspector ****/
         addSeparator();
         add(createButton("Settings"));
-        add(createButton("Archetype Configurations"));
+        JButton archetypeButton = createButton("Archetype Configurations");
+        archetypeButton.setEnabled(AppActionListener.ARCHETYPE_FEATURE_ENABLED);
+        add(archetypeButton);
         addSeparator();
         add(
             new javax.swing.Box.Filler(

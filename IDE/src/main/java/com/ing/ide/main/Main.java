@@ -11,6 +11,7 @@ import com.ing.exceptions.DuplicateMethodException;
 import com.ing.ide.main.cli.UICli;
 import com.ing.ide.main.fx.FXTheme;
 import com.ing.ide.main.fx.INGIcons;
+import com.ing.ide.main.mainui.AppActionListener;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.mainui.ModernSplash;
 import com.ing.ide.main.ui.About;
@@ -306,9 +307,11 @@ public class Main {
                                 // Swap Swing chrome for JavaFX CSS-styled chrome
                                 frame.initFXChrome();
                                 // First-run archetype selector (RELEASE_STRATEGY.md 9.5)
-                                com.ing.ide.main.settings.ArchetypeManagerDialog.maybeShowFirstRun(
-                                    frame
-                                );
+                                if (AppActionListener.ARCHETYPE_FEATURE_ENABLED) {
+                                    com.ing.ide.main.settings.ArchetypeManagerDialog.maybeShowFirstRun(
+                                        frame
+                                    );
+                                }
                             }
                         );
                         delayTimer.setRepeats(false);

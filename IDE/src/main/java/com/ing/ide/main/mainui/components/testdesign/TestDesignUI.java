@@ -54,25 +54,20 @@ public class TestDesignUI extends JPanel {
         testPlanPanel = getTreeInPanel("Test Plan", testDesign.getProjectTree().getTree());
         projectNReusableTreeSplitPane.setTopComponent(testPlanPanel);
 
-        // Create tabbed pane for Project and Shared Reusables with header
+        // Create tabbed pane for Project and Shared Reusables
         reusableTreeTabbedPane = new JTabbedPane();
         JPanel projectReusablesPanel = getRTreeInPanel(
             "User Intent",
             testDesign.getReusableTree().getTree()
         );
-
-        JPanel sharedReusablesPanel = new JPanel(new BorderLayout());
-        sharedReusablesPanel.add(
-            TreeSearch.installFor(testDesign.getSharedReusableTree().getTree()),
-            BorderLayout.CENTER
+        JPanel sharedReusablesPanel = getRTreeInPanel(
+            "Shared Reusables",
+            testDesign.getSharedReusableTree().getTree()
         );
         reusableTreeTabbedPane.addTab("User Intent", projectReusablesPanel);
         reusableTreeTabbedPane.addTab("Shared Reusables", sharedReusablesPanel);
 
-        // Wrap reusable tabbed pane with FXPanelHeader style
         appReusablePanel = new JPanel(new BorderLayout());
-        FXPanelHeader reusableHeader = new FXPanelHeader("Reusable Components");
-        appReusablePanel.add(reusableHeader, BorderLayout.NORTH);
         appReusablePanel.add(reusableTreeTabbedPane, BorderLayout.CENTER);
 
         projectNReusableTreeSplitPane.setBottomComponent(appReusablePanel);
@@ -300,6 +295,23 @@ public class TestDesignUI extends JPanel {
             )
         );
 
+        panel.add(header, BorderLayout.NORTH);
+        panel.add(TreeSearch.installFor(tree), BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JPanel getRTreeInPanel(String labelText, JTree tree) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+
+        registerFont();
+
+        // Reusable panel uses a clickable header (like legacy reusableSwitch button)
+        reusableSwitch = new JButton(labelText);
+        reusableSwitch.setFont(new Font("ING Me", Font.BOLD, 12));
+        reusableSwitch.setContentAreaFilled(false);
+
+        FXPanelHeader header = new FXPanelHeader(labelText);
         panel.add(header, BorderLayout.NORTH);
         panel.add(TreeSearch.installFor(tree), BorderLayout.CENTER);
         return panel;

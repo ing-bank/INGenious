@@ -363,6 +363,10 @@ public class AppMainFrame extends JFrame {
     }
 
     public void showAICopilot() {
+        if (!AppActionListener.AI_ASSISTANT_FEATURE_ENABLED) {
+            Notification.show("AI Assistant is temporarily disabled.");
+            return;
+        }
         getGlassPane().setVisible(false);
         toggleAISidebar();
         if (fxStatusBar != null) fxStatusBar.setCurrentView("AI Assistant");

@@ -189,12 +189,12 @@ public class AppMenuBar extends JMenuBar {
                 'S'
             )
         );
-        configure.add(
-            withMnemonics(
-                withIcon(Utils.createMenuItem("Archetype Configurations", sActionListener)),
-                'A'
-            )
+        JMenuItem archetypeConfigItem = withMnemonics(
+            withIcon(Utils.createMenuItem("Archetype Configurations", sActionListener)),
+            'A'
         );
+        archetypeConfigItem.setEnabled(AppActionListener.ARCHETYPE_FEATURE_ENABLED);
+        configure.add(archetypeConfigItem);
         //   configure.add(
         //           withMnemonics(
         //                   withIcon(
@@ -302,7 +302,12 @@ public class AppMenuBar extends JMenuBar {
             withMnemonics(withShortCut(Utils.createMenuItem("Show Log", sActionListener)), 'o')
         );
         help.addSeparator();
-        help.add(withMnemonics(Utils.createMenuItem("Manage Archetypes", sActionListener), 'M'));
+        JMenuItem manageArchetypes = withMnemonics(
+            Utils.createMenuItem("Manage Archetypes", sActionListener),
+            'M'
+        );
+        manageArchetypes.setEnabled(AppActionListener.ARCHETYPE_FEATURE_ENABLED);
+        help.add(manageArchetypes);
         help.add(withMnemonics(Utils.createMenuItem("Start Tour", sActionListener), 'T'));
 
         return help;
@@ -331,14 +336,12 @@ public class AppMenuBar extends JMenuBar {
 
         window.add(createAPIWorkbenchMenuItem());
 
-        window.add(
-            withMnemonics(
-                withShortCut(
-                    withCopilotIcon(Utils.createMenuItem("AI Assistant", sActionListener))
-                ),
-                'I'
-            )
-        );
+        // JMenuItem aiAssistantItem = withMnemonics(
+        //     withShortCut(withCopilotIcon(Utils.createMenuItem("AI Assistant", sActionListener))),
+        //     'I'
+        // );
+        // aiAssistantItem.setEnabled(AppActionListener.AI_ASSISTANT_FEATURE_ENABLED);
+        // window.add(aiAssistantItem);
 
         window.add(
             withMnemonics(withShortCut(Utils.createMenuItem("AdjustUI", sActionListener)), 'A')

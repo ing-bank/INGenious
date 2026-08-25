@@ -68,7 +68,7 @@ public class FXToolBar extends JFXPanel {
                 createAPITesterButton(),
                 createPerfStudioButton(),
                 createSpacer(),
-                createAICopilotButton()
+                // createAICopilotButton()
                 //, createDarkModeToggle()
             );
 
@@ -93,6 +93,12 @@ public class FXToolBar extends JFXPanel {
         }
 
         btn.setOnAction(e -> fireSwingAction(action));
+        if (
+            "Archetype Configurations".equals(action) &&
+            !AppActionListener.ARCHETYPE_FEATURE_ENABLED
+        ) {
+            btn.setDisable(true);
+        }
         return btn;
     }
 
@@ -145,6 +151,7 @@ public class FXToolBar extends JFXPanel {
         }
 
         btn.setOnAction(e -> fireSwingAction("AI Assistant"));
+        btn.setDisable(!AppActionListener.AI_ASSISTANT_FEATURE_ENABLED);
         return btn;
     }
 

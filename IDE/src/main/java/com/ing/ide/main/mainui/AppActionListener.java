@@ -35,6 +35,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class AppActionListener implements ActionListener {
+    public static final boolean ARCHETYPE_FEATURE_ENABLED = false;
+    public static final boolean AI_ASSISTANT_FEATURE_ENABLED = false;
+
     private final AppMainFrame sMainFrame;
 
     private final NewProject nProject;
@@ -155,9 +158,17 @@ public class AppActionListener implements ActionListener {
                 openSettings();
                 break;
             case "Archetype Configurations":
+                if (!ARCHETYPE_FEATURE_ENABLED) {
+                    Notification.show("Archetype features are temporarily disabled.");
+                    break;
+                }
                 driverSettings.open();
                 break;
             case "Manage Archetypes":
+                if (!ARCHETYPE_FEATURE_ENABLED) {
+                    Notification.show("Archetype features are temporarily disabled.");
+                    break;
+                }
                 com.ing.ide.main.settings.ArchetypeManagerDialog.open(sMainFrame);
                 break;
             case "AzureDevOps TestPlan Configuration":
@@ -214,6 +225,10 @@ public class AppActionListener implements ActionListener {
                 sMainFrame.showPerfStudio();
                 break;
             case "AI Assistant":
+                if (!AI_ASSISTANT_FEATURE_ENABLED) {
+                    Notification.show("AI Assistant is temporarily disabled.");
+                    break;
+                }
                 sMainFrame.showAICopilot();
                 break;
             case "Refresh":

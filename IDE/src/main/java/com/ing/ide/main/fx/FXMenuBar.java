@@ -156,13 +156,15 @@ public class FXMenuBar extends JFXPanel {
             ),
             "API Workbench"
         );
-        bindAccelerator(
-            KeyStroke.getKeyStroke(
-                KeyEvent.VK_I,
-                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
-            ),
-            "AI Assistant"
-        );
+        if (AppActionListener.AI_ASSISTANT_FEATURE_ENABLED) {
+            bindAccelerator(
+                KeyStroke.getKeyStroke(
+                    KeyEvent.VK_I,
+                    InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+                ),
+                "AI Assistant"
+            );
+        }
         bindAccelerator(
             KeyStroke.getKeyStroke(
                 KeyEvent.VK_A,
@@ -255,6 +257,11 @@ public class FXMenuBar extends JFXPanel {
 
     private Menu createConfigurationMenu() {
         Menu config = new Menu("Configurations");
+        MenuItem archetypeConfigurations = menuItem(
+            "Archetype Configurations",
+            "BrowserConfiguration"
+        );
+        archetypeConfigurations.setDisable(!AppActionListener.ARCHETYPE_FEATURE_ENABLED);
         config
             .getItems()
             .addAll(
@@ -265,7 +272,7 @@ public class FXMenuBar extends JFXPanel {
                     KeyCombination.SHORTCUT_DOWN,
                     KeyCombination.ALT_DOWN
                 ),
-                menuItem("Archetype Configurations", "BrowserConfiguration"),
+                archetypeConfigurations,
                 new SeparatorMenuItem(),
                 menuItem("Options", "settings")
             );
