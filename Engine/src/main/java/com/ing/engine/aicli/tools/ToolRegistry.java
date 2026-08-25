@@ -141,6 +141,7 @@ public final class ToolRegistry {
         if (shortId.startsWith("gen_from_") || shortId.equals("gen_testcase")) return true;
         if (shortId.startsWith("browser_")) return shortId.equals("browser_session_save");
         if (shortId.equals("gen_list")) return false;
+        if (shortId.equals("apicollection_to_testcase")) return true;
         for (String token : shortId.split("_")) {
             if (MUTATING_VERBS.contains(token)) return true;
         }

@@ -25,6 +25,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
@@ -79,8 +80,20 @@ public class AICopilotUI extends JPanel {
         north.add(buildTopBar(), BorderLayout.NORTH);
         north.add(contextBar, BorderLayout.SOUTH);
         add(north, BorderLayout.NORTH);
-        add(buildCenter(), BorderLayout.CENTER);
-        add(buildBottom(), BorderLayout.SOUTH);
+
+        // Chat transcript (top) and the composer (bottom) share a vertical split
+        // pane so the user can drag the divider to resize the prompt editor.
+        JSplitPane centerSplit = new JSplitPane(
+            JSplitPane.VERTICAL_SPLIT,
+            buildCenter(),
+            buildBottom()
+        );
+        centerSplit.setResizeWeight(1.0);
+        centerSplit.setContinuousLayout(true);
+        centerSplit.setOneTouchExpandable(true);
+        centerSplit.setBorder(null);
+        centerSplit.setDividerSize(8);
+        add(centerSplit, BorderLayout.CENTER);
         wireActions();
         stopButton.setEnabled(false);
         // Default to Agent (tool-calling) mode so the assistant can actually act.
@@ -158,9 +171,14 @@ public class AICopilotUI extends JPanel {
         inputArea.setLineWrap(true);
         inputArea.setWrapStyleWord(true);
         JScrollPane inputScroll = new JScrollPane(inputArea);
-        inputScroll.setPreferredSize(new Dimension(100, 72));
+        inputScroll.setMinimumSize(new Dimension(80, 48));
+        inputScroll.setPreferredSize(new Dimension(100, 96));
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+        JLabel sendHint = new JLabel("Enter to send \u00b7 Shift+Enter for newline");
+        sendHint.setEnabled(false);
+        sendHint.setFont(sendHint.getFont().deriveFont(sendHint.getFont().getSize2D() - 1f));
+        buttons.add(sendHint);
         buttons.add(clearButton);
         buttons.add(stopButton);
         buttons.add(sendButton);
@@ -278,12 +296,16 @@ public class AICopilotUI extends JPanel {
             }
         );
 
-        // Ctrl+Enter sends; plain Enter inserts a newline.
+        // Enter sends; Shift+Enter inserts a newline.
+        inputArea.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "send");
         inputArea
             .getInputMap()
             .put(
-                KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, java.awt.event.InputEvent.CTRL_DOWN_MASK),
-                "send"
+                KeyStroke.getKeyStroke(
+                    KeyEvent.VK_ENTER,
+                    java.awt.event.InputEvent.SHIFT_DOWN_MASK
+                ),
+                "insert-break"
             );
         inputArea
             .getActionMap()
@@ -380,19 +402,29 @@ public class AICopilotUI extends JPanel {
     }
 
     /**
-     * Updates the connection indicator: a green bulb + status when connected to
-     * the VS Code bridge, a yellow bulb + "Not connected" otherwise.
+     * Updates the connection indicator: a green bulb + status when connected,
+     * a yellow bulb + "Not connected" otherwise. The action button label adapts
+     * to the active backend (Copilot SDK vs. VS Code bridge).
      */
     public void setConnected(boolean connected, String status) {
         SwingUtilities.invokeLater(
             () -> {
                 connectionBulb.setIcon(connected ? GREEN_DOT : YELLOW_DOT);
+                boolean sdk = controller.isCopilotSdkEnabled();
                 connectionBulb.setToolTipText(
                     connected
-                        ? "Connected to VS Code"
-                        : "Not connected \u2014 click Connect to VS Code"
+                        ? (sdk ? "Copilot CLI ready" : "Connected to VS Code")
+                        : (
+                            sdk
+                                ? "Copilot CLI not ready \u2014 click to check"
+                                : "Not connected \u2014 click Connect to VS Code"
+                        )
                 );
-                connectButton.setText(connected ? "Reconnect" : "Connect to VS Code");
+                if (sdk) {
+                    connectButton.setText(connected ? "Recheck" : "Check Copilot CLI");
+                } else {
+                    connectButton.setText(connected ? "Reconnect" : "Connect to VS Code");
+                }
                 persistentStatus =
                     status != null ? status : (connected ? "Connected" : "Not connected");
                 if (statusRevertTimer == null || !statusRevertTimer.isRunning()) {

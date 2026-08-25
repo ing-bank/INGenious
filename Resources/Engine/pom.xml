@@ -50,16 +50,15 @@
         <setupDir>../Dist/release</setupDir>
         <resourceDir>../Resources</resourceDir>
         <ingenious-api.version>3.0</ingenious-api.version>
-
         <flatlaf.version>3.5.4</flatlaf.version>
         <ikonli.version>12.3.1</ikonli.version>
-
         <mockito.version>5.14.2</mockito.version>
         <assertj.version>3.27.7</assertj.version>
 
         <java.version>17</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
+        <githubcopilotCLI.release>1.0.11</githubcopilotCLI.release>
 
         <bouncycastle.version>1.85</bouncycastle.version>
     </properties>
@@ -896,7 +895,15 @@
             <version>${jackson.version}</version>
         </dependency>
                  
-       
+
+        <!-- GitHub Copilot SDK for Java: drives the Copilot CLI (proof of concept
+             for the `copilot-sdk` AI-CLI provider). Requires the `copilot` CLI on PATH. -->
+        <dependency>
+            <groupId>com.github</groupId>
+            <artifactId>copilot-sdk-java</artifactId>
+            <version>${githubcopilotCLI.release}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>

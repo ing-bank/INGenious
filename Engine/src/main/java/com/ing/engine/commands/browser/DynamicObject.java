@@ -13,8 +13,6 @@ import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  *
@@ -101,19 +99,13 @@ public class DynamicObject extends Command {
     }
 
     private void setProperty(String key, String value) {
-        if (!AutomationObject.dynamicValue.containsKey(Reference)) {
-            Map<String, Map<String, String>> Object = new HashMap<>();
-            Map<String, String> property = new HashMap<>();
-            property.put(key, value);
-            Object.put(ObjectName, property);
-            AutomationObject.dynamicValue.put(Reference, Object);
-        } else if (!AutomationObject.dynamicValue.get(Reference).containsKey(ObjectName)) {
-            Map<String, String> property = new HashMap<>();
-            property.put(key, value);
-            AutomationObject.dynamicValue.get(Reference).put(ObjectName, property);
-        } else {
-            AutomationObject.dynamicValue.get(Reference).get(ObjectName).put(key, value);
-        }
+        com.ing.engine.core.InlineObjectProperty.putObjectProperty(
+            AutomationObject.dynamicValue,
+            Reference,
+            ObjectName,
+            key,
+            value
+        );
     }
 
     @Action(

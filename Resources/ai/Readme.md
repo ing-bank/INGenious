@@ -20,6 +20,7 @@ server:
 |---|---|
 | `INGenious.skill.md` | Drop into a skills folder (e.g. `.github/skills/ingenious-authoring/SKILL.md`) for skill-capable agents. |
 | `copilot-instructions.md` | Append to your repository's `.github/copilot-instructions.md` (or equivalent custom-instructions file). |
+| `skills/` | Task-specific, **tool-first** skills (browser tests, API tests, UI migration, plugin creation, customization detection) that orchestrate the `ingenious_*` MCP tools. See `skills/README.md`. |
 
 > These files mirror `com.ing.engine.mcp.ConventionCatalog` — the single source
 > of truth also used by the write tools and `ingenious_testcase_validate`.

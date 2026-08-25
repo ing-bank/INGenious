@@ -30,6 +30,30 @@ public interface AiProvider {
     }
 
     /**
+     * True when this provider runs its own agentic loop (it plans, calls tools,
+     * and iterates internally), so the REPL should hand it the user's prompt via
+     * {@link #chat(List)} and print the final answer instead of driving INGenious's
+     * own planner or ReAct loop. Used by the Copilot SDK/CLI provider.
+     */
+    default boolean isSelfAgentic() {
+        return false;
+    }
+
+    /**
+     * Registers a listener for live tool activity (self-agentic providers only).
+     * Pass {@code null} to clear. No-op for providers that don't call tools.
+     */
+    default void setActivity(CopilotActivity activity) {}
+
+    /**
+     * Usage stats for the most recent {@link #chat(List)} turn (elapsed, credits,
+     * model), or {@code null} if the provider doesn't report them.
+     */
+    default TurnStats lastTurnStats() {
+        return null;
+    }
+
+    /**
      * Blocking tool-calling completion: send the conversation plus tool
      * definitions and return the assistant's text and/or requested tool calls.
      * Providers that do not support tools throw by default.
