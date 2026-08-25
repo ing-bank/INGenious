@@ -67,7 +67,7 @@ public class FXToolBar extends JFXPanel {
                 new Separator(),
                 createAPITesterButton(),
                 createPerfStudioButton(),
-                createSpacer(),
+                createSpacer()
                 // createAICopilotButton()
                 //, createDarkModeToggle()
             );
