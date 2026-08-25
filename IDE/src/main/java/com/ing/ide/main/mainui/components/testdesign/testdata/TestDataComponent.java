@@ -1036,11 +1036,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     @Override
                     public boolean isCellEditable(int row, int column) {
                         if (!isGlobalData) {
-                            // Scope column (model column 2) is always read-only and auto-populated
-                            if (column == 2) {
-                                return false;
-                            }
-                            // For frozen table columns in FrozenColumnScrollPane, check model column
+                            // This table only shows dynamic columns (model index >= frozenColumnCount),
+                            // so the raw view column must never be compared to model-column constants
+                            // like the Scope column (model index 2) directly.
                             int modelColumn = column + frozenColumnCount;
                             if (modelColumn == 2) {
                                 return false;
