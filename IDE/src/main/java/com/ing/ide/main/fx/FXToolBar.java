@@ -93,12 +93,6 @@ public class FXToolBar extends JFXPanel {
         }
 
         btn.setOnAction(e -> fireSwingAction(action));
-        if (
-            "Archetype Configurations".equals(action) &&
-            !AppActionListener.ARCHETYPE_FEATURE_ENABLED
-        ) {
-            btn.setDisable(true);
-        }
         return btn;
     }
 

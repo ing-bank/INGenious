@@ -35,7 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class AppActionListener implements ActionListener {
-    public static final boolean ARCHETYPE_FEATURE_ENABLED = false;
+    public static final boolean ARCHETYPE_FEATURE_ENABLED = true;
     public static final boolean AI_ASSISTANT_FEATURE_ENABLED = false;
 
     private final AppMainFrame sMainFrame;

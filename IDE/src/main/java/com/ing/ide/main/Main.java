@@ -306,12 +306,6 @@ public class Main {
                                 frame.setVisible(true);
                                 // Swap Swing chrome for JavaFX CSS-styled chrome
                                 frame.initFXChrome();
-                                // First-run archetype selector (RELEASE_STRATEGY.md 9.5)
-                                if (AppActionListener.ARCHETYPE_FEATURE_ENABLED) {
-                                    com.ing.ide.main.settings.ArchetypeManagerDialog.maybeShowFirstRun(
-                                        frame
-                                    );
-                                }
                             }
                         );
                         delayTimer.setRepeats(false);

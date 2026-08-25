@@ -135,11 +135,14 @@ public final class ArchetypeManagerDialog {
         return loadConfig().getProperty(CONFIG_KEY) != null;
     }
 
-    /** @return the currently enabled archetype ids; defaults to {@code [browser]}. */
+    /** @return the currently enabled archetype ids; defaults to all available archetypes. */
     public static List<String> getSelectedArchetypes() {
         String value = loadConfig().getProperty(CONFIG_KEY);
         if (value == null || value.trim().isEmpty()) {
-            return new ArrayList<>(List.of("browser"));
+            return ARCHETYPES
+                .stream()
+                .map(Archetype::id)
+                .collect(Collectors.toCollection(ArrayList::new));
         }
         List<String> selected = Arrays
             .stream(value.split(","))
