@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ing.engine.aicli.ai.AiProvider;
 import com.ing.engine.aicli.ai.ChatMessage;
 import com.ing.engine.aicli.ai.CopilotProvider;
+import com.ing.engine.aicli.ai.CopilotSdkProvider;
 import com.ing.engine.aicli.ai.ProviderConfig;
 import com.ing.engine.aicli.planning.WorkflowCatalog;
 import com.ing.engine.aicli.tools.Tool;
@@ -256,7 +257,7 @@ final class SlashCommands {
             System.out.println(
                 t.dim(
                     "Change with /model list (pick from available), /model <name>, " +
-                    "/model provider bridge|openai|copilot, /model url <baseUrl>"
+                    "/model provider bridge|openai|copilot|copilot-sdk, /model url <baseUrl>"
                 )
             );
             return;
@@ -271,9 +272,16 @@ final class SlashCommands {
             if ("provider".equals(selector)) {
                 if (
                     p.length < 2 ||
-                    !(p[1].equals("openai") || p[1].equals("copilot") || p[1].equals("bridge"))
+                    !(
+                        p[1].equals("openai") ||
+                        p[1].equals("copilot") ||
+                        p[1].equals("copilot-sdk") ||
+                        p[1].equals("bridge")
+                    )
                 ) {
-                    System.out.println(t.fail("Usage: /model provider bridge|openai|copilot"));
+                    System.out.println(
+                        t.fail("Usage: /model provider bridge|openai|copilot|copilot-sdk")
+                    );
                     return;
                 }
                 repl.aiConfig.provider = p[1];
@@ -298,6 +306,31 @@ final class SlashCommands {
 
     /** Lists models from the current provider's endpoint and lets the user pick one. */
     private void modelList() {
+        if ("copilot-sdk".equalsIgnoreCase(repl.aiConfig.provider)) {
+            List<String> ids;
+            try {
+                ids = CopilotSdkProvider.listAvailableModels();
+            } catch (AiProvider.AiException e) {
+                System.out.println(t.fail(e.getMessage()));
+                System.out.println(
+                    t.dim("Verify the Copilot CLI auth in this shell: copilot auth login")
+                );
+                return;
+            }
+            if (ids.isEmpty()) {
+                System.out.println(t.fail("No models returned by the Copilot CLI."));
+                return;
+            }
+            String chosen = repl.selectFrom(
+                "Available models (copilot-sdk)",
+                ids,
+                false,
+                repl.aiConfig.model
+            );
+            if (chosen != null) applyModel(chosen);
+            return;
+        }
+
         String base = modelsBaseUrl();
         if (base == null || base.isBlank()) {
             System.out.println(
@@ -328,38 +361,13 @@ final class SlashCommands {
             System.out.println(t.fail("No models returned by " + base + "/models."));
             return;
         }
-        System.out.println(t.bold("Available models") + t.dim(" (" + base + ")"));
-        for (int i = 0; i < ids.size(); i++) {
-            String id = ids.get(i);
-            String marker = id.equals(repl.aiConfig.model) ? t.ok("*") : " ";
-            System.out.printf("  %s %2d) %s%n", marker, i + 1, id);
-        }
-        String ans;
-        try {
-            ans = repl.reader.readLine("Select model [1-" + ids.size() + ", Enter to cancel]: ");
-        } catch (Exception e) {
-            return;
-        }
-        if (ans == null || ans.isBlank()) {
-            System.out.println(t.dim("Cancelled."));
-            return;
-        }
-        ans = ans.trim();
-        try {
-            int idx = Integer.parseInt(ans);
-            if (idx < 1 || idx > ids.size()) {
-                System.out.println(t.fail("Out of range."));
-                return;
-            }
-            applyModel(ids.get(idx - 1));
-        } catch (NumberFormatException nfe) {
-            // Allow typing an exact model id instead of a number.
-            if (ids.contains(ans)) {
-                applyModel(ans);
-            } else {
-                System.out.println(t.fail("Not a valid selection: " + ans));
-            }
-        }
+        String chosen = repl.selectFrom(
+            "Available models (" + base + ")",
+            ids,
+            false,
+            repl.aiConfig.model
+        );
+        if (chosen != null) applyModel(chosen);
     }
 
     /** Resolves the base URL (…/v1) whose /models endpoint should be queried. */
@@ -434,6 +442,13 @@ final class SlashCommands {
             } catch (AiProvider.AiException e) {
                 System.out.println(t.fail(e.getMessage()));
             }
+        } else if ("copilot-sdk".equalsIgnoreCase(repl.aiConfig.provider)) {
+            System.out.println(
+                t.dim(
+                    "copilot-sdk uses the external Copilot CLI auth in your shell; " +
+                    "run 'copilot auth login' if needed."
+                )
+            );
         } else {
             System.out.println(
                 t.dim(

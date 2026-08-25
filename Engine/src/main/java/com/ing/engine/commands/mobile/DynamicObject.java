@@ -10,8 +10,6 @@ import com.ing.ingenious.api.types.ArgType;
 import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DynamicObject extends Command {
 
@@ -94,18 +92,12 @@ public class DynamicObject extends Command {
     }
 
     private void setProperty(String key, String value) {
-        if (!MobileObject.dynamicValue.containsKey(Reference)) {
-            Map<String, Map<String, String>> Object = new HashMap<>();
-            Map<String, String> property = new HashMap<>();
-            property.put(key, value);
-            Object.put(ObjectName, property);
-            MobileObject.dynamicValue.put(Reference, Object);
-        } else if (!MobileObject.dynamicValue.get(Reference).containsKey(ObjectName)) {
-            Map<String, String> property = new HashMap<>();
-            property.put(key, value);
-            MobileObject.dynamicValue.get(Reference).put(ObjectName, property);
-        } else {
-            MobileObject.dynamicValue.get(Reference).get(ObjectName).put(key, value);
-        }
+        com.ing.engine.core.InlineObjectProperty.putObjectProperty(
+            MobileObject.dynamicValue,
+            Reference,
+            ObjectName,
+            key,
+            value
+        );
     }
 }

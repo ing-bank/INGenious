@@ -73,7 +73,7 @@ public class AppMainFrame extends JFrame {
     private JSplitPane centerSplit;
 
     /** Last non-zero sidebar width, restored when the sidebar is re-shown. */
-    private int aiSidebarWidth = 360;
+    private int aiSidebarWidth = 675;
 
     private boolean aiSidebarVisible = false;
 
@@ -327,7 +327,7 @@ public class AppMainFrame extends JFrame {
     public void showAICopilot() {
         getGlassPane().setVisible(false);
         toggleAISidebar();
-        if (fxStatusBar != null) fxStatusBar.setCurrentView("AI Assistant");
+        if (fxStatusBar != null) fxStatusBar.setCurrentView("INGenie");
     }
 
     /**
@@ -343,6 +343,10 @@ public class AppMainFrame extends JFrame {
         centerSplit.setContinuousLayout(true);
         centerSplit.setOneTouchExpandable(true);
         centerSplit.setBorder(null);
+        // Small minimum sizes so the divider can be dragged freely in both
+        // directions (Swing otherwise refuses to move it past a component's min).
+        slideShow.setMinimumSize(new java.awt.Dimension(360, 0));
+        aiCopilot.getAICopilotUI().setMinimumSize(new java.awt.Dimension(300, 0));
 
         // Restore persisted state.
         try {
@@ -351,7 +355,10 @@ public class AppMainFrame extends JFrame {
                     AppSettings.get(AppSettings.APP_SETTINGS.AI_SIDEBAR_WIDTH.getKey())
                 );
         } catch (NumberFormatException ignore) {
-            aiSidebarWidth = 360;
+            aiSidebarWidth = 675;
+        }
+        if (aiSidebarWidth < 300) {
+            aiSidebarWidth = 300;
         }
         aiSidebarVisible =
             Boolean.parseBoolean(
@@ -424,7 +431,7 @@ public class AppMainFrame extends JFrame {
             return;
         }
         if (visible) {
-            int clamped = Math.max(280, Math.min(aiSidebarWidth, total / 2));
+            int clamped = computeSidebarWidth(total);
             centerSplit.setDividerSize(8);
             final int targetDivider = total - clamped - centerSplit.getDividerSize();
             // Set the divider immediately for a correct first paint...
@@ -443,7 +450,7 @@ public class AppMainFrame extends JFrame {
                     if (t <= 0) {
                         return;
                     }
-                    int c = Math.max(280, Math.min(aiSidebarWidth, t / 2));
+                    int c = computeSidebarWidth(t);
                     applyingAISidebar = true;
                     centerSplit.setDividerLocation(t - c - centerSplit.getDividerSize());
                     centerSplit.revalidate();
@@ -459,6 +466,12 @@ public class AppMainFrame extends JFrame {
             centerSplit.repaint();
             applyingAISidebar = false;
         }
+    }
+
+    private int computeSidebarWidth(int totalWidth) {
+        int desiredWidth = Math.max(aiSidebarWidth, 300);
+        int maximumWidth = Math.max(280, (totalWidth * 3) / 4);
+        return Math.min(desiredWidth, maximumWidth);
     }
 
     private String getAppTitle() {

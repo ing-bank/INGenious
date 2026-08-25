@@ -70,4 +70,20 @@ public class MCPToolSurfaceTest {
         }
         throw new AssertionError("ingenious_testcase_create not found");
     }
+
+    @Test
+    public void apiCollectionWorkflowToolsAreRegistered() {
+        java.util.Set<String> names = new java.util.HashSet<>();
+        for (JsonNode t : tools()) names.add(t.path("name").asText());
+        assertThat(names)
+            .contains(
+                "ingenious_apicollection_import",
+                "ingenious_apicollection_list",
+                "ingenious_apicollection_show",
+                "ingenious_apicollection_env_set",
+                "ingenious_apicollection_run",
+                "ingenious_apicollection_request_run",
+                "ingenious_apicollection_to_testcase"
+            );
+    }
 }

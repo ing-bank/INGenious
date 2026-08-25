@@ -38,6 +38,7 @@ import picocli.CommandLine.Option;
         ServerCommand.class,
         ShellCommand.class,
         ImportCommand.class,
+        ApiCollectionCommand.class,
         PluginsCommand.class,
         LegacyCommand.class
     },

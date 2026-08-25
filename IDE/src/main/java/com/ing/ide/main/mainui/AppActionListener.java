@@ -215,7 +215,7 @@ public class AppActionListener implements ActionListener {
             case "Performance Studio":
                 sMainFrame.showPerfStudio();
                 break;
-            case "AI Assistant":
+            case "INGenie":
                 sMainFrame.showAICopilot();
                 break;
             case "Refresh":
