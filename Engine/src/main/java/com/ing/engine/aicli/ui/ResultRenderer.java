@@ -73,9 +73,13 @@ public final class ResultRenderer {
             }
         }
 
-        // 2. Try to find an array key
+        // 2. Try to find an array key — but only unwrap straight to a table when
+        // that array is the object's sole meaningful payload. Objects with
+        // several structured fields alongside an array (e.g. doctor's
+        // jdk/playwrightCli/drivers/k6/project) must go through the info box so
+        // none of those other fields get silently dropped.
         JsonNode array = findArray(node);
-        if (array != null && array.size() > 0) {
+        if (array != null && array.size() > 0 && countComplexFields(node) <= 1) {
             return renderArray(toolId, array);
         }
 
@@ -86,6 +90,18 @@ public final class ResultRenderer {
 
         // 4. Scalar
         return t.dim(node.asText());
+    }
+
+    /** Counts top-level fields that are objects or non-empty arrays. */
+    private static int countComplexFields(JsonNode node) {
+        if (!node.isObject()) return 0;
+        int count = 0;
+        Iterator<JsonNode> it = node.elements();
+        while (it.hasNext()) {
+            JsonNode v = it.next();
+            if (v.isObject() || (v.isArray() && v.size() > 0)) count++;
+        }
+        return count;
     }
 
     // ------------------------------------------------------------------
@@ -182,12 +198,15 @@ public final class ResultRenderer {
             String key = e.getKey();
             JsonNode val = e.getValue();
             if (!lines.isEmpty()) lines.add("");
-            if (val.isObject() || (val.isArray() && val.size() > 0 && val.get(0).isObject())) {
-                // nested — render inline summary
-                String summary = val.isArray()
-                    ? "[ " + val.size() + " items ]"
-                    : "{" + val.size() + " fields}";
-                lines.add(kv(key, t.dim(summary), keyWidth));
+            if (val.isObject() && val.size() > 0) {
+                // nested object — flatten one level so its fields are actually visible
+                appendNestedObject(lines, key, val);
+            } else if (val.isArray() && val.size() > 0 && val.get(0).isObject()) {
+                // array of objects (e.g. driver/present pairs) — one bullet row per item
+                lines.add(t.bold(key) + t.dim("  (" + val.size() + ")"));
+                for (JsonNode item : val) {
+                    lines.add("    " + bulletForObject(item));
+                }
             } else if (val.isArray()) {
                 // array of scalars: inline bullet list
                 List<String> scalars = new ArrayList<>();
@@ -210,6 +229,8 @@ public final class ResultRenderer {
                     lines.add(kv(key, t.red(text), keyWidth));
                 } else if (isStepKey(key)) {
                     lines.add(kv(key, t.cyan(text), keyWidth));
+                } else if (val.isBoolean()) {
+                    lines.add(kv(key, val.asBoolean() ? t.green(text) : t.red(text), keyWidth));
                 } else {
                     lines.add(kv(key, text, keyWidth));
                 }
@@ -221,6 +242,82 @@ public final class ResultRenderer {
         }
         String title = infoTitle(toolId, node);
         return panels.box(title, lines);
+    }
+
+    /**
+     * Flattens one nested level of a field's object value into indented
+     * "sub-key  value" rows instead of collapsing it to a bare {@code {N fields}}
+     * summary, so e.g. {@code doctor}'s {@code jdk}/{@code k6}/{@code project}
+     * blocks are actually readable.
+     */
+    private void appendNestedObject(List<String> lines, String key, JsonNode obj) {
+        lines.add(t.bold(key) + ":");
+        int subKeyWidth = 0;
+        List<Map.Entry<String, JsonNode>> entries = new ArrayList<>();
+        Iterator<Map.Entry<String, JsonNode>> it = obj.fields();
+        while (it.hasNext()) {
+            Map.Entry<String, JsonNode> e = it.next();
+            entries.add(e);
+            subKeyWidth = Math.max(subKeyWidth, e.getKey().length());
+        }
+        for (Map.Entry<String, JsonNode> e : entries) {
+            String subKey = e.getKey();
+            JsonNode v = e.getValue();
+            String rendered;
+            if (v.isObject()) {
+                rendered = t.dim("{" + v.size() + " fields}");
+            } else if (v.isArray()) {
+                if (v.size() == 0) {
+                    rendered = t.dim("(empty)");
+                } else if (v.get(0).isObject()) {
+                    rendered = t.dim("[" + v.size() + " items]");
+                } else {
+                    List<String> scalars = new ArrayList<>();
+                    for (JsonNode s : v) scalars.add(s.asText());
+                    rendered = String.join(", ", scalars);
+                }
+            } else {
+                String text = cellText(v);
+                if (isErrorKey(subKey)) {
+                    rendered = t.red(text);
+                } else if (v.isBoolean()) {
+                    rendered = v.asBoolean() ? t.green(text) : t.red(text);
+                } else {
+                    rendered = text;
+                }
+            }
+            lines.add("  " + kv(subKey, rendered, subKeyWidth));
+        }
+    }
+
+    /**
+     * Compact one-line rendering of an object inside an array (e.g.
+     * {@code {"driver":"chromedriver","present":false}}): a boolean field
+     * becomes a check/cross icon, the remaining fields are joined after it.
+     */
+    private String bulletForObject(JsonNode obj) {
+        String boolKey = null;
+        boolean boolVal = false;
+        List<String> keys = new ArrayList<>();
+        Iterator<Map.Entry<String, JsonNode>> it = obj.fields();
+        while (it.hasNext()) {
+            Map.Entry<String, JsonNode> e = it.next();
+            keys.add(e.getKey());
+            if (boolKey == null && e.getValue().isBoolean()) {
+                boolKey = e.getKey();
+                boolVal = e.getValue().asBoolean();
+            }
+        }
+        List<String> rest = new ArrayList<>();
+        for (String k : keys) {
+            if (k.equals(boolKey)) continue;
+            rest.add(cellText(obj.path(k)));
+        }
+        String label = rest.isEmpty() ? obj.toString() : String.join(" ", rest);
+        if (boolKey != null) {
+            return (boolVal ? t.green(Theme.CHECK) : t.red(Theme.CROSS)) + " " + label;
+        }
+        return t.purple("\u2022") + " " + label;
     }
 
     private String stepsResult(JsonNode node) {

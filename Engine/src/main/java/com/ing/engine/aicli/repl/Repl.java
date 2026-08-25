@@ -244,6 +244,253 @@ public final class Repl {
         confirmAndRun(plan);
     }
 
+    /**
+     * Turn for a self-agentic provider: the provider (Copilot CLI) plans and
+     * calls INGenious MCP tools itself, so we only relay the prompt and print
+     * the final answer.
+     */
+    private void selfAgenticRequest(AiProvider p, String input) {
+        com.ing.engine.aicli.ai.Usage before = p.usage();
+        List<ChatMessage> messages = new ArrayList<>();
+        messages.add(ChatMessage.system(agentSystemPrompt()));
+        messages.add(ChatMessage.user(input));
+        convo.addUser(input);
+
+        final Spinner spinner = new Spinner(theme);
+        final List<ToolActivity> activities = new ArrayList<>();
+        final boolean[] spinning = { false };
+        final Object lock = new Object();
+
+        spinner.start("Thinking…");
+        spinning[0] = true;
+
+        // Live tool feedback during the "Thinking" phase; each call renders as it happens.
+        p.setActivity(
+            new com.ing.engine.aicli.ai.CopilotActivity() {
+
+                @Override
+                public void onToolStart(String toolCallId, String toolName, String argsSummary) {
+                    synchronized (lock) {
+                        if (spinning[0]) {
+                            spinner.stop();
+                            spinning[0] = false;
+                        }
+                        System.out.println(
+                            "  " +
+                            theme.brightPurple(Theme.DOT) +
+                            " " +
+                            theme.bold(toolName) +
+                            (
+                                argsSummary == null || argsSummary.isEmpty()
+                                    ? ""
+                                    : theme.dim("  " + argsSummary)
+                            )
+                        );
+                    }
+                }
+
+                @Override
+                public void onToolComplete(
+                    String toolCallId,
+                    String toolName,
+                    boolean success,
+                    String resultSummary
+                ) {
+                    synchronized (lock) {
+                        activities.add(new ToolActivity(toolName, success, resultSummary));
+                        String mark = success ? theme.green(Theme.CHECK) : theme.red(Theme.CROSS);
+                        System.out.println(
+                            "    " +
+                            mark +
+                            " " +
+                            theme.dim(
+                                com.ing.engine.aicli.ai.ToolReportUtil.truncate(resultSummary, 68)
+                            )
+                        );
+                    }
+                }
+            }
+        );
+
+        String answer;
+        try {
+            answer = p.chat(messages);
+        } catch (AiProvider.AiException e) {
+            synchronized (lock) {
+                if (spinning[0]) {
+                    spinner.stop();
+                }
+            }
+            p.setActivity(null);
+            System.out.println(theme.fail(e.getMessage()));
+            return;
+        }
+        synchronized (lock) {
+            if (spinning[0]) {
+                spinner.stop();
+                spinning[0] = false;
+            }
+        }
+        p.setActivity(null);
+
+        if (answer != null && !answer.isBlank()) {
+            markdown.print(answer);
+            convo.addAssistant(answer);
+        }
+        printToolReport(activities);
+        printTurnStatus(p, before);
+        session.save();
+    }
+
+    /** GitHub-Copilot-style turn footer: {@code 8:47 PM  8m 46s • Claude Opus 4.8 • 445.0 credits}. */
+    private void printTurnStatus(AiProvider p, com.ing.engine.aicli.ai.Usage before) {
+        com.ing.engine.aicli.ai.TurnStats st = p.lastTurnStats();
+        if (st == null) {
+            printCredits(p, before);
+            return;
+        }
+        String time = new java.text.SimpleDateFormat("h:mm a", java.util.Locale.US)
+        .format(new java.util.Date());
+        String elapsed = com.ing.engine.aicli.ai.TurnStatusFormatter.formatDuration(
+            st.elapsedMillis
+        );
+        String modelName = com.ing.engine.aicli.ai.TurnStatusFormatter.displayModel(
+            st.model != null ? st.model : p.model()
+        );
+        String credits = String.format(java.util.Locale.US, "%.1f", st.credits);
+        String sep = theme.dim(" • ");
+        System.out.println(
+            theme.dim(time + "  " + elapsed) +
+            sep +
+            theme.brightPurple(modelName) +
+            sep +
+            theme.bold(credits + " credits")
+        );
+    }
+
+    /** One recorded tool invocation for the final self-agentic report. */
+    private static final class ToolActivity {
+        final String name;
+        final boolean success;
+        final String summary;
+
+        ToolActivity(String name, boolean success, String summary) {
+            this.name = name;
+            this.success = success;
+            this.summary = summary;
+        }
+    }
+
+    /**
+     * Renders the final tool report: a compact badge-tagged row per tool plus a
+     * pill summary, followed by a proper detail box (table/info box, via the
+     * same {@link ResultRenderer} used for {@code /tools run}) for every tool
+     * whose result parses as structured JSON — not just a truncated JSON blob.
+     */
+    private void printToolReport(List<ToolActivity> acts) {
+        if (acts == null || acts.isEmpty()) {
+            return;
+        }
+        int nameW = 0;
+        for (ToolActivity a : acts) {
+            nameW = Math.max(nameW, a.name.length());
+        }
+        int ok = 0;
+        int info = 0;
+        int warn = 0;
+        int fail = 0;
+        List<String> rows = new ArrayList<>();
+        List<ToolActivity> detailed = new ArrayList<>();
+        List<JsonNode> detailedJson = new ArrayList<>();
+        for (ToolActivity a : acts) {
+            JsonNode parsed = a.success
+                ? com.ing.engine.aicli.ai.ToolReportUtil.parseJsonQuiet(a.summary)
+                : null;
+            String kind = com.ing.engine.aicli.ai.ToolReportUtil.classify(
+                a.name,
+                a.success,
+                a.summary,
+                parsed
+            );
+            String badge;
+            if ("FAIL".equals(kind)) {
+                badge = theme.badgeFail("FAIL");
+                fail++;
+            } else if ("WARN".equals(kind)) {
+                badge = theme.badgeWarn("WARN");
+                warn++;
+            } else if ("INFO".equals(kind)) {
+                badge = theme.badgeInfo("INFO");
+                info++;
+            } else {
+                badge = theme.badgeOk(" OK ");
+                ok++;
+            }
+            String pad = " ".repeat(Math.max(0, nameW - a.name.length()));
+            rows.add(
+                badge +
+                "  " +
+                theme.bold(a.name) +
+                pad +
+                "  " +
+                theme.dim(
+                    com.ing.engine.aicli.ai.ToolReportUtil.shortSummary(
+                        a.summary,
+                        a.success,
+                        parsed
+                    )
+                )
+            );
+            if (parsed != null && ((parsed.isObject() && parsed.size() > 0) || parsed.isArray())) {
+                detailed.add(a);
+                detailedJson.add(parsed);
+            }
+        }
+        List<String> pills = new ArrayList<>();
+        pills.add(theme.badgeOk(ok + " OK"));
+        if (info > 0) {
+            pills.add(theme.badgeInfo(info + " INFO"));
+        }
+        if (warn > 0) {
+            pills.add(theme.badgeWarn(warn + " WARN"));
+        }
+        if (fail > 0) {
+            pills.add(theme.badgeFail(fail + " FAIL"));
+        }
+        rows.add("");
+        rows.add(String.join("  ", pills));
+        panels.print("Tools used (" + acts.size() + ")", rows);
+        for (int i = 0; i < detailed.size(); i++) {
+            System.out.println();
+            results.print(detailed.get(i).name, detailedJson.get(i));
+        }
+    }
+
+    /** Best-effort JSON parse; returns null for plain text (e.g. "ok", error strings). */
+    private JsonNode parseJsonQuiet(String s) {
+        return com.ing.engine.aicli.ai.ToolReportUtil.parseJsonQuiet(s);
+    }
+
+    /** Short one-line preview for the compact report row (not the detail box). */
+    private String shortSummary(ToolActivity a, JsonNode parsed) {
+        return com.ing.engine.aicli.ai.ToolReportUtil.shortSummary(a.summary, a.success, parsed);
+    }
+
+    /** Classify a tool row into a badge kind: OK, INFO (read-only), WARN, or FAIL. */
+    private String classify(ToolActivity a, JsonNode parsed) {
+        return com.ing.engine.aicli.ai.ToolReportUtil.classify(
+            a.name,
+            a.success,
+            a.summary,
+            parsed
+        );
+    }
+
+    /** Collapse to a single line and cap at {@code max} visible chars. */
+    private static String truncate(String s, int max) {
+        return com.ing.engine.aicli.ai.ToolReportUtil.truncate(s, max);
+    }
+
     // ------------------------------------------------------------------
     // interactive agent (ReAct loop over the same tools as the IDE)
     // ------------------------------------------------------------------
@@ -251,6 +498,12 @@ public final class Repl {
     private void agentRequest(String input) {
         AiProvider p = ensureProvider();
         if (p == null) return;
+        // Self-agentic providers (e.g. the Copilot SDK/CLI) run their own tool
+        // loop against the INGenious MCP server, so just hand them the prompt.
+        if (p.isSelfAgentic()) {
+            selfAgenticRequest(p, input);
+            return;
+        }
         // Providers without tool-calling (e.g. plain OpenAI text models) fall
         // back to the one-shot planner path.
         if (!p.supportsTools()) {
@@ -736,15 +989,20 @@ public final class Repl {
      * allowCreate is set and that option is picked, or null if cancelled.
      */
     String selectFrom(String title, List<String> options, boolean allowCreate) {
+        return selectFrom(title, options, allowCreate, null);
+    }
+
+    /** Same as {@link #selectFrom(String, List, boolean)}, marking {@code current} as the active choice. */
+    String selectFrom(String title, List<String> options, boolean allowCreate, String current) {
         if (options.isEmpty() && !allowCreate) {
             System.out.println();
             System.out.println(theme.yellow("No " + title.toLowerCase() + "s available."));
             return null;
         }
         if (interactiveTerminal()) {
-            return selectArrow(title, options, allowCreate);
+            return selectArrow(title, options, allowCreate, current);
         }
-        return selectNumbered(title, options, allowCreate);
+        return selectNumbered(title, options, allowCreate, current);
     }
 
     /** True when the terminal supports raw-mode arrow-key navigation. */
@@ -760,7 +1018,12 @@ public final class Repl {
     }
 
     /** Arrow-key pointer selection (▶). Falls back to numbered on any error. */
-    private String selectArrow(String title, List<String> options, boolean allowCreate) {
+    private String selectArrow(
+        String title,
+        List<String> options,
+        boolean allowCreate,
+        String current
+    ) {
         List<String> items = new ArrayList<>(options);
         if (allowCreate) items.add("Create new…");
 
@@ -769,10 +1032,10 @@ public final class Repl {
             theme.bold(title + ":") + theme.dim("   (↑/↓ move · Enter select · Esc cancel)")
         );
 
-        int cursor = 0;
+        int cursor = current == null ? 0 : Math.max(0, options.indexOf(current));
         org.jline.terminal.Attributes prev = terminal.enterRawMode();
         try {
-            renderMenu(items, cursor);
+            renderMenu(items, cursor, current);
             org.jline.utils.NonBlockingReader rd = terminal.reader();
             while (true) {
                 int c = rd.read();
@@ -800,10 +1063,10 @@ public final class Repl {
                     int idx = c - '1';
                     if (idx < items.size()) cursor = idx;
                 }
-                redrawMenu(items, cursor);
+                redrawMenu(items, cursor, current);
             }
         } catch (java.io.IOException e) {
-            return selectNumbered(title, options, allowCreate);
+            return selectNumbered(title, options, allowCreate, current);
         } finally {
             terminal.setAttributes(prev);
         }
@@ -811,38 +1074,52 @@ public final class Repl {
         return options.get(cursor);
     }
 
-    private void renderMenu(List<String> items, int cursor) {
+    private void renderMenu(List<String> items, int cursor, String current) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < items.size(); i++) {
-            sb.append(menuLine(items.get(i), i == cursor)).append("\r\n");
+            sb.append(menuLine(items.get(i), i == cursor, current)).append("\r\n");
         }
         System.out.print(sb);
         System.out.flush();
     }
 
-    private void redrawMenu(List<String> items, int cursor) {
+    private void redrawMenu(List<String> items, int cursor, String current) {
         StringBuilder sb = new StringBuilder();
         sb.append("\u001b[").append(items.size()).append('A'); // cursor up N lines
         for (int i = 0; i < items.size(); i++) {
-            sb.append("\u001b[2K").append(menuLine(items.get(i), i == cursor)).append("\r\n");
+            sb
+                .append("\u001b[2K")
+                .append(menuLine(items.get(i), i == cursor, current))
+                .append("\r\n");
         }
         System.out.print(sb);
         System.out.flush();
     }
 
-    private String menuLine(String item, boolean selected) {
+    private String menuLine(String item, boolean selected, String current) {
+        String marker = item.equals(current) ? theme.dim(" (current)") : "";
         if (selected) {
-            return "  " + theme.purple("\u25b6") + " " + theme.bold(theme.brightPurple(item));
+            return (
+                "  " + theme.purple("\u25b6") + " " + theme.bold(theme.brightPurple(item)) + marker
+            );
         }
-        return "    " + item;
+        return "    " + item + marker;
     }
 
     /** Numbered selection fallback (non-interactive terminals / pipes). */
-    private String selectNumbered(String title, List<String> options, boolean allowCreate) {
+    private String selectNumbered(
+        String title,
+        List<String> options,
+        boolean allowCreate,
+        String current
+    ) {
         System.out.println();
         System.out.println(theme.bold(title + ":"));
         for (int i = 0; i < options.size(); i++) {
-            System.out.println("  " + theme.purple(String.valueOf(i + 1)) + ") " + options.get(i));
+            String marker = options.get(i).equals(current) ? "  " + theme.dim("(current)") : "";
+            System.out.println(
+                "  " + theme.purple(String.valueOf(i + 1)) + ") " + options.get(i) + marker
+            );
         }
         int createIdx = -1;
         int max = options.size();
@@ -970,7 +1247,7 @@ public final class Repl {
 
     AiProvider ensureProvider() {
         if (provider == null) {
-            provider = aiConfig.createProvider(tokens);
+            provider = aiConfig.createProvider(tokens, () -> session.projectPath());
         }
         if (
             provider instanceof com.ing.engine.aicli.ai.CopilotProvider &&
@@ -995,7 +1272,8 @@ public final class Repl {
     }
 
     AiProvider currentProviderUnchecked() {
-        if (provider == null) provider = aiConfig.createProvider(tokens);
+        if (provider == null) provider =
+            aiConfig.createProvider(tokens, () -> session.projectPath());
         return provider;
     }
 

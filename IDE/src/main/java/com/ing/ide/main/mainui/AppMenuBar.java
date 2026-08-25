@@ -333,9 +333,7 @@ public class AppMenuBar extends JMenuBar {
 
         window.add(
             withMnemonics(
-                withShortCut(
-                    withCopilotIcon(Utils.createMenuItem("AI Assistant", sActionListener))
-                ),
+                withShortCut(withCopilotIcon(Utils.createMenuItem("INGenie", sActionListener))),
                 'I'
             )
         );

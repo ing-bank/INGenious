@@ -1759,18 +1759,12 @@ public class SAPActions extends General {
      * Helper method for setting dynamic properties
      */
     private void setProperty(String key, String value) {
-        if (!SAPObject.dynamicValue.containsKey(Reference)) {
-            Map<String, Map<String, String>> Object = new HashMap<>();
-            Map<String, String> property = new HashMap<>();
-            property.put(key, value);
-            Object.put(ObjectName, property);
-            SAPObject.dynamicValue.put(Reference, Object);
-        } else if (!SAPObject.dynamicValue.get(Reference).containsKey(ObjectName)) {
-            Map<String, String> property = new HashMap<>();
-            property.put(key, value);
-            SAPObject.dynamicValue.get(Reference).put(ObjectName, property);
-        } else {
-            SAPObject.dynamicValue.get(Reference).get(ObjectName).put(key, value);
-        }
+        com.ing.engine.core.InlineObjectProperty.putObjectProperty(
+            SAPObject.dynamicValue,
+            Reference,
+            ObjectName,
+            key,
+            value
+        );
     }
 }

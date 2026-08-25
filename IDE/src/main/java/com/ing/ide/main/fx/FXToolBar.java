@@ -134,7 +134,7 @@ public class FXToolBar extends JFXPanel {
     }
 
     private Button createAICopilotButton() {
-        Button btn = new Button("AI Assistant");
+        Button btn = new Button("INGenie");
         btn.getStyleClass().add("api-tester-btn");
         btn.setTooltip(new Tooltip("Toggle the INGenious AI Assistant sidebar (GitHub Models)"));
 
@@ -144,7 +144,7 @@ public class FXToolBar extends JFXPanel {
             btn.setGraphic(icon);
         }
 
-        btn.setOnAction(e -> fireSwingAction("AI Assistant"));
+        btn.setOnAction(e -> fireSwingAction("INGenie"));
         return btn;
     }
 

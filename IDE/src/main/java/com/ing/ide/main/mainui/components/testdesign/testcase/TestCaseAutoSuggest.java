@@ -12,12 +12,14 @@ import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestData;
 import com.ing.datalib.component.TestStep;
+import com.ing.datalib.or.common.ORAttribute;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.sap.ResolvedSapObject;
 import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.testdata.model.Record;
 import com.ing.datalib.testdata.model.TestDataModel;
+import com.ing.engine.core.InlineObjectProperty;
 import com.ing.engine.mcp.ActionSpecCatalog;
 import com.ing.engine.mcp.ArgSpec;
 import com.ing.engine.support.ObjectTypeUtil;
@@ -39,6 +41,8 @@ import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -54,8 +58,11 @@ import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * Auto-suggest controller for the Test Case table, providing intelligent
@@ -70,6 +77,9 @@ public class TestCaseAutoSuggest {
     private final TestDesign testDesign;
     final JTable table;
 
+    // Guards against re-entrant opening of the inline-property builder.
+    private boolean openingInlinePanel = false;
+
     private AutoSuggest objAutoSuggest;
     private AutoSuggest conditionAutoSuggest;
     private AutoSuggest actionAutoSuggest;
@@ -81,6 +91,7 @@ public class TestCaseAutoSuggest {
         this.testDesign = testDesign;
         initAutoSuggest();
         installMouseListener();
+        installInlinePropertyTrigger();
     }
 
     private void initAutoSuggest() {
@@ -393,6 +404,209 @@ public class TestCaseAutoSuggest {
     private void installMouseListener() {
         table.addMouseListener(new MouseAdapterImpl());
         table.addMouseMotionListener(new MouseMotionAdapterImpl());
+    }
+
+    // ── Inline object-property override (Condition column) ──────────────────
+
+    /**
+     * Installs the {@code *} trigger on the Condition cell editor: while editing the
+     * Condition of a locator step (an action whose ConditionKind is NONE and that has
+     * an OR object), typing {@code *} opens the {@link InlinePropertyDialog} builder
+     * instead of inserting the character.
+     *
+     * <p>Two complementary hooks are used because the keystroke that <em>starts</em>
+     * cell editing is not always delivered to the editor's {@code KeyListener}: a
+     * {@link KeyAdapter} handles the common mid-edit case, and a
+     * {@link DocumentListener} catches any {@code *} that still made it into the field.</p>
+     */
+    private void installInlinePropertyTrigger() {
+        JTextField field = conditionAutoSuggest.getTextField();
+        field.addKeyListener(
+            new KeyAdapter() {
+
+                @Override
+                public void keyTyped(KeyEvent e) {
+                    if (e.getKeyChar() != '*') {
+                        return;
+                    }
+                    int row = table.getSelectedRow();
+                    if (row >= 0 && isInlinePropertyRow(row)) {
+                        e.consume();
+                        final int r = row;
+                        SwingUtilities.invokeLater(() -> triggerInlinePanel(r));
+                    }
+                }
+            }
+        );
+        field
+            .getDocument()
+            .addDocumentListener(
+                new DocumentListener() {
+
+                    @Override
+                    public void insertUpdate(DocumentEvent e) {
+                        maybeTrigger();
+                    }
+
+                    @Override
+                    public void removeUpdate(DocumentEvent e) {}
+
+                    @Override
+                    public void changedUpdate(DocumentEvent e) {}
+
+                    private void maybeTrigger() {
+                        if (openingInlinePanel) {
+                            return;
+                        }
+                        String text = field.getText();
+                        if (text == null || text.indexOf('*') < 0) {
+                            return;
+                        }
+                        int row = table.getSelectedRow();
+                        if (row >= 0 && isInlinePropertyRow(row)) {
+                            SwingUtilities.invokeLater(() -> triggerInlinePanel(row));
+                        }
+                    }
+                }
+            );
+    }
+
+    /** Opens the inline-property builder for {@code row}, guarding against re-entry. */
+    private void triggerInlinePanel(int row) {
+        if (openingInlinePanel || row < 0 || !isInlinePropertyRow(row)) {
+            return;
+        }
+        openingInlinePanel = true;
+        // Remove any stray '*' the trigger left in the editor before opening.
+        try {
+            JTextField field = conditionAutoSuggest.getTextField();
+            String text = field.getText();
+            if (text != null && text.contains("*")) {
+                field.setText(text.replace("*", ""));
+            }
+        } catch (Exception ignore) {
+            // editor state is best-effort
+        }
+        openInlinePropertyDialog(row);
+    }
+
+    /**
+     * A locator step eligible for an inline override: its action declares no Condition
+     * ({@link ConditionKind#NONE}) and it references an Object Repository element.
+     */
+    private boolean isInlinePropertyRow(int row) {
+        String action = Objects.toString(table.getModel().getValueAt(row, Action.getIndex()), "");
+        String objectName = Objects.toString(
+            table.getModel().getValueAt(row, ObjectName.getIndex()),
+            ""
+        );
+        String pageToken = Objects.toString(
+            table.getModel().getValueAt(row, Reference.getIndex()),
+            ""
+        );
+        if (objectName.isBlank() || pageToken.isBlank()) {
+            return false;
+        }
+        // Locator actions such as click/Fill/clear have no explicit @Args spec (they
+        // resolve to an "inferred" spec), so only require that the action does not use
+        // the Condition column for its own semantics (ConditionKind.NONE).
+        ArgSpec spec = ActionSpecCatalog.forAction(action);
+        return spec != null && spec.conditionKind() == ConditionKind.NONE;
+    }
+
+    private void openInlinePropertyDialog(int row) {
+        String objectName = Objects.toString(
+            table.getModel().getValueAt(row, ObjectName.getIndex()),
+            ""
+        );
+        String pageToken = Objects.toString(
+            table.getModel().getValueAt(row, Reference.getIndex()),
+            ""
+        );
+        String existing = Objects.toString(
+            table.getModel().getValueAt(row, Condition.getIndex()),
+            ""
+        );
+        Set<String> tokens = getLocatorTokens(objectName, pageToken);
+        List<String> valueSuggestions = getValueSuggestions();
+        SwingUtilities.invokeLater(
+            () -> {
+                try {
+                    if (table.isEditing()) {
+                        table.getCellEditor().cancelCellEditing();
+                    }
+                    String expr = InlinePropertyDialog.show(
+                        table,
+                        tokens,
+                        valueSuggestions,
+                        existing
+                    );
+                    if (expr != null) {
+                        table.getModel().setValueAt(expr, row, Condition.getIndex());
+                    }
+                } finally {
+                    openingInlinePanel = false;
+                }
+            }
+        );
+    }
+
+    /**
+     * Builds the value-dropdown suggestions for the inline-property dialog:
+     * every {@code Sheet:Column} reference plus every {@code %variable%} defined in
+     * the project. Reuses the Input column's auto-suggest data sources.
+     */
+    @SuppressWarnings("unchecked")
+    private List<String> getValueSuggestions() {
+        List<String> suggestions = new ArrayList<>();
+        try {
+            suggestions.addAll(inputAutoSuggest.getTestData());
+        } catch (Exception ignore) {
+            // no test data available
+        }
+        try {
+            suggestions.addAll(inputAutoSuggest.getUserDefinedList());
+        } catch (Exception ignore) {
+            // no user-defined variables
+        }
+        return suggestions;
+    }
+
+    /**
+     * Discovers the distinct {@code #token} placeholders in the selected element's
+     * locator attributes across Web / Mobile / SAP / Structured-Data repositories.
+     * Returns an empty set (free-text entry) when the object cannot be resolved.
+     */
+    private Set<String> getLocatorTokens(String objectName, String pageToken) {
+        Set<String> tokens = new LinkedHashSet<>();
+        var repo = sProject.getObjectRepository();
+        try {
+            ResolvedWebObject.PageRef ref = ResolvedWebObject.PageRef.parse(pageToken);
+            ResolvedWebObject web = (ref != null && ref.name != null && ref.scope != null)
+                ? repo.resolveWebObject(ref, objectName)
+                : repo.resolveWebObjectWithScope(pageToken, objectName);
+            if (web != null && web.isPresent() && web.getObject() != null) {
+                for (ORAttribute attr : web.getObject().getAttributes()) {
+                    tokens.addAll(InlineObjectProperty.extractTokens(attr.getValue()));
+                }
+            }
+        } catch (Exception ignore) {
+            // fall through to other repositories
+        }
+        try {
+            ResolvedMobileObject.PageRef ref = ResolvedMobileObject.PageRef.parse(pageToken);
+            ResolvedMobileObject mob = (ref != null && ref.name != null && ref.scope != null)
+                ? repo.resolveMobileObject(ref, objectName)
+                : repo.resolveMobileObjectWithScope(pageToken, objectName);
+            if (mob != null && mob.isPresent() && mob.getObject() != null) {
+                for (ORAttribute attr : mob.getObject().getAttributes()) {
+                    tokens.addAll(InlineObjectProperty.extractTokens(attr.getValue()));
+                }
+            }
+        } catch (Exception ignore) {
+            // ignore
+        }
+        return tokens;
     }
 
     private TestCase getTestCase(JTable table) {
