@@ -299,6 +299,7 @@ public class Control {
             "action",
             "actions",
             "import",
+            "apicollection",
             "run",
             "perf",
             "performance",
@@ -326,6 +327,7 @@ public class Control {
     }
 
     public static void main(String[] args) throws UnCaughtException {
+        redirectMcpStderrIfRequested();
         initDeps();
 
         if (args != null && args.length > 0) {
@@ -346,6 +348,28 @@ public class Control {
             String[] fallback = System.console() != null ? new String[] { "ai" } : new String[0];
             int exitCode = com.ing.engine.cli.INGeniousCLI.run(fallback);
             System.exit(exitCode);
+        }
+    }
+
+    /** When the AI-CLI Copilot-SDK provider launches this as an MCP server it sets
+     * {@code INGENIOUS_MCP_STDERR}; redirect stderr there so startup failures are captured. */
+    private static void redirectMcpStderrIfRequested() {
+        String errLog = System.getenv("INGENIOUS_MCP_STDERR");
+        if (errLog == null || errLog.isBlank()) {
+            return;
+        }
+        try {
+            System.setErr(
+                new java.io.PrintStream(new java.io.FileOutputStream(errLog, true), true, "UTF-8")
+            );
+            System.err.println(
+                "[ingenious-mcp] starting; user.dir=" +
+                System.getProperty("user.dir") +
+                " at " +
+                new java.util.Date()
+            );
+        } catch (Exception ignore) {
+            // diagnostics only
         }
     }
 

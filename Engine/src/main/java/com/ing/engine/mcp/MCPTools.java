@@ -1469,6 +1469,105 @@ final class MCPTools {
                 .build()
         );
 
+        // -----------------------------------------------------------
+        // API collection-first workflow
+        // -----------------------------------------------------------
+        addTool(
+            arr,
+            "ingenious_apicollection_import",
+            "Stage 1: ingest APIs (Postman/Bruno file or a curl command) into a persisted " +
+            "API collection under api/collections/<name>.json. Does NOT create a test case.",
+            schema(json)
+                .optional("project", "string", "Project name or absolute path.")
+                .required("name", "string", "Collection name to create/overwrite.")
+                .optional(
+                    "format",
+                    "string",
+                    "Source format: postman | bruno | curl (default: auto from file)."
+                )
+                .optional(
+                    "file",
+                    "string",
+                    "Path to the Postman/Bruno collection file (for postman/bruno)."
+                )
+                .optional("curl", "string", "A curl command string (for format=curl).")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_apicollection_list",
+            "List persisted API collections in the project with their request counts.",
+            schema(json).optional("project", "string", "Project name or absolute path.").build()
+        );
+        addTool(
+            arr,
+            "ingenious_apicollection_show",
+            "Show a persisted API collection's requests (method, url, headers, body).",
+            schema(json)
+                .optional("project", "string", "Project name or absolute path.")
+                .required("name", "string", "Collection name.")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_apicollection_env_set",
+            "Create/update an API environment (api/environments/<env>.json) with a base URL " +
+            "and variables used by apicollection_run.",
+            schema(json)
+                .optional("project", "string", "Project name or absolute path.")
+                .required("env", "string", "Environment name.")
+                .optional("baseUrl", "string", "Base URL stored as variable 'baseUrl'.")
+                .optional(
+                    "vars",
+                    "string",
+                    "JSON object of extra variables, e.g. {\"token\":\"abc\"}."
+                )
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_apicollection_run",
+            "Stage 2: execute a collection's requests against an environment; capture status, " +
+            "headers, latency and body into api/history/<run>.json. Hits live endpoints.",
+            schema(json)
+                .optional("project", "string", "Project name or absolute path.")
+                .required("name", "string", "Collection name.")
+                .optional("env", "string", "Environment name to resolve {{vars}} (optional).")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_apicollection_request_run",
+            "Stage 2: execute a single named request from a collection ad-hoc and return the " +
+            "observed response.",
+            schema(json)
+                .optional("project", "string", "Project name or absolute path.")
+                .required("name", "string", "Collection name.")
+                .required("request", "string", "Request name within the collection.")
+                .optional("env", "string", "Environment name to resolve {{vars}} (optional).")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_apicollection_to_testcase",
+            "Stage 3: promote a collection into an INGenious YAML test case (Webservice steps), " +
+            "seeding assertResponseCode from the latest run when available.",
+            schema(json)
+                .optional("project", "string", "Project name or absolute path.")
+                .required("name", "string", "Collection name.")
+                .optional("scenario", "string", "Target scenario (default: the collection name).")
+                .optional("testcase", "string", "Test case name (default: the collection name).")
+                .optional("env", "string", "Environment name (used if a fresh run is needed).")
+                .optional(
+                    "reusable",
+                    "boolean",
+                    "Create under a reusable scenario (default false)."
+                )
+                .optional("ifExists", "string", "error | skip | overwrite (default error).")
+                .optional("dryRun", "boolean", "Report what would be created without writing.")
+                .build()
+        );
+
         return result;
     }
 
@@ -1666,6 +1765,20 @@ final class MCPTools {
                 return MCPServer.jsonContent(json, genFromOpenApi(json, args));
             case "ingenious_gen_from_har":
                 return MCPServer.jsonContent(json, genFromHar(json, args));
+            case "ingenious_apicollection_import":
+                return MCPServer.jsonContent(json, apiCollectionImport(json, args));
+            case "ingenious_apicollection_list":
+                return MCPServer.jsonContent(json, apiCollectionList(json, args));
+            case "ingenious_apicollection_show":
+                return MCPServer.jsonContent(json, apiCollectionShow(json, args));
+            case "ingenious_apicollection_env_set":
+                return MCPServer.jsonContent(json, apiCollectionEnvSet(json, args));
+            case "ingenious_apicollection_run":
+                return MCPServer.jsonContent(json, apiCollectionRun(json, args));
+            case "ingenious_apicollection_request_run":
+                return MCPServer.jsonContent(json, apiCollectionRequestRun(json, args));
+            case "ingenious_apicollection_to_testcase":
+                return MCPServer.jsonContent(json, apiCollectionToTestcase(json, args));
             default:
                 throw new MCPServer.MCPException(-32601, "Unknown tool: " + name);
         }
@@ -3039,6 +3152,349 @@ final class MCPTools {
         return com.ing.datalib.api.importer.ImportUtils.sanitizeFileName(
             method + "_" + path.replace('/', '_')
         );
+    }
+
+    // ==================================================================
+    // API collection-first workflow
+    // ==================================================================
+
+    private JsonNode apiCollectionImport(ObjectMapper json, JsonNode args) {
+        File dir = resolveProject(projectArg(args));
+        String name = MCPServer.requiredParam(args, "name");
+        String format = MCPServer.paramOrDefault(args, "format", null);
+        String filePath = MCPServer.paramOrDefault(args, "file", null);
+        String curl = MCPServer.paramOrDefault(args, "curl", null);
+
+        com.ing.datalib.api.APICollection collection;
+        boolean curlMode =
+            (format != null && format.equalsIgnoreCase("curl")) ||
+            (curl != null && filePath == null);
+        if (curlMode) {
+            if (curl == null || !com.ing.datalib.api.CurlParser.looksLikeCurl(curl)) {
+                throw new MCPServer.MCPException(
+                    -32602,
+                    "Provide a valid 'curl' command for format=curl."
+                );
+            }
+            com.ing.datalib.api.APIRequest req = com.ing.datalib.api.CurlParser.parse(curl);
+            if (req.getName() == null || req.getName().isEmpty()) req.setName(
+                deriveRequestName(req)
+            );
+            collection = new com.ing.datalib.api.APICollection(name);
+            java.util.List<com.ing.datalib.api.APIRequest> reqs = new java.util.ArrayList<>();
+            reqs.add(req);
+            collection.setRequests(reqs);
+        } else {
+            if (filePath == null) throw new MCPServer.MCPException(
+                -32602,
+                "Provide 'file' (Postman/Bruno) or 'curl'."
+            );
+            File file = new File(filePath);
+            if (!file.exists()) throw new MCPServer.MCPException(
+                -32602,
+                "Source not found: " + filePath
+            );
+            com.ing.datalib.api.importer.spi.CollectionImporter importer = pickImporter(
+                format,
+                file
+            );
+            if (importer == null) throw new MCPServer.MCPException(
+                -32602,
+                "Unrecognised collection format for: " +
+                file.getName() +
+                " (use format=postman|bruno)."
+            );
+            java.util.List<com.ing.datalib.api.importer.ImportWarning> warnings = new java.util.ArrayList<>();
+            com.ing.datalib.api.importer.NormalizedCollection nc;
+            try {
+                nc = importer.parse(file, warnings);
+            } catch (com.ing.datalib.api.importer.ImportException ie) {
+                throw new MCPServer.MCPException(-32603, "Parse failed: " + ie.getMessage());
+            }
+            collection = ApiCollectionStore.fromNormalized(nc, name);
+        }
+        ApiCollectionStore.saveCollection(dir, collection);
+        ObjectNode out = json.createObjectNode();
+        out.put("saved", true);
+        out.put("collection", collection.getName());
+        out.put("requests", collection.getRequests() == null ? 0 : collection.getRequests().size());
+        out.put(
+            "path",
+            new File(
+                ApiCollectionStore.collectionsDir(dir),
+                ApiCollectionStore.sanitize(collection.getName()) + ".json"
+            )
+            .getPath()
+        );
+        return out;
+    }
+
+    private com.ing.datalib.api.importer.spi.CollectionImporter pickImporter(
+        String format,
+        File file
+    ) {
+        if (format != null) {
+            if (
+                format.equalsIgnoreCase("postman")
+            ) return new com.ing.datalib.api.importer.postman.PostmanImporter();
+            if (
+                format.equalsIgnoreCase("bruno")
+            ) return new com.ing.datalib.api.importer.bruno.BrunoImporter();
+        }
+        com.ing.datalib.api.importer.postman.PostmanImporter pm = new com.ing.datalib.api.importer.postman.PostmanImporter();
+        if (pm.supports(file)) return pm;
+        com.ing.datalib.api.importer.bruno.BrunoImporter br = new com.ing.datalib.api.importer.bruno.BrunoImporter();
+        if (br.supports(file)) return br;
+        return null;
+    }
+
+    private JsonNode apiCollectionList(ObjectMapper json, JsonNode args) {
+        File dir = resolveProject(projectArg(args));
+        ArrayNode out = json.createArrayNode();
+        for (com.ing.datalib.api.APICollection c : ApiCollectionStore.listCollections(dir)) {
+            ObjectNode n = out.addObject();
+            n.put("name", c.getName());
+            n.put("requests", c.getRequests() == null ? 0 : c.getRequests().size());
+        }
+        return out;
+    }
+
+    private JsonNode apiCollectionShow(ObjectMapper json, JsonNode args) {
+        File dir = resolveProject(projectArg(args));
+        String name = MCPServer.requiredParam(args, "name");
+        com.ing.datalib.api.APICollection c = ApiCollectionStore.loadCollection(dir, name);
+        if (c == null) throw new MCPServer.MCPException(-32602, "Collection not found: " + name);
+        ObjectNode out = json.createObjectNode();
+        out.put("name", c.getName());
+        ArrayNode reqs = out.putArray("requests");
+        if (c.getRequests() != null) {
+            for (com.ing.datalib.api.APIRequest r : c.getRequests()) {
+                ObjectNode rn = reqs.addObject();
+                rn.put("name", r.getName());
+                rn.put("method", r.getMethod() == null ? null : r.getMethod().name());
+                rn.put("url", r.getUrl());
+            }
+        }
+        return out;
+    }
+
+    private JsonNode apiCollectionEnvSet(ObjectMapper json, JsonNode args) {
+        File dir = resolveProject(projectArg(args));
+        String envName = MCPServer.requiredParam(args, "env");
+        String baseUrl = MCPServer.paramOrDefault(args, "baseUrl", null);
+        String varsJson = MCPServer.paramOrDefault(args, "vars", null);
+        com.ing.datalib.api.APIEnvironment env = ApiCollectionStore.loadEnvironment(dir, envName);
+        if (env == null) env = new com.ing.datalib.api.APIEnvironment(envName);
+        if (baseUrl != null) env.setVariable("baseUrl", baseUrl);
+        if (varsJson != null && !varsJson.isEmpty()) {
+            try {
+                JsonNode node = json.readTree(varsJson);
+                java.util.Iterator<String> it = node.fieldNames();
+                while (it.hasNext()) {
+                    String k = it.next();
+                    env.setVariable(k, node.get(k).asText());
+                }
+            } catch (Exception e) {
+                throw new MCPServer.MCPException(-32602, "Invalid 'vars' JSON: " + e.getMessage());
+            }
+        }
+        ApiCollectionStore.saveEnvironment(dir, env);
+        return json.createObjectNode().put("saved", true).put("env", env.getName());
+    }
+
+    private JsonNode apiCollectionRun(ObjectMapper json, JsonNode args) {
+        File dir = resolveProject(projectArg(args));
+        String name = MCPServer.requiredParam(args, "name");
+        String envName = MCPServer.paramOrDefault(args, "env", null);
+        com.ing.datalib.api.APICollection c = ApiCollectionStore.loadCollection(dir, name);
+        if (c == null) throw new MCPServer.MCPException(-32602, "Collection not found: " + name);
+        java.util.Map<String, String> vars = resolveVars(dir, envName);
+        ObjectNode out = json.createObjectNode();
+        out.put("collection", c.getName());
+        if (envName != null) out.put("env", envName);
+        ArrayNode results = out.putArray("results");
+        int passed = 0, failed = 0;
+        if (c.getRequests() != null) {
+            for (com.ing.datalib.api.APIRequest r : c.getRequests()) {
+                com.ing.datalib.api.APIResponse resp = ApiCollectionStore.execute(r, vars);
+                ObjectNode rn = results.addObject();
+                rn.put("request", r.getName());
+                rn.put("method", r.getMethod() == null ? null : r.getMethod().name());
+                rn.put("status", resp.getStatusCode());
+                rn.put("timeMs", resp.getResponseTimeMs());
+                if (resp.isError()) {
+                    rn.put("error", resp.getErrorMessage());
+                    failed++;
+                } else if (resp.getStatusCode() >= 200 && resp.getStatusCode() < 400) {
+                    passed++;
+                } else {
+                    failed++;
+                }
+                rn.put("bodyPreview", preview(resp.getBody(), 500));
+            }
+        }
+        out.put("passed", passed);
+        out.put("failed", failed);
+        String runId = writeRunArtifact(dir, c, out);
+        if (runId != null) out.put("runId", runId);
+        return out;
+    }
+
+    private JsonNode apiCollectionRequestRun(ObjectMapper json, JsonNode args) {
+        File dir = resolveProject(projectArg(args));
+        String name = MCPServer.requiredParam(args, "name");
+        String reqName = MCPServer.requiredParam(args, "request");
+        String envName = MCPServer.paramOrDefault(args, "env", null);
+        com.ing.datalib.api.APICollection c = ApiCollectionStore.loadCollection(dir, name);
+        if (c == null) throw new MCPServer.MCPException(-32602, "Collection not found: " + name);
+        com.ing.datalib.api.APIRequest req = null;
+        if (c.getRequests() != null) {
+            for (com.ing.datalib.api.APIRequest r : c.getRequests()) {
+                if (r.getName() != null && r.getName().equalsIgnoreCase(reqName)) {
+                    req = r;
+                    break;
+                }
+            }
+        }
+        if (req == null) throw new MCPServer.MCPException(
+            -32602,
+            "Request not found in collection: " + reqName
+        );
+        java.util.Map<String, String> vars = resolveVars(dir, envName);
+        com.ing.datalib.api.APIResponse resp = ApiCollectionStore.execute(req, vars);
+        ObjectNode out = json.createObjectNode();
+        out.put("request", req.getName());
+        out.put("status", resp.getStatusCode());
+        out.put("timeMs", resp.getResponseTimeMs());
+        if (resp.isError()) out.put("error", resp.getErrorMessage());
+        out.put("body", preview(resp.getBody(), 4000));
+        return out;
+    }
+
+    private JsonNode apiCollectionToTestcase(ObjectMapper json, JsonNode args) {
+        File dir = resolveProject(projectArg(args));
+        Project p = loadProject(dir);
+        String name = MCPServer.requiredParam(args, "name");
+        com.ing.datalib.api.APICollection c = ApiCollectionStore.loadCollection(dir, name);
+        if (c == null) throw new MCPServer.MCPException(-32602, "Collection not found: " + name);
+        String scenName = MCPServer.paramOrDefault(args, "scenario", name);
+        String tcName = MCPServer.paramOrDefault(args, "testcase", name);
+        String envName = MCPServer.paramOrDefault(args, "env", null);
+        boolean reusable = boolArg(args, "reusable", false);
+        String ifExists = MCPServer
+            .paramOrDefault(args, "ifExists", "error")
+            .toLowerCase(Locale.ROOT);
+        boolean dryRun = boolArg(args, "dryRun", false);
+
+        String finalName = com.ing.datalib.api.importer.ImportUtils.sanitizeFileName(tcName);
+        int requests = c.getRequests() == null ? 0 : c.getRequests().size();
+        Scenario scn = reusable
+            ? p.getReusableScenarioByName(scenName)
+            : p.getScenarioByName(scenName);
+        TestCase existing = scn == null ? null : scn.getTestCaseByName(finalName);
+        if (dryRun) {
+            return json
+                .createObjectNode()
+                .put("dryRun", true)
+                .put("wouldCreate", existing == null)
+                .put("scenario", scenName)
+                .put("testcase", finalName)
+                .put("requests", requests);
+        }
+        scn = ensureScenario(p, scenName, reusable);
+        existing = scn.getTestCaseByName(finalName);
+        if (existing != null) {
+            switch (ifExists) {
+                case "skip":
+                    return json
+                        .createObjectNode()
+                        .put("created", false)
+                        .put("existing", true)
+                        .put("scenario", scn.getName())
+                        .put("testcase", finalName);
+                case "overwrite":
+                    File f = new File(existing.getLocation());
+                    if (f.exists()) f.delete();
+                    scn.getTestCases().remove(existing);
+                    break;
+                default:
+                    throw new MCPServer.MCPException(
+                        -32602,
+                        "Test case already exists: " + finalName + " (pass ifExists=skip|overwrite)"
+                    );
+            }
+        }
+        java.util.Map<String, String> vars = resolveVars(dir, envName);
+        TestCase tc = scn.addTestCase(finalName);
+        if (tc == null) throw new MCPServer.MCPException(
+            -32603,
+            "Failed to create test case: " + finalName
+        );
+        int asserts = 0;
+        if (c.getRequests() != null) {
+            for (com.ing.datalib.api.APIRequest r : c.getRequests()) {
+                com.ing.engine.cli.lib.RequestToTestCaseBuilder.appendSteps(tc, r);
+                if (envName != null) {
+                    com.ing.datalib.api.APIResponse resp = ApiCollectionStore.execute(r, vars);
+                    if (!resp.isError() && resp.getStatusCode() > 0) {
+                        TestStep st = tc.addNewStep();
+                        st.setObject("Webservice");
+                        st.setAction("assertResponseCode");
+                        st.setDescription("Assert status for " + r.getName());
+                        st.setInput("@" + resp.getStatusCode());
+                        asserts++;
+                    }
+                }
+            }
+        }
+        tc.save();
+        p.save();
+        ObjectNode out = json.createObjectNode();
+        out.put("created", true);
+        out.put("scenario", scn.getName());
+        out.put("testcase", finalName);
+        out.put("reusable", reusable);
+        out.put("requests", requests);
+        out.put("steps", tc.getTestSteps().size());
+        out.put("assertionsSeeded", asserts);
+        out.put("assertionSource", envName != null ? "observed-run" : "none");
+        return out;
+    }
+
+    private java.util.Map<String, String> resolveVars(File dir, String envName) {
+        java.util.Map<String, String> vars = new java.util.LinkedHashMap<>();
+        if (envName != null) {
+            com.ing.datalib.api.APIEnvironment env = ApiCollectionStore.loadEnvironment(
+                dir,
+                envName
+            );
+            if (env == null) throw new MCPServer.MCPException(
+                -32602,
+                "Environment not found: " + envName
+            );
+            if (env.getVariables() != null) vars.putAll(env.getVariables());
+        }
+        return vars;
+    }
+
+    private static String preview(String s, int max) {
+        if (s == null) return "";
+        return s.length() <= max ? s : s.substring(0, max) + "…";
+    }
+
+    private String writeRunArtifact(File dir, com.ing.datalib.api.APICollection c, ObjectNode run) {
+        try {
+            File hist = ApiCollectionStore.historyDir(dir);
+            hist.mkdirs();
+            String runId =
+                ApiCollectionStore.sanitize(c.getName()) + "-" + System.currentTimeMillis();
+            new ObjectMapper()
+                .writerWithDefaultPrettyPrinter()
+                .writeValue(new File(hist, runId + ".json"), run);
+            return runId;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     // ==================================================================

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Supplier;
 
 /**
  * Global AI provider configuration at {@code ~/.ingenious/ai.json}:
@@ -57,6 +58,20 @@ public final class ProviderConfig {
 
     /** Build the configured provider; never returns null (copilot is the default). */
     public AiProvider createProvider(TokenStore store) {
+        return createProvider(store, () -> null);
+    }
+
+    /**
+     * Build the configured provider. {@code projectDir} supplies the active
+     * project directory for providers that need it (e.g. the Copilot SDK provider,
+     * which launches the INGenious MCP server scoped to that project).
+     */
+    public AiProvider createProvider(TokenStore store, Supplier<String> projectDir) {
+        if ("copilot-sdk".equalsIgnoreCase(provider)) {
+            // Drives the Copilot CLI via the SDK; the INGenious MCP server is
+            // exposed to the CLI so the model can call the ingenious_* tools.
+            return new CopilotSdkProvider(model, projectDir);
+        }
         if ("bridge".equalsIgnoreCase(provider)) {
             // VS Code Copilot LLM Bridge: OpenAI-compatible, no key, no GitHub auth.
             String url = discoverBridgeBaseUrl();

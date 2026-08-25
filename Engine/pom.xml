@@ -62,7 +62,15 @@
             <artifactId>jackson-core</artifactId>
             <version>${jackson.version}</version>
         </dependency>         
-       
+
+        <!-- GitHub Copilot SDK for Java: drives the Copilot CLI (proof of concept
+             for the `copilot-sdk` AI-CLI provider). Requires the `copilot` CLI on PATH. -->
+        <dependency>
+            <groupId>com.github</groupId>
+            <artifactId>copilot-sdk-java</artifactId>
+            <version>${githubcopilotCLI.release}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>

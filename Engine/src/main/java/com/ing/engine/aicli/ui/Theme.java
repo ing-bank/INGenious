@@ -78,6 +78,33 @@ public final class Theme {
         return red(CROSS) + " " + s;
     }
 
+    /**
+     * A filled "pill" badge with a colored background, e.g. rendered as {@code  OK }.
+     * Falls back to {@code [LABEL]} when ANSI is disabled.
+     */
+    public String pill(String label, String fg, String bg) {
+        if (!ansi) {
+            return "[" + label + "]";
+        }
+        return "\u001b[1m" + fg + bg + " " + label + " \u001b[0m";
+    }
+
+    public String badgeOk(String label) {
+        return pill(label, "\u001b[30m", "\u001b[42m"); // black on green
+    }
+
+    public String badgeFail(String label) {
+        return pill(label, "\u001b[97m", "\u001b[41m"); // white on red
+    }
+
+    public String badgeWarn(String label) {
+        return pill(label, "\u001b[30m", "\u001b[43m"); // black on yellow
+    }
+
+    public String badgeInfo(String label) {
+        return pill(label, "\u001b[30m", "\u001b[46m"); // black on cyan
+    }
+
     public static String stripAnsi(String s) {
         return s == null ? "" : ANSI.matcher(s).replaceAll("");
     }

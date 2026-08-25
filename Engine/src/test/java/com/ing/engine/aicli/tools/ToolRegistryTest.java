@@ -25,12 +25,17 @@ public class ToolRegistryTest {
         assertThat(ToolRegistry.classifyMutating("data_set")).isTrue();
         assertThat(ToolRegistry.classifyMutating("report_export")).isTrue();
         assertThat(ToolRegistry.classifyMutating("browser_session_save")).isTrue();
+        assertThat(ToolRegistry.classifyMutating("apicollection_import")).isTrue();
+        assertThat(ToolRegistry.classifyMutating("apicollection_env_set")).isTrue();
+        assertThat(ToolRegistry.classifyMutating("apicollection_to_testcase")).isTrue();
 
         assertThat(ToolRegistry.classifyMutating("gen_list")).isFalse();
         assertThat(ToolRegistry.classifyMutating("testcase_list")).isFalse();
         assertThat(ToolRegistry.classifyMutating("testcase_validate")).isFalse();
         assertThat(ToolRegistry.classifyMutating("browser_session_start")).isFalse();
         assertThat(ToolRegistry.classifyMutating("run_status")).isFalse();
+        assertThat(ToolRegistry.classifyMutating("apicollection_list")).isFalse();
+        assertThat(ToolRegistry.classifyMutating("apicollection_show")).isFalse();
         assertThat(ToolRegistry.classifyMutating("doctor")).isFalse();
     }
 
