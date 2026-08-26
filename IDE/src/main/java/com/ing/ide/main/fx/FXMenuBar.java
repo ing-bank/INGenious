@@ -156,13 +156,13 @@ public class FXMenuBar extends JFXPanel {
             ),
             "API Workbench"
         );
-        bindAccelerator(
-            KeyStroke.getKeyStroke(
-                KeyEvent.VK_I,
-                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
-            ),
-            "INGenie"
-        );
+        // bindAccelerator(
+        //     KeyStroke.getKeyStroke(
+        //         KeyEvent.VK_I,
+        //         InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+        //     ),
+        //     "INGenie"
+        // );
         bindAccelerator(
             KeyStroke.getKeyStroke(
                 KeyEvent.VK_A,

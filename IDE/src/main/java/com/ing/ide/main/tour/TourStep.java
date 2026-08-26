@@ -48,8 +48,8 @@ public class TourStep {
         TEST_DESIGN,
         TEST_EXECUTION,
         DASHBOARD,
-        API_TESTER,
-        AI_COPILOT
+        API_TESTER
+        // AI_COPILOT
     }
 
     private final String title;

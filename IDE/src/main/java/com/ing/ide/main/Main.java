@@ -305,10 +305,13 @@ public class Main {
                                 frame.setVisible(true);
                                 // Swap Swing chrome for JavaFX CSS-styled chrome
                                 frame.initFXChrome();
-                                // First-run archetype selector (RELEASE_STRATEGY.md 9.5)
-                                com.ing.ide.main.settings.ArchetypeManagerDialog.maybeShowFirstRun(
-                                    frame
-                                );
+                                // First-run archetype selector disabled.
+                                // Manual access is still available via:
+                                // - Settings -> Archetype Configurations
+                                // - Help -> Manage Archetypes
+                                // com.ing.ide.main.settings.ArchetypeManagerDialog.maybeShowFirstRun(
+                                //     frame
+                                // );
                             }
                         );
                         delayTimer.setRepeats(false);

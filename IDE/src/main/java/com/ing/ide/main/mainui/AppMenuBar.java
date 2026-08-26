@@ -331,12 +331,12 @@ public class AppMenuBar extends JMenuBar {
 
         window.add(createAPIWorkbenchMenuItem());
 
-        window.add(
-            withMnemonics(
-                withShortCut(withCopilotIcon(Utils.createMenuItem("INGenie", sActionListener))),
-                'I'
-            )
-        );
+        // window.add(
+        //     withMnemonics(
+        //         withShortCut(withCopilotIcon(Utils.createMenuItem("INGenie", sActionListener))),
+        //         'I'
+        //     )
+        // );
 
         window.add(
             withMnemonics(withShortCut(Utils.createMenuItem("AdjustUI", sActionListener)), 'A')
