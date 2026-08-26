@@ -30,8 +30,20 @@ public class EnvTestData {
 
     private final Properties environmentProperties;
 
+    private final boolean shared;
+
     public EnvTestData(Project sProject) {
+        this(sProject, false);
+    }
+
+    /**
+     * @param sProject owning project
+     * @param shared when true, this instance reads/writes the app-root Shared Test Data
+     *     location (Project.getSharedTestDataPath()) instead of the project's own TestData folder
+     */
+    public EnvTestData(Project sProject, boolean shared) {
         this.sProject = sProject;
+        this.shared = shared;
         environmentProperties = new Properties();
         load();
     }
@@ -171,6 +183,9 @@ public class EnvTestData {
 
     private void loadForEnv(String env) {
         TestData stestData = TestDataFactory.get(sProject.getTestdataType(), sProject, env);
+        if (shared) {
+            stestData.setLocationOverride(getLocation());
+        }
         // Propagate read-only mode to prevent datasheet migrations during validation
         stestData.setReadOnlyMode(sProject.isReadOnlyMode());
         stestData.load();
@@ -202,7 +217,9 @@ public class EnvTestData {
     }
 
     public String getLocation() {
-        return sProject.getLocation() + File.separator + "TestData";
+        return shared
+            ? Project.getSharedTestDataPath()
+            : sProject.getLocation() + File.separator + "TestData";
     }
 
     public void save() {
@@ -215,7 +232,10 @@ public class EnvTestData {
         environmentProperties.put("Environment", getEnvironmentsAsString());
         saveProperties(environmentProperties, getPropertiesLocation());
 
-        // Track shared reusables used in test data
+        // Track shared reusables used in test data (not applicable to the shared test data root itself)
+        if (shared) {
+            return;
+        }
         try {
             updateSharedReusableProjectsItemsFromTestData(sProject, this);
         } catch (Exception ex) {

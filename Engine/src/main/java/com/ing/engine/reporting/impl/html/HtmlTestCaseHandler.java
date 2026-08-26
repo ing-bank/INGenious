@@ -172,10 +172,11 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
     ) {
         String time = DateTimeUtils.DateTimeNow();
         JSONObject step;
+        JSONObject data = null;
         try {
             step = RDS.getNewStep(getStep().Description);
 
-            JSONObject data = (JSONObject) step.get(RDS.Step.DATA);
+            data = (JSONObject) step.get(RDS.Step.DATA);
             data.put(RDS.Step.Data.STEP_NO, getStepCount());
             data.put(RDS.Step.Data.STEP_NAME, stepName);
             data.put(RDS.Step.Data.ACTION, getStep().Action);
@@ -237,7 +238,6 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
                data.put(RDS.Step.Data.LINK, link);
             }*/
 
-            putStatus(state, links, link, data);
             if (isIteration) {
                 ((JSONArray) iteration.get(RDS.Step.DATA)).add(step);
             } else if (!reusableStack.isEmpty()) {
@@ -272,6 +272,16 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
             }
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
+        } finally {
+            // Status/counter bookkeeping must never be skipped, even if building the pretty
+            // JSON step entry above failed - an uncounted failure would otherwise silently
+            // read back as a passing test case (FailedSteps never incremented, overall status
+            // stays PASS despite a genuine step failure).
+            try {
+                putStatus(state, links, link, data);
+            } catch (Exception ex) {
+                LOG.log(Level.SEVERE, "Failed to update step status counters", ex);
+            }
         }
     }
 

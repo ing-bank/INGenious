@@ -63,4 +63,28 @@ public class DataProcessorStaticTest {
     public void testIsInputPatternDataSheetFalseForEmpty() {
         assertThat(DataProcessor.isInputPatternDataSheet("")).isFalse();
     }
+
+    // ---- isInputPatternDataSheet: Shared/Project Test Data scope tags ----
+
+    @Test
+    public void testIsInputPatternDataSheetTrueForBracedSharedTag() {
+        assertThat(DataProcessor.isInputPatternDataSheet("{[Shared] Sheet1:Column1}")).isTrue();
+    }
+
+    @Test
+    public void testIsInputPatternDataSheetTrueForBracedProjectTag() {
+        assertThat(DataProcessor.isInputPatternDataSheet("{[Project] Sheet1:Column1}")).isTrue();
+    }
+
+    @Test
+    public void testIsInputPatternDataSheetTrueForBareSharedTag() {
+        // A [Shared]/[Project] scope tag is carved out of the generic "starts with [" ->
+        // dynamic-value rule, so it resolves as a data sheet reference without braces.
+        assertThat(DataProcessor.isInputPatternDataSheet("[Shared] Sheet1:Column1")).isTrue();
+    }
+
+    @Test
+    public void testIsInputPatternDataSheetTrueForBareProjectTag() {
+        assertThat(DataProcessor.isInputPatternDataSheet("[Project] Sheet1:Column1")).isTrue();
+    }
 }

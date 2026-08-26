@@ -15,6 +15,9 @@ public class GlobalDataNotFoundException extends DataNotFoundException {
         this.context = context;
         this.field = field;
         this.gid = gid;
+        // Required: Task.runIteration() unconditionally calls ex.cause.isEndData() on any
+        // caught DataNotFoundException, so cause must never be left null here.
+        this.cause = new CauseInfo(Cause.Data, gid);
     }
 
     @Override

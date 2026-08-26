@@ -10,6 +10,7 @@ Release Date: <insert date of release>
 
 #### Added
 - Added multi-cell deletion support in the Test Datasheet for improved data management and editing efficiency.
+- Added Shared Test Data, allowing test datasets to be created once (under Shared/SharedTestData) and reused across projects, with explicit [Project]/[Shared] scope references in test steps.
 
 #### Changed
 #### Deprecated

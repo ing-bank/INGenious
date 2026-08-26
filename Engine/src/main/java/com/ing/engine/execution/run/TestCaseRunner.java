@@ -503,9 +503,18 @@ public class TestCaseRunner {
     }
 
     private void reportOnError(String err, String desc, Status status) {
-        Optional
-            .ofNullable(getReport())
-            .ifPresent(report -> report.updateTestLog(err, desc, status));
+        TestCaseReport report = getReport();
+        if (report == null) {
+            // A failure that can't be logged must not vanish silently - it would otherwise
+            // read back as a passing test case with no trace of why.
+            LOG.log(
+                Level.SEVERE,
+                "No report available to log failure: {0} - {1}",
+                new Object[] { err, desc }
+            );
+            return;
+        }
+        report.updateTestLog(err, desc, status);
     }
 
     //</editor-fold>
@@ -599,9 +608,26 @@ public class TestCaseRunner {
                             /**
                              * error while breaking the execution
                              */
-                            if (ex.cause.isEndData()) {
-                                throw new DataNotFoundException("End SubIteration");
+                            // "End of data sheet" is only a legitimate, silent termination
+                            // signal when it comes from an actual dynamic Param Loop counting
+                            // down its own sub-iterations. Outside of that (e.g. a standalone
+                            // step whose data sheet simply has no matching row), the same cause
+                            // means the data genuinely wasn't found and must be reported as a
+                            // real failure, not swallowed as if a loop had just ended.
+                            boolean isDynamicLoopTermination =
+                                ex.cause.isEndData() &&
+                                !this.stepStack.isEmpty() &&
+                                this.stepStack.peek().isSubIterDynamic;
+                            if (isDynamicLoopTermination) {
+                                // Rethrow the original exception rather than constructing a new
+                                // one - a fresh DataNotFoundException(String) here would leave
+                                // cause null (only the 2-arg CauseInfo-carrying constructors set
+                                // it), and Task.runIteration() unconditionally dereferences
+                                // ex.cause.isEndData(), NPE-ing and silently aborting the whole
+                                // test case with no failure recorded.
+                                throw ex;
                             } else {
+                                reportOnError("DataNotFound", ex.toString(), Status.DEBUG);
                                 throw new TestFailedException(scenario(), testcase(), ex);
                             }
                         }

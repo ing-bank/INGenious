@@ -34,11 +34,23 @@ public class DataProcessor {
         return resolveKeyMapVars(inp, 2);
     }
 
+    /**
+     * "[Shared] Sheet:Column" or "[Project] Sheet:Column" - an explicit Test Data scope tag,
+     * bare or braced. Mirrors ReusableRef.Scope's [Project]/[Shared] convention. Checked first so
+     * it can be carved out of the generic "starts with [" -> dynamic/literal-value rule below.
+     */
+    private static final String SCOPED_DATASHEET_PATTERN =
+        "^\\{?(\\[Shared\\]|\\[Project\\])\\s*[^}\\d:][^}:]*:[^}\\d:][^}:]*\\}?$";
+
+    private static boolean isScopedDataSheetRef(String inp) {
+        return inp.matches(SCOPED_DATASHEET_PATTERN);
+    }
+
     private static boolean isInputPatternDynamic(String inp) {
         return (
             inp.matches("(^@|=|>|%)(.*)") || // check if Static string | addVar function | Dynamic Variable
             inp.startsWith("<") || //
-            inp.startsWith("[") || //
+            (inp.startsWith("[") && !isScopedDataSheetRef(inp)) || //
             inp.matches("^\\{[^:\\d\\s][^:]*\\}") || // check if starts with curly braces with no colon inside
             inp.startsWith("\"")
         ); // check if starts with double quote
@@ -53,9 +65,10 @@ public class DataProcessor {
             ) && // check if does not starts with curly braces with no colon inside
             (
                 inp.matches("^[A-Za-z].*:[A-Za-z].*") || // check if DataSheet:Data
-                inp.matches("^\\{[^}\\d:][^}:]*:[^}\\d:][^}:]*\\}")
-            )
-        ); // check if {DataSheet:Data}
+                inp.matches("^\\{[^}\\d:][^}:]*:[^}\\d:][^}:]*\\}") || // check if {DataSheet:Data}
+                isScopedDataSheetRef(inp)
+            ) // check if [Shared]/[Project] Sheet:Column, bare or braced
+        );
     }
 
     public static synchronized String resolve(String raw, TestCaseRunner context, String subIter)
@@ -99,6 +112,27 @@ public class DataProcessor {
         return data;
     }
 
+    /**
+     * A Global Data reference, e.g. "#url" or the explicitly-scoped "[Shared] #url"/"[Project]
+     * #url" (mirrors DataAccessInternal's [Shared]/[Project] scope tag convention).
+     */
+    private static boolean isGlobalDataRef(String inp) {
+        String t = Objects.toString(inp, "").trim();
+        if (t.startsWith("#")) {
+            return true;
+        }
+        if (t.startsWith(DataAccessInternal.SHARED_SCOPE_TAG)) {
+            return t.substring(DataAccessInternal.SHARED_SCOPE_TAG.length()).trim().startsWith("#");
+        }
+        if (t.startsWith(DataAccessInternal.PROJECT_SCOPE_TAG)) {
+            return t
+                .substring(DataAccessInternal.PROJECT_SCOPE_TAG.length())
+                .trim()
+                .startsWith("#");
+        }
+        return false;
+    }
+
     public static String resolveDynamicData(Object raw, TestCaseRunner context, String field)
         throws DataNotFoundException {
         String inp = resolveKeyMapVars(
@@ -107,7 +141,7 @@ public class DataProcessor {
             context.getControl().getRunTimeVars()
         );
         inp = resolveDynamic(resolveIn(inp), context);
-        if (inp.startsWith("#")) {
+        if (isGlobalDataRef(inp)) {
             inp = DataAccess.getGlobalData(context, inp, field);
         }
 
@@ -122,7 +156,7 @@ public class DataProcessor {
             context.getControl().getRunTimeVars()
         );
         inp = resolveDynamic(resolveIn(inp), context);
-        if (inp.startsWith("#")) {
+        if (isGlobalDataRef(inp)) {
             inp = DataAccess.getGlobalData(context, inp, field);
         }
 
