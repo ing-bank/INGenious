@@ -79,6 +79,10 @@ public class AppMainFrame extends JFrame {
 
     /** True while the divider is being positioned programmatically. */
     private boolean applyingAISidebar = false;
+
+    /** Guards automatic first-run tour launch so it is scheduled only once per app session. */
+    private boolean autoTourLaunchScheduled = false;
+
     private final AppMenuBar menuBar;
 
     private final AppToolBar toolBar;
@@ -151,7 +155,8 @@ public class AppMainFrame extends JFrame {
         apiTester = new APITester(this);
         progressed(52);
         perfStudio = new com.ing.ide.main.mainui.components.perfstudio.PerfStudioUI(this);
-        aiCopilot = new AICopilot(this);
+        // aiCopilot = new AICopilot(this);
+        aiCopilot = null;
         dashBoard = new FXDashBoard(testExecution);
         progressed(60);
         dashBoardManager = new DashBoardManager(this);
@@ -183,7 +188,7 @@ public class AppMainFrame extends JFrame {
         slideShow.addSlide("DashBoard", dashBoard);
         slideShow.addSlide("APITester", apiTester.getAPITesterUI());
         slideShow.addSlide("PerfStudio", perfStudio);
-        slideShow.addSlideChangeListener(aiCopilot);
+        // slideShow.addSlideChangeListener(aiCopilot);
         progressed(85);
         add(buildCenter(), BorderLayout.CENTER);
         add(toolBar, BorderLayout.NORTH);
@@ -364,8 +369,9 @@ public class AppMainFrame extends JFrame {
 
     public void showAICopilot() {
         getGlassPane().setVisible(false);
-        toggleAISidebar();
-        if (fxStatusBar != null) fxStatusBar.setCurrentView("INGenie");
+        // AI assistant integration is disabled.
+        // toggleAISidebar();
+        // if (fxStatusBar != null) fxStatusBar.setCurrentView("INGenie");
     }
 
     /**
@@ -376,7 +382,10 @@ public class AppMainFrame extends JFrame {
     private java.awt.Component buildCenter() {
         centerSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         centerSplit.setLeftComponent(slideShow);
-        centerSplit.setRightComponent(aiCopilot.getAICopilotUI());
+        // AI assistant sidebar is disabled.
+        JPanel aiPlaceholder = new JPanel();
+        aiPlaceholder.setVisible(false);
+        centerSplit.setRightComponent(aiPlaceholder);
         centerSplit.setResizeWeight(1.0); // give extra space to the main view
         centerSplit.setContinuousLayout(true);
         centerSplit.setOneTouchExpandable(true);
@@ -384,52 +393,11 @@ public class AppMainFrame extends JFrame {
         // Small minimum sizes so the divider can be dragged freely in both
         // directions (Swing otherwise refuses to move it past a component's min).
         slideShow.setMinimumSize(new java.awt.Dimension(360, 0));
-        aiCopilot.getAICopilotUI().setMinimumSize(new java.awt.Dimension(300, 0));
+        aiPlaceholder.setMinimumSize(new java.awt.Dimension(0, 0));
 
-        // Restore persisted state.
-        try {
-            aiSidebarWidth =
-                Integer.parseInt(
-                    AppSettings.get(AppSettings.APP_SETTINGS.AI_SIDEBAR_WIDTH.getKey())
-                );
-        } catch (NumberFormatException ignore) {
-            aiSidebarWidth = 675;
-        }
-        if (aiSidebarWidth < 300) {
-            aiSidebarWidth = 300;
-        }
-        aiSidebarVisible =
-            Boolean.parseBoolean(
-                AppSettings.get(AppSettings.APP_SETTINGS.AI_SIDEBAR_VISIBLE.getKey())
-            );
-
-        // Persist width whenever the user drags the divider (only while visible).
-        centerSplit.addPropertyChangeListener(
-            JSplitPane.DIVIDER_LOCATION_PROPERTY,
-            evt -> {
-                // Ignore programmatic divider moves (show/hide/relayout); only
-                // genuine user drags should update the persisted default width.
-                if (applyingAISidebar) {
-                    return;
-                }
-                if (aiSidebarVisible && centerSplit.getWidth() > 0) {
-                    int w =
-                        centerSplit.getWidth() -
-                        centerSplit.getDividerLocation() -
-                        centerSplit.getDividerSize();
-                    if (w >= 200) {
-                        aiSidebarWidth = w;
-                        AppSettings.set(
-                            AppSettings.APP_SETTINGS.AI_SIDEBAR_WIDTH.getKey(),
-                            String.valueOf(w)
-                        );
-                    }
-                }
-            }
-        );
-
-        // Apply the initial visibility once the frame has a real size.
-        SwingUtilities.invokeLater(() -> applyAISidebar(aiSidebarVisible));
+        aiSidebarVisible = false;
+        centerSplit.setDividerSize(0);
+        SwingUtilities.invokeLater(() -> applyAISidebar(false));
         return centerSplit;
     }
 
@@ -607,7 +575,11 @@ public class AppMainFrame extends JFrame {
      * Called automatically from {@link #afterProjectChange()} on first launch.
      */
     public void checkAndShowTour() {
+        if (autoTourLaunchScheduled) {
+            return;
+        }
         if (TourManager.shouldShowTour()) {
+            autoTourLaunchScheduled = true;
             startTour();
         }
     }

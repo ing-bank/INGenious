@@ -326,9 +326,9 @@ public class TourManager {
             case API_TESTER:
                 frame.showAPITester();
                 break;
-            case AI_COPILOT:
-                frame.showAICopilot();
-                break;
+            // case AI_COPILOT:
+            //     frame.showAICopilot();
+            //     break;
             default:
                 break;
         }
