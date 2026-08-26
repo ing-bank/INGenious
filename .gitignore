@@ -47,6 +47,13 @@ Thumbs.db
 # Packaged VS Code extension artifacts
 /vscode-ingenious-bridge/*.vsix
 
+# PR ignore list
+/Resources/ai/
+/Configuration/archetypes/
+/Configuration/action-argspec.json
+/vscode-ingenious-bridge/
+/CHANGELOG.md
+
 # Local VS Code MCP configuration
 /.vscode/mcp.json
 
