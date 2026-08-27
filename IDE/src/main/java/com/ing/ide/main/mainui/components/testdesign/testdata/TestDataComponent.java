@@ -1131,10 +1131,23 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         private void load() {
             std.loadTableModel();
             table.setModel(std);
+            makeAllColumnsResizable();
             changeSave(std.isSaved());
             // Update frozen scroll pane after model change
             if (!isGlobalData && frozenScrollPane != null) {
                 frozenScrollPane.updateModel();
+            }
+        }
+
+        /**
+         * Ensures all table columns are resizable.
+         * This is particularly important for the GlobalData table where the Scenario column
+         * and other columns need to be user-resizable for better visibility.
+         */
+        private void makeAllColumnsResizable() {
+            javax.swing.table.TableColumnModel columnModel = table.getColumnModel();
+            for (int i = 0; i < columnModel.getColumnCount(); i++) {
+                columnModel.getColumn(i).setResizable(true);
             }
         }
 
