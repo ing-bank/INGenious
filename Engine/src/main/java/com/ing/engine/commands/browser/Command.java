@@ -303,17 +303,29 @@ public class Command implements CommandPluginApi {
         return Commander.getRunTimeElement();
     }
 
+    /**
+     * Implementation of {@link CommandPluginApi#executeMethod(String)} for the API-plugin contract.
+     * @param Action the action name to execute
+     */
+    @Override
     public void executeMethod(String Action) {
         Commander.executeAction(Action);
     }
 
-    public void executeMethod(Locator Locator, String Action, String Input) {
-        setElement(Locator);
+    /**
+     * Implementation of {@link CommandPluginApi#executeMethod(String, String)} for the API-plugin contract.
+     * @param Action the action name to execute
+     * @param Input the input data for the action
+     */
+    @Override
+    public void executeMethod(String Action, String Input) {
         setInput(Input);
         executeMethod(Action);
     }
 
-    public void executeMethod(String Action, String Input) {
+    // Locator-based executeMethod overloads are in General class (BrowserPluginApi)
+    public void executeMethod(Locator Locator, String Action, String Input) {
+        setElement(Locator);
         setInput(Input);
         executeMethod(Action);
     }

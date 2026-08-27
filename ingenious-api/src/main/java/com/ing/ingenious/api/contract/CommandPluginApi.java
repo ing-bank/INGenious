@@ -142,5 +142,22 @@ public interface CommandPluginApi {
      * @param testCaseName the name of the test case to execute
      */
     void executeTestCase(String scenarioName, String testCaseName);
+    
+    /**
+     * Executes an action method by name.
+     * This allows plugin actions to invoke framework actions programmatically.
+     * 
+     * @param action the action name to execute
+     */
+    void executeMethod(String action);
+    
+    /**
+     * Executes an action method by name with input data.
+     * Sets the input parameter before executing the action.
+     * 
+     * @param action the action name to execute
+     * @param input the input data for the action
+     */
+    void executeMethod(String action, String input);
 
 }

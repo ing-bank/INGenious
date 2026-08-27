@@ -108,5 +108,24 @@ public interface BrowserPluginApi extends CommandPluginApi {
      * @return true if a vertical scroll bar is present, false otherwise
      */
     boolean isvScrollBarPresent();
+    
+    /**
+     * Executes an action method on a Playwright locator with input data.
+     * Sets the element and input parameter before executing the action.
+     * 
+     * @param locator the Playwright locator element to act upon
+     * @param action the action name to execute
+     * @param input the input data for the action
+     */
+    void executeMethod(Object locator, String action, String input);
+    
+    /**
+     * Executes an action method on a Playwright locator.
+     * Sets the element before executing the action.
+     * 
+     * @param locator the Playwright locator element to act upon
+     * @param action the action name to execute
+     */
+    void executeMethod(Object locator, String action);
 
 }
