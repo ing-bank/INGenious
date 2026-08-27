@@ -1572,8 +1572,11 @@ public class TestCase extends DataModel {
         TestCase existing = getScenario().getTestCaseByName(newName);
         if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
-                getProject().refactorTestCase(getScenario().getName(), name, newName);
+                String oldName = name;
+                // Update name before refactoring so getLocation() resolves to the
+                // already-renamed file when this test case's own steps are (re)loaded.
                 name = newName;
+                getProject().refactorTestCase(getScenario().getName(), oldName, newName);
                 return true;
             }
         }
@@ -1584,8 +1587,11 @@ public class TestCase extends DataModel {
         TestCase existing = getScenario().getTestCaseByName(newName);
         if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
-                getProject().refactorTestCase(getScenario().getName(), name, newName);
+                String oldName = name;
+                // Update name before refactoring so getLocation() resolves to the
+                // already-renamed file when this test case's own steps are (re)loaded.
                 name = newName;
+                getProject().refactorTestCase(getScenario().getName(), oldName, newName);
                 return true;
             }
         }
@@ -1601,8 +1607,11 @@ public class TestCase extends DataModel {
         TestCase existing = getScenario().getTestCaseByName(newName);
         if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
-                getProject().refactorTestCase(getScenario().getName(), name, newName);
+                String oldName = name;
+                // Update name before refactoring so getLocation() resolves to the
+                // already-renamed file when this test case's own steps are (re)loaded.
                 name = newName;
+                getProject().refactorTestCase(getScenario().getName(), oldName, newName);
                 return true;
             }
         }
