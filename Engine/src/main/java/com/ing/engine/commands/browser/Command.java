@@ -355,10 +355,23 @@ public class Command implements CommandPluginApi {
         return Commander;
     }
 
+    /**
+     * Implementation of {@link CommandPluginApi#executeTestCase(String, String, int)} for the API-plugin contract.
+     * @param scenarioName the scenario name
+     * @param testCaseName the test case name
+     * @param subIteration the sub-iteration number
+     */
+    @Override
     public void executeTestCase(String scenarioName, String testCaseName, int subIteration) {
         Commander.execute(scenarioName + ":" + testCaseName, subIteration);
     }
 
+    /**
+     * Implementation of {@link CommandPluginApi#executeTestCase(String, String)} for the API-plugin contract.
+     * @param scenarioName the scenario name
+     * @param testCaseName the test case name
+     */
+    @Override
     public void executeTestCase(String scenarioName, String testCaseName) {
         executeTestCase(scenarioName, testCaseName, userData.getSubIterationAsNumber());
     }
