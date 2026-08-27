@@ -165,5 +165,23 @@ public interface CommandPluginApi {
      * @return the context key for the current test execution
      */
     String getKey();
-  
+      /**
+     * Executes a test case with specified scenario name, test case name, and sub-iteration.
+     * This allows plugin actions to invoke other test cases programmatically.
+     * 
+     * @param scenarioName the name of the scenario containing the test case
+     * @param testCaseName the name of the test case to execute
+     * @param subIteration the sub-iteration number to execute
+     */
+    void executeTestCase(String scenarioName, String testCaseName, int subIteration);
+    
+    /**
+     * Executes a test case with specified scenario name and test case name.
+     * Uses the current sub-iteration number from user data.
+     * 
+     * @param scenarioName the name of the scenario containing the test case
+     * @param testCaseName the name of the test case to execute
+     */
+    void executeTestCase(String scenarioName, String testCaseName);
+
 }
