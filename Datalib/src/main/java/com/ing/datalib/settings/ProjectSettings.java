@@ -27,6 +27,8 @@ public class ProjectSettings {
     private final DBProperties dbSettings;
     private final ContextOptions contextSettings;
     private final KafkaSSLConfigurations SSLConfigurations;
+    private final KafkaProducerProperties kafkaProducerSettings;
+    private final KafkaConsumerProperties kafkaConsumerSettings;
     private final LambdaTestCaps lambdaTestCaps;
 
     public ProjectSettings(Project sProject) {
@@ -44,6 +46,8 @@ public class ProjectSettings {
         this.extentSettings = new ExtentReportSettings(getLocation());
         this.contextSettings = new ContextOptions(getLocation());
         this.SSLConfigurations = new KafkaSSLConfigurations(getLocation());
+        this.kafkaProducerSettings = new KafkaProducerProperties(getLocation());
+        this.kafkaConsumerSettings = new KafkaConsumerProperties(getLocation());
         this.lambdaTestCaps = new LambdaTestCaps(getLocation());
 
         // Ensure SAP is available as default browser
@@ -52,6 +56,10 @@ public class ProjectSettings {
         // One-time migration: move legacy "Manage Browsers" emulator entries
         // into the new "Manage Devices" store. Idempotent and SAP-preserving.
         EmulatorToDeviceMigration.migrate(emulators, devices);
+
+        // One-time migration: copy the single global Kafka SSL bag into the new
+        // per-config default producer/consumer. Idempotent; legacy bag is kept.
+        migrateLegacyKafkaSSL();
     }
 
     /**
@@ -70,6 +78,58 @@ public class ProjectSettings {
         capabilities.ensureSAPCapabilitiesExist();
     }
 
+    /**
+     * Copies the legacy single global Kafka SSL bag ({@link KafkaSSLConfigurations})
+     * into the new per-config {@code default} producer/consumer {@code ssl.*} keys.
+     * Idempotent: only runs when the default configs have not been given an SSL
+     * value yet. The legacy bag is left untouched for rollback.
+     */
+    private void migrateLegacyKafkaSSL() {
+        if (SSLConfigurations == null || SSLConfigurations.isEmpty()) {
+            return;
+        }
+        java.util.Properties producer = kafkaProducerSettings.getProducerPropertiesFor("default");
+        if (producer != null && "false".equals(producer.getProperty("ssl.enabled", "false"))) {
+            producer.setProperty(
+                "ssl.enabled",
+                SSLConfigurations.getProperty("Producer_ssl_Enabled", "false")
+            );
+            producer.setProperty(
+                "ssl.keystore.location",
+                SSLConfigurations.getProperty("Producer_Keystore_Location", "")
+            );
+            producer.setProperty(
+                "ssl.keystore.password",
+                SSLConfigurations.getProperty("Producer_Keystore_Password", "")
+            );
+            producer.setProperty(
+                "ssl.key.password",
+                SSLConfigurations.getProperty("Producer_Key_Password", "")
+            );
+            kafkaProducerSettings.save("default");
+        }
+        java.util.Properties consumer = kafkaConsumerSettings.getConsumerPropertiesFor("default");
+        if (consumer != null && "false".equals(consumer.getProperty("ssl.enabled", "false"))) {
+            consumer.setProperty(
+                "ssl.enabled",
+                SSLConfigurations.getProperty("Consumer_ssl_Enabled", "false")
+            );
+            consumer.setProperty(
+                "ssl.keystore.location",
+                SSLConfigurations.getProperty("Consumer_Keystore_Location", "")
+            );
+            consumer.setProperty(
+                "ssl.keystore.password",
+                SSLConfigurations.getProperty("Consumer_Keystore_Password", "")
+            );
+            consumer.setProperty(
+                "ssl.key.password",
+                SSLConfigurations.getProperty("Consumer_Key_Password", "")
+            );
+            kafkaConsumerSettings.save("default");
+        }
+    }
+
     public void resetLocation() {
         userDefinedSettings.setLocation(getLocation());
         // driverSettings.setLocation(getLocation());
@@ -83,6 +143,8 @@ public class ProjectSettings {
         rpSettings.setLocation(getLocation());
         extentSettings.setLocation(getLocation());
         contextSettings.setLocation(getLocation());
+        kafkaProducerSettings.setLocation(getLocation());
+        kafkaConsumerSettings.setLocation(getLocation());
         lambdaTestCaps.setLocation(getLocation());
     }
 
@@ -108,6 +170,14 @@ public class ProjectSettings {
 
     public KafkaSSLConfigurations getKafkaSSLConfigurations() {
         return SSLConfigurations;
+    }
+
+    public KafkaProducerProperties getKafkaProducerSettings() {
+        return kafkaProducerSettings;
+    }
+
+    public KafkaConsumerProperties getKafkaConsumerSettings() {
+        return kafkaConsumerSettings;
     }
 
     public ContextOptions getContextSettings() {

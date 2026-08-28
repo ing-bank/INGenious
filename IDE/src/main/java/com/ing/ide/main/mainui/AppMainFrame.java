@@ -23,6 +23,7 @@ import com.ing.ide.main.fx.FXStatusBar;
 import com.ing.ide.main.fx.FXToolBar;
 import com.ing.ide.main.mainui.components.aichat.AICopilot;
 import com.ing.ide.main.mainui.components.apitester.APITester;
+import com.ing.ide.main.mainui.components.dbworkbench.DBWorkbench;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testexecution.TestExecution;
 import com.ing.ide.main.shr.SHR;
@@ -95,6 +96,8 @@ public class AppMainFrame extends JFrame {
 
     private final APITester apiTester;
 
+    private final DBWorkbench dbWorkbench;
+
     private final AICopilot aiCopilot;
 
     private final FXDashBoard dashBoard;
@@ -149,6 +152,7 @@ public class AppMainFrame extends JFrame {
         testExecution = new TestExecution(this);
         progressed(50);
         apiTester = new APITester(this);
+        dbWorkbench = new DBWorkbench(this);
         progressed(52);
         perfStudio = new com.ing.ide.main.mainui.components.perfstudio.PerfStudioUI(this);
         aiCopilot = new AICopilot(this);
@@ -182,6 +186,7 @@ public class AppMainFrame extends JFrame {
         slideShow.addSlide("TestExecution", testExecution.getTestExecutionUI());
         slideShow.addSlide("DashBoard", dashBoard);
         slideShow.addSlide("APITester", apiTester.getAPITesterUI());
+        slideShow.addSlide("DBWorkbench", dbWorkbench.getDBWorkbenchUI());
         slideShow.addSlide("PerfStudio", perfStudio);
         slideShow.addSlideChangeListener(aiCopilot);
         progressed(85);
@@ -315,6 +320,13 @@ public class AppMainFrame extends JFrame {
         getGlassPane().setVisible(false);
         slideShow.showSlide("APITester");
         if (fxStatusBar != null) fxStatusBar.setCurrentView("API Workbench");
+    }
+
+    public void showDBWorkbench() {
+        getGlassPane().setVisible(false);
+        dbWorkbench.loadData();
+        slideShow.showSlide("DBWorkbench");
+        if (fxStatusBar != null) fxStatusBar.setCurrentView("Database Workbench");
     }
 
     public void showPerfStudio() {
@@ -502,6 +514,10 @@ public class AppMainFrame extends JFrame {
         return getCurrentSlide().equals("APITester");
     }
 
+    public Boolean isDBWorkbench() {
+        return getCurrentSlide().equals("DBWorkbench");
+    }
+
     public TestDesign getTestDesign() {
         return testDesign;
     }
@@ -516,6 +532,10 @@ public class AppMainFrame extends JFrame {
 
     public APITester getAPITester() {
         return apiTester;
+    }
+
+    public DBWorkbench getDBWorkbench() {
+        return dbWorkbench;
     }
 
     public AICopilot getAICopilot() {
@@ -988,6 +1008,7 @@ public class AppMainFrame extends JFrame {
             sProject.save();
             testDesign.save();
             apiTester.saveData();
+            dbWorkbench.saveData();
         }
     }
 
@@ -1114,6 +1135,9 @@ public class AppMainFrame extends JFrame {
         dashBoardManager.onProjectChanged();
         apiTester.loadData();
         apiTester.registerSlideChangeListener(); // Register to listen for panel switches
+        dbWorkbench.closeAllConnections();
+        dbWorkbench.loadData();
+        dbWorkbench.registerSlideChangeListener();
         sActionListener.afterProjectChange();
         setTitle(sProject.getName() + " - " + getAppTitle());
         // Sync multi-environment state to both Swing and FX menus

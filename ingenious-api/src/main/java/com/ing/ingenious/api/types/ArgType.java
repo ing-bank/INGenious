@@ -72,6 +72,10 @@ public enum ArgType {
     ALIAS_API("#apiAlias", "#PetStore", Pattern.compile("^#.+"), false),
     /** {@code #contextAlias} context alias. */
     ALIAS_CONTEXT("#contextAlias", "#mobileCtx", Pattern.compile("^#.+"), false),
+    /** {@code #producerAlias} Kafka producer config alias. */
+    ALIAS_KAFKA_PRODUCER("#producerAlias", "#OrdersProducer", Pattern.compile("^#.+"), false),
+    /** {@code #consumerAlias} Kafka consumer config alias. */
+    ALIAS_KAFKA_CONSUMER("#consumerAlias", "#OrdersConsumer", Pattern.compile("^#.+"), false),
     /** GlobalData environment id. */
     GLOBAL_ID("GlobalData id", "#test", Pattern.compile("^#.+"), false),
     /** Engine directive such as {@code @Enter}, {@code @Browser}. */

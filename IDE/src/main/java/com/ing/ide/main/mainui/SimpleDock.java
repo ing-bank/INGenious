@@ -43,6 +43,8 @@ public class SimpleDock extends JPanel implements ActionListener {
     private static final Color BG_DASH_HOVER = Color.decode("#B487FF");
     private static final Color BG_API_NORMAL = Color.decode("#E4F5FF");
     private static final Color BG_API_HOVER = Color.decode("#BEE8FE");
+    private static final Color BG_DB_NORMAL = Color.decode("#E8EAF6");
+    private static final Color BG_DB_HOVER = Color.decode("#9FA8DA");
 
     private static final Color ICON_NORMAL = Color.decode("#222222");
     private static final Color ICON_WHITE = Color.WHITE;
@@ -56,6 +58,7 @@ public class SimpleDock extends JPanel implements ActionListener {
     private DockButton testExecutionButton;
     private DockButton dashBoardButton;
     private DockButton apiWorkbenchButton;
+    private DockButton dbWorkbenchButton;
 
     private final AppMainFrame mainFrame;
 
@@ -149,6 +152,15 @@ public class SimpleDock extends JPanel implements ActionListener {
                 BG_API_HOVER,
                 false
             );
+        dbWorkbenchButton =
+            createDockButton(
+                "DBWorkbench",
+                "DB Workbench",
+                "dbdock",
+                BG_DB_NORMAL,
+                BG_DB_HOVER,
+                false
+            );
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -163,6 +175,8 @@ public class SimpleDock extends JPanel implements ActionListener {
         dPanel.add(dashBoardButton, gbc);
         gbc.gridy = 3;
         dPanel.add(apiWorkbenchButton, gbc);
+        gbc.gridy = 4;
+        dPanel.add(dbWorkbenchButton, gbc);
 
         return dPanel;
     }
@@ -227,6 +241,9 @@ public class SimpleDock extends JPanel implements ActionListener {
                 break;
             case "APIWorkbench":
                 mainFrame.showAPITester();
+                break;
+            case "DBWorkbench":
+                mainFrame.showDBWorkbench();
                 break;
         }
     }

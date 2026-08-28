@@ -66,6 +66,7 @@ public class FXToolBar extends JFXPanel {
                 createButton("Archetype Configurations", "BrowserConfiguration"),
                 new Separator(),
                 createAPITesterButton(),
+                createDBWorkbenchButton(),
                 createPerfStudioButton(),
                 createSpacer(),
                 createAICopilotButton()
@@ -112,6 +113,24 @@ public class FXToolBar extends JFXPanel {
         }
 
         btn.setOnAction(e -> fireSwingAction("API Workbench"));
+        return btn;
+    }
+
+    private Button createDBWorkbenchButton() {
+        Button btn = new Button("DB Workbench");
+        btn.getStyleClass().add("workbench-btn");
+        btn.setTooltip(new Tooltip("Open Database Workbench - run SQL & build DB test cases"));
+
+        org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fx(
+            "dbdock",
+            16,
+            javafx.scene.paint.Color.BLACK
+        );
+        if (icon != null) {
+            btn.setGraphic(icon);
+        }
+
+        btn.setOnAction(e -> fireSwingAction("Database Workbench"));
         return btn;
     }
 

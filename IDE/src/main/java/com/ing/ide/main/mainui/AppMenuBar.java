@@ -96,6 +96,10 @@ public class AppMenuBar extends JMenuBar {
             KeyStroke.getKeyStroke(KeyEvent.VK_W, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)
         );
         shortcuts.put(
+            "Database Workbench",
+            KeyStroke.getKeyStroke(KeyEvent.VK_B, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)
+        );
+        shortcuts.put(
             "AdjustUI",
             KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)
         );
@@ -331,6 +335,8 @@ public class AppMenuBar extends JMenuBar {
 
         window.add(createAPIWorkbenchMenuItem());
 
+        window.add(createDBWorkbenchMenuItem());
+
         window.add(
             withMnemonics(
                 withShortCut(withCopilotIcon(Utils.createMenuItem("INGenie", sActionListener))),
@@ -390,6 +396,50 @@ public class AppMenuBar extends JMenuBar {
         item.addActionListener(sActionListener);
         item.setAccelerator(shortcuts.get("API Workbench"));
         item.setMnemonic('W');
+        return item;
+    }
+
+    /**
+     * Creates the Database Workbench menu item styled like the API Workbench item
+     * with an indigo accent.
+     */
+    private JMenuItem createDBWorkbenchMenuItem() {
+        final Color BG_NORMAL = Color.decode("#3F51B5");
+        final Color BG_HOVER = Color.decode("#303F9F");
+        final Color BORDER = Color.decode("#FFFFFF");
+
+        JMenuItem item = new JMenuItem("DB Workbench") {
+
+            @Override
+            public void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON
+                );
+
+                g2d.setColor(new Color(0, 0, 0, 85));
+                g2d.fillRoundRect(4, 3, getWidth() - 6, getHeight() - 5, 9, 9);
+
+                g2d.setColor(isArmed() ? BG_HOVER : BG_NORMAL);
+                g2d.fillRoundRect(3, 2, getWidth() - 6, getHeight() - 4, 8, 8);
+
+                g2d.setColor(BORDER);
+                g2d.setStroke(new BasicStroke(2.3f));
+                g2d.drawRoundRect(3, 2, getWidth() - 7, getHeight() - 5, 8, 8);
+
+                g2d.dispose();
+                super.paintComponent(g);
+            }
+        };
+        item.setOpaque(false);
+        item.setFont(item.getFont().deriveFont(Font.BOLD));
+        item.setForeground(Color.WHITE);
+        item.setIcon(INGIcons.swing("dbdock", 15, Color.WHITE));
+        item.setActionCommand("Database Workbench");
+        item.addActionListener(sActionListener);
+        item.setAccelerator(shortcuts.get("Database Workbench"));
+        item.setMnemonic('B');
         return item;
     }
 

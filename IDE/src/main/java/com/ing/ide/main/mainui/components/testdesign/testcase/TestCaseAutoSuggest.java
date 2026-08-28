@@ -361,6 +361,24 @@ public class TestCaseAutoSuggest {
         return newList;
     }
 
+    public List getKafkaProducerAliasList() {
+        List values = sProject.getProjectSettings().getKafkaProducerSettings().getProducerList();
+        List newList = new ArrayList<>();
+        for (Object string : values) {
+            newList.add("#" + string);
+        }
+        return newList;
+    }
+
+    public List getKafkaConsumerAliasList() {
+        List values = sProject.getProjectSettings().getKafkaConsumerSettings().getConsumerList();
+        List newList = new ArrayList<>();
+        for (Object string : values) {
+            newList.add("#" + string);
+        }
+        return newList;
+    }
+
     private void startEditing(final AutoSuggest suggest) {
         SwingUtilities.invokeLater(
             new Runnable() {
@@ -690,6 +708,8 @@ public class TestCaseAutoSuggest {
             );
             if ("Webservice".equals(objectName)) {
                 return getAPIAliasList();
+            } else if ("Kafka".equals(objectName)) {
+                return getKafkaProducerAliasList();
             } else {
                 return getContextAliasList();
             }
@@ -740,6 +760,10 @@ public class TestCaseAutoSuggest {
                     return getAPIAliasList();
                 case ALIAS_CONTEXT:
                     return getContextAliasList();
+                case ALIAS_KAFKA_PRODUCER:
+                    return getKafkaProducerAliasList();
+                case ALIAS_KAFKA_CONSUMER:
+                    return getKafkaConsumerAliasList();
                 case VIEWPORT:
                     list.add("screen");
                     list.add("viewport");
