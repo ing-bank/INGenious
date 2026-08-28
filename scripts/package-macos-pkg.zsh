@@ -61,6 +61,9 @@ print -- ""
 [[ -d "$WORKSPACE_SOURCE/Shared" ]] ||
   fail "Workspace template is missing Shared."
 
+[[ -d "$WORKSPACE_SOURCE/plugins" ]] ||
+  fail "Workspace template is missing plugins."
+
 [[ -f "$POSTINSTALL_SOURCE" ]] ||
   fail "Post-install script is missing: $POSTINSTALL_SOURCE"
 [[ -f "$DISTRIBUTION_TEMPLATE" ]] ||
@@ -135,6 +138,9 @@ chmod 755 "$PACKAGE_SCRIPTS/postinstall"
 
 [[ -d "$PACKAGE_SCRIPTS/Workspace/Shared" ]] ||
   fail "Staged Workspace is missing Shared."
+
+[[ -d "$PACKAGE_SCRIPTS/Workspace/plugins" ]] ||
+  fail "Staged Workspace is missing plugins."
 
 print -- ""
 print -- "[4/5] Building component package"
