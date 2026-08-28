@@ -209,6 +209,9 @@ public class WorkspacePathTest {
 
         assertThat(WorkspacePath.getUserDefinedPath())
             .isEqualTo(WorkspacePath.getWorkspaceRoot() + File.separator + "UserDefined");
+
+        assertThat(WorkspacePath.getPluginsPath())
+            .isEqualTo(WorkspacePath.getWorkspaceRoot() + File.separator + "plugins");
     }
 
     private static File createTemporaryDirectory(String prefix) throws Exception {

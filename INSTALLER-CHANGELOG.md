@@ -19,7 +19,8 @@ The new release structure is:
     ├── Workspace/             User-writable and persistent data
     │   ├── Configuration/
     │   ├── Projects/
-    │   └── Shared/
+    │   ├── Shared/
+    │   └── plugins/
     ├── INGenious.app          Native macOS application
     ├── ingenious              Unix/Linux launcher
     ├── ingenious.command      macOS portable launcher
@@ -57,7 +58,11 @@ Workspace resolution follows this precedence:
 5. `%LOCALAPPDATA%\INGenious` for an installed Windows application
 6. Current working directory for legacy compatibility
 
-The resolver provides paths for `Configuration`, `Projects`, `Shared`, and `UserDefined`.
+The resolver provides paths for `Configuration`, `Projects`, `Shared`, `UserDefined`, and the persistent user plugin directory at `Workspace/plugins`.
+
+Plugin discovery uses the resolved Workspace, so the `ingenious.workspace` JVM property and `INGENIOUS_WORKSPACE` environment variable remain authoritative. Application upgrades may replace Runtime while preserving user-installed plugins in the Workspace.
+
+Existing plugin files are never overwritten automatically. This change does not automatically migrate or delete plugin data from legacy Runtime locations; any future migration requires an explicit, reviewed conflict and compatibility policy.
 
 ### Workspace initialization
 
@@ -66,7 +71,8 @@ The resolver provides paths for `Configuration`, `Projects`, `Shared`, and `User
 Added first-run Workspace initialization from a packaged `WorkspaceTemplate`.
 
 - Copies missing directories and files.
-- Preserves existing user files.
+- Preserves existing user files, including user-installed plugins.
+- Creates the empty `Workspace/plugins` directory from the packaged Workspace template.
 - Does nothing when no template is available.
 - Supports upgrades without overwriting user content.
 
@@ -77,8 +83,9 @@ Added:
 - `Datalib/src/test/java/com/ing/datalib/util/RuntimePathTest.java`
 - `Datalib/src/test/java/com/ing/datalib/util/WorkspacePathTest.java`
 - `Datalib/src/test/java/com/ing/datalib/util/WorkspaceInitializerTest.java`
+- `Engine/src/test/java/com/ing/engine/plugin/loader/PluginLoaderTest.java`
 
-Coverage includes path precedence, packaged platform defaults, portable behavior, Workspace initialization, and user-file preservation.
+Coverage includes path precedence, packaged platform defaults, portable behavior, Workspace initialization, plugin-directory resolution, missing plugin-directory behavior, and preservation of existing user plugin files.
 
 ---
 

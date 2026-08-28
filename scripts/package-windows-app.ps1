@@ -130,11 +130,11 @@ Write-Host "[2/6] Validating staged Runtime"
 $RequiredInputItems = @(
     (Join-Path $InputDir "lib"),
     (Join-Path $InputDir "Engine"),
-    (Join-Path $InputDir "plugins"),
     (Join-Path $InputDir "Tools"),
     (Join-Path $InputDir "web"),
     (Join-Path $InputDir "Configuration"),
     (Join-Path $InputDir "WorkspaceTemplate"),
+    (Join-Path $InputDir "WorkspaceTemplate\plugins"),
     (Join-Path $InputDir $GuiJarName)
 )
 
@@ -228,11 +228,11 @@ $RequiredPackagedItems = @(
     $ConfigFile,
     (Join-Path $AppDir "lib"),
     (Join-Path $AppDir "Engine"),
-    (Join-Path $AppDir "plugins"),
     (Join-Path $AppDir "Tools"),
     (Join-Path $AppDir "web"),
     (Join-Path $AppDir "Configuration"),
     (Join-Path $AppDir "WorkspaceTemplate"),
+    (Join-Path $AppDir "WorkspaceTemplate\plugins"),
     (Join-Path $AppDir $GuiJarName)
 )
 

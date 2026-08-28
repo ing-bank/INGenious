@@ -102,6 +102,13 @@ public final class WorkspacePath {
         return getWorkspaceRoot() + File.separator + "UserDefined";
     }
 
+    /**
+     * Returns the persistent directory containing user-installed plugins.
+     */
+    public static String getPluginsPath() {
+        return getWorkspaceRoot() + File.separator + "plugins";
+    }
+
     private static boolean isPackagedMacApplication(String appHome, String osName) {
         return (
             appHome != null &&

@@ -67,6 +67,43 @@ public class WorkspaceInitializerTest {
     }
 
     @Test
+    public void copiesMissingPluginFiles() throws Exception {
+        Path root = Files.createTempDirectory("workspace-plugin-copy");
+        Path template = root.resolve("WorkspaceTemplate");
+        Path workspace = root.resolve("Workspace");
+        Path templatePlugin = template.resolve("plugins").resolve("example").resolve("plugin.jar");
+
+        Files.createDirectories(templatePlugin.getParent());
+        Files.writeString(templatePlugin, "template-plugin");
+
+        WorkspaceInitializer.initialize(template, workspace);
+
+        assertThat(workspace.resolve("plugins").resolve("example").resolve("plugin.jar"))
+            .hasContent("template-plugin");
+    }
+
+    @Test
+    public void preservesExistingPluginFiles() throws Exception {
+        Path root = Files.createTempDirectory("workspace-plugin-preservation");
+        Path template = root.resolve("WorkspaceTemplate");
+        Path workspace = root.resolve("Workspace");
+        Path templatePlugin = template.resolve("plugins").resolve("example").resolve("plugin.jar");
+        Path workspacePlugin = workspace
+            .resolve("plugins")
+            .resolve("example")
+            .resolve("plugin.jar");
+
+        Files.createDirectories(templatePlugin.getParent());
+        Files.createDirectories(workspacePlugin.getParent());
+        Files.writeString(templatePlugin, "template-plugin");
+        Files.writeString(workspacePlugin, "user-plugin");
+
+        WorkspaceInitializer.initialize(template, workspace);
+
+        assertThat(workspacePlugin).hasContent("user-plugin");
+    }
+
+    @Test
     public void doesNothingWhenTemplateIsMissing() throws Exception {
         Path root = Files.createTempDirectory("workspace-no-template");
         Path template = root.resolve("MissingTemplate");
