@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  */
 public class AppResourcePath {
     /**
-     * Root containing application-owned files such as lib, Engine, plugins,
+     * Root containing application-owned files such as lib, Engine,
      * Tools, Extensions, and web assets.
      *
      * In the existing ZIP distribution this defaults to the current working
@@ -28,7 +28,7 @@ public class AppResourcePath {
 
     /**
      * Root containing user-writable directories such as Projects, Shared,
-     * and Configuration.
+     * Configuration, and plugins.
      */
     public static final String WORKSPACE_PROPERTY = "ingenious.workspace";
 

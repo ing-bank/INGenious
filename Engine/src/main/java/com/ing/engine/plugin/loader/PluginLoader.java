@@ -1,6 +1,6 @@
 package com.ing.engine.plugin.loader;
 
-import com.ing.engine.constants.FilePath;
+import com.ing.datalib.util.WorkspacePath;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -23,17 +23,15 @@ public class PluginLoader {
      * This method scans each plugin folder, collects all plugin JARs and their dependencies,
      * and loads the classes specified as entry points in the JAR manifest (pluginEntryClasses attribute).
      *
-     * @return a list of loaded plugin entry classes
-     * @throws IllegalArgumentException if the plugin directory is missing
+     * @return a list of loaded plugin entry classes, or an empty list when the
+     *         plugin directory is missing
      */
     public static List<Class<?>> loadAllPluginsEntryClasses() {
         List<Class<?>> classes = new ArrayList<>();
-        File baseDir = new File(FilePath.getAppRoot() + "/plugins"); // root plugin directory
+        File baseDir = new File(WorkspacePath.getPluginsPath());
 
-        if (!baseDir.exists() || !baseDir.isDirectory()) {
-            throw new IllegalArgumentException(
-                "Base plugin directory not found: " + baseDir.getAbsolutePath()
-            );
+        if (!baseDir.isDirectory()) {
+            return classes;
         }
 
         // Iterate over each plugin folder

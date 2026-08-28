@@ -105,7 +105,6 @@ print -- "[2/5] Validating staged resources"
 for item in \
   "$INPUT/lib" \
   "$INPUT/Engine" \
-  "$INPUT/plugins" \
   "$INPUT/Tools" \
   "$INPUT/web" \
   "$INPUT/Configuration" \
@@ -197,7 +196,6 @@ print -- "[4/5] Validating the generated application"
 for item in \
   "$APP_DIR/lib" \
   "$APP_DIR/Engine" \
-  "$APP_DIR/plugins" \
   "$APP_DIR/Tools" \
   "$APP_DIR/web" \
   "$APP_DIR/Configuration" \

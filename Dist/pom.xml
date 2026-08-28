@@ -142,7 +142,6 @@
                                         <include>Configuration/**</include>
                                         <include>Engine/**</include>
                                         <include>lib/**</include>
-                                        <include>plugins/**</include>
                                         <include>web/**</include>
                                         <include>package.json</include>
                                         <include>package-lock.json</include>
@@ -169,6 +168,7 @@
                                         <include>Configuration/**</include>
                                         <include>Projects/**</include>
                                         <include>Shared/**</include>
+                                        <include>plugins/**</include>
                                     </includes>
                                 </resource>
                             </resources>
