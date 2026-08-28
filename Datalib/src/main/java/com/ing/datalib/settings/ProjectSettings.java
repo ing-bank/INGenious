@@ -143,6 +143,58 @@ public class ProjectSettings {
         }
     }
 
+    /**
+     * Copies the legacy single global Kafka SSL bag ({@link KafkaSSLConfigurations})
+     * into the new per-config {@code default} producer/consumer {@code ssl.*} keys.
+     * Idempotent: only runs when the default configs have not been given an SSL
+     * value yet. The legacy bag is left untouched for rollback.
+     */
+    private void migrateLegacyKafkaSSL() {
+        if (SSLConfigurations == null || SSLConfigurations.isEmpty()) {
+            return;
+        }
+        java.util.Properties producer = kafkaProducerSettings.getProducerPropertiesFor("default");
+        if (producer != null && "false".equals(producer.getProperty("ssl.enabled", "false"))) {
+            producer.setProperty(
+                "ssl.enabled",
+                SSLConfigurations.getProperty("Producer_ssl_Enabled", "false")
+            );
+            producer.setProperty(
+                "ssl.keystore.location",
+                SSLConfigurations.getProperty("Producer_Keystore_Location", "")
+            );
+            producer.setProperty(
+                "ssl.keystore.password",
+                SSLConfigurations.getProperty("Producer_Keystore_Password", "")
+            );
+            producer.setProperty(
+                "ssl.key.password",
+                SSLConfigurations.getProperty("Producer_Key_Password", "")
+            );
+            kafkaProducerSettings.save("default");
+        }
+        java.util.Properties consumer = kafkaConsumerSettings.getConsumerPropertiesFor("default");
+        if (consumer != null && "false".equals(consumer.getProperty("ssl.enabled", "false"))) {
+            consumer.setProperty(
+                "ssl.enabled",
+                SSLConfigurations.getProperty("Consumer_ssl_Enabled", "false")
+            );
+            consumer.setProperty(
+                "ssl.keystore.location",
+                SSLConfigurations.getProperty("Consumer_Keystore_Location", "")
+            );
+            consumer.setProperty(
+                "ssl.keystore.password",
+                SSLConfigurations.getProperty("Consumer_Keystore_Password", "")
+            );
+            consumer.setProperty(
+                "ssl.key.password",
+                SSLConfigurations.getProperty("Consumer_Key_Password", "")
+            );
+            kafkaConsumerSettings.save("default");
+        }
+    }
+
     public void resetLocation() {
         userDefinedSettings.setLocation(getLocation());
         // driverSettings.setLocation(getLocation());

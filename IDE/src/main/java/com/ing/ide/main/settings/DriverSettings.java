@@ -91,8 +91,13 @@ public class DriverSettings extends javax.swing.JFrame {
      */
     private javax.swing.JComboBox<String> kafkaProducerCombo;
     private javax.swing.JComboBox<String> kafkaConsumerCombo;
+<<<<<<< HEAD
     private com.ing.ide.main.settings.devices.LambdaTestCapsPanel kafkaProducerTablePanel;
     private com.ing.ide.main.settings.devices.LambdaTestCapsPanel kafkaConsumerTablePanel;
+=======
+    private com.ing.ide.main.utils.table.XTablePanel kafkaProducerTablePanel;
+    private com.ing.ide.main.utils.table.XTablePanel kafkaConsumerTablePanel;
+>>>>>>> 12e6ed47 (Added Database Workbench)
     private javax.swing.JPanel kafkaConfigPanel;
     private String currentKafkaProducer;
     private String currentKafkaConsumer;
@@ -3187,6 +3192,7 @@ public class DriverSettings extends javax.swing.JFrame {
      * plus New / Delete / Test Connection controls. Appended to {@link #mainTab}
      * after generated {@code initComponents()} runs.
      */
+<<<<<<< HEAD
     // Logical grouping of Kafka config properties into collapsible sections.
     private static java.util.Map<String, LinkedProperties> kafkaProducerGroups() {
         java.util.Map<String, LinkedProperties> g = new java.util.LinkedHashMap<>();
@@ -3337,6 +3343,13 @@ public class DriverSettings extends javax.swing.JFrame {
                     }
                 )
         );
+=======
+    private void buildKafkaConfigTab() {
+        kafkaProducerCombo = new javax.swing.JComboBox<>();
+        kafkaConsumerCombo = new javax.swing.JComboBox<>();
+        kafkaProducerTablePanel = new com.ing.ide.main.utils.table.XTablePanel(true);
+        kafkaConsumerTablePanel = new com.ing.ide.main.utils.table.XTablePanel(true);
+>>>>>>> 12e6ed47 (Added Database Workbench)
 
         javax.swing.JTabbedPane innerTab = new javax.swing.JTabbedPane();
         innerTab.addTab(
