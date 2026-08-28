@@ -1,11 +1,11 @@
 {
   "_comment": "INGenious action format sidecar. Overrides/augments the @Args annotations at runtime. Loaded from <appRoot>/Configuration/action-argspec.json and from each plugins/<plugin>/action-argspec.json. Use this to spec plugin or not-yet-annotated actions without recompiling. Keys under 'actions' are action (method) names.",
   "_schema": {
-    "input": "ArgType enum: TEXT|URL|HTTP_STATUS|INTEGER|NUMBER|BOOLEAN|JSONPATH|XPATH|CSS_SELECTOR|LOCATOR|SQL|JSON_BODY|XML_BODY|HEADER_KV|TOPIC|PARTITION|TIMEOUT_MS|DURATION|FILE_PATH|REGEX|ENUM|DATA_REF|ALIAS_DB|ALIAS_API|ALIAS_CONTEXT|GLOBAL_ID|DIRECTIVE",
+    "input": "ArgType enum: TEXT|URL|HTTP_STATUS|INTEGER|NUMBER|BOOLEAN|JSONPATH|XPATH|CSS_SELECTOR|LOCATOR|SQL|JSON_BODY|XML_BODY|HEADER_KV|TOPIC|PARTITION|TIMEOUT_MS|DURATION|FILE_PATH|REGEX|ENUM|DATA_REF|ALIAS_DB|ALIAS_API|ALIAS_CONTEXT|ALIAS_KAFKA_PRODUCER|ALIAS_KAFKA_CONSUMER|GLOBAL_ID|DIRECTIVE",
     "inputExample": "canonical example, e.g. @200",
     "inputAllowsData": "true|false (allow Sheet:Column / %var% / =fn)",
     "secondObject": "ArgType enum (for two-object actions)",
-    "condition": "ConditionKind enum: NONE|PARAM|LOOP|ALIAS_API|ALIAS_CONTEXT|ENUM|VIEWPORT|GLOBAL_OBJECT|TEXT",
+    "condition": "ConditionKind enum: NONE|PARAM|LOOP|ALIAS_API|ALIAS_CONTEXT|ALIAS_KAFKA_PRODUCER|ALIAS_KAFKA_CONSUMER|ENUM|VIEWPORT|GLOBAL_OBJECT|TEXT",
     "conditionValues": ["for ENUM conditions"],
     "conditionExample": "canonical example",
     "help": "one-line hint shown in the IDE and action_info"

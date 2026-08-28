@@ -194,6 +194,10 @@ public final class ArgSpec {
                 return "optional #apiAlias" + eg(conditionExample);
             case ALIAS_CONTEXT:
                 return "optional #contextAlias" + eg(conditionExample);
+            case ALIAS_KAFKA_PRODUCER:
+                return "optional #producerAlias" + eg(conditionExample);
+            case ALIAS_KAFKA_CONSUMER:
+                return "optional #consumerAlias" + eg(conditionExample);
             case ENUM:
                 return conditionValues.isEmpty()
                     ? ""
@@ -314,13 +318,16 @@ public final class ArgSpec {
                 "'."
             );
         } else if (
-            conditionKind == ConditionKind.ALIAS_API || conditionKind == ConditionKind.ALIAS_CONTEXT
+            conditionKind == ConditionKind.ALIAS_API ||
+            conditionKind == ConditionKind.ALIAS_CONTEXT ||
+            conditionKind == ConditionKind.ALIAS_KAFKA_PRODUCER ||
+            conditionKind == ConditionKind.ALIAS_KAFKA_CONSUMER
         ) {
             if (!trimmed.startsWith("#") && !isDynamicReference(trimmed)) {
                 warnings.add(
                     action +
                     " condition should be a " +
-                    (conditionKind == ConditionKind.ALIAS_API ? "#apiAlias" : "#contextAlias") +
+                    aliasLabel(conditionKind) +
                     (conditionExample.isEmpty() ? "" : " (e.g. " + conditionExample + ")") +
                     "; got '" +
                     cond +
@@ -329,6 +336,21 @@ public final class ArgSpec {
             }
         }
         return cond;
+    }
+
+    private static String aliasLabel(ConditionKind kind) {
+        switch (kind) {
+            case ALIAS_API:
+                return "#apiAlias";
+            case ALIAS_CONTEXT:
+                return "#contextAlias";
+            case ALIAS_KAFKA_PRODUCER:
+                return "#producerAlias";
+            case ALIAS_KAFKA_CONSUMER:
+                return "#consumerAlias";
+            default:
+                return "#alias";
+        }
     }
 
     private String inputTypeError(String got) {

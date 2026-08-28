@@ -130,6 +130,10 @@ public class FXStatusBar extends JFXPanel {
                             viewLabel.getStyleClass().add("status-apitester");
                             iconKey = "APITester";
                             break;
+                        case "Database Workbench":
+                            viewLabel.getStyleClass().add("status-apitester");
+                            iconKey = "dbdock";
+                            break;
                         case "Performance Studio":
                             viewLabel.getStyleClass().add("status-perfstudio");
                             iconKey = "perfstudio";
