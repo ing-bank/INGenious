@@ -513,6 +513,13 @@ public class MobileORTable extends JPanel implements ActionListener {
             addSeparator();
             add(Utils.createButton("Move Rows Up", "up", "Ctrl+Up", MobileORTable.this));
             add(Utils.createButton("Move Rows Down", "down", "Ctrl+Down", MobileORTable.this));
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(6, 0),
+                    new java.awt.Dimension(6, 0),
+                    new java.awt.Dimension(6, 32767)
+                )
+            );
         }
 
         public void setTitleSuffix(String suffix) {

@@ -267,6 +267,13 @@ public class ObjectRepo extends JPanel implements ItemListener {
 
             add(structuredDataButton = create("Structured Data", "or.StructuredData"));
             add(sapButton = create("SAP", "or.SAP"));
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(6, 0),
+                    new java.awt.Dimension(6, 0),
+                    new java.awt.Dimension(6, 32767)
+                )
+            );
         }
 
         private JToggleButton create(String text, String iconKey) {
