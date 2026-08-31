@@ -2398,8 +2398,15 @@ final class MCPTools {
         out.put("status", h.status);
         out.put("exitCode", h.exitCode);
         out.put("durationMs", h.endedAt - h.startedAt);
-        out.put("command", String.join(" ", h.command));
-        out.put("output", tail(h.output.toString(), 400));
+        // Keep the result compact: the full java command line (which embeds the
+        // entire classpath) is omitted, and only a short console tail is included
+        // so agent clients don't spill a 60KB+ payload to a temp file after every
+        // run. Fetch the complete log via ingenious_run_logs when needed.
+        String outTail = tailChars(tailLines(h.output.toString(), 40), 4000);
+        if (!outTail.isEmpty()) {
+            out.put("output", outTail);
+        }
+        out.put("logHint", "Full log: ingenious_run_logs runId=" + h.id);
         return out;
     }
 
@@ -7773,9 +7780,10 @@ final class MCPTools {
         }
     }
 
-    private String tail(String s, int maxLines) {
+    private String tailChars(String s, int maxChars) {
         if (s == null) return "";
-        return tailLines(s, maxLines);
+        if (maxChars <= 0 || s.length() <= maxChars) return s;
+        return "…" + s.substring(s.length() - maxChars);
     }
 
     private String tailLines(String s, int n) {

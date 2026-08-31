@@ -131,6 +131,96 @@ public class ChatWebView {
         );
     }
 
+    /**
+     * Appends a coloured "Activity" card summarizing what the turn actually did
+     * (test cases created, tests executed, objects captured, …) with status
+     * badges and pills. Raw tool calls are reduced to a minimal footer line.
+     */
+    public void appendActivityReport(com.ing.engine.aicli.ai.ActivityReport.Result r) {
+        if (r == null || r.isEmpty()) {
+            return;
+        }
+        runScript("appendActivity(" + jsString(buildActivityHtml(r)) + ");");
+    }
+
+    private static String buildActivityHtml(com.ing.engine.aicli.ai.ActivityReport.Result r) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<div class='act-head'>Activity</div>");
+        for (com.ing.engine.aicli.ai.ActivityReport.Activity a : r.activities) {
+            String cls = badgeClass(a.status);
+            sb
+                .append("<div class='act-row'><div class='act-line'>")
+                .append("<span class='badge ")
+                .append(cls)
+                .append("'>")
+                .append(badgeLabel(a.status))
+                .append("</span><span class='act-title'>")
+                .append(MarkdownRenderer.escape(a.title))
+                .append("</span></div>");
+            if (a.details != null && !a.details.isEmpty()) {
+                StringBuilder det = new StringBuilder();
+                for (int i = 0; i < a.details.size(); i++) {
+                    if (i > 0) {
+                        det.append("  \u00b7  ");
+                    }
+                    det.append(MarkdownRenderer.escape(a.details.get(i)));
+                }
+                sb.append("<div class='act-details'>").append(det).append("</div>");
+            }
+            sb.append("</div>");
+        }
+        if (!r.activities.isEmpty()) {
+            StringBuilder pills = new StringBuilder();
+            if (r.okCount > 0) {
+                pills.append("<span class='pill ok'>").append(r.okCount).append(" OK</span>");
+            }
+            if (r.infoCount > 0) {
+                pills.append("<span class='pill info'>").append(r.infoCount).append(" INFO</span>");
+            }
+            if (r.warnCount > 0) {
+                pills.append("<span class='pill warn'>").append(r.warnCount).append(" WARN</span>");
+            }
+            if (r.failCount > 0) {
+                pills.append("<span class='pill fail'>").append(r.failCount).append(" FAIL</span>");
+            }
+            if (pills.length() > 0) {
+                sb.append("<div class='act-pills'>").append(pills).append("</div>");
+            }
+        }
+        String foot = r.totalCalls + (r.totalCalls == 1 ? " tool call" : " tool calls");
+        if (r.minorCount > 0) {
+            foot += " \u00b7 " + r.minorCount + " lookup" + (r.minorCount == 1 ? "" : "s");
+        }
+        sb.append("<div class='act-foot'>").append(MarkdownRenderer.escape(foot)).append("</div>");
+        return sb.toString();
+    }
+
+    private static String badgeClass(com.ing.engine.aicli.ai.ActivityReport.Status s) {
+        switch (s) {
+            case FAIL:
+                return "fail";
+            case WARN:
+                return "warn";
+            case INFO:
+                return "info";
+            default:
+                return "ok";
+        }
+    }
+
+    private static String badgeLabel(com.ing.engine.aicli.ai.ActivityReport.Status s) {
+        switch (s) {
+            case FAIL:
+                return "FAIL";
+            case WARN:
+                return "WARN";
+            case INFO:
+                return "INFO";
+            default:
+                return "OK";
+        }
+    }
+
     private void runScript(String script) {
         Platform.runLater(
             () -> {
@@ -201,28 +291,49 @@ public class ChatWebView {
             "<!DOCTYPE html><html><head><meta charset='utf-8'>" +
             "<style>" +
             fontFace +
-            "body{font-family:'INGMe','Segoe UI',sans-serif;font-size:13px;margin:0;padding:12px;" +
-            "background:#ffffff;color:#1e1e1e;}" +
-            ".msg{margin:8px 0;padding:10px 12px;border-radius:8px;max-width:92%;" +
-            "white-space:normal;word-wrap:break-word;overflow-wrap:anywhere;overflow:hidden;}" +
-            ".user{background:#B487FF;color:#ffffff;margin-left:auto;}" +
-            ".assistant{background:#F1E9FF;border:1px solid #d9c7f5;color:#000000;}" +
-            ".error{background:#fdecea;border:1px solid #f3b5b0;color:#b3261e;}" +
+            "*{box-sizing:border-box;}" +
+            "body{font-family:'INGMe','Segoe UI',sans-serif;font-size:13.5px;line-height:1.55;" +
+            "margin:0;padding:14px 12px;background:#faf9fc;color:#1e1e1e;" +
+            "-webkit-font-smoothing:antialiased;}" +
+            ".msg{position:relative;margin:10px 0;padding:12px 15px;border-radius:14px;max-width:88%;" +
+            "white-space:normal;word-wrap:break-word;overflow-wrap:anywhere;overflow:hidden;" +
+            "animation:fadeIn .25s ease;}" +
+            "@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}" +
+            ".user{background:linear-gradient(135deg,#9a6bff,#7a45f0);color:#ffffff;margin-left:auto;" +
+            "border-bottom-right-radius:4px;box-shadow:0 2px 8px rgba(122,69,240,.28);}" +
+            ".assistant{background:#ffffff;border:1px solid #ece4fa;color:#1e1e1e;" +
+            "border-bottom-left-radius:4px;box-shadow:0 2px 10px rgba(90,50,160,.08);}" +
+            ".error{background:#fdecea;border:1px solid #f3b5b0;color:#b3261e;border-radius:12px;}" +
             ".role{font-size:11px;opacity:0.6;margin-bottom:4px;text-transform:uppercase;}" +
-            "table{border-collapse:collapse;margin:8px 0;font-size:12px;width:auto;}" +
-            "th,td{border:1px solid #c9b6ef;padding:4px 8px;text-align:left;}" +
-            "th{background:#e5d5ff;}" +
-            ".lnk{color:#6b3fd4;text-decoration:underline;}" +
-            "a{color:#6b3fd4;}" +
+            "table{border-collapse:collapse;margin:10px 0;font-size:12.5px;width:auto;" +
+            "border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);}" +
+            "th,td{border:1px solid #e4dbf5;padding:6px 12px;text-align:left;}" +
+            "th{background:#f0e8ff;color:#4a2b9c;font-weight:600;}" +
+            "tr:nth-child(even) td{background:#faf8ff;}" +
+            ".lnk{color:#6b3fd4;text-decoration:underline;cursor:pointer;}" +
+            "a{color:#6b3fd4;text-decoration:none;} a:hover{text-decoration:underline;}" +
+            ".user a,.user .lnk{color:#ffffff;}" +
             ".thinking{display:flex;align-items:center;gap:6px;color:#6a6a6a;font-style:italic;}" +
             ".thinking .dot{width:6px;height:6px;border-radius:50%;background:#B487FF;" +
             "display:inline-block;animation:blink 1.2s infinite ease-in-out;}" +
             ".thinking .dot:nth-child(2){animation-delay:0.2s;}" +
             ".thinking .dot:nth-child(3){animation-delay:0.4s;}" +
             "@keyframes blink{0%,80%,100%{opacity:0.2;}40%{opacity:1;}}" +
-            "pre{background:#f0f1f3;padding:10px;border-radius:6px;overflow-x:auto;color:#1e1e1e;}" +
-            "code{font-family:'Consolas',monospace;font-size:12px;}" +
-            "p{margin:4px 0;} ul,ol{margin:4px 0 4px 20px;}" +
+            "pre{background:#2b2540;padding:12px 14px;border-radius:10px;overflow-x:auto;" +
+            "color:#f3f0ff;margin:10px 0;box-shadow:0 2px 8px rgba(43,37,64,.25);}" +
+            "pre code{color:#f3f0ff;font-size:12.5px;background:none;padding:0;}" +
+            "code{font-family:'Consolas','SFMono-Regular',monospace;font-size:12.5px;" +
+            "background:#efe9fb;color:#6234c9;padding:1px 6px;border-radius:5px;}" +
+            ".user code{background:rgba(255,255,255,.22);color:#ffffff;}" +
+            "p{margin:7px 0;} p:first-child{margin-top:0;} p:last-child{margin-bottom:0;}" +
+            "ul,ol{margin:7px 0 7px 22px;} li{margin:3px 0;} ul li::marker{color:#7a45f0;}" +
+            "h1,h2,h3,h4{margin:12px 0 6px;line-height:1.3;font-weight:600;color:#3a2b6b;}" +
+            "h1{font-size:18px;} h2{font-size:16px;} h3{font-size:14px;} h4{font-size:13px;}" +
+            "h1,h2{border-bottom:1px solid #ece4fa;padding-bottom:4px;}" +
+            "strong{color:#4a2b9c;font-weight:600;} .user strong{color:#ffffff;}" +
+            "blockquote{margin:8px 0;padding:6px 12px;border-left:3px solid #b79cff;" +
+            "background:#f6f2ff;color:#4a4560;border-radius:0 6px 6px 0;}" +
+            "hr{border:none;border-top:1px solid #e4dbf5;margin:12px 0;}" +
             ".toolcall{margin:4px 0;padding:4px 8px;font-size:12px;border-radius:6px;" +
             "background:#f3f3f3;border:1px solid #d0d7de;cursor:pointer;color:#333;}" +
             ".toolcall .tname{font-family:'Consolas',monospace;color:#0a7d6b;}" +
@@ -234,6 +345,24 @@ public class ChatWebView {
             "font-family:'Consolas',monospace;white-space:pre-wrap;word-break:break-word;" +
             "background:#f0f1f3;border-radius:6px;color:#2a6b2a;}" +
             ".tdetail.open{display:block;}" +
+            ".activity{margin:8px 0;padding:10px 12px;border-radius:8px;" +
+            "background:#faf7ff;border:1px solid #e0d3f7;}" +
+            ".act-head{font-size:11px;text-transform:uppercase;letter-spacing:.5px;" +
+            "color:#6b3fd4;font-weight:bold;margin-bottom:8px;}" +
+            ".act-row{margin:8px 0;}" +
+            ".act-line{display:flex;align-items:center;gap:8px;}" +
+            ".act-title{font-weight:bold;color:#1e1e1e;}" +
+            ".act-details{margin:2px 0 0 4px;color:#555;font-size:12px;}" +
+            ".badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:10px;" +
+            "font-weight:bold;text-transform:uppercase;color:#ffffff;}" +
+            ".badge.ok{background:#2e7d32;}.badge.info{background:#0277bd;}" +
+            ".badge.warn{background:#ed6c02;}.badge.fail{background:#c62828;}" +
+            ".act-pills{margin-top:8px;}" +
+            ".pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;" +
+            "font-weight:bold;margin-right:6px;}" +
+            ".pill.ok{background:#e6f4ea;color:#1e7e34;}.pill.info{background:#e3f2fd;color:#0277bd;}" +
+            ".pill.warn{background:#fff4e5;color:#b26a00;}.pill.fail{background:#fdecea;color:#c62828;}" +
+            ".act-foot{margin-top:8px;font-size:11px;color:#8a8a8a;}" +
             ".approval{margin:8px 0;padding:10px 12px;border-radius:8px;" +
             "background:#3a2f16;border-left:3px solid #d7a017;color:#f0e0b0;}" +
             ".approval b{color:#ffd479;}" +
@@ -255,6 +384,8 @@ public class ChatWebView {
             "function appendMessage(role,html){hideThinking();var d=document.createElement('div');" +
             "d.className='msg '+role;d.innerHTML=html;" +
             "chat.appendChild(d);scroll();}" +
+            "function appendActivity(html){hideThinking();var d=document.createElement('div');" +
+            "d.className='activity';d.innerHTML=html;chat.appendChild(d);scroll();}" +
             "function appendError(text){hideThinking();var d=document.createElement('div');" +
             "d.className='msg error';d.innerHTML=text;chat.appendChild(d);scroll();}" +
             "function beginAssistant(){hideThinking();cur=document.createElement('div');" +

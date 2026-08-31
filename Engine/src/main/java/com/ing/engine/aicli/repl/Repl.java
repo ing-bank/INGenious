@@ -382,113 +382,72 @@ public final class Repl {
     }
 
     /**
-     * Renders the final tool report: a compact badge-tagged row per tool plus a
-     * pill summary, followed by a proper detail box (table/info box, via the
-     * same {@link ResultRenderer} used for {@code /tools run}) for every tool
-     * whose result parses as structured JSON — not just a truncated JSON blob.
+     * Renders the final turn report focused on what actually happened — a card
+     * per user-facing activity ("Test case created", "Test executed", …) with a
+     * status badge and human-readable detail lines, plus a pill summary. The raw
+     * tool calls themselves are reduced to a single minimal footer line.
      */
     private void printToolReport(List<ToolActivity> acts) {
         if (acts == null || acts.isEmpty()) {
             return;
         }
-        int nameW = 0;
+        List<com.ing.engine.aicli.ai.ActivityReport.Call> calls = new ArrayList<>();
         for (ToolActivity a : acts) {
-            nameW = Math.max(nameW, a.name.length());
-        }
-        int ok = 0;
-        int info = 0;
-        int warn = 0;
-        int fail = 0;
-        List<String> rows = new ArrayList<>();
-        List<ToolActivity> detailed = new ArrayList<>();
-        List<JsonNode> detailedJson = new ArrayList<>();
-        for (ToolActivity a : acts) {
-            JsonNode parsed = a.success
-                ? com.ing.engine.aicli.ai.ToolReportUtil.parseJsonQuiet(a.summary)
-                : null;
-            String kind = com.ing.engine.aicli.ai.ToolReportUtil.classify(
-                a.name,
-                a.success,
-                a.summary,
-                parsed
+            calls.add(
+                new com.ing.engine.aicli.ai.ActivityReport.Call(a.name, a.success, a.summary)
             );
-            String badge;
-            if ("FAIL".equals(kind)) {
-                badge = theme.badgeFail("FAIL");
-                fail++;
-            } else if ("WARN".equals(kind)) {
-                badge = theme.badgeWarn("WARN");
-                warn++;
-            } else if ("INFO".equals(kind)) {
-                badge = theme.badgeInfo("INFO");
-                info++;
-            } else {
-                badge = theme.badgeOk(" OK ");
-                ok++;
-            }
-            String pad = " ".repeat(Math.max(0, nameW - a.name.length()));
-            rows.add(
-                badge +
-                "  " +
-                theme.bold(a.name) +
-                pad +
-                "  " +
-                theme.dim(
-                    com.ing.engine.aicli.ai.ToolReportUtil.shortSummary(
-                        a.summary,
-                        a.success,
-                        parsed
-                    )
-                )
-            );
-            if (parsed != null && ((parsed.isObject() && parsed.size() > 0) || parsed.isArray())) {
-                detailed.add(a);
-                detailedJson.add(parsed);
-            }
         }
-        List<String> pills = new ArrayList<>();
-        pills.add(theme.badgeOk(ok + " OK"));
-        if (info > 0) {
-            pills.add(theme.badgeInfo(info + " INFO"));
-        }
-        if (warn > 0) {
-            pills.add(theme.badgeWarn(warn + " WARN"));
-        }
-        if (fail > 0) {
-            pills.add(theme.badgeFail(fail + " FAIL"));
-        }
-        rows.add("");
-        rows.add(String.join("  ", pills));
-        panels.print("Tools used (" + acts.size() + ")", rows);
-        for (int i = 0; i < detailed.size(); i++) {
-            System.out.println();
-            results.print(detailed.get(i).name, detailedJson.get(i));
-        }
-    }
-
-    /** Best-effort JSON parse; returns null for plain text (e.g. "ok", error strings). */
-    private JsonNode parseJsonQuiet(String s) {
-        return com.ing.engine.aicli.ai.ToolReportUtil.parseJsonQuiet(s);
-    }
-
-    /** Short one-line preview for the compact report row (not the detail box). */
-    private String shortSummary(ToolActivity a, JsonNode parsed) {
-        return com.ing.engine.aicli.ai.ToolReportUtil.shortSummary(a.summary, a.success, parsed);
-    }
-
-    /** Classify a tool row into a badge kind: OK, INFO (read-only), WARN, or FAIL. */
-    private String classify(ToolActivity a, JsonNode parsed) {
-        return com.ing.engine.aicli.ai.ToolReportUtil.classify(
-            a.name,
-            a.success,
-            a.summary,
-            parsed
+        com.ing.engine.aicli.ai.ActivityReport.Result r = com.ing.engine.aicli.ai.ActivityReport.summarize(
+            calls
         );
+        if (r.isEmpty()) {
+            return;
+        }
+        List<String> rows = new ArrayList<>();
+        for (com.ing.engine.aicli.ai.ActivityReport.Activity act : r.activities) {
+            rows.add(badgeFor(act.status) + "  " + theme.bold(act.title));
+            for (String d : act.details) {
+                rows.add("     " + theme.dim(d));
+            }
+        }
+        if (!r.activities.isEmpty()) {
+            List<String> pills = new ArrayList<>();
+            if (r.okCount > 0) {
+                pills.add(theme.badgeOk(r.okCount + " OK"));
+            }
+            if (r.infoCount > 0) {
+                pills.add(theme.badgeInfo(r.infoCount + " INFO"));
+            }
+            if (r.warnCount > 0) {
+                pills.add(theme.badgeWarn(r.warnCount + " WARN"));
+            }
+            if (r.failCount > 0) {
+                pills.add(theme.badgeFail(r.failCount + " FAIL"));
+            }
+            if (!pills.isEmpty()) {
+                rows.add("");
+                rows.add(String.join("  ", pills));
+            }
+        }
+        panels.print("Activity", rows);
+        String foot = r.totalCalls + (r.totalCalls == 1 ? " tool call" : " tool calls");
+        if (r.minorCount > 0) {
+            foot += " · " + r.minorCount + " lookup" + (r.minorCount == 1 ? "" : "s");
+        }
+        System.out.println("  " + theme.dim(foot));
     }
 
-    /** Collapse to a single line and cap at {@code max} visible chars. */
-    private static String truncate(String s, int max) {
-        return com.ing.engine.aicli.ai.ToolReportUtil.truncate(s, max);
+    private String badgeFor(com.ing.engine.aicli.ai.ActivityReport.Status s) {
+        switch (s) {
+            case FAIL:
+                return theme.badgeFail("FAIL");
+            case WARN:
+                return theme.badgeWarn("WARN");
+            case INFO:
+                return theme.badgeInfo("INFO");
+            default:
+                return theme.badgeOk(" OK ");
+        }
     }
 
     // ------------------------------------------------------------------

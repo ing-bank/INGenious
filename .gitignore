@@ -53,3 +53,6 @@ Thumbs.db
 recent.items
 # INGenious AI CLI runtime state (session, history, undo journal)
 .ingenious/
+
+# UI migrator skill templates (local-only changes, not committed)
+/Resources/ai/skills/ingenious-ui-migrator/
