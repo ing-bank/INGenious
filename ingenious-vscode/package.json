@@ -1,0 +1,166 @@
+{
+  "name": "ingenious-vscode",
+  "displayName": "INGenious Test Automation",
+  "description": "Author, run, and report INGenious tests directly inside VS Code — no Swing IDE required.",
+  "version": "0.1.0",
+  "publisher": "ing-bank",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Testing",
+    "Other"
+  ],
+  "activationEvents": [
+    "workspaceContains:**/Settings/RunSettings.Properties",
+    "workspaceContains:**/ObjectRepository/**/*.yaml",
+    "workspaceContains:**/IOR.object",
+    "workspaceContains:**/.project",
+    "onView:ingenious.projects",
+    "onCommand:ingenious.project.create"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ingenious",
+          "title": "INGenious",
+          "icon": "media/ingenious.svg"
+        }
+      ]
+    },
+    "views": {
+      "ingenious": [
+        { "id": "ingenious.projects", "name": "Projects" },
+        { "id": "ingenious.testplan", "name": "Test Plan" },
+        { "id": "ingenious.reusables", "name": "Reusables" },
+        { "id": "ingenious.testsets", "name": "Test Sets" },
+        { "id": "ingenious.objects", "name": "Object Repository" },
+        { "id": "ingenious.data", "name": "Test Data" },
+        { "id": "ingenious.apicollections", "name": "API Collections" },
+        { "id": "ingenious.reports", "name": "Reports" }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "ingenious.projects",
+        "contents": "No INGenious project detected in this workspace.\n[Create New Project](command:ingenious.project.create)\n[Open Project Folder](command:ingenious.project.open)\n[Install / Update CLI](command:ingenious.cli.install)\n[Run Doctor](command:ingenious.cli.doctor)"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "ingenious.testCase",
+        "displayName": "INGenious Test Case",
+        "selector": [
+          { "filenamePattern": "**/TestPlan/**/*.csv" },
+          { "filenamePattern": "**/ReusableComponents/**/*.csv" }
+        ],
+        "priority": "option"
+      },
+      {
+        "viewType": "ingenious.objectRepo",
+        "displayName": "INGenious Object Repository",
+        "selector": [
+          { "filenamePattern": "**/ObjectRepository/**/*.yaml" },
+          { "filenamePattern": "**/ObjectRepository/**/*.yml" }
+        ],
+        "priority": "option"
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "ingenious",
+        "required": [
+          "mode"
+        ],
+        "properties": {
+          "mode": { "type": "string", "enum": [ "testcase", "testset", "tags", "rerun" ] },
+          "target": { "type": "string" },
+          "project": { "type": "string" },
+          "browser": { "type": "string" },
+          "headless": { "type": "boolean" },
+          "parallel": { "type": "number" },
+          "env": { "type": "string" },
+          "tags": { "type": "string" }
+        }
+      }
+    ],
+    "commands": [
+      { "command": "ingenious.project.create", "title": "INGenious: New Project", "icon": "$(add)" },
+      { "command": "ingenious.project.open", "title": "INGenious: Open Project Folder", "icon": "$(folder-opened)" },
+      { "command": "ingenious.refresh", "title": "INGenious: Refresh", "icon": "$(refresh)" },
+      { "command": "ingenious.run.testcase", "title": "INGenious: Run Test Case", "icon": "$(play)" },
+      { "command": "ingenious.debug.testcase", "title": "INGenious: Run Test Case (headed / debug)", "icon": "$(debug-alt)" },
+      { "command": "ingenious.dryrun.testcase", "title": "INGenious: Dry-run Test Case", "icon": "$(beaker)" },
+      { "command": "ingenious.run.testset", "title": "INGenious: Run Test Set" },
+      { "command": "ingenious.run.tags", "title": "INGenious: Run by Tags" },
+      { "command": "ingenious.run.rerun", "title": "INGenious: Re-run Failed", "icon": "$(debug-rerun)" },
+      { "command": "ingenious.validate.testcase", "title": "INGenious: Validate Test Case" },
+      { "command": "ingenious.report.openLatest", "title": "INGenious: Open Latest Report", "icon": "$(graph)" },
+      { "command": "ingenious.report.open", "title": "INGenious: Open Report" },
+      { "command": "ingenious.env.select", "title": "INGenious: Select Environment" },
+      { "command": "ingenious.project.select", "title": "INGenious: Select Active Project" },
+      { "command": "ingenious.mcp.restart", "title": "INGenious: Restart MCP Server" },
+      { "command": "ingenious.ai.terminal", "title": "INGenious: Open AI Assistant (CLI)" },
+      { "command": "ingenious.object.discover", "title": "INGenious: Discover Objects in Browser" },
+      { "command": "ingenious.cli.doctor", "title": "INGenious: Doctor" },
+      { "command": "ingenious.cli.install", "title": "INGenious: Install / Update CLI" }
+    ],
+    "configuration": {
+      "title": "INGenious",
+      "properties": {
+        "ingenious.cliPath": { "type": "string", "default": "ingenious", "description": "Path to the ingenious launcher (ingenious, ingenious.command or ingenious.bat). Leave as 'ingenious' to use PATH." },
+        "ingenious.javaHome": { "type": "string", "default": "", "description": "Optional JAVA_HOME override passed to the CLI." },
+        "ingenious.defaultBrowser": { "type": "string", "enum": [ "Chromium", "Firefox", "WebKit", "No Browser" ], "default": "Chromium", "description": "Default browser used when running tests." },
+        "ingenious.headless": { "type": "boolean", "default": false, "description": "Run tests headless by default." },
+        "ingenious.mcp.autoStart": { "type": "boolean", "default": true, "description": "Automatically start the INGenious MCP server for interactive features." },
+        "ingenious.report.openOnRunEnd": { "type": "boolean", "default": true, "description": "Open the HTML report automatically when a run finishes." }
+      }
+    },
+    "menus": {
+      "view/title": [
+        { "command": "ingenious.project.create", "when": "view == ingenious.projects", "group": "navigation@1" },
+        { "command": "ingenious.refresh", "when": "view == ingenious.projects || view == ingenious.testplan || view == ingenious.reusables || view == ingenious.testsets || view == ingenious.objects || view == ingenious.data || view == ingenious.reports || view == ingenious.apicollections", "group": "navigation@2" }
+      ],
+      "view/item/context": [
+        { "command": "ingenious.run.testcase", "when": "view == ingenious.testplan && viewItem == ingenious.testcase", "group": "inline@1" },
+        { "command": "ingenious.debug.testcase", "when": "view == ingenious.testplan && viewItem == ingenious.testcase", "group": "inline@2" },
+        { "command": "ingenious.run.testset", "when": "view == ingenious.testsets && viewItem == ingenious.testset", "group": "inline@1" },
+        { "command": "ingenious.report.open", "when": "view == ingenious.reports && viewItem == ingenious.report", "group": "inline@1" }
+      ],
+      "editor/title": [
+        {
+          "command": "ingenious.run.testcase",
+          "when": "resourceExtname == .csv && resourcePath =~ /(TestPlan|ReusableComponents)/",
+          "group": "navigation@1"
+        },
+        {
+          "command": "ingenious.validate.testcase",
+          "when": "resourceExtname == .csv && resourcePath =~ /(TestPlan|ReusableComponents)/",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "snippets": [
+      { "language": "csv", "path": "./snippets/ingenious.csv.json" }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runUnit.js"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.6",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.85.0",
+    "mocha": "^10.3.0",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "yaml": "^2.4.1"
+  }
+}
