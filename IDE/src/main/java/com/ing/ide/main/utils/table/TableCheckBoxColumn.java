@@ -161,6 +161,8 @@ class LeftAlignHeaderRenderer implements TableCellRenderer {
         TableCellRenderer r = t.getTableHeader().getDefaultRenderer();
         JLabel l = (JLabel) r.getTableCellRendererComponent(t, v, isS, hasF, row, col);
         l.setHorizontalAlignment(SwingConstants.LEFT);
+        // The header renderer instance is shared across columns; clear any checkbox icon left over from the checkbox column.
+        l.setIcon(null);
         return l;
     }
 }

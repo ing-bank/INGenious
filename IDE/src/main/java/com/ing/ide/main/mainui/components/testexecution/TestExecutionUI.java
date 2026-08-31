@@ -617,4 +617,17 @@ public class TestExecutionUI extends JPanel implements ActionListener {
             );
         }
     }
+
+    public void showConsolePanel() {
+        SwingUtilities.invokeLater(
+            new Runnable() {
+
+                @Override
+                public void run() {
+                    executionAndConsoleSplitPane.setBottomComponent(consolePanel);
+                    executionAndConsoleSplitPane.setDividerLocation(0.5);
+                }
+            }
+        );
+    }
 }
