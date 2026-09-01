@@ -303,17 +303,29 @@ public class Command implements CommandPluginApi {
         return Commander.getRunTimeElement();
     }
 
+    /**
+     * Implementation of {@link CommandPluginApi#executeMethod(String)} for the API-plugin contract.
+     * @param Action the action name to execute
+     */
+    @Override
     public void executeMethod(String Action) {
         Commander.executeAction(Action);
     }
 
-    public void executeMethod(Locator Locator, String Action, String Input) {
-        setElement(Locator);
+    /**
+     * Implementation of {@link CommandPluginApi#executeMethod(String, String)} for the API-plugin contract.
+     * @param Action the action name to execute
+     * @param Input the input data for the action
+     */
+    @Override
+    public void executeMethod(String Action, String Input) {
         setInput(Input);
         executeMethod(Action);
     }
 
-    public void executeMethod(String Action, String Input) {
+    // Locator-based executeMethod overloads are in General class (BrowserPluginApi)
+    public void executeMethod(Locator Locator, String Action, String Input) {
+        setElement(Locator);
         setInput(Input);
         executeMethod(Action);
     }
@@ -355,10 +367,23 @@ public class Command implements CommandPluginApi {
         return Commander;
     }
 
+    /**
+     * Implementation of {@link CommandPluginApi#executeTestCase(String, String, int)} for the API-plugin contract.
+     * @param scenarioName the scenario name
+     * @param testCaseName the test case name
+     * @param subIteration the sub-iteration number
+     */
+    @Override
     public void executeTestCase(String scenarioName, String testCaseName, int subIteration) {
         Commander.execute(scenarioName + ":" + testCaseName, subIteration);
     }
 
+    /**
+     * Implementation of {@link CommandPluginApi#executeTestCase(String, String)} for the API-plugin contract.
+     * @param scenarioName the scenario name
+     * @param testCaseName the test case name
+     */
+    @Override
     public void executeTestCase(String scenarioName, String testCaseName) {
         executeTestCase(scenarioName, testCaseName, userData.getSubIterationAsNumber());
     }
