@@ -1,0 +1,34 @@
+#!/bin/zsh
+
+set -euo pipefail
+
+readonly APP_BUNDLE="${INGENIOUS_APP_BUNDLE:-/Applications/INGenious.app}"
+readonly APP_HOME="$APP_BUNDLE/Contents/app"
+readonly JAVA="$APP_BUNDLE/Contents/runtime/Contents/Home/bin/java"
+readonly CLASSPATH="$APP_HOME/lib/*:$APP_HOME/lib/clib/*"
+
+if [[ ! -d "$APP_BUNDLE/Contents" ]]; then
+  print -u2 -- "ERROR: INGenious is not installed at $APP_BUNDLE"
+  exit 1
+fi
+
+if [[ ! -x "$JAVA" ]]; then
+  print -u2 -- "ERROR: Bundled Java launcher is missing or not executable: $JAVA"
+  exit 1
+fi
+
+if [[ ! -d "$APP_HOME/lib" ]]; then
+  print -u2 -- "ERROR: INGenious application libraries are missing: $APP_HOME/lib"
+  exit 1
+fi
+
+exec "$JAVA" \
+  -Xms128m \
+  -Xmx1024m \
+  -Dfile.encoding=UTF-8 \
+  -Djdk.internal.httpclient.disableHostnameVerification=true \
+  -Djdk.httpclient.allowRestrictedHeaders=host,connection,content-length,upgrade,expect,via,date,accept-encoding \
+  "-Dingenious.app.home=$APP_HOME" \
+  -cp "$CLASSPATH" \
+  com.ing.engine.core.Control \
+  "$@"
