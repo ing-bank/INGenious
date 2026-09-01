@@ -18,6 +18,7 @@ import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.testdata.model.Record;
 import com.ing.datalib.testdata.model.TestDataModel;
+import com.ing.engine.commands.aXe.Accessibility;
 import com.ing.engine.support.ObjectTypeUtil;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.engine.util.data.fx.FParser;
@@ -88,6 +89,41 @@ public class TestCaseAutoSuggest {
             (ConditionAutoSuggest) new ConditionAutoSuggest().withOnHide(stopEditingOnFocusLost());
         conditionAutoSuggest.setRenderer(
             new ComboSeparatorsRenderer(conditionAutoSuggest.getRenderer()) {
+
+                @Override
+                protected boolean addHeaderBefore(JList list, Object value, int index) {
+                    // Add "Threshold" header before the first item when displaying severity values
+                    if (index == 0 && isDisplayingSeverityValues()) {
+                        return true;
+                    }
+                    return false;
+                }
+
+                @Override
+                protected String getHeaderLabel(JList list, Object value, int index) {
+                    return "Threshold";
+                }
+
+                @Override
+                protected Color getHeaderForeground(
+                    JList list,
+                    Object value,
+                    int index,
+                    java.awt.Component comp
+                ) {
+                    return Color.DARK_GRAY;
+                }
+
+                private boolean isDisplayingSeverityValues() {
+                    if (table.getSelectedRow() < 0) {
+                        return false;
+                    }
+                    String action = Objects.toString(
+                        table.getValueAt(table.getSelectedRow(), Action.getIndex()),
+                        ""
+                    );
+                    return "testAccessibility".equals(action);
+                }
 
                 @Override
                 protected boolean addSeparatorAfter(JList list, Object value, int index) {
@@ -433,7 +469,15 @@ public class TestCaseAutoSuggest {
 
         @Override
         public void beforeSearch(String text) {
-            if (text.isEmpty()) {
+            String action = Objects.toString(
+                table.getValueAt(table.getSelectedRow(), Action.getIndex()),
+                ""
+            );
+
+            // For testAccessibility action, show Severity enum values
+            if ("testAccessibility".equals(action)) {
+                setSearchList(getAccessibilitySeverityList());
+            } else if (text.isEmpty()) {
                 setSearchList(getConditionList());
             } else {
                 if (text.startsWith("#")) {
@@ -453,6 +497,16 @@ public class TestCaseAutoSuggest {
             conditionList.add("screen");
             conditionList.add("viewport");
             return conditionList;
+        }
+
+        private List getAccessibilitySeverityList() {
+            List severityList = new ArrayList<>();
+            // Add in specific order with capitalized first letter
+            severityList.add("Minor");
+            severityList.add("Moderate");
+            severityList.add("Serious");
+            severityList.add("Critical");
+            return severityList;
         }
     }
 

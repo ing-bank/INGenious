@@ -197,6 +197,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
         styleModernLabel(jLabel5, sectionFont);
         styleModernLabel(jLabel9, sectionFont);
         styleModernLabel(jLabel29, sectionFont);
+        styleModernLabel(jLabel32, sectionFont);
         styleModernLabel(envLabel, sectionFont);
 
         // Style toolbar
@@ -824,6 +825,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
             failCheckBox.setSelected(true);
         }
         fullpagescreenshot.setSelected(execSettings.getRunSettings().getTakeFullPageScreenShot());
+        axeSeverity.setSelectedItem(execSettings.getRunSettings().getAxeSeverityThreshold());
 
         reRunNo.getModel().setValue(execSettings.getRunSettings().getRerunTimes());
         // useExistingDriver.setSelected(execSettings.getRunSettings().useExistingDriver());
@@ -949,6 +951,9 @@ public class INGeniousSettings extends javax.swing.JFrame {
         execSettings.getRunSettings().setRemoteGridURL(remoteGridURL.getText());
         execSettings.getRunSettings().setScreenShotFor(getPassFail());
         execSettings.getRunSettings().setTakeFullPageScreenShot(fullpagescreenshot.isSelected());
+        execSettings
+            .getRunSettings()
+            .setAxeSeverityThreshold(Objects.toString(axeSeverity.getSelectedItem(), "Minor"));
         execSettings.getRunSettings().setVideoEnabled(recordVideo.isSelected());
         execSettings.getRunSettings().setTracingEnabled(enableTracing.isSelected());
         execSettings.getRunSettings().setHARrecordingEnabled(enableHAR.isSelected());
@@ -1122,6 +1127,27 @@ public class INGeniousSettings extends javax.swing.JFrame {
         saveSettings = new javax.swing.JButton();
         resetSettings = new javax.swing.JButton();
         runSettingsTab = new javax.swing.JTabbedPane();
+        qcrunSettings = new javax.swing.JPanel();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        tsTMTable = new XTable();
+        jToolBar1 = new javax.swing.JToolBar();
+        updateresultscheckbox = new javax.swing.JCheckBox();
+        filler4 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(20, 0),
+                new java.awt.Dimension(20, 0),
+                new java.awt.Dimension(20, 32767)
+            );
+        testMgmtModuleCombo = new javax.swing.JComboBox();
+        filler3 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(32767, 32767)
+            );
+        testConn = new javax.swing.JButton();
+        jSeparator1 = new javax.swing.JToolBar.Separator();
+        reset = new javax.swing.JButton();
         globalSettings = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         executionTimeOut = new javax.swing.JTextField();
@@ -1153,27 +1179,8 @@ public class INGeniousSettings extends javax.swing.JFrame {
         recordVideo = new javax.swing.JCheckBox();
         enableTracing = new javax.swing.JCheckBox();
         enableHAR = new javax.swing.JCheckBox();
-        qcrunSettings = new javax.swing.JPanel();
-        jScrollPane5 = new javax.swing.JScrollPane();
-        tsTMTable = new XTable();
-        jToolBar1 = new javax.swing.JToolBar();
-        updateresultscheckbox = new javax.swing.JCheckBox();
-        filler4 =
-            new javax.swing.Box.Filler(
-                new java.awt.Dimension(20, 0),
-                new java.awt.Dimension(20, 0),
-                new java.awt.Dimension(20, 32767)
-            );
-        testMgmtModuleCombo = new javax.swing.JComboBox();
-        filler3 =
-            new javax.swing.Box.Filler(
-                new java.awt.Dimension(0, 0),
-                new java.awt.Dimension(0, 0),
-                new java.awt.Dimension(32767, 32767)
-            );
-        testConn = new javax.swing.JButton();
-        jSeparator1 = new javax.swing.JToolBar.Separator();
-        reset = new javax.swing.JButton();
+        axeSeverity = new javax.swing.JComboBox<>();
+        jLabel32 = new javax.swing.JLabel();
         filler5 =
             new javax.swing.Box.Filler(
                 new java.awt.Dimension(0, 10),
@@ -1185,6 +1192,10 @@ public class INGeniousSettings extends javax.swing.JFrame {
         setTitle("Settings");
         addWindowListener(
             new java.awt.event.WindowAdapter() {
+
+                public void windowActivated(java.awt.event.WindowEvent evt) {
+                    formWindowActivated(evt);
+                }
 
                 public void windowClosing(java.awt.event.WindowEvent evt) {
                     formWindowClosing(evt);
@@ -1225,7 +1236,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
                 .addGroup(
                     savePanelLayout
                         .createSequentialGroup()
-                        .addContainerGap(332, Short.MAX_VALUE)
+                        .addContainerGap(419, Short.MAX_VALUE)
                         .addComponent(saveSettings)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(resetSettings)
@@ -1252,519 +1263,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         getContentPane().add(savePanel, java.awt.BorderLayout.SOUTH);
 
         runSettingsTab.setFont(new java.awt.Font("sansserif", 0, 11)); // NOI18N
-
-        globalSettings.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-
-        jLabel1.setFont(UIManager.getFont("TableMenu.font"));
-        jLabel1.setText("ExecutionTimeOut");
-
-        executionTimeOut.setFont(UIManager.getFont("TableMenu.font"));
-        executionTimeOut.setText("jTextField4");
-        executionTimeOut.setToolTipText("in Minutes");
-
-        jLabel2.setFont(UIManager.getFont("TableMenu.font"));
-        jLabel2.setText("Parallel Execution");
-
-        jLabel3.setFont(UIManager.getFont("TableMenu.font"));
-        jLabel3.setText("Iteration Mode");
-
-        jLabel4.setFont(UIManager.getFont("TableMenu.font"));
-        jLabel4.setText("Execution Mode");
-
-        jLabel5.setFont(UIManager.getFont("TableMenu.font"));
-        jLabel5.setText("Remote Grid Url");
-
-        remoteGridURL.setFont(UIManager.getFont("TableMenu.font"));
-        remoteGridURL.setForeground(new java.awt.Color(0, 0, 255));
-
-        eModeBgroup.add(jRadioButton1);
-        jRadioButton1.setFont(new java.awt.Font("sansserif", 0, 11)); // NOI18N
-        jRadioButton1.setText("Local");
-        jRadioButton1.addActionListener(
-            new java.awt.event.ActionListener() {
-
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    jRadioButton1ActionPerformed(evt);
-                }
-            }
-        );
-
-        eModeBgroup.add(jRadioButton2);
-        jRadioButton2.setFont(new java.awt.Font("sansserif", 0, 11)); // NOI18N
-        jRadioButton2.setText("Grid");
-
-        iModeBgroup.add(jRadioButton3);
-        jRadioButton3.setFont(UIManager.getFont("TableMenu.font"));
-        jRadioButton3.setText("ContinueOnError");
-
-        iModeBgroup.add(jRadioButton4);
-        jRadioButton4.setFont(UIManager.getFont("TableMenu.font"));
-        jRadioButton4.setText("BreakOnError");
-
-        jLabel9.setFont(UIManager.getFont("TableMenu.font"));
-        jLabel9.setText("Screenshot");
-
-        passCheckBox.setFont(UIManager.getFont("TableMenu.font"));
-        passCheckBox.setText("Pass");
-        passCheckBox.addActionListener(
-            new java.awt.event.ActionListener() {
-
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    passCheckBoxActionPerformed(evt);
-                }
-            }
-        );
-
-        failCheckBox.setFont(UIManager.getFont("TableMenu.font"));
-        failCheckBox.setText("Fail");
-
-        fullpagescreenshot.setFont(UIManager.getFont("TableMenu.font"));
-        fullpagescreenshot.setText("Take Full Page Screenshot");
-
-        threadCount.setFont(new java.awt.Font("sansserif", 0, 11)); // NOI18N
-        threadCount.setModel(new javax.swing.SpinnerNumberModel(1, 1, 100, 1));
-
-        jLabel29.setFont(UIManager.getFont("TableMenu.font"));
-        jLabel29.setText("Retry Execution");
-
-        reRunNo.setFont(new java.awt.Font("sansserif", 0, 11)); // NOI18N
-        reRunNo.setModel(new javax.swing.SpinnerNumberModel(0, 0, 5, 1));
-
-        jLabel30.setFont(UIManager.getFont("TableMenu.font"));
-        jLabel30.setText("Times");
-
-        reportPerformanceLog.setFont(UIManager.getFont("TableMenu.font"));
-        reportPerformanceLog.setText("Performance Reporting");
-        reportPerformanceLog.setToolTipText("Report page performance logs.");
-
-        envLabel.setFont(UIManager.getFont("TableMenu.font"));
-        envLabel.setText("Environment");
-
-        testEnv.setFont(UIManager.getFont("TableMenu.font"));
-        testEnv.setForeground(new java.awt.Color(0, 0, 255));
-        testEnv.setToolTipText("Select the execution Environment");
-
-        bddReport.setFont(UIManager.getFont("TableMenu.font"));
-        bddReport.setText("Bdd Reporting");
-
-        slackNotify.setFont(UIManager.getFont("TableMenu.font"));
-        slackNotify.setText("Slack Notification");
-        slackNotify.setToolTipText("Send notification to slack");
-        slackNotify.addActionListener(
-            new java.awt.event.ActionListener() {
-
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    slackNotifyActionPerformed(evt);
-                }
-            }
-        );
-
-        rpUpdate.setFont(UIManager.getFont("TableMenu.font"));
-        rpUpdate.setText("Report Portal");
-
-        extent.setFont(UIManager.getFont("TableMenu.font"));
-        extent.setSelected(true);
-        extent.setText("Extent Report");
-        extent.addActionListener(
-            new java.awt.event.ActionListener() {
-
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    extentActionPerformed(evt);
-                }
-            }
-        );
-
-        azure.setFont(UIManager.getFont("TableMenu.font"));
-        azure.setText("Azure Nunit Report");
-        azure.addActionListener(
-            new java.awt.event.ActionListener() {
-
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    azureActionPerformed(evt);
-                }
-            }
-        );
-
-        recordVideo.setFont(UIManager.getFont("TableMenu.font"));
-        recordVideo.setText("Video");
-        recordVideo.setToolTipText("Record Execution Video");
-        recordVideo.addActionListener(
-            new java.awt.event.ActionListener() {
-
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    recordVideoActionPerformed(evt);
-                }
-            }
-        );
-
-        enableTracing.setFont(UIManager.getFont("TableMenu.font"));
-        enableTracing.setText("Trace");
-        enableTracing.setToolTipText("Enable Tracing");
-        enableTracing.addActionListener(
-            new java.awt.event.ActionListener() {
-
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    enableTracingActionPerformed(evt);
-                }
-            }
-        );
-
-        enableHAR.setFont(UIManager.getFont("TableMenu.font"));
-        enableHAR.setText("HAR");
-        enableHAR.setToolTipText("Enable HAR Recording");
-        enableHAR.addActionListener(
-            new java.awt.event.ActionListener() {
-
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    enableHARActionPerformed(evt);
-                }
-            }
-        );
-
-        javax.swing.GroupLayout globalSettingsLayout = new javax.swing.GroupLayout(globalSettings);
-        globalSettings.setLayout(globalSettingsLayout);
-        globalSettingsLayout.setHorizontalGroup(
-            globalSettingsLayout
-                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(
-                    globalSettingsLayout
-                        .createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(
-                            globalSettingsLayout
-                                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addGroup(
-                                    globalSettingsLayout
-                                        .createSequentialGroup()
-                                        .addGroup(
-                                            globalSettingsLayout
-                                                .createParallelGroup(
-                                                    javax.swing.GroupLayout.Alignment.LEADING
-                                                )
-                                                .addComponent(jLabel29)
-                                                .addGroup(
-                                                    globalSettingsLayout
-                                                        .createSequentialGroup()
-                                                        .addGap(111, 111, 111)
-                                                        .addComponent(
-                                                            reRunNo,
-                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                            116,
-                                                            javax.swing.GroupLayout.PREFERRED_SIZE
-                                                        )
-                                                        .addPreferredGap(
-                                                            javax.swing.LayoutStyle.ComponentPlacement.UNRELATED
-                                                        )
-                                                        .addComponent(jLabel30)
-                                                )
-                                        )
-                                        .addGap(0, 0, Short.MAX_VALUE)
-                                )
-                                .addGroup(
-                                    globalSettingsLayout
-                                        .createSequentialGroup()
-                                        .addGroup(
-                                            globalSettingsLayout
-                                                .createParallelGroup(
-                                                    javax.swing.GroupLayout.Alignment.LEADING
-                                                )
-                                                .addComponent(
-                                                    envLabel,
-                                                    javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                    84,
-                                                    javax.swing.GroupLayout.PREFERRED_SIZE
-                                                )
-                                                .addGroup(
-                                                    globalSettingsLayout
-                                                        .createSequentialGroup()
-                                                        .addGap(4, 4, 4)
-                                                        .addGroup(
-                                                            globalSettingsLayout
-                                                                .createParallelGroup(
-                                                                    javax.swing.GroupLayout.Alignment.LEADING
-                                                                )
-                                                                .addComponent(reportPerformanceLog)
-                                                                .addComponent(rpUpdate)
-                                                                .addComponent(slackNotify)
-                                                        )
-                                                        .addGap(60, 60, 60)
-                                                        .addGroup(
-                                                            globalSettingsLayout
-                                                                .createParallelGroup(
-                                                                    javax.swing.GroupLayout.Alignment.LEADING
-                                                                )
-                                                                .addComponent(extent)
-                                                                .addComponent(bddReport)
-                                                                .addComponent(azure)
-                                                        )
-                                                )
-                                                .addGroup(
-                                                    globalSettingsLayout
-                                                        .createParallelGroup(
-                                                            javax.swing.GroupLayout.Alignment.LEADING,
-                                                            false
-                                                        )
-                                                        .addGroup(
-                                                            javax.swing.GroupLayout.Alignment.TRAILING,
-                                                            globalSettingsLayout
-                                                                .createSequentialGroup()
-                                                                .addGroup(
-                                                                    globalSettingsLayout
-                                                                        .createParallelGroup(
-                                                                            javax.swing.GroupLayout.Alignment.LEADING
-                                                                        )
-                                                                        .addComponent(jLabel5)
-                                                                        .addComponent(jLabel9)
-                                                                )
-                                                                .addGap(81, 81, 81)
-                                                                .addGroup(
-                                                                    globalSettingsLayout
-                                                                        .createParallelGroup(
-                                                                            javax.swing.GroupLayout.Alignment.LEADING
-                                                                        )
-                                                                        .addComponent(
-                                                                            remoteGridURL,
-                                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                            252,
-                                                                            javax.swing.GroupLayout.PREFERRED_SIZE
-                                                                        )
-                                                                        .addComponent(
-                                                                            fullpagescreenshot
-                                                                        )
-                                                                        .addGroup(
-                                                                            globalSettingsLayout
-                                                                                .createSequentialGroup()
-                                                                                .addComponent(
-                                                                                    passCheckBox
-                                                                                )
-                                                                                .addGap(18, 18, 18)
-                                                                                .addComponent(
-                                                                                    failCheckBox
-                                                                                )
-                                                                        )
-                                                                )
-                                                                .addGap(0, 29, Short.MAX_VALUE)
-                                                        )
-                                                        .addGroup(
-                                                            javax.swing.GroupLayout.Alignment.TRAILING,
-                                                            globalSettingsLayout
-                                                                .createParallelGroup(
-                                                                    javax.swing.GroupLayout.Alignment.LEADING
-                                                                )
-                                                                .addComponent(enableTracing)
-                                                                .addComponent(recordVideo)
-                                                                .addComponent(enableHAR)
-                                                        )
-                                                        .addGroup(
-                                                            javax.swing.GroupLayout.Alignment.TRAILING,
-                                                            globalSettingsLayout
-                                                                .createSequentialGroup()
-                                                                .addGroup(
-                                                                    globalSettingsLayout
-                                                                        .createParallelGroup(
-                                                                            javax.swing.GroupLayout.Alignment.LEADING
-                                                                        )
-                                                                        .addComponent(jLabel2)
-                                                                        .addComponent(jLabel3)
-                                                                        .addComponent(jLabel4)
-                                                                        .addComponent(jLabel1)
-                                                                )
-                                                                .addPreferredGap(
-                                                                    javax.swing.LayoutStyle.ComponentPlacement.RELATED,
-                                                                    javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                    Short.MAX_VALUE
-                                                                )
-                                                                .addGroup(
-                                                                    globalSettingsLayout
-                                                                        .createParallelGroup(
-                                                                            javax.swing.GroupLayout.Alignment.LEADING
-                                                                        )
-                                                                        .addComponent(
-                                                                            executionTimeOut,
-                                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                            252,
-                                                                            javax.swing.GroupLayout.PREFERRED_SIZE
-                                                                        )
-                                                                        .addGroup(
-                                                                            globalSettingsLayout
-                                                                                .createSequentialGroup()
-                                                                                .addComponent(
-                                                                                    jRadioButton1
-                                                                                )
-                                                                                .addPreferredGap(
-                                                                                    javax.swing.LayoutStyle.ComponentPlacement.UNRELATED
-                                                                                )
-                                                                                .addComponent(
-                                                                                    jRadioButton2
-                                                                                )
-                                                                        )
-                                                                        .addGroup(
-                                                                            globalSettingsLayout
-                                                                                .createSequentialGroup()
-                                                                                .addComponent(
-                                                                                    jRadioButton3
-                                                                                )
-                                                                                .addPreferredGap(
-                                                                                    javax.swing.LayoutStyle.ComponentPlacement.RELATED
-                                                                                )
-                                                                                .addComponent(
-                                                                                    jRadioButton4
-                                                                                )
-                                                                        )
-                                                                        .addComponent(
-                                                                            threadCount,
-                                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                            116,
-                                                                            javax.swing.GroupLayout.PREFERRED_SIZE
-                                                                        )
-                                                                        .addComponent(
-                                                                            testEnv,
-                                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                                            121,
-                                                                            javax.swing.GroupLayout.PREFERRED_SIZE
-                                                                        )
-                                                                )
-                                                                .addGap(29, 29, 29)
-                                                        )
-                                                )
-                                        )
-                                        .addContainerGap(29, Short.MAX_VALUE)
-                                )
-                        )
-                )
-        );
-        globalSettingsLayout.setVerticalGroup(
-            globalSettingsLayout
-                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(
-                    globalSettingsLayout
-                        .createSequentialGroup()
-                        .addGap(46, 46, 46)
-                        .addGroup(
-                            globalSettingsLayout
-                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jLabel1)
-                                .addComponent(
-                                    executionTimeOut,
-                                    javax.swing.GroupLayout.PREFERRED_SIZE,
-                                    javax.swing.GroupLayout.DEFAULT_SIZE,
-                                    javax.swing.GroupLayout.PREFERRED_SIZE
-                                )
-                        )
-                        .addGap(18, 18, 18)
-                        .addGroup(
-                            globalSettingsLayout
-                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jLabel2)
-                                .addComponent(
-                                    threadCount,
-                                    javax.swing.GroupLayout.PREFERRED_SIZE,
-                                    javax.swing.GroupLayout.DEFAULT_SIZE,
-                                    javax.swing.GroupLayout.PREFERRED_SIZE
-                                )
-                        )
-                        .addGap(18, 18, 18)
-                        .addGroup(
-                            globalSettingsLayout
-                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jLabel3)
-                                .addComponent(jRadioButton3)
-                                .addComponent(jRadioButton4)
-                        )
-                        .addGap(18, 18, 18)
-                        .addGroup(
-                            globalSettingsLayout
-                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(envLabel)
-                                .addComponent(
-                                    testEnv,
-                                    javax.swing.GroupLayout.PREFERRED_SIZE,
-                                    javax.swing.GroupLayout.DEFAULT_SIZE,
-                                    javax.swing.GroupLayout.PREFERRED_SIZE
-                                )
-                        )
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(
-                            globalSettingsLayout
-                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jLabel4)
-                                .addComponent(jRadioButton1)
-                                .addComponent(jRadioButton2)
-                        )
-                        .addGap(18, 18, 18)
-                        .addGroup(
-                            globalSettingsLayout
-                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jLabel5)
-                                .addComponent(
-                                    remoteGridURL,
-                                    javax.swing.GroupLayout.PREFERRED_SIZE,
-                                    javax.swing.GroupLayout.DEFAULT_SIZE,
-                                    javax.swing.GroupLayout.PREFERRED_SIZE
-                                )
-                        )
-                        .addGap(18, 18, 18)
-                        .addGroup(
-                            globalSettingsLayout
-                                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel9)
-                                .addGroup(
-                                    globalSettingsLayout
-                                        .createSequentialGroup()
-                                        .addGroup(
-                                            globalSettingsLayout
-                                                .createParallelGroup(
-                                                    javax.swing.GroupLayout.Alignment.BASELINE
-                                                )
-                                                .addComponent(passCheckBox)
-                                                .addComponent(failCheckBox)
-                                        )
-                                        .addGap(18, 18, 18)
-                                        .addComponent(fullpagescreenshot)
-                                )
-                        )
-                        .addGap(39, 39, 39)
-                        .addGroup(
-                            globalSettingsLayout
-                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jLabel29)
-                                .addComponent(
-                                    reRunNo,
-                                    javax.swing.GroupLayout.PREFERRED_SIZE,
-                                    javax.swing.GroupLayout.DEFAULT_SIZE,
-                                    javax.swing.GroupLayout.PREFERRED_SIZE
-                                )
-                                .addComponent(jLabel30)
-                        )
-                        .addGap(26, 26, 26)
-                        .addGroup(
-                            globalSettingsLayout
-                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(reportPerformanceLog)
-                                .addComponent(recordVideo)
-                                .addComponent(bddReport)
-                        )
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(
-                            globalSettingsLayout
-                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(rpUpdate)
-                                .addComponent(enableTracing)
-                                .addComponent(extent)
-                        )
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(
-                            globalSettingsLayout
-                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(azure)
-                                .addComponent(enableHAR)
-                                .addComponent(slackNotify)
-                        )
-                        .addContainerGap(44, Short.MAX_VALUE)
-                )
-        );
-
-        runSettingsTab.addTab("Run Settings", globalSettings);
 
         qcrunSettings.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         qcrunSettings.setLayout(new java.awt.BorderLayout());
@@ -1826,7 +1324,11 @@ public class INGeniousSettings extends javax.swing.JFrame {
         jToolBar1.add(testMgmtModuleCombo);
         jToolBar1.add(filler3);
 
-        testConn.setIcon(INGIcons.swingColored("icon.bulb_yellow", 16));
+        testConn.setIcon(
+            new javax.swing.ImageIcon(
+                getClass().getResource("/ui/resources/toolbar/bulb_yellow.png")
+            )
+        ); // NOI18N
         testConn.setText("Test Connection");
         testConn.setFocusable(false);
         testConn.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
@@ -1858,6 +1360,606 @@ public class INGeniousSettings extends javax.swing.JFrame {
         qcrunSettings.add(jToolBar1, java.awt.BorderLayout.NORTH);
 
         runSettingsTab.addTab("TM Settings", qcrunSettings);
+
+        globalSettings.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        jLabel1.setFont(UIManager.getFont("TableMenu.font"));
+        jLabel1.setText("ExecutionTimeOut");
+
+        executionTimeOut.setFont(UIManager.getFont("TableMenu.font"));
+        executionTimeOut.setText("jTextField4");
+        executionTimeOut.setToolTipText("in Minutes");
+
+        jLabel2.setFont(UIManager.getFont("TableMenu.font"));
+        jLabel2.setText("Parallel Execution");
+
+        jLabel3.setFont(UIManager.getFont("TableMenu.font"));
+        jLabel3.setText("Iteration Mode");
+
+        jLabel4.setFont(UIManager.getFont("TableMenu.font"));
+        jLabel4.setText("Execution Mode");
+
+        jLabel5.setFont(UIManager.getFont("TableMenu.font"));
+        jLabel5.setText("Remote Grid Url");
+
+        remoteGridURL.setFont(UIManager.getFont("TableMenu.font"));
+        remoteGridURL.setForeground(new java.awt.Color(0, 0, 255));
+
+        eModeBgroup.add(jRadioButton1);
+        jRadioButton1.setFont(UIManager.getFont("TableMenu.font"));
+        jRadioButton1.setText("Local");
+        jRadioButton1.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    jRadioButton1ActionPerformed(evt);
+                }
+            }
+        );
+
+        eModeBgroup.add(jRadioButton2);
+        jRadioButton2.setFont(UIManager.getFont("TableMenu.font"));
+        jRadioButton2.setText("Grid");
+
+        iModeBgroup.add(jRadioButton3);
+        jRadioButton3.setFont(UIManager.getFont("TableMenu.font"));
+        jRadioButton3.setText("ContinueOnError");
+        jRadioButton3.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    jRadioButton3ActionPerformed(evt);
+                }
+            }
+        );
+
+        iModeBgroup.add(jRadioButton4);
+        jRadioButton4.setFont(UIManager.getFont("TableMenu.font"));
+        jRadioButton4.setText("BreakOnError");
+
+        jLabel9.setFont(UIManager.getFont("TableMenu.font"));
+        jLabel9.setText("Screenshot");
+
+        passCheckBox.setFont(UIManager.getFont("TableMenu.font"));
+        passCheckBox.setText("Pass");
+        passCheckBox.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    passCheckBoxActionPerformed(evt);
+                }
+            }
+        );
+
+        failCheckBox.setFont(UIManager.getFont("TableMenu.font"));
+        failCheckBox.setText("Fail");
+
+        fullpagescreenshot.setFont(UIManager.getFont("TableMenu.font"));
+        fullpagescreenshot.setText("Take Full Page Screenshot");
+
+        threadCount.setFont(UIManager.getFont("TableMenu.font"));
+        threadCount.setModel(new javax.swing.SpinnerNumberModel(1, 1, 100, 1));
+
+        jLabel29.setFont(UIManager.getFont("TableMenu.font"));
+        jLabel29.setText("AXE Severity Threshold");
+
+        reRunNo.setFont(UIManager.getFont("TableMenu.font"));
+        reRunNo.setModel(new javax.swing.SpinnerNumberModel(0, 0, 5, 1));
+
+        jLabel30.setFont(UIManager.getFont("TableMenu.font"));
+        jLabel30.setText("Times");
+
+        jLabel32.setFont(UIManager.getFont("TableMenu.font"));
+        jLabel32.setText("Retry Execution");
+
+        reportPerformanceLog.setFont(UIManager.getFont("TableMenu.font"));
+        reportPerformanceLog.setText("Performance Reporting");
+        reportPerformanceLog.setToolTipText("Report page performance logs.");
+
+        envLabel.setFont(UIManager.getFont("TableMenu.font"));
+        envLabel.setText("Environment");
+
+        testEnv.setFont(UIManager.getFont("TableMenu.font"));
+        testEnv.setForeground(new java.awt.Color(0, 0, 255));
+        testEnv.setToolTipText("Select the execution Environment");
+
+        bddReport.setFont(UIManager.getFont("TableMenu.font"));
+        bddReport.setText("Bdd Reporting");
+
+        slackNotify.setFont(UIManager.getFont("TableMenu.font"));
+        slackNotify.setText("Slack Notification");
+        slackNotify.setToolTipText("Send notification to slack");
+        slackNotify.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    slackNotifyActionPerformed(evt);
+                }
+            }
+        );
+
+        rpUpdate.setFont(UIManager.getFont("TableMenu.font"));
+        rpUpdate.setText("Report Portal");
+
+        extent.setFont(UIManager.getFont("TableMenu.font"));
+        extent.setText("Extent Report");
+        extent.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    extentActionPerformed(evt);
+                }
+            }
+        );
+
+        azure.setFont(UIManager.getFont("TableMenu.font"));
+        azure.setText("Azure Nunit Report");
+        azure.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    azureActionPerformed(evt);
+                }
+            }
+        );
+
+        recordVideo.setFont(UIManager.getFont("TableMenu.font"));
+        recordVideo.setText("Video");
+        recordVideo.setToolTipText("Record Execution Video");
+        recordVideo.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    recordVideoActionPerformed(evt);
+                }
+            }
+        );
+
+        enableTracing.setFont(UIManager.getFont("TableMenu.font"));
+        enableTracing.setText("Trace");
+        enableTracing.setToolTipText("Enable Tracing");
+        enableTracing.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    enableTracingActionPerformed(evt);
+                }
+            }
+        );
+
+        enableHAR.setFont(UIManager.getFont("TableMenu.font"));
+        enableHAR.setText("HAR");
+        enableHAR.setToolTipText("Enable HAR Recording");
+        enableHAR.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    enableHARActionPerformed(evt);
+                }
+            }
+        );
+
+        axeSeverity.setFont(UIManager.getFont("TableMenu.font"));
+        axeSeverity.setModel(
+            new javax.swing.DefaultComboBoxModel<>(
+                new String[] { "Minor", "Moderate", "Serious", "Critical" }
+            )
+        );
+        axeSeverity.setToolTipText(
+            "Select the severity threshold for failing accessibility tests."
+        );
+        axeSeverity.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    axeSeverityActionPerformed(evt);
+                }
+            }
+        );
+
+        javax.swing.GroupLayout globalSettingsLayout = new javax.swing.GroupLayout(globalSettings);
+        globalSettings.setLayout(globalSettingsLayout);
+        globalSettingsLayout.setHorizontalGroup(
+            globalSettingsLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    globalSettingsLayout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(
+                            globalSettingsLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(
+                                    globalSettingsLayout
+                                        .createSequentialGroup()
+                                        .addGap(172, 172, 172)
+                                        .addComponent(fullpagescreenshot)
+                                )
+                                .addGroup(
+                                    globalSettingsLayout
+                                        .createSequentialGroup()
+                                        .addComponent(
+                                            jLabel9,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                            160,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                        )
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.UNRELATED
+                                        )
+                                        .addComponent(passCheckBox)
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.RELATED
+                                        )
+                                        .addComponent(failCheckBox)
+                                )
+                                .addGroup(
+                                    globalSettingsLayout
+                                        .createSequentialGroup()
+                                        .addGroup(
+                                            globalSettingsLayout
+                                                .createParallelGroup(
+                                                    javax.swing.GroupLayout.Alignment.LEADING,
+                                                    false
+                                                )
+                                                .addComponent(
+                                                    jLabel1,
+                                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                                    160,
+                                                    Short.MAX_VALUE
+                                                )
+                                                .addComponent(
+                                                    jLabel2,
+                                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                                    Short.MAX_VALUE
+                                                )
+                                                .addComponent(
+                                                    jLabel3,
+                                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                                    Short.MAX_VALUE
+                                                )
+                                        )
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.UNRELATED
+                                        )
+                                        .addGroup(
+                                            globalSettingsLayout
+                                                .createParallelGroup(
+                                                    javax.swing.GroupLayout.Alignment.LEADING
+                                                )
+                                                .addGroup(
+                                                    globalSettingsLayout
+                                                        .createSequentialGroup()
+                                                        .addComponent(jRadioButton3)
+                                                        .addPreferredGap(
+                                                            javax.swing.LayoutStyle.ComponentPlacement.RELATED
+                                                        )
+                                                        .addComponent(jRadioButton4)
+                                                )
+                                                .addComponent(
+                                                    threadCount,
+                                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                    116,
+                                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                                )
+                                                .addComponent(
+                                                    executionTimeOut,
+                                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                    150,
+                                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                                )
+                                        )
+                                )
+                                .addGroup(
+                                    globalSettingsLayout
+                                        .createSequentialGroup()
+                                        .addComponent(
+                                            jLabel5,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                            160,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                        )
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.UNRELATED
+                                        )
+                                        .addComponent(
+                                            remoteGridURL,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                            286,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                        )
+                                )
+                                .addGroup(
+                                    globalSettingsLayout
+                                        .createSequentialGroup()
+                                        .addComponent(
+                                            jLabel4,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                            160,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                        )
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.UNRELATED
+                                        )
+                                        .addComponent(jRadioButton1)
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.RELATED
+                                        )
+                                        .addComponent(jRadioButton2)
+                                )
+                        )
+                        .addContainerGap(96, Short.MAX_VALUE)
+                )
+                .addGroup(
+                    globalSettingsLayout
+                        .createSequentialGroup()
+                        .addGroup(
+                            globalSettingsLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addGroup(
+                                    javax.swing.GroupLayout.Alignment.LEADING,
+                                    globalSettingsLayout
+                                        .createSequentialGroup()
+                                        .addGap(4, 4, 4)
+                                        .addGroup(
+                                            globalSettingsLayout
+                                                .createParallelGroup(
+                                                    javax.swing.GroupLayout.Alignment.LEADING
+                                                )
+                                                .addGroup(
+                                                    globalSettingsLayout
+                                                        .createSequentialGroup()
+                                                        .addGroup(
+                                                            globalSettingsLayout
+                                                                .createParallelGroup(
+                                                                    javax.swing.GroupLayout.Alignment.LEADING
+                                                                )
+                                                                .addComponent(reportPerformanceLog)
+                                                                .addComponent(rpUpdate)
+                                                                .addComponent(slackNotify)
+                                                        )
+                                                        .addGap(50, 50, 50)
+                                                        .addGroup(
+                                                            globalSettingsLayout
+                                                                .createParallelGroup(
+                                                                    javax.swing.GroupLayout.Alignment.LEADING,
+                                                                    false
+                                                                )
+                                                                .addComponent(
+                                                                    bddReport,
+                                                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                                                    Short.MAX_VALUE
+                                                                )
+                                                                .addComponent(
+                                                                    extent,
+                                                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                                                    Short.MAX_VALUE
+                                                                )
+                                                                .addComponent(
+                                                                    azure,
+                                                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                                                    142,
+                                                                    Short.MAX_VALUE
+                                                                )
+                                                        )
+                                                        .addGap(50, 50, 50)
+                                                        .addGroup(
+                                                            globalSettingsLayout
+                                                                .createParallelGroup(
+                                                                    javax.swing.GroupLayout.Alignment.LEADING
+                                                                )
+                                                                .addComponent(enableTracing)
+                                                                .addComponent(enableHAR)
+                                                                .addComponent(recordVideo)
+                                                        )
+                                                )
+                                                .addGroup(
+                                                    globalSettingsLayout
+                                                        .createSequentialGroup()
+                                                        .addComponent(
+                                                            jLabel32,
+                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                            160,
+                                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                                        )
+                                                        .addPreferredGap(
+                                                            javax.swing.LayoutStyle.ComponentPlacement.UNRELATED
+                                                        )
+                                                        .addComponent(
+                                                            reRunNo,
+                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                            150,
+                                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                                        )
+                                                        .addGap(10, 10, 10)
+                                                        .addComponent(jLabel30)
+                                                )
+                                        )
+                                )
+                                .addGroup(
+                                    javax.swing.GroupLayout.Alignment.LEADING,
+                                    globalSettingsLayout
+                                        .createSequentialGroup()
+                                        .addContainerGap()
+                                        .addComponent(
+                                            jLabel29,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                            160,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                        )
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.UNRELATED
+                                        )
+                                        .addComponent(
+                                            axeSeverity,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                            150,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                        )
+                                )
+                                .addGroup(
+                                    javax.swing.GroupLayout.Alignment.LEADING,
+                                    globalSettingsLayout
+                                        .createSequentialGroup()
+                                        .addContainerGap()
+                                        .addComponent(
+                                            envLabel,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                            160,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                        )
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.UNRELATED
+                                        )
+                                        .addComponent(
+                                            testEnv,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                            150,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                        )
+                                )
+                        )
+                        .addGap(0, 0, Short.MAX_VALUE)
+                )
+        );
+        globalSettingsLayout.setVerticalGroup(
+            globalSettingsLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    globalSettingsLayout
+                        .createSequentialGroup()
+                        .addGap(30, 30, 30)
+                        .addGroup(
+                            globalSettingsLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel1)
+                                .addComponent(
+                                    executionTimeOut,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addGap(18, 18, 18)
+                        .addGroup(
+                            globalSettingsLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel2)
+                                .addComponent(
+                                    threadCount,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addGap(18, 18, 18)
+                        .addGroup(
+                            globalSettingsLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel3)
+                                .addComponent(jRadioButton3)
+                                .addComponent(jRadioButton4)
+                        )
+                        .addGap(18, 18, 18)
+                        .addGroup(
+                            globalSettingsLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(envLabel)
+                                .addComponent(
+                                    testEnv,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addGap(18, 18, 18)
+                        .addGroup(
+                            globalSettingsLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel4)
+                                .addComponent(jRadioButton1)
+                                .addComponent(jRadioButton2)
+                        )
+                        .addGap(18, 18, 18)
+                        .addGroup(
+                            globalSettingsLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel5)
+                                .addComponent(
+                                    remoteGridURL,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addGap(18, 18, 18)
+                        .addGroup(
+                            globalSettingsLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(passCheckBox)
+                                .addComponent(failCheckBox)
+                                .addComponent(jLabel9)
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(fullpagescreenshot)
+                        .addGap(18, 18, 18)
+                        .addGroup(
+                            globalSettingsLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel29)
+                                .addComponent(
+                                    axeSeverity,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addGap(18, 18, 18)
+                        .addGroup(
+                            globalSettingsLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(
+                                    reRunNo,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(jLabel30)
+                                .addComponent(jLabel32)
+                        )
+                        .addGap(21, 21, 21)
+                        .addGroup(
+                            globalSettingsLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(reportPerformanceLog)
+                                .addComponent(bddReport)
+                                .addComponent(recordVideo)
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(
+                            globalSettingsLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(rpUpdate)
+                                .addComponent(enableTracing)
+                                .addComponent(extent)
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(
+                            globalSettingsLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(azure)
+                                .addComponent(enableHAR)
+                                .addComponent(slackNotify)
+                        )
+                        .addContainerGap(25, Short.MAX_VALUE)
+                )
+        );
+
+        runSettingsTab.addTab("Run Settings", globalSettings);
 
         getContentPane().add(runSettingsTab, java.awt.BorderLayout.CENTER);
         getContentPane().add(filler5, java.awt.BorderLayout.PAGE_START);
@@ -1946,6 +2048,14 @@ public class INGeniousSettings extends javax.swing.JFrame {
         // TODO add your handling code here:
     } //GEN-LAST:event_enableHARActionPerformed
 
+    private void axeSeverityActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_axeSeverityActionPerformed
+        // TODO add your handling code here:
+    } //GEN-LAST:event_axeSeverityActionPerformed
+
+    private void jRadioButton3ActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_jRadioButton3ActionPerformed
+        // TODO add your handling code here:
+    } //GEN-LAST:event_jRadioButton3ActionPerformed
+
     private void testConnection(final Sync connection) {
         try {
             if (connection != null) {
@@ -1997,7 +2107,12 @@ public class INGeniousSettings extends javax.swing.JFrame {
         styleModernButton(testConn, true);
     }
 
+    private void formWindowActivated(java.awt.event.WindowEvent evt) {
+        //Do nothing
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JComboBox<String> axeSeverity;
     private javax.swing.JCheckBox azure;
     private javax.swing.JCheckBox bddReport;
     private javax.swing.ButtonGroup eModeBgroup;
@@ -2018,6 +2133,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel29;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel30;
+    private javax.swing.JLabel jLabel32;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel9;
