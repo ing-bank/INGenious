@@ -23,12 +23,14 @@ readonly REPO_ROOT="${SCRIPT_DIR:h}"
 readonly RELEASE_APP="$REPO_ROOT/Dist/release/INGenious.app"
 readonly WORKSPACE_SOURCE="$REPO_ROOT/Resources/Workspace"
 readonly POSTINSTALL_SOURCE="$SCRIPT_DIR/macos-pkg/postinstall"
+readonly CLI_WRAPPER_SOURCE="$SCRIPT_DIR/macos-pkg/ingenious"
 readonly DISTRIBUTION_TEMPLATE="$SCRIPT_DIR/macos-pkg/Distribution.xml"
 
 readonly STAGING_ROOT="$REPO_ROOT/Dist/target/macos-pkg"
 readonly PAYLOAD_ROOT="$STAGING_ROOT/root"
 readonly PACKAGE_SCRIPTS="$STAGING_ROOT/package-scripts"
 readonly COMPONENT_PACKAGE="$STAGING_ROOT/INGenious-component.pkg"
+readonly COMPONENT_PLIST="$STAGING_ROOT/components.plist"
 readonly RENDERED_DISTRIBUTION="$STAGING_ROOT/Distribution.xml"
 readonly OUTPUT_PACKAGE="$REPO_ROOT/Dist/target/INGenious-${PACKAGE_VERSION}.pkg"
 
@@ -66,6 +68,8 @@ print -- ""
 
 [[ -f "$POSTINSTALL_SOURCE" ]] ||
   fail "Post-install script is missing: $POSTINSTALL_SOURCE"
+[[ -f "$CLI_WRAPPER_SOURCE" ]] ||
+  fail "CLI wrapper is missing: $CLI_WRAPPER_SOURCE"
 [[ -f "$DISTRIBUTION_TEMPLATE" ]] ||
   fail "Distribution template is missing: $DISTRIBUTION_TEMPLATE"
 
@@ -77,6 +81,9 @@ print -- ""
 
 zsh -n "$POSTINSTALL_SOURCE" ||
   fail "Post-install script failed syntax validation."
+
+zsh -n "$CLI_WRAPPER_SOURCE" ||
+  fail "CLI wrapper failed syntax validation."
 
 print -- "[1/5] Validating the release application"
 
@@ -96,6 +103,7 @@ rm -rf -- "$STAGING_ROOT"
 rm -f -- "$OUTPUT_PACKAGE"
 
 mkdir -p -- "$PAYLOAD_ROOT/Applications"
+mkdir -p -- "$PAYLOAD_ROOT/usr/local/bin"
 mkdir -p -- "$PACKAGE_SCRIPTS"
 
 /usr/bin/sed   "s/@APP_VERSION@/$PACKAGE_VERSION/g"   "$DISTRIBUTION_TEMPLATE"   > "$RENDERED_DISTRIBUTION"
@@ -118,6 +126,10 @@ print -- "[3/5] Staging application and Workspace template"
   "$PAYLOAD_ROOT/Applications/INGenious.app"
 
 /usr/bin/ditto \
+  "$CLI_WRAPPER_SOURCE" \
+  "$PAYLOAD_ROOT/usr/local/bin/ingenious"
+
+/usr/bin/ditto \
   "$POSTINSTALL_SOURCE" \
   "$PACKAGE_SCRIPTS/postinstall"
 
@@ -126,9 +138,13 @@ print -- "[3/5] Staging application and Workspace template"
   "$PACKAGE_SCRIPTS/Workspace"
 
 chmod 755 "$PACKAGE_SCRIPTS/postinstall"
+chmod 755 "$PAYLOAD_ROOT/usr/local/bin/ingenious"
 
 [[ -d "$PAYLOAD_ROOT/Applications/INGenious.app/Contents" ]] ||
   fail "Staged application bundle is invalid."
+
+[[ -x "$PAYLOAD_ROOT/usr/local/bin/ingenious" ]] ||
+  fail "Staged CLI wrapper is missing or not executable."
 
 [[ -d "$PACKAGE_SCRIPTS/Workspace/Configuration" ]] ||
   fail "Staged Workspace is missing Configuration."
@@ -143,10 +159,51 @@ chmod 755 "$PACKAGE_SCRIPTS/postinstall"
   fail "Staged Workspace is missing plugins."
 
 print -- ""
-print -- "[4/5] Building component package"
+print -- "[4/5] Building non-relocatable component package"
+
+/usr/bin/pkgbuild \
+  --analyze \
+  --root "$PAYLOAD_ROOT" \
+  "$COMPONENT_PLIST"
+
+/usr/bin/plutil -lint "$COMPONENT_PLIST" >/dev/null ||
+  fail "Generated component property list is invalid."
+
+component_count="$(
+  /usr/libexec/PlistBuddy -c "Print" "$COMPONENT_PLIST" |
+    /usr/bin/grep -c '^    Dict {'
+)"
+
+[[ "$component_count" == "1" ]] ||
+  fail "Expected exactly one application component, found: $component_count"
+
+/usr/libexec/PlistBuddy \
+  -c "Set :0:BundleIsRelocatable false" \
+  "$COMPONENT_PLIST"
+
+component_path="$(
+  /usr/libexec/PlistBuddy \
+    -c "Print :0:RootRelativeBundlePath" \
+    "$COMPONENT_PLIST"
+)"
+
+[[ "$component_path" == "Applications/INGenious.app" ]] ||
+  fail "Unexpected application component path: $component_path"
+
+relocatable="$(
+  /usr/libexec/PlistBuddy \
+    -c "Print :0:BundleIsRelocatable" \
+    "$COMPONENT_PLIST"
+)"
+
+[[ "$relocatable" == "false" ]] ||
+  fail "Application component is still relocatable."
+
+print -- "OK: application bundle is non-relocatable"
 
 /usr/bin/pkgbuild \
   --root "$PAYLOAD_ROOT" \
+  --component-plist "$COMPONENT_PLIST" \
   --scripts "$PACKAGE_SCRIPTS" \
   --identifier "$PACKAGE_IDENTIFIER" \
   --version "$PACKAGE_VERSION" \
