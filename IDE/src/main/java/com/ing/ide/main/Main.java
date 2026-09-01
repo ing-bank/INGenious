@@ -7,6 +7,7 @@ import com.ing.datalib.testdata.TestDataFactory;
 import com.ing.datalib.util.WorkspaceInitializer;
 import com.ing.engine.cli.LookUp;
 import com.ing.engine.constants.SystemDefaults;
+import com.ing.engine.core.Control;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.exceptions.DuplicateMethodException;
 import com.ing.ide.main.cli.UICli;
@@ -79,6 +80,11 @@ public class Main {
     }
 
     private static void commandLineExecution(String[] args) {
+        if (Control.isNewCLICommand(args)) {
+            Control.main(args);
+            return;
+        }
+
         initCommonDependencies();
         if (!UICli.exe(args)) {
             LookUp.exe(args);
