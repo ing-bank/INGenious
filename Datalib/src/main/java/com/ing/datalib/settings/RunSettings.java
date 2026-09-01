@@ -134,6 +134,14 @@ public class RunSettings extends AbstractPropSettings {
         return getProperty("TestEnv", "Default");
     }
 
+    public void setAxeSeverityThreshold(String value) {
+        setProperty("AxeSeverityThreshold", value);
+    }
+
+    public String getAxeSeverityThreshold() {
+        return getProperty("AxeSeverityThreshold", "Minor");
+    }
+
     public Boolean isMailSend() {
         return Boolean.valueOf(getProperty("SendMail", "false"));
     }

@@ -40,6 +40,8 @@ public class QuickSettingsUILeft extends QuickSettingsUI {
         useExistingDriver = new javax.swing.JCheckBox();
         reportPerformanceLog = new javax.swing.JCheckBox();
         fullpagescreenshot = new javax.swing.JCheckBox();
+        axeSeverityLabel = new javax.swing.JLabel();
+        axeSeverity = new javax.swing.JComboBox<>();
         jLabel1 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
         jSeparator2 = new javax.swing.JSeparator();
@@ -138,6 +140,25 @@ public class QuickSettingsUILeft extends QuickSettingsUI {
             }
         );
 
+        axeSeverityLabel.setFont(UIManager.getFont("Table.font"));
+        axeSeverityLabel.setText("AXE Severity Threshold");
+
+        axeSeverity.setFont(UIManager.getFont("TableMenu.font"));
+        axeSeverity.setModel(
+            new javax.swing.DefaultComboBoxModel<>(
+                new String[] { "Minor", "Moderate", "Serious", "Critical" }
+            )
+        );
+        axeSeverity.setToolTipText("Select the severity threshold for accessibility tests.");
+        axeSeverity.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    axeSeverityActionPerformed(evt);
+                }
+            }
+        );
+
         jLabel1.setText("(On Error)");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -170,6 +191,13 @@ public class QuickSettingsUILeft extends QuickSettingsUI {
                                         .addComponent(BreakOnError)
                                 )
                                 .addComponent(screenShotFor)
+                                .addComponent(axeSeverityLabel)
+                                .addComponent(
+                                    axeSeverity,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    150,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
                                 .addGroup(
                                     layout
                                         .createParallelGroup(
@@ -238,6 +266,15 @@ public class QuickSettingsUILeft extends QuickSettingsUI {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(fullpagescreenshot)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(axeSeverityLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(
+                            axeSeverity,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(
                             jSeparator2,
                             javax.swing.GroupLayout.PREFERRED_SIZE,
@@ -281,6 +318,13 @@ public class QuickSettingsUILeft extends QuickSettingsUI {
         runSettings.setReportPerformanceLog(reportPerformanceLog.isSelected());
     } //GEN-LAST:event_reportPerformanceLogActionPerformed
 
+    private void axeSeverityActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_axeSeverityActionPerformed
+        Object selectedItem = axeSeverity.getSelectedItem();
+        runSettings.setAxeSeverityThreshold(
+            selectedItem == null ? "Minor" : selectedItem.toString()
+        );
+    } //GEN-LAST:event_axeSeverityActionPerformed
+
     private String getPassFail() {
         if (passCheckBox.isSelected() && failCheckBox.isSelected()) {
             return "Both";
@@ -313,6 +357,7 @@ public class QuickSettingsUILeft extends QuickSettingsUI {
             failCheckBox.setSelected(true);
         }
         fullpagescreenshot.setSelected(x.getTakeFullPageScreenShot());
+        axeSeverity.setSelectedItem(x.getAxeSeverityThreshold());
         useExistingDriver.setSelected(x.useExistingDriver());
         reportPerformanceLog.setSelected(x.isPerformanceLogEnabled());
     }
@@ -376,6 +421,14 @@ public class QuickSettingsUILeft extends QuickSettingsUI {
         fullpagescreenshot.setBackground(panelBg);
         fullpagescreenshot.setOpaque(true);
 
+        axeSeverityLabel.setForeground(panelFg);
+        axeSeverityLabel.setBackground(panelBg);
+        axeSeverityLabel.setOpaque(true);
+
+        axeSeverity.setForeground(panelFg);
+        axeSeverity.setBackground(panelBg);
+        axeSeverity.setOpaque(true);
+
         // Set separator colors
         jSeparator1.setForeground(separatorColor);
         jSeparator2.setForeground(separatorColor);
@@ -384,6 +437,8 @@ public class QuickSettingsUILeft extends QuickSettingsUI {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JRadioButton BreakOnError;
     private javax.swing.JRadioButton ContinueOnError;
+    private javax.swing.JComboBox<String> axeSeverity;
+    private javax.swing.JLabel axeSeverityLabel;
     private javax.swing.JCheckBox failCheckBox;
     private javax.swing.JCheckBox fullpagescreenshot;
     private javax.swing.ButtonGroup iterGroup;
