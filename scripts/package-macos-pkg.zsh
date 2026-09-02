@@ -8,10 +8,24 @@ fail() {
   exit 1
 }
 
-(( $# == 1 )) ||
-  fail "Usage: package-macos-pkg.zsh <application-version>"
+(( $# == 3 )) ||
+  fail "Usage: package-macos-pkg.zsh <application-version> <arm64|x86_64> <application-path>"
 
 readonly PACKAGE_VERSION="$1"
+readonly TARGET_ARCH="$2"
+readonly SOURCE_APP="$3"
+
+case "$TARGET_ARCH" in
+  arm64)
+    readonly EXPECTED_ARCH="arm64"
+    ;;
+  x86_64)
+    readonly EXPECTED_ARCH="x86_64"
+    ;;
+  *)
+    fail "Unsupported macOS architecture: $TARGET_ARCH"
+    ;;
+esac
 
 print -r -- "$PACKAGE_VERSION" |
   grep -Eq '^[0-9]+([.][0-9]+){0,2}$' ||
@@ -20,25 +34,24 @@ print -r -- "$PACKAGE_VERSION" |
 readonly SCRIPT_DIR="${0:A:h}"
 readonly REPO_ROOT="${SCRIPT_DIR:h}"
 
-readonly RELEASE_APP="$REPO_ROOT/Dist/release/INGenious.app"
 readonly WORKSPACE_SOURCE="$REPO_ROOT/Resources/Workspace"
 readonly POSTINSTALL_SOURCE="$SCRIPT_DIR/macos-pkg/postinstall"
 readonly CLI_WRAPPER_SOURCE="$SCRIPT_DIR/macos-pkg/ingenious"
 readonly DISTRIBUTION_TEMPLATE="$SCRIPT_DIR/macos-pkg/Distribution.xml"
 
-readonly STAGING_ROOT="$REPO_ROOT/Dist/target/macos-pkg"
+readonly STAGING_ROOT="$REPO_ROOT/Dist/target/macos-pkg/$TARGET_ARCH"
 readonly PAYLOAD_ROOT="$STAGING_ROOT/root"
 readonly PACKAGE_SCRIPTS="$STAGING_ROOT/package-scripts"
 readonly COMPONENT_PACKAGE="$STAGING_ROOT/INGenious-component.pkg"
 readonly COMPONENT_PLIST="$STAGING_ROOT/components.plist"
 readonly RENDERED_DISTRIBUTION="$STAGING_ROOT/Distribution.xml"
-readonly OUTPUT_PACKAGE="$REPO_ROOT/Dist/target/INGenious-${PACKAGE_VERSION}.pkg"
+readonly OUTPUT_PACKAGE="$REPO_ROOT/Dist/target/INGenious-${PACKAGE_VERSION}-macos-${TARGET_ARCH}.pkg"
 
 readonly PACKAGE_IDENTIFIER="com.ing.ingenious.pkg"
 
 print -- ""
 print -- "========================================"
-print -- " INGenious macOS PKG packaging"
+print -- " INGenious macOS $TARGET_ARCH PKG packaging"
 print -- "========================================"
 print -- ""
 
@@ -51,8 +64,29 @@ print -- ""
 [[ -x /usr/bin/productbuild ]] ||
   fail "productbuild is not available."
 
-[[ -d "$RELEASE_APP/Contents" ]] ||
-  fail "Release application is missing or invalid: $RELEASE_APP"
+[[ -d "$SOURCE_APP/Contents" ]] ||
+  fail "Source application is missing or invalid: $SOURCE_APP"
+
+source_launcher="$SOURCE_APP/Contents/MacOS/INGenious"
+source_jvm="$SOURCE_APP/Contents/runtime/Contents/Home/lib/server/libjvm.dylib"
+
+[[ -x "$source_launcher" ]] ||
+  fail "Source application launcher is missing or not executable: $source_launcher"
+
+[[ -f "$source_jvm" ]] ||
+  fail "Source application JVM is missing: $source_jvm"
+
+launcher_info="$(file "$source_launcher")"
+jvm_info="$(file "$source_jvm")"
+
+print -- "$launcher_info"
+print -- "$jvm_info"
+
+[[ "$launcher_info" == *"$EXPECTED_ARCH"* ]] ||
+  fail "Source application launcher is not $EXPECTED_ARCH"
+
+[[ "$jvm_info" == *"$EXPECTED_ARCH"* ]] ||
+  fail "Source application JVM is not $EXPECTED_ARCH"
 
 [[ -d "$WORKSPACE_SOURCE/Configuration" ]] ||
   fail "Workspace template is missing Configuration."
@@ -85,14 +119,14 @@ zsh -n "$POSTINSTALL_SOURCE" ||
 zsh -n "$CLI_WRAPPER_SOURCE" ||
   fail "CLI wrapper failed syntax validation."
 
-print -- "[1/5] Validating the release application"
+print -- "[1/5] Validating the $TARGET_ARCH application"
 
 /usr/bin/codesign \
   --verify \
   --deep \
   --strict \
   --verbose=2 \
-  "$RELEASE_APP"
+  "$SOURCE_APP"
 
 print -- "OK: application signature is valid"
 
@@ -122,7 +156,7 @@ print -- ""
 print -- "[3/5] Staging application and Workspace template"
 
 /usr/bin/ditto \
-  "$RELEASE_APP" \
+  "$SOURCE_APP" \
   "$PAYLOAD_ROOT/Applications/INGenious.app"
 
 /usr/bin/ditto \

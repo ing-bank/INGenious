@@ -213,41 +213,33 @@
                 </plugins>
             </build>
         </profile>
-        <!-- Build the macOS app-image with -Pmacos -->
+        <!-- Build separate Apple Silicon and Intel macOS artifacts with -Pmacos -->
         <profile>
             <id>macos</id>
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <configuration>
+                            <skipAssembly>true</skipAssembly>
+                        </configuration>
+                    </plugin>
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
                         <version>3.1.0</version>
                         <executions>
                             <execution>
-                                <id>package-macos-app</id>
-                                <phase>prepare-package</phase>
+                                <id>package-macos-architectures</id>
+                                <phase>package</phase>
                                 <goals>
                                     <goal>exec</goal>
                                 </goals>
                                 <configuration>
                                     <executable>/bin/zsh</executable>
                                     <arguments>
-                                        <argument>${maven.multiModuleProjectDirectory}/scripts/package-macos-app.zsh</argument>
-                                        <argument>${project.version}</argument>
-                                    </arguments>
-                                    <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>package-macos-pkg</id>
-                                <phase>prepare-package</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>/bin/zsh</executable>
-                                    <arguments>
-                                        <argument>${maven.multiModuleProjectDirectory}/scripts/package-macos-pkg.zsh</argument>
+                                        <argument>${maven.multiModuleProjectDirectory}/scripts/package-macos-all.zsh</argument>
                                         <argument>${project.version}</argument>
                                     </arguments>
                                     <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
