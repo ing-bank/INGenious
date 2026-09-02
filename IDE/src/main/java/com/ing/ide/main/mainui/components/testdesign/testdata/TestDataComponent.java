@@ -1244,6 +1244,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         private void encrypt() {
             int[] cols = table.getSelectedColumns();
             int[] rows = table.getSelectedRows();
+            std.getUndoManager().startGroupEdit();
             for (int row : rows) {
                 for (int col : cols) {
                     if (row != -1 && col != -1) {
@@ -1251,8 +1252,6 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                             if (col == 0) {
                                 continue;
                             }
-                        } else if (col < frozenColumnCount) {
-                            continue;
                         }
                         String data = Objects.toString(table.getValueAt(row, col), "");
                         if (data != null && !data.isEmpty()) {
@@ -1261,6 +1260,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     }
                 }
             }
+            std.getUndoManager().stopGroupEdit();
         }
 
         private int getSelectedRowAcrossTables() {
