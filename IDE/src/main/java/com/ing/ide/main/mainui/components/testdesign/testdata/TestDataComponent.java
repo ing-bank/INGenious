@@ -1246,8 +1246,6 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                             if (col == 0) {
                                 continue;
                             }
-                        } else if (col < frozenColumnCount) {
-                            continue;
                         }
                         String data = Objects.toString(table.getValueAt(row, col), "");
                         if (data != null && !data.isEmpty()) {
