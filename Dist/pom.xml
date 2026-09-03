@@ -146,6 +146,29 @@
                                         <include>package.json</include>
                                         <include>package-lock.json</include>
                                     </includes>
+                                    <excludes>
+                                        <exclude>Engine/pom.xml</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-generated-runtime-pom</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${runtimeDir}</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <resources>
+                                <resource>
+                                    <directory>${project.parent.basedir}/Common/target/generated-runtime</directory>
+                                    <filtering>false</filtering>
+                                    <includes>
+                                        <include>Engine/pom.xml</include>
+                                    </includes>
                                 </resource>
                             </resources>
                         </configuration>
