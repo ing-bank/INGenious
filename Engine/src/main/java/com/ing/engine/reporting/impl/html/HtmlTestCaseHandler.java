@@ -725,35 +725,18 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
                         // Prevent </script> from terminating the script tag early
                         jsonContent = jsonContent.replace("</script", "<\\/script");
 
-                        // Extract reusable name from filename
-                        // Format: {scenario}_{reusable-name}_axe-results.json
+                        // Format: {scenario}_{testcase}_Step-{n}_axe-results.json
                         String fileName = axeFile.getName();
-                        String reusablePart = fileName.replace("_axe-results.json", "");
+                        String sanitizedId = fileName
+                            .replace("_axe-results.json", "")
+                            .replaceAll("[^a-zA-Z0-9]", "-");
 
-                        // Extract just the reusable name (everything after the last underscore that's not part of "axe")
-                        // For "Mortgage Calculator_Your Plans_axe-results.json", we want "Your Plans"
-                        String[] parts = reusablePart.split("_");
-                        if (parts.length >= 2) {
-                            // Join everything except the first part (scenario name) with underscores
-                            StringBuilder reusableName = new StringBuilder();
-                            for (int i = 1; i < parts.length; i++) {
-                                if (i > 1) reusableName.append("_");
-                                reusableName.append(parts[i]);
-                            }
-
-                            // Sanitize for ID: replace non-alphanumeric with hyphen
-                            String sanitizedId = reusableName
-                                .toString()
-                                .replaceAll("[^a-zA-Z0-9]", "-");
-
-                            // Create script tag with embedded JSON
-                            axeScriptTags
-                                .append("<script type=\"application/json\" id=\"axe-data-")
-                                .append(sanitizedId)
-                                .append("\">\n")
-                                .append(jsonContent)
-                                .append("\n</script>\n");
-                        }
+                        axeScriptTags
+                            .append("<script type=\"application/json\" id=\"axe-data-")
+                            .append(sanitizedId)
+                            .append("\">\n")
+                            .append(jsonContent)
+                            .append("\n</script>\n");
                     } catch (Exception e) {
                         LOG.log(Level.WARNING, "Error reading aXe file: " + axeFile.getName(), e);
                     }
