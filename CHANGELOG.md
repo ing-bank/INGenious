@@ -2,9 +2,111 @@
 
 All notable changes to this project will be documented in this file.
 
-## Version 3.0.0
+## Version 3.1.0
 
 Release Date: <insert date of release>
+
+### General/UI
+
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+
+### Browser/Playwright Testing
+
+#### Added
+#### Changed
+#### Deprecate
+#### Removed
+#### Fixed
+
+### Mobile App Testing
+
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+
+### API Testing
+
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+
+### Message Testing
+
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+
+### Database Testing
+
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+
+### SAP Testing
+
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+
+### Synthetic Data
+
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+
+### Framework Enhancements
+
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+
+### Security Fixes
+
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+
+### Unit Testing
+
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+
+### Contribution
+
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+
+---------------------------------------------------------------------
+
+## Version 3.0.0
+
+Release Date: August 10, 2026
 
 ### General/UI
 
