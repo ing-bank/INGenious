@@ -4,7 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ing</groupId>
     <artifactId>ingenious-playwright</artifactId>
+<<<<<<< HEAD
     <version>4.0.0</version>
+=======
+    <version>3.1.0</version>
+>>>>>>> 0cd530d4 (Support Thread Context Class Loader and exposed getKey (#359))
     <packaging>pom</packaging>
     <modules>
         <module>StoryWriter</module>
