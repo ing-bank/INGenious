@@ -1,9 +1,9 @@
 package com.ing.ide.main.mainui.components.aichat.auth;
 
+import com.ing.engine.constants.AppResourcePath;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.security.SecureRandom;
 import java.security.spec.KeySpec;
@@ -38,7 +38,10 @@ public final class SecureTokenStore {
     private static final int KEY_BITS = 256;
     private static final int PBKDF2_ITERATIONS = 65536;
 
-    private static final Path KEY_FILE = Paths.get("Configuration", ".aichat.key");
+    private static final Path KEY_FILE = Path.of(
+        AppResourcePath.getConfigurationPath(),
+        ".aichat.key"
+    );
 
     private final SecretKey secretKey;
     private final SecureRandom random = new SecureRandom();

@@ -1,5 +1,6 @@
 package com.ing.engine.support.reflect;
 
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.plugin.loader.PluginLoader;
 import java.io.File;
@@ -65,7 +66,7 @@ public class Discovery {
     public static List<Class<?>> getClassesFromUserDefinedPackage() {
         List<Class<?>> classes = new ArrayList<>();
         try {
-            File directory = new File(FilePath.getAppRoot(), "userdefined");
+            File directory = new File(FilePath.getUserDefinedPath());
             if (directory.exists()) {
                 URL[] urls = new URL[] { directory.toURI().toURL() };
                 String[] files = directory.list();
@@ -109,7 +110,7 @@ public class Discovery {
         try {
             packages = null;
             Properties prop = new Properties();
-            File file = new File("Configuration", "package.properties");
+            File file = new File(AppResourcePath.getPackagePropertiesPath());
             if (file.exists()) {
                 prop.load(new FileInputStream(file));
                 if (prop.containsKey("actions")) {

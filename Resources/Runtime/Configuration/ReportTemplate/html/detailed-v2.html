@@ -1849,8 +1849,9 @@
               <p class="text-green-800 font-semibold">No accessibility violations found!</p>
             </div>
           </template>
-          <template x-if="axeModal.stats.violations > 0" x-for="(violation, vIdx) in axeModal.data.violations" :key="violation.id">
-            <div class="border border-red-300 dark:border-red-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <template x-if="axeModal.stats.violations > 0">
+            <template x-for="(violation, vIdx) in axeModal.data.violations" :key="'violation-' + (violation.id || 'item') + '-' + vIdx">
+              <div class="border border-red-300 dark:border-red-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
               <div @click="toggleViolation(violation.id)" class="cursor-pointer bg-red-50 dark:bg-red-900/20 p-4 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
                 <div class="flex items-start justify-between mb-2">
                   <div class="flex items-center gap-3 flex-1">
@@ -1961,7 +1962,8 @@
                   </div>
                 </div>
               </div>
-            </div>
+              </div>
+            </template>
           </template>
         </div>
         
@@ -1972,8 +1974,9 @@
               <p class="text-gray-600">No accessibility passes recorded.</p>
             </div>
           </template>
-          <template x-if="axeModal.stats.passes > 0" x-for="(pass, pIdx) in axeModal.data.passes" :key="pass.id">
-            <div class="border border-green-300 dark:border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <template x-if="axeModal.stats.passes > 0">
+            <template x-for="(pass, pIdx) in axeModal.data.passes" :key="'pass-' + (pass.id || 'item') + '-' + pIdx">
+              <div class="border border-green-300 dark:border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
               <div @click="toggleViolation('pass-' + pass.id)" class="cursor-pointer bg-green-50 dark:bg-green-900/20 p-4 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
                 <div class="flex items-start justify-between mb-2">
                   <div class="flex items-center gap-3 flex-1">
@@ -2065,7 +2068,8 @@
                   </div>
                 </div>
               </div>
-            </div>
+              </div>
+            </template>
           </template>
         </div>
         
@@ -2076,8 +2080,9 @@
               <p class="text-green-800 font-semibold">No incomplete checks - all rules could be verified!</p>
             </div>
           </template>
-          <template x-if="axeModal.stats.incomplete > 0" x-for="(incomplete, iIdx) in axeModal.data.incomplete" :key="incomplete.id">
-            <div class="border border-yellow-300 dark:border-yellow-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <template x-if="axeModal.stats.incomplete > 0">
+            <template x-for="(incomplete, iIdx) in axeModal.data.incomplete" :key="'incomplete-' + (incomplete.id || 'item') + '-' + iIdx">
+              <div class="border border-yellow-300 dark:border-yellow-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
               <div @click="toggleViolation('incomplete-' + incomplete.id)" class="cursor-pointer bg-yellow-50 dark:bg-yellow-900/20 p-4 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors">
                 <div class="flex items-start justify-between mb-2">
                   <div class="flex items-center gap-3 flex-1">
@@ -2185,7 +2190,8 @@
                   </div>
                 </div>
               </div>
-            </div>
+              </div>
+            </template>
           </template>
         </div>
         
@@ -2196,11 +2202,13 @@
               <p class="text-gray-600">No inapplicable rules.</p>
             </div>
           </template>
-          <template x-if="axeModal.stats.inapplicable > 0" x-for="(inapplicable, iaIdx) in axeModal.data.inapplicable" :key="inapplicable.id">
-            <div class="border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-lg p-4 shadow-sm">
-              <h4 class="font-semibold text-gray-900 mb-1" x-text="inapplicable.id"></h4>
-              <p class="text-gray-700 text-sm" x-text="inapplicable.description"></p>
-            </div>
+          <template x-if="axeModal.stats.inapplicable > 0">
+            <template x-for="(inapplicable, iaIdx) in axeModal.data.inapplicable" :key="'inapplicable-' + (inapplicable.id || 'item') + '-' + iaIdx">
+              <div class="border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                <h4 class="font-semibold text-gray-900 mb-1" x-text="inapplicable.id"></h4>
+                <p class="text-gray-700 text-sm" x-text="inapplicable.description"></p>
+              </div>
+            </template>
           </template>
         </div>
       </div>

@@ -1,0 +1,107 @@
+#!/bin/zsh
+
+set -euo pipefail
+
+readonly SCRIPT_DIR="${0:A:h}"
+readonly WORKSPACE_TEMPLATE="$SCRIPT_DIR/Workspace"
+
+fail() {
+  print -u2 -- "ERROR: $1"
+  exit 1
+}
+
+[[ "$(uname -s)" == "Darwin" ]] ||
+  fail "The INGenious package can only be installed on macOS."
+
+[[ -d "$WORKSPACE_TEMPLATE/Configuration" ]] ||
+  fail "Workspace template is missing Configuration."
+
+[[ -d "$WORKSPACE_TEMPLATE/Projects" ]] ||
+  fail "Workspace template is missing Projects."
+
+[[ -d "$WORKSPACE_TEMPLATE/Shared" ]] ||
+  fail "Workspace template is missing Shared."
+
+console_user="${INGENIOUS_PKG_CONSOLE_USER:-$(/usr/bin/stat -f '%Su' /dev/console)}"
+
+[[ -n "$console_user" ]] ||
+  fail "Could not determine the active console user."
+
+[[ "$console_user" != "root" ]] ||
+  fail "No non-root console user is currently signed in."
+
+[[ "$console_user" != "loginwindow" ]] ||
+  fail "No interactive console user is currently signed in."
+
+if [[ -n "${INGENIOUS_PKG_DATA_DIR:-}" ]]; then
+  user_data_dir="$INGENIOUS_PKG_DATA_DIR"
+else
+  user_home="$(
+    /usr/bin/dscl . -read "/Users/$console_user" NFSHomeDirectory |
+      /usr/bin/awk '{print $2}'
+  )"
+
+  [[ -n "$user_home" ]] ||
+    fail "Could not determine the home directory for $console_user."
+
+  user_data_dir="$user_home/Library/Application Support/INGenious"
+fi
+
+console_group="$(/usr/bin/id -gn "$console_user")"
+
+[[ -n "$console_group" ]] ||
+  fail "Could not determine the primary group for $console_user."
+
+copied_count=0
+preserved_count=0
+
+print -- "Preparing INGenious user data:"
+print -- "  User: $console_user"
+print -- "  Path: $user_data_dir"
+
+/bin/mkdir -p -- "$user_data_dir"
+/usr/sbin/chown "$console_user:$console_group" "$user_data_dir"
+
+while IFS= read -r -d '' source_path; do
+  if [[ "$source_path" == "$WORKSPACE_TEMPLATE" ]]; then
+    continue
+  fi
+
+  relative_path="${source_path#$WORKSPACE_TEMPLATE/}"
+  destination_path="$user_data_dir/$relative_path"
+
+  if [[ -e "$destination_path" || -L "$destination_path" ]]; then
+    if [[ ! -d "$destination_path" ]]; then
+      print -- "Preserving existing non-directory path:"
+      print -- "  $destination_path"
+      preserved_count=$((preserved_count + 1))
+    fi
+
+    continue
+  fi
+
+  /bin/mkdir -p -- "$destination_path"
+  /usr/sbin/chown "$console_user:$console_group" "$destination_path"
+  copied_count=$((copied_count + 1))
+done < <(/usr/bin/find "$WORKSPACE_TEMPLATE" -type d -print0)
+
+while IFS= read -r -d '' source_path; do
+  relative_path="${source_path#$WORKSPACE_TEMPLATE/}"
+  destination_path="$user_data_dir/$relative_path"
+
+  if [[ -e "$destination_path" || -L "$destination_path" ]]; then
+    preserved_count=$((preserved_count + 1))
+    continue
+  fi
+
+  /bin/mkdir -p -- "${destination_path:h}"
+  /usr/bin/ditto "$source_path" "$destination_path"
+  /usr/sbin/chown "$console_user:$console_group" "$destination_path"
+  copied_count=$((copied_count + 1))
+done < <(/usr/bin/find "$WORKSPACE_TEMPLATE" -type f -print0)
+
+print -- "INGenious user-data preparation completed."
+print -- "  Missing entries copied: $copied_count"
+print -- "  Existing entries preserved: $preserved_count"
+
+exit 0

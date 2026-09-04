@@ -274,7 +274,7 @@ public class Control {
      * New CLI commands: project, scenario, testcase, action, run, report, config, server, shell
      * Legacy CLI uses: -run, -project_location, -scenario, etc.
      */
-    private static boolean isNewCLICommand(String[] args) {
+    public static boolean isNewCLICommand(String[] args) {
         if (args == null || args.length == 0) return false;
 
         String firstArg = args[0].toLowerCase();

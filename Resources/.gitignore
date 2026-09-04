@@ -1,8 +1,8 @@
 LICENSE
 logs/
-Projects/*/Results/*/
-/web/
+Workspace/Projects/*/Results/*/
+/Runtime/web/
 recent.items
 log.txt
-Tools/
-lib/*.jar
+/Runtime/Tools/
+/Runtime/lib/*.jar

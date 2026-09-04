@@ -1,5 +1,6 @@
 package com.ing.ide.main.dashboard.server;
 
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.ide.main.dashboard.server.websocket.HarServlet;
 import com.ing.ide.settings.AppSettings;
 import java.io.File;
@@ -24,7 +25,8 @@ public class DashBoardServer extends Thread {
 
     public Server server;
     private static final String HOME = "/home.html";
-    private static final String R_BASE = "./web";
+    private static final String R_BASE =
+        AppResourcePath.getAppRoot() + java.io.File.separator + "web";
 
     public DashBoardServer() {
         this("DBServer@" + port());

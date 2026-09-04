@@ -11,6 +11,7 @@ import com.ing.datalib.model.ProjectInfo;
 import com.ing.datalib.model.Tag;
 import com.ing.datalib.testdata.model.Record;
 import com.ing.datalib.testdata.model.TestDataModel;
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.ide.main.mainui.AppMainFrame;
 import gherkin.AstBuilder;
 import gherkin.Parser;
@@ -319,8 +320,22 @@ public class BddParser {
     }
 
     public void openEditor() {
+        File toolsDirectory = new File(AppResourcePath.getToolsPath());
+        File[] tools = toolsDirectory.listFiles();
+
+        if (tools == null) {
+            Logger
+                .getLogger(BddParser.class.getName())
+                .log(
+                    Level.WARNING,
+                    "Tools directory is missing or unreadable: {0}",
+                    toolsDirectory.getAbsolutePath()
+                );
+            return;
+        }
+
         Stream
-            .of(new File("Tools").listFiles())
+            .of(tools)
             .filter((File f) -> f.getName().toLowerCase().contains("storywriter"))
             .findFirst()
             .ifPresent(
@@ -328,8 +343,29 @@ public class BddParser {
                     try {
                         // If already running, do not launch again
                         if (storyWriterProcess == null || !storyWriterProcess.isAlive()) {
-                            storyWriterProcess =
-                                Runtime.getRuntime().exec("java -jar  Tools/" + sw.getName());
+                            boolean windows = System
+                                .getProperty("os.name")
+                                .toLowerCase(Locale.ROOT)
+                                .contains("win");
+                            File javaExecutable = new File(
+                                new File(System.getProperty("java.home"), "bin"),
+                                windows ? "java.exe" : "java"
+                            );
+
+                            if (!javaExecutable.isFile()) {
+                                throw new IOException(
+                                    "Bundled Java executable is missing: " +
+                                    javaExecutable.getAbsolutePath()
+                                );
+                            }
+
+                            ProcessBuilder processBuilder = new ProcessBuilder(
+                                javaExecutable.getAbsolutePath(),
+                                "-jar",
+                                sw.getAbsolutePath()
+                            );
+                            processBuilder.directory(toolsDirectory);
+                            storyWriterProcess = processBuilder.start();
                         }
                     } catch (Exception ex) {
                         Logger.getLogger(BddParser.class.getName()).log(Level.SEVERE, null, ex);

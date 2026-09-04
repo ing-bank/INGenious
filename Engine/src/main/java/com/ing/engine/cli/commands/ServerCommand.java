@@ -1,6 +1,7 @@
 package com.ing.engine.cli.commands;
 
 import com.ing.engine.cli.INGeniousCLI;
+import com.ing.engine.constants.AppResourcePath;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -367,10 +368,7 @@ public class ServerCommand implements Callable<Integer> {
         // Tool implementations
 
         private String listProjects(Map<String, String> args) {
-            String path = args.getOrDefault(
-                "basePath",
-                System.getProperty("user.dir") + "/Resources/Projects"
-            );
+            String path = args.getOrDefault("basePath", AppResourcePath.getProjectsPath());
             File projectsDir = new File(path);
 
             if (!projectsDir.exists()) {
@@ -396,8 +394,7 @@ public class ServerCommand implements Callable<Integer> {
 
             File projectDir = new File(project);
             if (!projectDir.exists()) {
-                projectDir =
-                    new File(System.getProperty("user.dir") + "/Resources/Projects/" + project);
+                projectDir = new File(AppResourcePath.getProjectsPath(), project);
             }
 
             if (!projectDir.exists()) {
@@ -1113,7 +1110,7 @@ public class ServerCommand implements Callable<Integer> {
         }
 
         private String listProjects() {
-            File projectsDir = new File(System.getProperty("user.dir") + "/Resources/Projects");
+            File projectsDir = new File(AppResourcePath.getProjectsPath());
             if (!projectsDir.exists()) return "[]";
 
             StringBuilder sb = new StringBuilder("[");

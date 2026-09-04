@@ -1,5 +1,6 @@
 package com.ing.ide.main.ui;
 
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.exceptions.DuplicateMethodException;
 import com.ing.ide.main.help.Help;
@@ -114,7 +115,7 @@ public class InjectScript extends javax.swing.JFrame {
 
     private void loadSampleScript() {
         try {
-            File file = new File("Configuration" + File.separator + "SampleScript.java");
+            File file = new File(AppResourcePath.getSampleScriptPath());
             if (file.exists()) {
                 sampleCode = FileUtils.readFileToString(file, Charset.defaultCharset());
             } else {
@@ -151,7 +152,7 @@ public class InjectScript extends javax.swing.JFrame {
                 } else {
                     Notification.show(
                         "Compile java file/s manually and " +
-                        "place class file/s inside [app.root]/userdefined"
+                        "place class file/s inside [workspace.root]/UserDefined"
                     );
                     return;
                 }
@@ -372,9 +373,17 @@ public class InjectScript extends javax.swing.JFrame {
                 if (injectScript(object.toString()) == 0) {
                     console.append(object + " - compiled successfully");
                     try {
+                        File userDefinedDirectory = new File(AppResourcePath.getUserDefinedPath());
+
+                        if (!userDefinedDirectory.exists() && !userDefinedDirectory.mkdirs()) {
+                            throw new IOException(
+                                "Could not create UserDefined directory: " + userDefinedDirectory
+                            );
+                        }
+
                         FileUtils.copyFileToDirectory(
                             new File(object.toString().replace(".java", ".class")),
-                            new File("userdefined")
+                            userDefinedDirectory
                         );
                     } catch (IOException ex) {
                         LOG.log(Level.SEVERE, null, ex);

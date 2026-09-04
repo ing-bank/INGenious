@@ -3,7 +3,7 @@ package com.ing.engine.cli.commands;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.engine.cli.INGeniousCLI;
-import java.io.File;
+import com.ing.engine.constants.AppResourcePath;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.*;
@@ -119,29 +119,39 @@ public class RunCommand implements Callable<Integer> {
             cli.printInfo(
                 "Looked in: ./" +
                 projectName +
-                ", ./Projects/" +
+                ", " +
+                AppResourcePath.getProjectsPath() +
+                File.separator +
                 projectName +
                 ", and as an absolute path."
             );
             return 1;
         }
 
-        File testCaseCsv = new File(projectDir, "TestPlan/" + group + "/" + name + ".csv");
-        File testSetCsv = new File(projectDir, "TestLab/" + group + "/" + name + ".csv");
-        boolean isTestCase = testCaseCsv.isFile();
-        boolean isTestSet = testSetCsv.isFile();
+        File testCaseFile = resolveExecutableFile(projectDir, "TestPlan/" + group, name);
+
+        File testSetFile = resolveExecutableFile(projectDir, "TestLab/" + group, name);
+
+        boolean isTestCase = testCaseFile != null;
+        boolean isTestSet = testSetFile != null;
 
         if (isTestCase && isTestSet) {
             cli.printError("Ambiguous: path matches both a test case and a test set.");
-            cli.printInfo("  TestCase: " + testCaseCsv.getPath());
-            cli.printInfo("  TestSet : " + testSetCsv.getPath());
+            cli.printInfo("  TestCase: " + testCaseFile.getPath());
+            cli.printInfo("  TestSet : " + testSetFile.getPath());
             cli.printInfo("Use 'ingenious run testcase' or 'ingenious run testset' explicitly.");
             return 1;
         }
         if (!isTestCase && !isTestSet) {
             cli.printError("Not found as a test case or test set.");
-            cli.printInfo("  Tried: " + testCaseCsv.getPath());
-            cli.printInfo("  Tried: " + testSetCsv.getPath());
+            cli.printInfo(
+                "  Tried: " +
+                new File(projectDir, "TestPlan/" + group + "/" + name + ".{yaml,yml,csv}").getPath()
+            );
+            cli.printInfo(
+                "  Tried: " +
+                new File(projectDir, "TestLab/" + group + "/" + name + ".{yaml,yml,csv}").getPath()
+            );
             return 1;
         }
 
@@ -204,6 +214,35 @@ public class RunCommand implements Callable<Integer> {
     }
 
     /**
+     * Resolves an executable test case or test set, preferring YAML over the
+     * legacy CSV format.
+     */
+    private static File resolveExecutableFile(
+        File projectDir,
+        String relativeDirectory,
+        String baseName
+    ) {
+        File directory = new File(projectDir, relativeDirectory);
+
+        File yaml = new File(directory, baseName + ".yaml");
+        if (yaml.isFile()) {
+            return yaml;
+        }
+
+        File yml = new File(directory, baseName + ".yml");
+        if (yml.isFile()) {
+            return yml;
+        }
+
+        File csv = new File(directory, baseName + ".csv");
+        if (csv.isFile()) {
+            return csv;
+        }
+
+        return null;
+    }
+
+    /**
      * Resolve a project folder by name, trying (in order):
      *   1. as an absolute path
      *   2. as a folder under the current working directory
@@ -211,19 +250,38 @@ public class RunCommand implements Callable<Integer> {
      * Returns {@code null} if none of those resolve to a directory.
      */
     private static File resolveProjectDir(String name) {
-        File abs = new File(name);
-        if (abs.isAbsolute() && abs.isDirectory()) {
-            return abs;
+        /*
+         * An explicitly supplied absolute project path always takes
+         * precedence.
+         */
+        File absolutePath = new File(name);
+        if (absolutePath.isAbsolute() && absolutePath.isDirectory()) {
+            return absolutePath;
         }
-        String cwd = System.getProperty("user.dir");
-        File rel = new File(cwd, name);
-        if (rel.isDirectory()) {
-            return rel;
+
+        /*
+         * Preserve support for a project path relative to the current
+         * terminal directory.
+         */
+        File currentDirectory = new File(System.getProperty("user.dir"));
+        File relativePath = new File(currentDirectory, name);
+        if (relativePath.isDirectory()) {
+            return relativePath;
         }
-        File underProjects = new File(cwd, "Projects/" + name);
-        if (underProjects.isDirectory()) {
-            return underProjects;
+
+        /*
+         * Normal named-project lookup uses the external Workspace.
+         *
+         * The Workspace root directly contains:
+         *   Projects/
+         *   Shared/
+         *   Configuration/
+         */
+        File workspaceProject = new File(AppResourcePath.getProjectsPath(), name);
+        if (workspaceProject.isDirectory()) {
+            return workspaceProject;
         }
+
         return null;
     }
 

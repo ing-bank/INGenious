@@ -136,18 +136,7 @@ public class ProjectTree implements ActionListener {
      * Initializes the tree component with event handlers, keybindings, and UI settings.
      */
     private void init() {
-        try {
-            //create the font to use. Specify the size!
-            Font customFont = Font.createFont(
-                Font.TRUETYPE_FONT,
-                new File("resources/ui/resources/fonts/ingme_regular.ttf")
-            ); //.deriveFont(12f);
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            //register the font
-            ge.registerFont(customFont);
-        } catch (IOException | FontFormatException e) {
-            //   e.printStackTrace();
-        }
+        com.ing.ide.main.utils.AppFonts.register();
 
         popupMenu = getNewPopupMenu();
         treeModel = getNewTreeModel();
@@ -298,18 +287,7 @@ public class ProjectTree implements ActionListener {
      * Sets the custom icons for tree nodes based on node type.
      */
     private void setTreeIcon() {
-        try {
-            //create the font to use. Specify the size!
-            Font customFont = Font.createFont(
-                Font.TRUETYPE_FONT,
-                new File("resources/ui/resources/fonts/ingme_regular.ttf")
-            ); //.deriveFont(12f);
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            //register the font
-            ge.registerFont(customFont);
-        } catch (IOException | FontFormatException e) {
-            //  e.printStackTrace();
-        }
+        com.ing.ide.main.utils.AppFonts.register();
         tree.setFont(new Font("ING Me", Font.PLAIN, 11));
         new TreeSelectionRenderer(tree) {
 
@@ -2062,18 +2040,7 @@ public class ProjectTree implements ActionListener {
          * @return created menu item
          */
         protected JMenuItem create(String name, KeyStroke keyStroke) {
-            try {
-                //create the font to use. Specify the size!
-                Font customFont = Font.createFont(
-                    Font.TRUETYPE_FONT,
-                    new File("resources/ui/resources/fonts/ingme_regular.ttf")
-                ); //.deriveFont(12f);
-                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                //register the font
-                ge.registerFont(customFont);
-            } catch (IOException | FontFormatException e) {
-                //  e.printStackTrace();
-            }
+            com.ing.ide.main.utils.AppFonts.register();
 
             JMenuItem menuItem = new JMenuItem(name);
 

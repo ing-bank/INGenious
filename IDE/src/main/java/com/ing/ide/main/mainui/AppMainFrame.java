@@ -14,6 +14,7 @@ import com.ing.datalib.testdata.model.AbstractDataModel;
 import com.ing.datalib.testdata.model.GlobalDataModel;
 import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.datalib.util.data.FileScanner;
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.engine.core.TMIntegration;
 import com.ing.ide.main.Main;
 import com.ing.ide.main.dashboard.server.DashBoardManager;
@@ -954,31 +955,71 @@ public class AppMainFrame extends JFrame {
 
     private void doRestart() {
         try {
-            File workingDir = new File(System.getProperty("user.dir"));
-            ProcessBuilder pb;
-            if (SystemInfo.isWindows()) {
-                // Launch the batch file in a new console window, detached from this JVM
-                pb = new ProcessBuilder("cmd", "/c", "start", "\"INGenious\"", "ingenious.bat");
-            } else if (SystemInfo.osx()) {
-                // 'open' launches the .command file via Terminal.app as an independent process
-                pb = new ProcessBuilder("/usr/bin/open", "ingenious.command");
+            File appRoot = new File(AppResourcePath.getAppRoot()).getCanonicalFile();
+            File appBundle = getContainingAppBundle(appRoot);
+
+            ProcessBuilder processBuilder;
+
+            if (appBundle != null) {
+                processBuilder =
+                    new ProcessBuilder("/usr/bin/open", "-n", appBundle.getAbsolutePath());
+                processBuilder.directory(appBundle.getParentFile());
             } else {
-                // Linux / other Unix: run the shell script directly
-                File script = new File(workingDir, "ingenious.command");
-                if (!script.canExecute()) {
-                    script.setExecutable(true);
+                File releaseRoot = appRoot.getParentFile();
+
+                if (releaseRoot == null) {
+                    throw new IOException("Could not resolve the release root from " + appRoot);
                 }
-                pb = new ProcessBuilder("/bin/sh", script.getAbsolutePath());
+
+                if (SystemInfo.isWindows()) {
+                    File launcher = new File(releaseRoot, "ingenious.bat");
+                    processBuilder =
+                        new ProcessBuilder("cmd", "/c", "start", "", launcher.getAbsolutePath());
+                } else if (SystemInfo.osx()) {
+                    File launcher = new File(releaseRoot, "ingenious.command");
+                    processBuilder =
+                        new ProcessBuilder("/usr/bin/open", launcher.getAbsolutePath());
+                } else {
+                    File launcher = new File(releaseRoot, "ingenious");
+
+                    if (!launcher.canExecute()) {
+                        launcher.setExecutable(true);
+                    }
+
+                    processBuilder = new ProcessBuilder("/bin/sh", launcher.getAbsolutePath());
+                }
+
+                processBuilder.directory(releaseRoot);
             }
-            pb.directory(workingDir);
-            pb.redirectErrorStream(true);
-            pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
-            pb.start();
+
+            processBuilder.redirectErrorStream(true);
+            processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+            processBuilder.start();
         } catch (Exception ex) {
             Logger
                 .getLogger(AppMainFrame.class.getName())
                 .log(Level.WARNING, "Failed to restart INGenious", ex);
         }
+    }
+
+    private static File getContainingAppBundle(File appRoot) {
+        File contentsDirectory = appRoot.getParentFile();
+
+        if (
+            !"app".equals(appRoot.getName()) ||
+            contentsDirectory == null ||
+            !"Contents".equals(contentsDirectory.getName())
+        ) {
+            return null;
+        }
+
+        File appBundle = contentsDirectory.getParentFile();
+
+        if (appBundle == null || !appBundle.getName().endsWith(".app")) {
+            return null;
+        }
+
+        return appBundle;
     }
 
     public AppActionListener getsActionListener() {

@@ -1,7 +1,7 @@
 package com.ing.engine.support.methodInf;
 
 import com.ing.datalib.component.TestStep;
-import com.ing.engine.constants.FilePath;
+import com.ing.datalib.util.WorkspacePath;
 import com.ing.engine.support.AnnontationUtil;
 import com.ing.engine.support.ObjectTypeUtil;
 import com.ing.engine.support.reflect.Discovery;
@@ -123,7 +123,7 @@ public class MethodInfoManager {
         methodInfoMap.clear();
         AnnontationUtil.detect(ANNOTATION_DETECTOR, "com.ing.engine.commands");
 
-        File basePluginDir = new File(FilePath.getAppRoot() + "/plugins");
+        File basePluginDir = new File(WorkspacePath.getPluginsPath());
         String[] jarPaths = getPluginJarPaths(basePluginDir);
         AnnontationUtil.detectFromPluginPaths(ANNOTATION_DETECTOR, jarPaths);
 

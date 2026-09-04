@@ -48,8 +48,10 @@
         <ibmmq.version>9.4.5.0</ibmmq.version>
         <mac.version>mac-aarch64</mac.version>
         <setupDir>../Dist/release</setupDir>
+        <runtimeDir>${setupDir}/Runtime</runtimeDir>
+        <workspaceDir>${setupDir}/Workspace</workspaceDir>
         <resourceDir>../Resources</resourceDir>
-        <ingenious-api.version>3.0</ingenious-api.version>
+        <ingenious-api.version>3.1</ingenious-api.version>
 
         <flatlaf.version>3.5.4</flatlaf.version>
         <ikonli.version>12.3.1</ikonli.version>

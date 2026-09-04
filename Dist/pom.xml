@@ -18,7 +18,7 @@
                 <executions>       
                     <execution>
                         <id>copy-jar</id>
-                        <phase>package</phase>
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>copy</goal>
                         </goals>
@@ -30,7 +30,7 @@
                                     <version>${project.parent.version}</version>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>                                    
-                                    <outputDirectory>${setupDir}</outputDirectory>
+                                    <outputDirectory>${runtimeDir}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>${project.parent.groupId}</groupId>
@@ -38,7 +38,7 @@
                                     <version>${project.parent.version}</version>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>                                    
-                                    <outputDirectory>${setupDir}/Tools</outputDirectory>
+                                    <outputDirectory>${runtimeDir}/Tools</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>${project.parent.groupId}</groupId>
@@ -46,7 +46,7 @@
                                     <version>${project.parent.version}</version>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${setupDir}/Engine/lib</outputDirectory>
+                                    <outputDirectory>${runtimeDir}/Engine/lib</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>${project.parent.groupId}</groupId>
@@ -54,7 +54,7 @@
                                     <version>${project.parent.version}</version>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${setupDir}/Engine/lib</outputDirectory>
+                                    <outputDirectory>${runtimeDir}/Engine/lib</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>${project.parent.groupId}</groupId>
@@ -62,7 +62,7 @@
                                     <version>${project.parent.version}</version>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${setupDir}/lib</outputDirectory>
+                                    <outputDirectory>${runtimeDir}/lib</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.ing</groupId>
@@ -70,7 +70,7 @@
                                     <version>${ingenious-api.version}</version>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${setupDir}/Engine/lib</outputDirectory>
+                                    <outputDirectory>${runtimeDir}/Engine/lib</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
@@ -101,34 +101,98 @@
                 <version>3.0.2</version>
                 <executions>
                     <execution>
-                        <id>copy-resources</id>
-                        <phase>install</phase>
+                        <id>copy-release-root-resources</id>
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
                             <outputDirectory>${setupDir}</outputDirectory>
+                            <overwrite>true</overwrite>
                             <includeEmptyDirs>true</includeEmptyDirs>
                             <resources>
                                 <resource>
                                     <directory>${resourceDir}</directory>
                                     <filtering>true</filtering>
                                     <includes>
-                                        <include>**/*.bat</include>
-                                        <include>**/*.command</include>
-                                        <include>**/*.txt</include>
-                                        <include>**/*.md</include>
+                                        <include>ingenious</include>
+                                        <include>ingenious.bat</include>
+                                        <include>ingenious.command</include>
+                                        <include>Readme.md</include>
                                     </includes>
                                 </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-runtime-resources</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${runtimeDir}</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <includeEmptyDirs>true</includeEmptyDirs>
+                            <resources>
                                 <resource>
-                                    <directory>${resourceDir}</directory>
+                                    <directory>${resourceDir}/Runtime</directory>
                                     <filtering>false</filtering>
+                                    <includes>
+                                        <include>Configuration/**</include>
+                                        <include>Engine/**</include>
+                                        <include>lib/**</include>
+                                        <include>web/**</include>
+                                        <include>package.json</include>
+                                        <include>package-lock.json</include>
+                                    </includes>
                                     <excludes>
-                                        <exclude>**/*.bat</exclude>
-                                        <exclude>**/*.command</exclude>
-                                        <exclude>**/*.txt</exclude>
-                                        <exclude>**/*.md</exclude>
+                                        <exclude>Engine/pom.xml</exclude>
                                     </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-generated-runtime-pom</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${runtimeDir}</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <resources>
+                                <resource>
+                                    <directory>${project.parent.basedir}/Common/target/generated-runtime</directory>
+                                    <filtering>false</filtering>
+                                    <includes>
+                                        <include>Engine/pom.xml</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-workspace-resources</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${workspaceDir}</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <includeEmptyDirs>true</includeEmptyDirs>
+                            <resources>
+                                <resource>
+                                    <directory>${resourceDir}/Workspace</directory>
+                                    <filtering>false</filtering>
+                                    <includes>
+                                        <include>Configuration/**</include>
+                                        <include>Projects/**</include>
+                                        <include>Shared/**</include>
+                                        <include>plugins/**</include>
+                                    </includes>
                                 </resource>
                             </resources>
                         </configuration>
@@ -156,7 +220,7 @@
                         <executions>
                             <execution>
                                 <id>set-executable-permission</id>
-                                <phase>install</phase>
+                                <phase>prepare-package</phase>
                                 <goals>
                                     <goal>run</goal>
                                 </goals>
@@ -172,6 +236,82 @@
                 </plugins>
             </build>
         </profile>
+        <!-- Build separate Apple Silicon and Intel macOS artifacts with -Pmacos -->
+        <profile>
+            <id>macos</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <configuration>
+                            <skipAssembly>true</skipAssembly>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>package-macos-architectures</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>/bin/zsh</executable>
+                                    <arguments>
+                                        <argument>${maven.multiModuleProjectDirectory}/scripts/package-macos-all.zsh</argument>
+                                        <argument>${project.version}</argument>
+                                    </arguments>
+                                    <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Build the Windows app-image with -Pwindows on Windows -->
+        <profile>
+            <id>windows</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>package-windows-app</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>powershell.exe</executable>
+                                    <arguments>
+                                        <argument>-NoProfile</argument>
+                                        <argument>-ExecutionPolicy</argument>
+                                        <argument>Bypass</argument>
+                                        <argument>-File</argument>
+                                        <argument>${maven.multiModuleProjectDirectory}/scripts/package-windows-app.ps1</argument>
+                                        <argument>-JdkHome</argument>
+                                        <argument>${java.home}</argument>
+                                        <argument>-AppVersion</argument>
+                                        <argument>${project.version}</argument>
+                                    </arguments>
+                                    <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <!-- Optional npm install - activate with -Pnpm-install when needed -->
         <profile>
             <id>npm-install</id>
@@ -193,7 +333,7 @@
                                     <arguments>
                                         <argument>install</argument>
                                     </arguments>
-                                    <workingDirectory>${setupDir}</workingDirectory>
+                                    <workingDirectory>${runtimeDir}</workingDirectory>
                                 </configuration>
                             </execution>
                         </executions>

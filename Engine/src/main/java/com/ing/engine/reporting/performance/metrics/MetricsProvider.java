@@ -12,10 +12,7 @@ import org.json.simple.JSONObject;
  *
  */
 public class MetricsProvider {
-    private static final File H_PS_EXE = new File(
-        FilePath.getConfigurationPath(),
-        "har_to_pagespeed.exe"
-    );
+    private static final File H_PS_EXE = new File(FilePath.getHarToPageSpeedPath());
 
     public static final String MODULE = "perf.metrics.module";
 

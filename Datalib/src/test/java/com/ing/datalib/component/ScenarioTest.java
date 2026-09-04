@@ -6,6 +6,8 @@ import static org.mockito.Mockito.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -249,5 +251,207 @@ public class ScenarioTest {
     public void testGetIndexOfTestCaseByName_notFound() {
         Scenario scenario = new Scenario(project, "LoginScenario");
         assertThat(scenario.getIndexOfTestCaseByName("Missing")).isEqualTo(-1);
+    }
+
+    // ---- rename / renameReusable / renameSharedReusable ----
+    //
+    // Regression coverage for a rename-ordering bug: rename() used to physically
+    // move the scenario directory, then run Project.refactorScenario() (which
+    // reloads this scenario's own not-yet-opened test cases), and only update the
+    // in-memory `name` field afterwards. Since getLocation() is derived from
+    // `name`, any of this scenario's own unloaded test cases would try to load
+    // from the old, already-renamed-away directory during the refactor pass —
+    // silently failing, replacing their content with a synthetic blank step, and
+    // (via save()) recreating an orphan directory under the old name. This is
+    // specific to scenario rename: a test-case-only rename never moves a
+    // scenario directory, so it never hits this window.
+
+    @Test
+    public void testRename_locationReflectsNewNameDuringRefactor() {
+        Scenario scenario = new Scenario(project, "LoginScenario");
+        File[] locationDuringRefactor = new File[1];
+        doAnswer(
+                invocation -> {
+                    locationDuringRefactor[0] = new File(scenario.getLocation());
+                    return null;
+                }
+            )
+            .when(project)
+            .refactorScenario("LoginScenario", "LoginScenarioRenamed");
+
+        Boolean result = scenario.rename("LoginScenarioRenamed");
+
+        assertThat(result).isTrue();
+        assertThat(scenario.getName()).isEqualTo("LoginScenarioRenamed");
+        assertThat(locationDuringRefactor[0]).isNotNull();
+        assertThat(locationDuringRefactor[0]).exists();
+        assertThat(locationDuringRefactor[0].getName()).isEqualTo("LoginScenarioRenamed");
+    }
+
+    @Test
+    public void testRenameReusable_locationReflectsNewNameDuringRefactor() {
+        new File(tempProjectDir, "ReusableComponents" + File.separator + "LoginScenario").mkdirs();
+        Scenario scenario = new Scenario(
+            project,
+            "LoginScenario",
+            Scenario.Source.REUSABLE_COMPONENTS
+        );
+        File[] locationDuringRefactor = new File[1];
+        doAnswer(
+                invocation -> {
+                    locationDuringRefactor[0] = new File(scenario.getLocation());
+                    return null;
+                }
+            )
+            .when(project)
+            .refactorScenario("LoginScenario", "LoginScenarioRenamed");
+
+        Boolean result = scenario.renameReusable("LoginScenarioRenamed");
+
+        assertThat(result).isTrue();
+        assertThat(scenario.getName()).isEqualTo("LoginScenarioRenamed");
+        assertThat(locationDuringRefactor[0]).exists();
+        assertThat(locationDuringRefactor[0].getName()).isEqualTo("LoginScenarioRenamed");
+    }
+
+    @Test
+    public void testRenameSharedReusable_locationReflectsNewNameDuringRefactor() {
+        new File(tempProjectDir, "SharedReusableComponents" + File.separator + "LoginScenario")
+        .mkdirs();
+        Scenario scenario = new Scenario(
+            project,
+            "LoginScenario",
+            Scenario.Source.SHARED_REUSABLE_COMPONENTS
+        );
+        File[] locationDuringRefactor = new File[1];
+        doAnswer(
+                invocation -> {
+                    locationDuringRefactor[0] = new File(scenario.getLocation());
+                    return null;
+                }
+            )
+            .when(project)
+            .refactorScenario("LoginScenario", "LoginScenarioRenamed");
+
+        Boolean result = scenario.renameSharedReusable("LoginScenarioRenamed");
+
+        assertThat(result).isTrue();
+        assertThat(scenario.getName()).isEqualTo("LoginScenarioRenamed");
+        assertThat(locationDuringRefactor[0]).exists();
+        assertThat(locationDuringRefactor[0].getName()).isEqualTo("LoginScenarioRenamed");
+    }
+
+    @Test
+    public void testRename_repeatedRenamesEachSeeCorrectLocation() {
+        Scenario scenario = new Scenario(project, "LoginScenario");
+        List<String> observedDirNames = new ArrayList<>();
+        doAnswer(
+                invocation -> {
+                    observedDirNames.add(new File(scenario.getLocation()).getName());
+                    return null;
+                }
+            )
+            .when(project)
+            .refactorScenario(anyString(), anyString());
+
+        assertThat(scenario.rename("Step2")).isTrue();
+        assertThat(scenario.rename("Step3")).isTrue();
+
+        assertThat(scenario.getName()).isEqualTo("Step3");
+        assertThat(observedDirNames).containsExactly("Step2", "Step3");
+        verify(project).refactorScenario("LoginScenario", "Step2");
+        verify(project).refactorScenario("Step2", "Step3");
+    }
+
+    @Test
+    public void testRename_ownUnopenedTestCaseSurvivesRefactorWithoutCorruption()
+        throws IOException {
+        // Give TC_Login real, non-blank step content so corruption is detectable.
+        File tcFile = new File(scenarioDir, "TC_Login.csv");
+        try (FileWriter w = new FileWriter(tcFile)) {
+            w.write("Step,ObjectName,Description,Action,Input,Condition,Reference\n");
+            w.write("1,LoginButton,Click login,Click,,,\n");
+        }
+
+        Scenario scenario = new Scenario(project, "LoginScenario");
+        TestCase tc = scenario.getTestCaseByName("TC_Login");
+        // Not yet opened this session: steps aren't loaded into memory.
+        assertThat(tc.getTestSteps()).isEmpty();
+
+        // Mirror what Project.refactorScenario() does: refactor every scenario,
+        // including this one, via the real (unmocked) Scenario/TestCase logic.
+        doAnswer(
+                invocation -> {
+                    scenario.refactorScenario("LoginScenario", "LoginScenarioRenamed");
+                    return null;
+                }
+            )
+            .when(project)
+            .refactorScenario("LoginScenario", "LoginScenarioRenamed");
+
+        assertThat(scenario.rename("LoginScenarioRenamed")).isTrue();
+
+        // No orphan directory should be left behind under the old name.
+        assertThat(new File(testPlanDir, "LoginScenario")).doesNotExist();
+
+        tc.reload();
+        assertThat(tc.getTestSteps()).hasSize(1);
+        assertThat(tc.getTestSteps().get(0).getObject()).isEqualTo("LoginButton");
+    }
+
+    // ---- renameReusable() must not evict a brand-new scenario from the project ----
+    //
+    // Root cause of a separate false-positive-red bug: a freshly created reusable
+    // scenario has no directory on disk until its first test case is saved
+    // (Project.addReusableScenario() never calls mkdirs()). renameReusable()'s
+    // "clean up stale reusable scenarios" pass used to remove ANY scenario whose
+    // directory doesn't currently exist -- including `this`, wrongly treating
+    // "not yet persisted" the same as "deleted externally". That permanently
+    // evicted the scenario from Project.reusableScenarios (though it stayed
+    // visible in the tree, which holds its own reference), so any later
+    // Project.getReusableScenarioByName() lookup -- e.g. from ActionRenderer
+    // validating a dropped Execute step -- failed and showed a false-positive
+    // "Reusable is not available in the Project" error until the project was
+    // reloaded from disk.
+
+    @Test
+    public void testRenameReusable_doesNotEvictNewlyCreatedScenarioFromProject()
+        throws IOException {
+        // Faithfully replicate Project.getReusableScenarios()/getReusableScenarioByName()
+        // (including the live disk-existence check), since the shared mock in setUp()
+        // doesn't wire these up.
+        List<Scenario> reusableScenarios = new ArrayList<>();
+        when(project.getReusableScenarios()).thenReturn(reusableScenarios);
+        when(project.getReusableScenarioByName(anyString()))
+            .thenAnswer(
+                inv -> {
+                    String n = inv.getArgument(0);
+                    for (Scenario s : reusableScenarios) {
+                        if (s.getName().equalsIgnoreCase(n) && new File(s.getLocation()).exists()) {
+                            return s;
+                        }
+                    }
+                    return null;
+                }
+            );
+
+        // A brand-new reusable scenario: no test case saved yet, so its directory
+        // does not exist on disk (mirrors Project.addReusableScenario()).
+        Scenario scenario = new Scenario(
+            project,
+            "NewScenario",
+            Scenario.Source.REUSABLE_COMPONENTS
+        );
+        reusableScenarios.add(scenario);
+
+        assertThat(scenario.renameReusable("test")).isTrue();
+        assertThat(reusableScenarios).contains(scenario);
+
+        TestCase newTc = scenario.addTestCase("NewTestCase");
+        assertThat(newTc).isNotNull();
+
+        Scenario found = project.getReusableScenarioByName("test");
+        assertThat(found).isSameAs(scenario);
+        assertThat(found.getTestCaseByName("NewTestCase")).isNotNull();
     }
 }
