@@ -627,14 +627,16 @@ function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '', keyP
             detailsHtml += `</div>`;
         }
         if (isTestAccessibilityStep(step)){
-            // Determine which name to use for the aXe report path:
-            // If inside a reusable, use the reusable name; otherwise use the test case name
+            // aXe results are stored per report step, so the button must resolve the report
+            // for this exact step number rather than for the enclosing test case/reusable.
+            const stepNo = (data.stepno === undefined || data.stepno === null) ? -1 : data.stepno;
             const contextName = reusableContext || Params.TC;
+            const axeTitle = escapeHtml(contextName);
             detailsHtml += `<div class="flex gap-3 flex-wrap mt-4">
-                <button @click="openAxeReportModal('${contextName}', getReusableAxeReportPath('${contextName}'))"
-                    :disabled="!getReusableAxeReportPath('${contextName}')"
+                <button @click="openAxeReportModal('${axeTitle}', ${stepNo})"
+                    :disabled="!hasAxeReportForStep(${stepNo})"
                     class="btn btn--secondary btn--sm"
-                    :style="getReusableAxeReportPath('${contextName}') ? {
+                    :style="hasAxeReportForStep(${stepNo}) ? {
                         'background-color': '#7724FF',
                         'color': '#FFFFFF',
                         'border-color': 'rgba(119, 36, 255, 0.5)',

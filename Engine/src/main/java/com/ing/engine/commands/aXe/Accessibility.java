@@ -63,12 +63,15 @@ public class Accessibility extends General {
 
     @Action(
         object = ObjectType.BROWSER,
-        input = InputType.YES,
-        desc = "To Test the Accessibility of the Page",
+        input = InputType.OPTIONAL,
+        desc = "To Test the Accessibility of the Page [<Data>]",
         condition = InputType.OPTIONAL
     )
     public void testAccessibility() {
         try {
+            if (Data != null && !Data.isBlank()) {
+                Page.navigate(Data);
+            }
             AxeResults accessibilityScanResults = new AxeBuilder(Page).analyze();
             int violationCount = accessibilityScanResults.getViolations().size();
             int violationCountAboveThreshold = 0;
@@ -149,10 +152,14 @@ public class Accessibility extends General {
 
     private void saveAccessibilityResults(AxeResults accessibilityScanResults)
         throws FileNotFoundException, IOException {
-        // Use getCurrentTestCase() which returns the reusable name when inside a reusable,
-        // or the test case name when running directly. This ensures the frontend can find
-        // the report whether execution is direct or within a reusable.
-        String prefix = userData.getScenario() + "_" + userData.getCurrentTestCase();
+        // Key the file by the report step number so every testAccessibility step in a test case
+        // keeps its own results instead of overwriting the previous one.
+        String prefix =
+            Report.getScenarioName() +
+            "_" +
+            Report.getTestCaseName() +
+            "_Step-" +
+            Report.getStepCount();
         File accessibilityFolder = new File(FilePath.getCurrentTestCaseAccessibilityLocation());
         accessibilityFolder.mkdir();
         String accessibilityReportPath =
