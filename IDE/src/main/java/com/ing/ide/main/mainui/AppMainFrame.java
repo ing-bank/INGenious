@@ -99,6 +99,10 @@ public class AppMainFrame extends JFrame {
 
     private final StepMap stepMap;
 
+    private JPanel leftFiller;
+
+    private JPanel rightFiller;
+
     private Project sProject;
 
     private final LoaderScreen loader;
@@ -170,9 +174,12 @@ public class AppMainFrame extends JFrame {
         slideShow.addSlide("AICopilot", aiCopilot.getAICopilotUI());
         slideShow.addSlideChangeListener(aiCopilot);
         progressed(85);
+        leftFiller = simpleFiller();
+        rightFiller = simpleRightFiller();
         add(slideShow, BorderLayout.CENTER);
         add(toolBar, BorderLayout.NORTH);
-        add(simpleFiller(), BorderLayout.WEST);
+        add(leftFiller, BorderLayout.WEST);
+        add(rightFiller, BorderLayout.EAST);
         dashBoard.load();
         loader.setFrame(this);
         addWindowListener(
@@ -266,6 +273,30 @@ public class AppMainFrame extends JFrame {
             }
         );
         return filler;
+    }
+
+    private JPanel simpleRightFiller() {
+        JPanel filler = new JPanel();
+        filler.setPreferredSize(new java.awt.Dimension(4, 0));
+        filler.setOpaque(true);
+        if (com.ing.ide.main.Main.isDarkMode()) {
+            filler.setBackground(new java.awt.Color(50, 52, 55));
+        } else {
+            filler.setBackground(UIManager.getColor("Panel.background"));
+        }
+        return filler;
+    }
+
+    private void updateFillersTheme() {
+        java.awt.Color bg = com.ing.ide.main.Main.isDarkMode()
+            ? new java.awt.Color(50, 52, 55)
+            : UIManager.getColor("Panel.background");
+        if (leftFiller != null) {
+            leftFiller.setBackground(bg);
+        }
+        if (rightFiller != null) {
+            rightFiller.setBackground(bg);
+        }
     }
 
     /**
@@ -901,6 +932,7 @@ public class AppMainFrame extends JFrame {
     }
 
     public void adjustUI() {
+        updateFillersTheme();
         testDesign.getTestDesignUI().adjustUI();
         testExecution.getTestExecutionUI().adjustUI();
     }
