@@ -95,7 +95,7 @@ public class TestDesignUI extends JPanel {
 
         oneThree = new JSplitPane();
         oneThree.setOneTouchExpandable(true);
-        oneThree.setResizeWeight(0.8);
+        oneThree.setResizeWeight(0.70);
 
         oneThree.setLeftComponent(oneTwo);
         oneThree.setRightComponent(testDesign.getObjectRepo());
@@ -312,7 +312,7 @@ public class TestDesignUI extends JPanel {
 
     public void adjustUI() {
         oneTwo.setDividerLocation(0.25);
-        oneThree.setDividerLocation(0.8);
+        oneThree.setDividerLocation(0.70);
         oneTwo.setDividerLocation(0.25);
         projectNReusableTreeSplitPane.setDividerLocation(0.5);
         testCaseNTestDataSplitPane.setDividerLocation(0.5);
