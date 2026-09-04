@@ -6,12 +6,13 @@ import com.ing.engine.reporting.impl.html.bdd.Report;
 import com.ing.engine.reporting.util.RDS;
 import com.ing.engine.support.Step;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  *
@@ -28,6 +29,14 @@ public class DynamicObject extends Command {
         desc = "Set  all objects property to [<Data>] at runtime.",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@valueTobeUsedInLocator",
+        inputHelp = "property value (eg. @valueTobeUsedInLocator) to be used in locator",
+        condition = ConditionKind.TEXT,
+        conditionExample = "#tokenTobeReplaced",
+        conditionHelp = "property value (eg. #tokenTobeReplaced) to be replaced with input value"
     )
     public void setglobalObjectProperty() {
         if (!Data.isEmpty()) {
@@ -57,6 +66,14 @@ public class DynamicObject extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@valueTobeUsedInLocator",
+        inputHelp = "property value (eg. @valueTobeUsedInLocator) to be used in locator",
+        condition = ConditionKind.TEXT,
+        conditionExample = "#tokenTobeReplaced",
+        conditionHelp = "property value (eg. #tokenTobeReplaced) to be replaced with input value"
+    )
     public void setObjectProperty() {
         if (!Data.isEmpty()) {
             if (Condition.isEmpty()) {
@@ -82,19 +99,13 @@ public class DynamicObject extends Command {
     }
 
     private void setProperty(String key, String value) {
-        if (!AutomationObject.dynamicValue.containsKey(Reference)) {
-            Map<String, Map<String, String>> Object = new HashMap<>();
-            Map<String, String> property = new HashMap<>();
-            property.put(key, value);
-            Object.put(ObjectName, property);
-            AutomationObject.dynamicValue.put(Reference, Object);
-        } else if (!AutomationObject.dynamicValue.get(Reference).containsKey(ObjectName)) {
-            Map<String, String> property = new HashMap<>();
-            property.put(key, value);
-            AutomationObject.dynamicValue.get(Reference).put(ObjectName, property);
-        } else {
-            AutomationObject.dynamicValue.get(Reference).get(ObjectName).put(key, value);
-        }
+        com.ing.engine.core.InlineObjectProperty.putObjectProperty(
+            AutomationObject.dynamicValue,
+            Reference,
+            ObjectName,
+            key,
+            value
+        );
     }
 
     @Action(
@@ -102,6 +113,13 @@ public class DynamicObject extends Command {
         desc = "Set filter `Has Text` for the locator",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Submit",
+        inputHelp = "text value for setHasText filter",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void setFilterHasText() {
         if (!Data.isEmpty()) {
@@ -126,6 +144,13 @@ public class DynamicObject extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Loading",
+        inputHelp = "text value for setHasNotText filter",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void setFilterHasNotText() {
         if (!Data.isEmpty()) {
             AutomationObject
@@ -149,6 +174,13 @@ public class DynamicObject extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.BOOLEAN,
+        inputExample = "@true",
+        inputHelp = "visibility filter as boolean (e.g. @true or @false)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void setFilterIsVisible() {
         if (!Data.isEmpty()) {
             AutomationObject
@@ -171,6 +203,13 @@ public class DynamicObject extends Command {
         desc = "Set filter `Index` for the locator",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        input = ArgType.INTEGER,
+        inputExample = "@0",
+        inputHelp = "zero-based locator index",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void setFilterIndex() {
         if (!Data.isEmpty()) {

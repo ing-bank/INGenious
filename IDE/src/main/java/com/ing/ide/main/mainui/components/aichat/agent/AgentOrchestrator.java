@@ -4,12 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ing.ide.main.mainui.components.aichat.client.GitHubModelsClient;
-import com.ing.ide.main.mainui.components.aichat.mcp.INGeniousToolServer;
+import com.ing.ide.main.mainui.components.aichat.mcp.ToolProvider;
 import com.ing.ide.main.mainui.components.aichat.mcp.ToolResult;
 import com.ing.ide.main.mainui.components.aichat.model.ChatCompletionRequest;
 import com.ing.ide.main.mainui.components.aichat.model.ChatCompletionResponse;
 import com.ing.ide.main.mainui.components.aichat.model.ChatMessage;
 import com.ing.ide.main.mainui.components.aichat.model.ChatSession;
+import com.ing.ide.main.mainui.components.aichat.model.TokenUsage;
 import com.ing.ide.main.mainui.components.aichat.model.ToolCall;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,15 +30,19 @@ import java.util.logging.Logger;
 public class AgentOrchestrator {
     private static final Logger LOG = Logger.getLogger(AgentOrchestrator.class.getName());
 
-    private static final int MAX_ITERATIONS = 8;
+    private static final int MAX_ITERATIONS = 20;
+
+    // Cap tool-result text fed back to the model so the request body stays small
+    // (large results otherwise accumulate and trip the bridge's payload limit).
+    private static final int MAX_TOOL_RESULT_CHARS = 6000;
 
     private final GitHubModelsClient client;
-    private final INGeniousToolServer toolServer;
+    private final ToolProvider toolServer;
     private final ObjectMapper mapper = new ObjectMapper();
 
     private volatile boolean cancelled;
 
-    public AgentOrchestrator(GitHubModelsClient client, INGeniousToolServer toolServer) {
+    public AgentOrchestrator(GitHubModelsClient client, ToolProvider toolServer) {
         this.client = client;
         this.toolServer = toolServer;
     }
@@ -58,6 +63,9 @@ public class AgentOrchestrator {
         void onComplete();
 
         void onError(Throwable error);
+
+        /** Reports the token usage of one model response (one credit) as it happens. */
+        default void onUsage(TokenUsage usage) {}
     }
 
     public void cancel() {
@@ -90,6 +98,7 @@ public class AgentOrchestrator {
                 ChatCompletionResponse response = client.complete(token, request);
                 if (response.getUsage() != null) {
                     session.recordUsage(response.getUsage());
+                    listener.onUsage(response.getUsage());
                 }
                 ChatMessage assistant = firstMessage(response);
                 if (assistant == null) {
@@ -120,7 +129,11 @@ public class AgentOrchestrator {
                     }
                     ToolResult result = handleToolCall(call, gate, listener);
                     session.addMessage(
-                        ChatMessage.toolResult(call.getId(), call.getName(), result.getContent())
+                        ChatMessage.toolResult(
+                            call.getId(),
+                            call.getName(),
+                            cap(result.getContent())
+                        )
                     );
                 }
             }
@@ -186,5 +199,21 @@ public class AgentOrchestrator {
         } catch (Exception ex) {
             return args.toString();
         }
+    }
+
+    private static String cap(String s) {
+        if (s == null) {
+            return "";
+        }
+        if (s.length() <= MAX_TOOL_RESULT_CHARS) {
+            return s;
+        }
+        int dropped = s.length() - MAX_TOOL_RESULT_CHARS;
+        return (
+            s.substring(0, MAX_TOOL_RESULT_CHARS) +
+            "\n…(truncated " +
+            dropped +
+            " chars; narrow the query or page the results)"
+        );
     }
 }

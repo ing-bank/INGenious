@@ -30,6 +30,7 @@ import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.main.utils.table.TableColumnManager;
 import com.ing.ide.main.utils.table.XTable;
+import com.ing.ide.settings.AppSettings;
 import com.ing.ide.util.Canvas;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Notification;
@@ -169,6 +170,19 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         recorderDialog = new RecorderDialog(testDesign);
         testCaseHistory = new TCHistory();
         validator = new TestCaseValidator(testCaseTable);
+        tableColumnManager.setOnVisibilityChanged(
+            () -> {
+                AppSettings.setVisibleTestCaseColumns(tableColumnManager.getVisibleColumnNames());
+                // Re-apply editors and renderers so a re-shown column regains its
+                // auto-suggest dropdown and colour styling.
+                if (getCurrentTestCase() != null) {
+                    if (tcAutoSuggest != null) {
+                        tcAutoSuggest.installForTestCase();
+                    }
+                    validator.initValidations();
+                }
+            }
+        );
         init();
         LiveRecordingService.setHook(new RecordFromHereHook());
     }
@@ -305,6 +319,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             TestCase tc = (TestCase) obj;
             tc.setSaveListener(saveListener);
             getTestCaseTable().setModel(testDesign.getProject().getTableModelFor(tc));
+            applyPersistedColumnLayout();
             tcAutoSuggest.installForTestCase();
             validator.initValidations();
             changeSave(tc.isSaved());
@@ -1617,7 +1632,9 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         for (TestStep testStep : getCurrentTestCase().getTestSteps()) {
             if (!testStep.getAction().isEmpty() && testStep.getDescription().isEmpty()) {
                 String desc = MethodInfoManager.getDescriptionFor(testStep.getAction());
-                testCaseTable.setValueAt(desc, i, Description.getIndex());
+                // Write via the model (model coordinates) so it is correct even
+                // when the Description column is hidden or reordered in the view.
+                getCurrentTestCase().setValueAt(desc, i, Description.getIndex());
             }
             i++;
         }
@@ -1626,9 +1643,25 @@ public class TestCaseComponent extends JPanel implements ActionListener {
     public void reload() {
         stopCellEditing();
         getCurrentTestCase().reload();
-        tableColumnManager.reset();
+        applyPersistedColumnLayout();
         tcAutoSuggest.installForTestCase();
         validator.initValidations();
+    }
+
+    /**
+     * Re-apply the user's persisted column selection after a model swap. The
+     * table recreates all columns from the model, so this hides the columns the
+     * user chose to keep out of view. IDE view-only; never touches the model.
+     */
+    private void applyPersistedColumnLayout() {
+        tableColumnManager.reset();
+        tableColumnManager.applyVisible(AppSettings.getVisibleTestCaseColumns());
+    }
+
+    /** Shows the column show/hide menu below the given toolbar button. */
+    public void showColumnMenu(Component invoker) {
+        javax.swing.JPopupMenu menu = tableColumnManager.buildColumnMenu();
+        menu.show(invoker, 0, invoker.getHeight());
     }
 
     private void ccp(String operation) {

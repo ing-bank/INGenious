@@ -22,6 +22,11 @@ npm-debug.log
 /Dist/release
 /Dist/release/**
 
+# Docs folders
+/docs/
+/Engine/docs/
+/IDE/docs/
+
 #Plugins
 /Resources/Plugins/**
 
@@ -39,5 +44,13 @@ nb-configuration.xml
 .DS_Store
 Thumbs.db
 
+# Packaged VS Code extension artifacts
+/vscode-ingenious-bridge/*.vsix
+
+# Local VS Code MCP configuration
+/.vscode/mcp.json
+
 # other files
 recent.items
+# INGenious AI CLI runtime state (session, history, undo journal)
+.ingenious/

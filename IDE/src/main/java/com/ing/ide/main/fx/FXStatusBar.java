@@ -75,7 +75,7 @@ public class FXStatusBar extends JFXPanel {
         Pane spacer = new Pane();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        statusLabel = new Label("INGenious Playwright Studio");
+        statusLabel = new Label("INGenious");
         statusLabel.getStyleClass().add("status-info-label");
         // Add flask icon to branding label
         org.kordamp.ikonli.javafx.FontIcon brandIcon = INGIcons.fxColored("favicon", 11);
@@ -107,7 +107,8 @@ public class FXStatusBar extends JFXPanel {
                             "status-design",
                             "status-execution",
                             "status-dashboard",
-                            "status-apitester"
+                            "status-apitester",
+                            "status-perfstudio"
                         );
 
                     // Update icon to match the dock icon for each view
@@ -128,6 +129,10 @@ public class FXStatusBar extends JFXPanel {
                         case "API Workbench":
                             viewLabel.getStyleClass().add("status-apitester");
                             iconKey = "APITester";
+                            break;
+                        case "Performance Studio":
+                            viewLabel.getStyleClass().add("status-perfstudio");
+                            iconKey = "perfstudio";
                             break;
                         default:
                             iconKey = "testdesign";
