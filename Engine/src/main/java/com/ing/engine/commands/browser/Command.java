@@ -512,4 +512,9 @@ public class Command implements CommandPluginApi {
     public UserDataAccessApi getUserData() {
         return userData;
     }
+
+    @Override
+    public String getKey() {
+        return key;
+    }
 }
