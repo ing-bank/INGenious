@@ -11,6 +11,7 @@ import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.WebDriverFactory;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.execution.run.ProjectRunner;
+import com.ing.engine.reporting.ConsoleEmbedder;
 import com.ing.engine.reporting.SummaryReport;
 import com.ing.engine.reporting.impl.ConsoleReport;
 import com.ing.engine.reporting.util.DateTimeUtils;
@@ -19,6 +20,7 @@ import com.ing.engine.support.reflect.MethodExecutor;
 import com.ing.exceptions.DuplicateMethodException;
 import com.ing.ingenious.api.status.Status;
 import com.ing.util.encryption.Encryption;
+import java.io.File;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
@@ -221,7 +223,13 @@ public class Control {
                 ReportManager.finalizeReport();
                 if (ReportManager.sync != null) {
                     ReportManager.sync.disConnect();
+                    // The sync publish prints after finalizeReport() already embedded
+                    // console.txt, so re-embed to capture that trailing output.
+                    embedConsoleIntoReports();
                 }
+                // Auto-open the report only now, so the browser tab isn't opened
+                // (and cached stale) before the sync publish output above exists.
+                ReportManager.launchResultSummary();
             }
 
             if (playwrightDriver != null) {
@@ -232,6 +240,15 @@ public class Control {
             }
         } catch (Exception ex) {
             Logger.getLogger(Control.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private static void embedConsoleIntoReports() {
+        try {
+            System.out.flush();
+            ConsoleEmbedder.embedInto(new File(FilePath.getCurrentResultsPath()));
+        } catch (Exception ex) {
+            LOG.log(Level.FINE, "Unable to re-embed console into reports", ex);
         }
     }
 

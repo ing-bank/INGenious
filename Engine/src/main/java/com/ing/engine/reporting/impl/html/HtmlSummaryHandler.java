@@ -393,7 +393,8 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
         }
         printReport();
         createLatest();
-        launchResultSummary();
+        // launchResultSummary() is deferred to Control.endExecution(), after the
+        // console.txt re-embed, so the auto-opened browser tab isn't stale.
     }
 
     /**
