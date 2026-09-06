@@ -30,7 +30,7 @@ public class TestDataNotFoundException extends DataNotFoundException {
             return getFormatted(
                 getTemplate(context.isReusable()),
                 getMessage(),
-                context.executor().runEnv(),
+                envLabel(),
                 scopeLabel(),
                 sheet,
                 field,
@@ -60,5 +60,16 @@ public class TestDataNotFoundException extends DataNotFoundException {
     private String scopeLabel() {
         String s = sheet == null ? "" : sheet.trim();
         return s.startsWith("[Shared]") ? "Shared" : "Project";
+    }
+
+    /**
+     * The environment the lookup used - {@code sharedRunEnv()} for a {@code [Shared]} sheet,
+     * {@code runEnv()} otherwise - since the two scopes can run against different environments.
+     */
+    private Object envLabel() {
+        String s = sheet == null ? "" : sheet.trim();
+        return s.startsWith("[Shared]")
+            ? context.executor().sharedRunEnv()
+            : context.executor().runEnv();
     }
 }

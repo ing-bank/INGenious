@@ -142,6 +142,20 @@ public class RunSettings extends AbstractPropSettings {
         return getProperty("AxeSeverityThreshold", "Minor");
     }
 
+    /**
+     * Environment name that {@code [Shared]}-scoped test data / global data resolves against at
+     * run time. Independent of {@link #getTestEnv()} (Project and Shared Test Data can define
+     * different environment names). Defaults to {@code Default}; once the user picks a value it
+     * is persisted here and never follows the Project environment selection.
+     */
+    public void setSharedTestEnv(String value) {
+        setProperty("SharedTestEnv", value);
+    }
+
+    public String getSharedTestEnv() {
+        return getProperty("SharedTestEnv", "Default");
+    }
+
     public Boolean isMailSend() {
         return Boolean.valueOf(getProperty("SendMail", "false"));
     }

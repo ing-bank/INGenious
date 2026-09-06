@@ -1768,6 +1768,12 @@ public class Project {
             scenario.save();
         }
         testData.save();
+        if (sharedTestData != null) {
+            // Persists the app-root Shared Test Data, including its environment.properties, so
+            // environments added/renamed/deleted in the Shared Test Data tab survive a reload -
+            // mirroring how testData.save() persists the project's own environments.
+            sharedTestData.save();
+        }
         for (Release release : releases) {
             release.save();
         }
@@ -2099,8 +2105,20 @@ public class Project {
      * @param newTDName new test data name
      */
     public void refactorTestData(String oldTDName, String newTDName) {
+        refactorTestData(oldTDName, newTDName, null);
+    }
+
+    /**
+     * Refactors (renames) a test data reference across all scenarios in the project, limited to
+     * references in the given scope.
+     * @param oldTDName old test data name
+     * @param newTDName new test data name
+     * @param scopeToken "[Shared]" to rewrite only Shared-tagged references, "[Project]" to
+     *     rewrite only untagged / Project-tagged references, or {@code null} to rewrite any
+     */
+    public void refactorTestData(String oldTDName, String newTDName, String scopeToken) {
         for (Scenario scenario : getAllScenarios()) {
-            scenario.refactorTestData(oldTDName, newTDName);
+            scenario.refactorTestData(oldTDName, newTDName, scopeToken);
         }
     }
 
@@ -2115,8 +2133,26 @@ public class Project {
         String oldColumnName,
         String newColumnName
     ) {
+        refactorTestDataColumn(testDataName, oldColumnName, newColumnName, null);
+    }
+
+    /**
+     * Refactors (renames) a test data column reference across all scenarios in the project,
+     * limited to references in the given scope.
+     * @param testDataName test data name
+     * @param oldColumnName old column name
+     * @param newColumnName new column name
+     * @param scopeToken "[Shared]" / "[Project]" / {@code null} - see
+     *     {@link #refactorTestData(String, String, String)}
+     */
+    public void refactorTestDataColumn(
+        String testDataName,
+        String oldColumnName,
+        String newColumnName,
+        String scopeToken
+    ) {
         for (Scenario scenario : getAllScenarios()) {
-            scenario.refactorTestDataColumn(testDataName, oldColumnName, newColumnName);
+            scenario.refactorTestDataColumn(testDataName, oldColumnName, newColumnName, scopeToken);
         }
     }
 

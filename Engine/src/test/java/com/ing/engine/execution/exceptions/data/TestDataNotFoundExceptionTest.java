@@ -35,6 +35,7 @@ public class TestDataNotFoundExceptionTest {
         ProjectRunner executor = mock(ProjectRunner.class);
         when(context.executor()).thenReturn(executor);
         when(executor.runEnv()).thenReturn("Default");
+        when(executor.sharedRunEnv()).thenReturn("Default");
         when(context.getRoot()).thenReturn(root);
         when(root.scenario()).thenReturn("MortgageCalculation-Browser");
         when(root.testcase()).thenReturn("High Income");

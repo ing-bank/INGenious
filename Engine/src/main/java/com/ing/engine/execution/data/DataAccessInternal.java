@@ -578,7 +578,11 @@ public class DataAccessInternal {
 
     protected static TestDataModel getModel(TestCaseRunner context, String sheet) {
         if (isSharedScopeRef(sheet)) {
-            return getSharedModel(context, context.executor().runEnv(), stripSharedScopeTag(sheet));
+            return getSharedModel(
+                context,
+                context.executor().sharedRunEnv(),
+                stripSharedScopeTag(sheet)
+            );
         }
         String name = stripProjectScopeTag(sheet);
         TestData env = context
@@ -656,6 +660,20 @@ public class DataAccessInternal {
                 .getEnvironments()
                 .contains(context.executor().runEnv())
         );
+    }
+
+    /**
+     * Whether {@code sharedRunEnv()} names a real, non-default environment in the Shared Test
+     * Data - the Shared-scope counterpart of {@link #validEnv(TestCaseRunner)}. When false, a
+     * {@code [Shared]} reference resolves against the Shared {@code Default} environment.
+     */
+    protected static boolean validSharedEnv(TestCaseRunner context) {
+        EnvTestData shared = context.project().getSharedTestData();
+        if (isNull(shared)) {
+            return false;
+        }
+        String env = String.valueOf(context.executor().sharedRunEnv());
+        return !shared.defEnv().equals(env) && shared.getEnvironments().contains(env);
     }
 
     public static boolean notNull(Object ins) {
