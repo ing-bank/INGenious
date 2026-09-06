@@ -379,8 +379,10 @@ public class EnvTestData {
      * @return true if rename was successful, false if newName already exists
      */
     public Boolean renameTestData(String oldName, String newName, String envName) {
-        TestData ntestData = sProject.getTestData().getTestDataFor(envName);
-        TestDataModel existingByNewName = ntestData.getByNameIgnoreCase(newName);
+        TestData ntestData = getTestDataFor(envName);
+        TestDataModel existingByNewName = ntestData == null
+            ? null
+            : ntestData.getByNameIgnoreCase(newName);
         if (existingByNewName != null && !existingByNewName.getName().equals(oldName)) {
             return false;
         }
@@ -390,8 +392,18 @@ public class EnvTestData {
                 testData.getByName(oldName).rename(newName);
             }
         }
-        sProject.refactorTestData(oldName, newName);
+        sProject.refactorTestData(oldName, newName, scopeToken());
         return true;
+    }
+
+    /**
+     * The "[Shared]"/"[Project]" scope token that references to <em>this</em> environment test
+     * data carry in test steps, so a rename/column-rename only rewrites references in the
+     * matching scope. The Shared and Project test data share a flat sheet-name namespace, so
+     * without this an untagged "{Sheet:Col}" step would be rewritten by a Shared rename too.
+     */
+    private String scopeToken() {
+        return shared ? "[Shared]" : "[Project]";
     }
 
     /**
@@ -427,7 +439,7 @@ public class EnvTestData {
         }
 
         // Refactor references in test cases
-        sProject.refactorTestData(oldName, newName);
+        sProject.refactorTestData(oldName, newName, scopeToken());
         return true;
     }
 
@@ -454,7 +466,7 @@ public class EnvTestData {
                 tData.renameColumn(oldColName, newColName);
             }
         }
-        sProject.refactorTestDataColumn(tdName, oldColName, newColName);
+        sProject.refactorTestDataColumn(tdName, oldColName, newColName, scopeToken());
         return true;
     }
 

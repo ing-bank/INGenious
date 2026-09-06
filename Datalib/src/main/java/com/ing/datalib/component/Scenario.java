@@ -112,12 +112,7 @@ public class Scenario extends DataModel {
 
     /**
      * Returns the source of this scenario.
-     * @return TEST_PLAN, REUSABLE_COMPONENTS, or SHARED_rce.REUSABLE_COMPONENTS;
-    }
-
-    /**
-     * Returns the source of this scenario.
-     * @return TEST_PLAN or REUSABLE_COMPONENTS
+     * @return TEST_PLAN, REUSABLE_COMPONENTS, or SHARED_REUSABLE_COMPONENTS
      */
     public Source getSource() {
         return source;
@@ -638,8 +633,12 @@ public class Scenario extends DataModel {
     }
 
     public void refactorTestData(String oldTDName, String newTDName) {
+        refactorTestData(oldTDName, newTDName, null);
+    }
+
+    public void refactorTestData(String oldTDName, String newTDName, String scopeToken) {
         for (TestCase testCase : testCases) {
-            testCase.refactorTestData(oldTDName, newTDName);
+            testCase.refactorTestData(oldTDName, newTDName, scopeToken);
         }
     }
 
@@ -648,8 +647,17 @@ public class Scenario extends DataModel {
         String oldColumnName,
         String newColumnName
     ) {
+        refactorTestDataColumn(testDataName, oldColumnName, newColumnName, null);
+    }
+
+    public void refactorTestDataColumn(
+        String testDataName,
+        String oldColumnName,
+        String newColumnName,
+        String scopeToken
+    ) {
         for (TestCase testCase : testCases) {
-            testCase.refactorTestDataColumn(testDataName, oldColumnName, newColumnName);
+            testCase.refactorTestDataColumn(testDataName, oldColumnName, newColumnName, scopeToken);
         }
     }
 

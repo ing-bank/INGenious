@@ -26,7 +26,7 @@ public class GlobalDataNotFoundException extends DataNotFoundException {
             return getFormatted(
                 getTemplate(context.isReusable()),
                 getMessage(),
-                context.executor().runEnv(),
+                envLabel(),
                 field,
                 gid,
                 context.getRoot().scenario(),
@@ -37,6 +37,17 @@ public class GlobalDataNotFoundException extends DataNotFoundException {
         } catch (Exception ex) {
             return super.toString();
         }
+    }
+
+    /**
+     * The environment the lookup used - {@code sharedRunEnv()} for a {@code [Shared]} GID,
+     * {@code runEnv()} otherwise.
+     */
+    private Object envLabel() {
+        String g = gid == null ? "" : gid.trim();
+        return g.startsWith("[Shared]")
+            ? context.executor().sharedRunEnv()
+            : context.executor().runEnv();
     }
 
     public static String getTemplate(Boolean isReusable) {

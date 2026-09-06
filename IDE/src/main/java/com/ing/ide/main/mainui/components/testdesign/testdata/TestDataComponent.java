@@ -72,6 +72,8 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private static final String TAB_ORDER_SEPARATOR = "\u001F";
     private static final String ENV_TAB_ORDER_KEY = "ui.testdata.env.order";
     private static final String TESTDATA_TAB_ORDER_PREFIX = "ui.testdata.env.tabs.";
+    private static final String SHARED_ENV_TAB_ORDER_KEY = "ui.sharedtestdata.env.order";
+    private static final String SHARED_TESTDATA_TAB_ORDER_PREFIX = "ui.sharedtestdata.env.tabs.";
 
     private final TestDesign testDesign;
 
@@ -222,7 +224,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
      */
     private List<TestData> getEnvironmentsInSavedOrder() {
         List<TestData> allEnvironments = new ArrayList<>(envTestData().getAllEnvironments());
-        List<String> savedOrder = getSavedOrder(ENV_TAB_ORDER_KEY);
+        List<String> savedOrder = getSavedOrder(envTabOrderKey());
         if (savedOrder.isEmpty()) {
             return allEnvironments;
         }
@@ -321,7 +323,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         for (int i = 0; i < envTab.getTabCount() - 1; i++) {
             order.add(envTab.getTitleAt(i));
         }
-        saveOrder(ENV_TAB_ORDER_KEY, order);
+        saveOrder(envTabOrderKey(), order);
     }
 
     private void persistTestDataTabOrder(String envName, JTabbedPane testdataTab) {
@@ -340,7 +342,15 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     private String getTestDataTabOrderKey(String envName) {
-        return TESTDATA_TAB_ORDER_PREFIX + envName;
+        return (shared ? SHARED_TESTDATA_TAB_ORDER_PREFIX : TESTDATA_TAB_ORDER_PREFIX) + envName;
+    }
+
+    /**
+     * Settings key for the environment tab order. The Project and Shared Test Data tabs each
+     * keep their own order so reordering one does not disturb the other.
+     */
+    private String envTabOrderKey() {
+        return shared ? SHARED_ENV_TAB_ORDER_KEY : ENV_TAB_ORDER_KEY;
     }
 
     /**

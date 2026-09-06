@@ -282,9 +282,9 @@ public class DataAccess extends DataAccessInternal {
                 val = null;
             } else {
                 GlobalDataModel sharedDef = sharedProvider.defData().getGlobalData();
-                if (validEnv(context)) {
+                if (validSharedEnv(context)) {
                     com.ing.datalib.component.TestData sharedEnvTd = sharedProvider.getTestDataFor(
-                        context.executor().runEnv()
+                        context.executor().sharedRunEnv()
                     );
                     GlobalDataModel sharedEnv = sharedEnvTd == null
                         ? null
@@ -344,10 +344,12 @@ public class DataAccess extends DataAccessInternal {
             : context.executor().dataProvider();
 
         GlobalDataModel env = provider == null ? null : provider.defData().getGlobalData();
-        if (provider != null && validEnv(context)) {
-            com.ing.datalib.component.TestData envTd = provider.getTestDataFor(
-                context.executor().runEnv()
-            );
+        boolean useEnv = shared ? validSharedEnv(context) : validEnv(context);
+        if (provider != null && useEnv) {
+            String targetEnv = shared
+                ? context.executor().sharedRunEnv()
+                : context.executor().runEnv();
+            com.ing.datalib.component.TestData envTd = provider.getTestDataFor(targetEnv);
             env = envTd == null ? null : envTd.getGlobalData();
         }
         if (isNull(env)) {

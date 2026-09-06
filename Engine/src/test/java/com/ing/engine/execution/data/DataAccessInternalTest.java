@@ -332,7 +332,7 @@ public class DataAccessInternalTest {
     @Test
     public void testGetModelSharedTagResolvesOnlyFromSharedTestData() {
         when(context.executor()).thenReturn(executor);
-        when(executor.runEnv()).thenReturn("QA");
+        when(executor.sharedRunEnv()).thenReturn("QA");
         when(context.project()).thenReturn(project);
         when(project.getSharedTestData()).thenReturn(sharedDataProvider);
         when(sharedDataProvider.getTestDataFor("QA")).thenReturn(sharedEnvTestData);
@@ -348,7 +348,7 @@ public class DataAccessInternalTest {
     @Test
     public void testGetModelSharedTagFallsBackToSharedDefEnvWhenEnvMissing() {
         when(context.executor()).thenReturn(executor);
-        when(executor.runEnv()).thenReturn("QA");
+        when(executor.sharedRunEnv()).thenReturn("QA");
         when(context.project()).thenReturn(project);
         when(project.getSharedTestData()).thenReturn(sharedDataProvider);
         when(sharedDataProvider.getTestDataFor("QA")).thenReturn(null);
@@ -363,7 +363,7 @@ public class DataAccessInternalTest {
     @Test
     public void testGetModelSharedTagWhenProjectHasNoSharedTestDataReturnsNull() {
         when(context.executor()).thenReturn(executor);
-        when(executor.runEnv()).thenReturn("QA");
+        when(executor.sharedRunEnv()).thenReturn("QA");
         when(context.project()).thenReturn(project);
         when(project.getSharedTestData()).thenReturn(null);
 

@@ -53,6 +53,16 @@ public class SharedTestDataResolutionIntegrationTest {
             "Scenario,Flow,Scope,Iteration,SubIteration,URL",
             "MortgageCalculation-Browser,High Income,,1,1,SHARED_VALUE"
         );
+        // A named Shared environment with its own copy of the sheet, plus the environment
+        // registration file so EnvTestData loads it as a real environment.
+        File sharedSitDir = new File(sharedDir, "SIT");
+        sharedSitDir.mkdirs();
+        writeCsv(
+            new File(sharedSitDir, "TestData0.csv"),
+            "Scenario,Flow,Scope,Iteration,SubIteration,URL",
+            "MortgageCalculation-Browser,High Income,,1,1,SHARED_SIT_VALUE"
+        );
+        writeCsv(new File(sharedDir, "environment.properties"), "Environment=SIT");
 
         project = new Project(projectDir.getAbsolutePath());
     }
@@ -79,13 +89,18 @@ public class SharedTestDataResolutionIntegrationTest {
     }
 
     private TestCaseRunner mockContext() {
+        return mockContext("Default", "Default");
+    }
+
+    private TestCaseRunner mockContext(String projectEnv, String sharedEnv) {
         TestCaseRunner context = mock(TestCaseRunner.class);
         ProjectRunner executor = mock(ProjectRunner.class);
         when(context.executor()).thenReturn(executor);
         when(context.project()).thenReturn(project);
         when(executor.getProject()).thenReturn(project);
         when(executor.dataProvider()).thenReturn(project.getTestData());
-        when(executor.runEnv()).thenReturn("Default");
+        when(executor.runEnv()).thenReturn(projectEnv);
+        when(executor.sharedRunEnv()).thenReturn(sharedEnv);
         return context;
     }
 
@@ -137,6 +152,56 @@ public class SharedTestDataResolutionIntegrationTest {
 
         assertThat(sharedVal).isEqualTo("SHARED_VALUE");
         assertThat(projVal).isEqualTo("PROJECT_VALUE");
+    }
+
+    @Test
+    public void testSharedRunEnvSelectsSharedEnvironmentIndependentlyOfProjectEnv() {
+        // Project env stays Default; Shared env is SIT. The [Shared] reference must resolve the
+        // SIT copy, while [Project] is unaffected and still resolves the project's Default value.
+        TestCaseRunner context = mockContext("Default", "SIT");
+
+        TestDataModel shared = DataAccessInternal.getModel(context, "[Shared] TestData0");
+        TestDataModel proj = DataAccessInternal.getModel(context, "[Project] Basic");
+
+        String sharedVal = DataAccessInternal.getDataFromModelWithScope(
+            shared,
+            "URL",
+            "MortgageCalculation-Browser",
+            "High Income",
+            "1",
+            "1",
+            ""
+        );
+        String projVal = DataAccessInternal.getDataFromModelWithScope(
+            proj,
+            "URL",
+            "MortgageCalculation-Browser",
+            "High Income",
+            "1",
+            "1",
+            ""
+        );
+
+        assertThat(sharedVal).isEqualTo("SHARED_SIT_VALUE");
+        assertThat(projVal).isEqualTo("PROJECT_VALUE");
+    }
+
+    @Test
+    public void testUnknownSharedRunEnvFallsBackToSharedDefault() {
+        TestCaseRunner context = mockContext("Default", "NoSuchEnv");
+
+        TestDataModel shared = DataAccessInternal.getModel(context, "[Shared] TestData0");
+        String sharedVal = DataAccessInternal.getDataFromModelWithScope(
+            shared,
+            "URL",
+            "MortgageCalculation-Browser",
+            "High Income",
+            "1",
+            "1",
+            ""
+        );
+
+        assertThat(sharedVal).isEqualTo("SHARED_VALUE");
     }
 
     @Test
