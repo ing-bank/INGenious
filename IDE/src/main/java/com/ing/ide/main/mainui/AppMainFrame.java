@@ -170,6 +170,8 @@ public class AppMainFrame extends JFrame {
         // toolBar = new AppToolBar(sActionListener);
         stepMap = new StepMap();
         loader = new LoaderScreen();
+        leftFiller = simpleFiller();
+        rightFiller = simpleRightFiller();
         progressed(75);
         init();
     }

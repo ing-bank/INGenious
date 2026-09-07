@@ -1,10 +1,10 @@
 package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 
 import com.ing.datalib.component.TestStep;
+import com.ing.engine.commands.aXe.Accessibility;
 import com.ing.engine.core.InlineObjectProperty;
 import com.ing.engine.mcp.ActionSpecCatalog;
 import com.ing.engine.mcp.ArgSpec;
-import com.ing.engine.commands.aXe.Accessibility;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.ingenious.api.types.ConditionKind;
 import java.awt.Color;
