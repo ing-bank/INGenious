@@ -2,6 +2,7 @@ package com.ing.engine.core;
 
 import com.ing.datalib.component.Project;
 import com.ing.datalib.testdata.TestDataFactory;
+import com.ing.datalib.util.WorkspaceInitializer;
 import com.ing.engine.cli.LookUp;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.constants.SystemDefaults;
@@ -347,6 +348,7 @@ public class Control {
 
     public static void main(String[] args) throws UnCaughtException {
         redirectMcpStderrIfRequested();
+        WorkspaceInitializer.initialize();
         initDeps();
 
         if (args != null && args.length > 0) {

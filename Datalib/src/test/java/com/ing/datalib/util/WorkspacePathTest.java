@@ -58,7 +58,6 @@ public class WorkspacePathTest {
             "/Applications/INGenious.app/Contents/app",
             "Mac OS X",
             "/test/home",
-            null,
             "/test/current"
         );
 
@@ -80,7 +79,6 @@ public class WorkspacePathTest {
             appHome.getPath(),
             "Mac OS X",
             "/test/home",
-            null,
             "/test/current"
         );
 
@@ -88,7 +86,7 @@ public class WorkspacePathTest {
     }
 
     @Test
-    public void missingSiblingUsesMacApplicationSupport() throws Exception {
+    public void missingSiblingUsesDocumentsWorkspace() throws Exception {
         File distribution = createTemporaryDirectory("ingenious-installed");
         File appHome = new File(distribution, "INGenious.app/Contents/app");
         File userHome = createTemporaryDirectory("ingenious-user-home");
@@ -96,8 +94,8 @@ public class WorkspacePathTest {
         assertThat(appHome.mkdirs()).isTrue();
 
         File expected = new File(
-            new File(new File(userHome, "Library"), "Application Support"),
-            "INGenious"
+            new File(new File(userHome, "Documents"), "INGenious"),
+            "Workspace"
         );
 
         String actual = WorkspacePath.resolveWorkspaceRoot(
@@ -106,7 +104,6 @@ public class WorkspacePathTest {
             appHome.getPath(),
             "Mac OS X",
             userHome.getPath(),
-            null,
             "/test/current"
         );
 
@@ -114,7 +111,7 @@ public class WorkspacePathTest {
     }
 
     @Test
-    public void incompleteSiblingUsesMacApplicationSupport() throws Exception {
+    public void incompleteSiblingUsesDocumentsWorkspace() throws Exception {
         File distribution = createTemporaryDirectory("ingenious-incomplete");
         File appHome = new File(distribution, "INGenious.app/Contents/app");
         File workspace = new File(distribution, "Workspace");
@@ -124,8 +121,8 @@ public class WorkspacePathTest {
         assertThat(new File(workspace, "Configuration").mkdirs()).isTrue();
 
         File expected = new File(
-            new File(new File(userHome, "Library"), "Application Support"),
-            "INGenious"
+            new File(new File(userHome, "Documents"), "INGenious"),
+            "Workspace"
         );
 
         String actual = WorkspacePath.resolveWorkspaceRoot(
@@ -134,7 +131,6 @@ public class WorkspacePathTest {
             appHome.getPath(),
             "Mac OS X",
             userHome.getPath(),
-            null,
             "/test/current"
         );
 
@@ -142,29 +138,13 @@ public class WorkspacePathTest {
     }
 
     @Test
-    public void packagedWindowsApplicationUsesLocalAppData() throws Exception {
-        File localAppData = createTemporaryDirectory("ingenious-local-app-data");
-
-        File expected = new File(localAppData, "INGenious");
-
-        String actual = WorkspacePath.resolveWorkspaceRoot(
-            null,
-            null,
-            "C:\\Program Files\\INGenious\\app",
-            "Windows 11",
-            "C:\\Users\\test",
-            localAppData.getPath(),
-            "C:\\test\\current"
-        );
-
-        assertThat(actual).isEqualTo(expected.getCanonicalPath());
-    }
-
-    @Test
-    public void packagedWindowsApplicationFallsBackToUserProfile() throws Exception {
+    public void packagedWindowsApplicationUsesDocumentsWorkspace() throws Exception {
         File userHome = createTemporaryDirectory("ingenious-windows-user-home");
 
-        File expected = new File(new File(new File(userHome, "AppData"), "Local"), "INGenious");
+        File expected = new File(
+            new File(new File(userHome, "Documents"), "INGenious"),
+            "Workspace"
+        );
 
         String actual = WorkspacePath.resolveWorkspaceRoot(
             null,
@@ -172,7 +152,6 @@ public class WorkspacePathTest {
             "C:\\Program Files\\INGenious\\app",
             "Windows 11",
             userHome.getPath(),
-            null,
             "C:\\test\\current"
         );
 
@@ -189,7 +168,6 @@ public class WorkspacePathTest {
             "/test/packaged/application",
             "Linux",
             "/test/home",
-            null,
             currentDirectory.getPath()
         );
 

@@ -37,7 +37,6 @@ public final class WorkspacePath {
             System.getProperty(APP_HOME_PROPERTY),
             System.getProperty("os.name"),
             System.getProperty("user.home"),
-            System.getenv("LOCALAPPDATA"),
             System.getProperty("user.dir")
         );
     }
@@ -48,7 +47,6 @@ public final class WorkspacePath {
         String appHome,
         String osName,
         String userHome,
-        String localAppData,
         String userDirectory
     ) {
         if (configuredPath != null && !configuredPath.isBlank()) {
@@ -66,21 +64,11 @@ public final class WorkspacePath {
                 return canonicalPath(portableWorkspace.getPath());
             }
 
-            File library = new File(userHome, "Library");
-            File applicationSupport = new File(library, "Application Support");
-
-            return canonicalPath(new File(applicationSupport, "INGenious").getPath());
+            return canonicalPath(installedWorkspace(userHome).getPath());
         }
 
         if (isPackagedWindowsApplication(appHome, osName)) {
-            if (localAppData != null && !localAppData.isBlank()) {
-                return canonicalPath(new File(localAppData, "INGenious").getPath());
-            }
-
-            File appData = new File(userHome, "AppData");
-            File local = new File(appData, "Local");
-
-            return canonicalPath(new File(local, "INGenious").getPath());
+            return canonicalPath(installedWorkspace(userHome).getPath());
         }
 
         return canonicalPath(userDirectory);
@@ -107,6 +95,12 @@ public final class WorkspacePath {
      */
     public static String getPluginsPath() {
         return getWorkspaceRoot() + File.separator + "plugins";
+    }
+
+    private static File installedWorkspace(String userHome) {
+        File documents = new File(userHome, "Documents");
+        File ingenious = new File(documents, "INGenious");
+        return new File(ingenious, "Workspace");
     }
 
     private static boolean isPackagedMacApplication(String appHome, String osName) {

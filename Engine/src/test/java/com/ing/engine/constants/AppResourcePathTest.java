@@ -55,7 +55,7 @@ public class AppResourcePathTest {
     }
 
     @Test
-    public void testPackagedMacApplicationUsesApplicationSupportByDefault() {
+    public void testPackagedMacApplicationUsesDocumentsWorkspaceByDefault() {
         String originalWorkspace = System.getProperty(AppResourcePath.WORKSPACE_PROPERTY);
         String originalAppHome = System.getProperty(AppResourcePath.APP_HOME_PROPERTY);
         String originalUserHome = System.getProperty("user.home");
@@ -74,8 +74,8 @@ public class AppResourcePathTest {
             System.setProperty("os.name", "Mac OS X");
 
             File expected = new File(
-                new File(new File(testHome, "Library"), "Application Support"),
-                "INGenious"
+                new File(new File(testHome, "Documents"), "INGenious"),
+                "Workspace"
             );
 
             assertThat(AppResourcePath.getWorkspaceRoot()).isEqualTo(expected.getCanonicalPath());
