@@ -295,16 +295,25 @@ public class TestStepRunner {
         List<String> concatList = context.getControl().smartCommaSplitter(getStep().getInput());
         List<String> result = new ArrayList();
         for (String part : concatList) {
+            // Resolve fragments for the report's resolved-input (Data) column only, via the
+            // NON-logging resolvers. The action method (Concat/Trim/...) resolves every
+            // fragment again for real and is the single place that reports a bad %var% /
+            // {sheet:column} reference - so this pass must stay quiet, otherwise the same
+            // warning is emitted twice per step.
             if (part.matches("%.*%")) result.add(
-                "'" + context.getControl().getVar(part) + "'"
+                "'" + nullToEmpty(context.getControl().getDynamicValue(part)) + "'"
             ); else if (part.matches("^\\{.*:.*\\}")) result.add(
-                "'" + context.getControl().getDatasheet(part) + "'"
+                "'" + nullToEmpty(context.getControl().getDataSheetValue(part)) + "'"
             ); else if (part.matches("\".*\"")) result.add(
                 "'" + part.substring(1, part.length() - 1) + "'"
             );
         }
         step.Data = String.join(",", result);
         context.getControl().sync(step);
+    }
+
+    private static String nullToEmpty(String v) {
+        return v == null ? "" : v;
     }
 
     /**
