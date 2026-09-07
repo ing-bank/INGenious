@@ -156,13 +156,13 @@ public class FXMenuBar extends JFXPanel {
             ),
             "API Workbench"
         );
-        bindAccelerator(
-            KeyStroke.getKeyStroke(
-                KeyEvent.VK_I,
-                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
-            ),
-            "AI Assistant"
-        );
+        // bindAccelerator(
+        //     KeyStroke.getKeyStroke(
+        //         KeyEvent.VK_I,
+        //         InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+        //     ),
+        //     "INGenie"
+        // );
         bindAccelerator(
             KeyStroke.getKeyStroke(
                 KeyEvent.VK_A,
@@ -333,6 +333,9 @@ public class FXMenuBar extends JFXPanel {
                 )
             );
 
+        tools.getItems().add(new SeparatorMenuItem());
+        tools.getItems().add(menuItem("Project Health", "dashboard"));
+
         return tools;
     }
 
@@ -371,8 +374,15 @@ public class FXMenuBar extends JFXPanel {
                     KeyCombination.SHIFT_DOWN,
                     KeyCombination.ALT_DOWN
                 ),
+                menuItem(
+                    "Performance Studio",
+                    "summary",
+                    KeyCode.P,
+                    KeyCombination.SHIFT_DOWN,
+                    KeyCombination.ALT_DOWN
+                ),
                 /*  menuItem(
-                    "AI Assistant",
+                    "INGenie",
                     "AICopilot",
                     KeyCode.I,
                     KeyCombination.SHIFT_DOWN,
@@ -398,7 +408,9 @@ public class FXMenuBar extends JFXPanel {
             .addAll(
                 menuItem("Help", "help", KeyCode.F1),
                 menuItem("About", "info", KeyCode.F3),
-                menuItem("Show Log", "console", KeyCode.F9)
+                menuItem("Show Log", "console", KeyCode.F9),
+                new javafx.scene.control.SeparatorMenuItem(),
+                menuItem("Start Tour", "tour")
             );
         return help;
     }

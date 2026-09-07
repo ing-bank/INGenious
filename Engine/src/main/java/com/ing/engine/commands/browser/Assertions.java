@@ -4,9 +4,12 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
 
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.exception.ForcedException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.microsoft.playwright.PlaywrightException;
@@ -36,6 +39,14 @@ public class Assertions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Assert if [<Object>] contains the text [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Text to match",
+        inputHelp = "text to match (e.g. @Text to match)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
     )
     public void assertElementContainsText() {
         String text = "";
@@ -72,6 +83,14 @@ public class Assertions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Assert if [<Object>] contains the text [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Text to match",
+        inputHelp = "text to match (e.g. @Text to match)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
     )
     public void assertElementContainsTextIgnoreCase() {
         String text = "";
@@ -110,6 +129,14 @@ public class Assertions extends General {
         desc = "Assert if [<Object>] contains the text [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Text to match",
+        inputHelp = "text expected to be absent (e.g. @Text to match)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementNotContainsText() {
         String text = "";
         try {
@@ -146,6 +173,14 @@ public class Assertions extends General {
         desc = "Assert if [<Object>] has Accessible Description [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Save results to disk",
+        inputHelp = "expected accessible description (e.g. @Save results to disk)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementHasAccessibleDescription() {
         try {
             LocatorAssertions.HasAccessibleDescriptionOptions options = new LocatorAssertions.HasAccessibleDescriptionOptions();
@@ -174,6 +209,14 @@ public class Assertions extends General {
         desc = "Assert if [<Object>] has Accessible Name [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Save to disk",
+        inputHelp = "expected accessible name (e.g. @Save to disk)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementHasAccessibleName() {
         try {
             LocatorAssertions.HasAccessibleNameOptions options = new LocatorAssertions.HasAccessibleNameOptions();
@@ -194,6 +237,82 @@ public class Assertions extends General {
         }
     }
 
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Assert if [<Object>] has Accessible Error Message [<Data>]",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Username is required.",
+        inputHelp = "expected accessible error message (e.g. @Username is required.)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
+    public void assertElementHasAccessibleErrorMessage() {
+        try {
+            LocatorAssertions.HasAccessibleErrorMessageOptions options = new LocatorAssertions.HasAccessibleErrorMessageOptions();
+            options.setTimeout(getTimeoutValue());
+            highlightElement();
+            assertThat(Locator).hasAccessibleErrorMessage(Data, options);
+            Report.updateTestLog(
+                Action,
+                "Element [" + ObjectName + "] has Accessible Error Message '" + Data + "'",
+                Status.PASS
+            );
+        } catch (PlaywrightException e) {
+            PlaywrightExceptionLogging(e);
+        } catch (AssertionFailedError err) {
+            assertionLogging(
+                err,
+                "[" + ObjectName + "] does not contain expected Accessible Error Message"
+            );
+        } finally {
+            removeHighlightFromElement();
+        }
+    }
+
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Assert if [<Object>] does not have Accessible Error Message [<Data>]",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Username is required.",
+        inputHelp = "accessible error message expected to be absent",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
+    public void assertElementDoesNotHaveAccessibleErrorMessage() {
+        try {
+            LocatorAssertions.HasAccessibleErrorMessageOptions options = new LocatorAssertions.HasAccessibleErrorMessageOptions();
+            options.setTimeout(getTimeoutValue());
+            highlightElement();
+            assertThat(Locator).not().hasAccessibleErrorMessage(Data, options);
+            Report.updateTestLog(
+                Action,
+                "Element [" +
+                ObjectName +
+                "] does not have Accessible Error Message '" +
+                Data +
+                "'",
+                Status.PASS
+            );
+        } catch (PlaywrightException e) {
+            PlaywrightExceptionLogging(e);
+        } catch (AssertionFailedError err) {
+            assertionLogging(
+                err,
+                "[" + ObjectName + "] contains Accessible Error Message '" + Data + "'"
+            );
+        } finally {
+            removeHighlightFromElement();
+        }
+    }
+
     /**
      * * Assertion for 'Attribute' **
      */
@@ -201,6 +320,14 @@ public class Assertions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Assert if [<Object>] has the attribute [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.HEADER_KV,
+        inputExample = "@data-testid=submit",
+        inputHelp = "attribute as name=value (e.g. @data-testid=submit)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
     )
     public void assertElementAttributeMatches() {
         String attributeName = Data.split("=")[0];
@@ -247,6 +374,14 @@ public class Assertions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Assert if [<Object>] does not have attribute [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.HEADER_KV,
+        inputExample = "@data-testid=submit",
+        inputHelp = "attribute as name=value expected to be absent (e.g. @data-testid=submit)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
     )
     public void assertElementAttributeNotMatches() {
         String attributeName = Data.split("=")[0];
@@ -297,6 +432,14 @@ public class Assertions extends General {
         desc = "Assert if [<Object>] has class [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.REGEX,
+        inputExample = "@(^|\\s)selected(\\s|$)",
+        inputHelp = "expected class pattern or exact class text",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementClassMatches() {
         String actualClassValue = "";
         try {
@@ -333,6 +476,14 @@ public class Assertions extends General {
         desc = "Assert if [<Object>] does not have class [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.REGEX,
+        inputExample = "@(^|\\s)selected(\\s|$)",
+        inputHelp = "class pattern that must not match",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementClassNotMatches() {
         String actualClassValue = "";
         try {
@@ -361,6 +512,94 @@ public class Assertions extends General {
         }
     }
 
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Assert if [<Object>] contains class [<Data>]",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@selected active",
+        inputHelp = "class tokens that must be present (space-separated)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
+    public void assertElementContainsClass() {
+        String actualClassValue = "";
+        try {
+            LocatorAssertions.ContainsClassOptions options = new LocatorAssertions.ContainsClassOptions();
+            options.setTimeout(getTimeoutValue());
+            actualClassValue = Locator.getAttribute("class");
+            highlightElement();
+            assertThat(Locator).containsClass(Data, options);
+            Report.updateTestLog(
+                Action,
+                "[" + ObjectName + "] contains class '" + Data + "'",
+                Status.PASS
+            );
+        } catch (PlaywrightException e) {
+            PlaywrightExceptionLogging(e);
+        } catch (AssertionFailedError err) {
+            assertionLogging(
+                err,
+                "[" +
+                ObjectName +
+                "] does not contain class '" +
+                Data +
+                "'. Actual value is '" +
+                actualClassValue +
+                "'"
+            );
+        } finally {
+            removeHighlightFromElement();
+        }
+    }
+
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Assert if [<Object>] does not contain class [<Data>]",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@selected active",
+        inputHelp = "class tokens that must be absent",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
+    public void assertElementNotContainsClass() {
+        String actualClassValue = "";
+        try {
+            LocatorAssertions.ContainsClassOptions options = new LocatorAssertions.ContainsClassOptions();
+            options.setTimeout(getTimeoutValue());
+            actualClassValue = Locator.getAttribute("class");
+            highlightElement();
+            assertThat(Locator).not().containsClass(Data, options);
+            Report.updateTestLog(
+                Action,
+                "[" + ObjectName + "] does not contain class '" + Data + "'",
+                Status.PASS
+            );
+        } catch (PlaywrightException e) {
+            PlaywrightExceptionLogging(e);
+        } catch (AssertionFailedError err) {
+            assertionLogging(
+                err,
+                "[" +
+                ObjectName +
+                "] contains class '" +
+                Data +
+                "'. Actual value is '" +
+                actualClassValue +
+                "'"
+            );
+        } finally {
+            removeHighlightFromElement();
+        }
+    }
+
     /**
      * * Assertion for 'Count' **
      */
@@ -368,6 +607,14 @@ public class Assertions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Assert if count of [<Object>] equals [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.INTEGER,
+        inputExample = "@3",
+        inputHelp = "expected element count as integer",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
     )
     public void assertElementCountMatches() {
         int elementCount = 0;
@@ -402,6 +649,14 @@ public class Assertions extends General {
         desc = "Assert if count of [<Object>] does not equal [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.INTEGER,
+        inputExample = "@3",
+        inputHelp = "count value that must not match",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementCountNotMatches() {
         int elementCount = 0;
         try {
@@ -434,6 +689,14 @@ public class Assertions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Assert if [<Object>] has the CSS [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.HEADER_KV,
+        inputExample = "@display=flex",
+        inputHelp = "CSS property as name=value (e.g. @display=flex)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
     )
     public void assertElementCSSMatches() {
         String attributeName = Data.split("=", 2)[0];
@@ -485,6 +748,14 @@ public class Assertions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Assert if [<Object>] does not have the CSS [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.HEADER_KV,
+        inputExample = "@display=none",
+        inputHelp = "CSS property as name=value expected to be absent",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
     )
     public void assertElementCSSNotMatches() {
         String attributeName = Data.split("=")[0];
@@ -540,6 +811,14 @@ public class Assertions extends General {
         desc = "Assert if [<Object>] has ID [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.REGEX,
+        inputExample = "@^login-.*$",
+        inputHelp = "expected id text or regex",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIdMatches() {
         String actualIdValue = "";
         try {
@@ -576,6 +855,14 @@ public class Assertions extends General {
         desc = "Assert if [<Object>] does not have ID [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.REGEX,
+        inputExample = "@^login-.*$",
+        inputHelp = "id text or regex that must not match",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIdNotMatches() {
         String actualIdValue = "";
         try {
@@ -611,6 +898,14 @@ public class Assertions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Assert if [<Object>] has JS Property [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.HEADER_KV,
+        inputExample = "@loaded=true",
+        inputHelp = "JS property as name=value (e.g. @loaded=true)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
     )
     public void assertElementJSPropertyMatches() {
         String attributeName = Data.split("=")[0];
@@ -653,6 +948,14 @@ public class Assertions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Assert if [<Object>] does not have JS Property [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.HEADER_KV,
+        inputExample = "@loaded=true",
+        inputHelp = "JS property as name=value expected to be absent",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
     )
     public void assertElementJSPropertyNotMatches() {
         String attributeName = Data.split("=")[0];
@@ -699,6 +1002,14 @@ public class Assertions extends General {
         desc = "Assert if [<Object>] has Role [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@BUTTON",
+        inputHelp = "expected ARIA role (e.g. @BUTTON, @TEXTBOX)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementRoleMatches() {
         String actualIdValue = "";
         try {
@@ -734,6 +1045,14 @@ public class Assertions extends General {
         desc = "Assert if [<Object>] does not have Role [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@BUTTON",
+        inputHelp = "ARIA role that must not match",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementRoleNotMatches() {
         try {
             LocatorAssertions.HasRoleOptions options = new LocatorAssertions.HasRoleOptions();
@@ -761,6 +1080,14 @@ public class Assertions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Assert if [<Object>] has text [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.REGEX,
+        inputExample = "@Welcome, .*",
+        inputHelp = "expected full text or regex",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
     )
     public void assertElementTextMatches() {
         String text = "";
@@ -798,6 +1125,14 @@ public class Assertions extends General {
         desc = "Assert if [<Object>] does not have text [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.REGEX,
+        inputExample = "@Welcome, .*",
+        inputHelp = "text or regex that must not match",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementTextNotMatches() {
         String text = "";
         try {
@@ -833,6 +1168,14 @@ public class Assertions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Assert if [<Object>] has value [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.REGEX,
+        inputExample = "@[0-9]+",
+        inputHelp = "expected input value text or regex",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
     )
     public void assertElementValueMatches() {
         String value = "";
@@ -870,6 +1213,14 @@ public class Assertions extends General {
         desc = "Assert if [<Object>] does not value [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.REGEX,
+        inputExample = "@[0-9]+",
+        inputHelp = "value text or regex that must not match",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementValueNotMatches() {
         String value = "";
         try {
@@ -903,6 +1254,14 @@ public class Assertions extends General {
         desc = "Assert if [<Object>] has values [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@R=G",
+        inputHelp = "expected selected values separated by '=' (e.g. @R=G)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementValuesMatch() {
         try {
             LocatorAssertions.HasValuesOptions options = new LocatorAssertions.HasValuesOptions();
@@ -932,6 +1291,14 @@ public class Assertions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Assert if [<Object>] does not have values [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@R=G",
+        inputHelp = "selected values pattern that must not match",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
     )
     public void assertElementValuesNotMatch() {
         try {
@@ -965,6 +1332,12 @@ public class Assertions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Assert if [<Object>] points to an attached DOM node"
     )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsAttached() {
         try {
             LocatorAssertions.IsAttachedOptions options = new LocatorAssertions.IsAttachedOptions();
@@ -989,6 +1362,12 @@ public class Assertions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Assert if [<Object>] does not point to an attached DOM node"
     )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsNotAttached() {
         try {
             LocatorAssertions.IsAttachedOptions options = new LocatorAssertions.IsAttachedOptions();
@@ -1007,6 +1386,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is checked")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsChecked() {
         try {
             LocatorAssertions.IsCheckedOptions options = new LocatorAssertions.IsCheckedOptions();
@@ -1024,6 +1409,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not checked")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsNotChecked() {
         try {
             LocatorAssertions.IsCheckedOptions options = new LocatorAssertions.IsCheckedOptions();
@@ -1040,6 +1431,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is disabled")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsDisabled() {
         try {
             LocatorAssertions.IsDisabledOptions options = new LocatorAssertions.IsDisabledOptions();
@@ -1057,6 +1454,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not disabled")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsNotDisabled() {
         try {
             LocatorAssertions.IsDisabledOptions options = new LocatorAssertions.IsDisabledOptions();
@@ -1071,6 +1474,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is editable")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsEditable() {
         try {
             LocatorAssertions.IsEditableOptions options = new LocatorAssertions.IsEditableOptions();
@@ -1088,6 +1497,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not editable")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsNotEditable() {
         try {
             LocatorAssertions.IsEditableOptions options = new LocatorAssertions.IsEditableOptions();
@@ -1102,6 +1517,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is empty")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsEmpty() {
         try {
             LocatorAssertions.IsEmptyOptions options = new LocatorAssertions.IsEmptyOptions();
@@ -1119,6 +1540,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not empty")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsNotEmpty() {
         try {
             LocatorAssertions.IsEmptyOptions options = new LocatorAssertions.IsEmptyOptions();
@@ -1133,6 +1560,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is enabled")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsEnabled() {
         try {
             LocatorAssertions.IsEnabledOptions options = new LocatorAssertions.IsEnabledOptions();
@@ -1150,6 +1583,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not enabled")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsNotEnabled() {
         try {
             LocatorAssertions.IsEnabledOptions options = new LocatorAssertions.IsEnabledOptions();
@@ -1164,6 +1603,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is focused")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsFocused() {
         try {
             LocatorAssertions.IsFocusedOptions options = new LocatorAssertions.IsFocusedOptions();
@@ -1181,6 +1626,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not focused")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsNotFocused() {
         try {
             LocatorAssertions.IsFocusedOptions options = new LocatorAssertions.IsFocusedOptions();
@@ -1195,6 +1646,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is hidden")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsHidden() {
         try {
             LocatorAssertions.IsHiddenOptions options = new LocatorAssertions.IsHiddenOptions();
@@ -1209,6 +1666,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not hidden")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsNotHidden() {
         try {
             LocatorAssertions.IsHiddenOptions options = new LocatorAssertions.IsHiddenOptions();
@@ -1223,6 +1686,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is in viewport")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsInViewport() {
         try {
             LocatorAssertions.IsInViewportOptions options = new LocatorAssertions.IsInViewportOptions();
@@ -1240,6 +1709,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not in viewport")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsNotInViewport() {
         try {
             LocatorAssertions.IsInViewportOptions options = new LocatorAssertions.IsInViewportOptions();
@@ -1254,6 +1729,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is visible")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsVisible() {
         try {
             LocatorAssertions.IsVisibleOptions options = new LocatorAssertions.IsVisibleOptions();
@@ -1274,6 +1755,12 @@ public class Assertions extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not visible")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
     public void assertElementIsNotVisible() {
         try {
             LocatorAssertions.IsVisibleOptions options = new LocatorAssertions.IsVisibleOptions();
@@ -1287,6 +1774,72 @@ public class Assertions extends General {
         }
     }
 
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Assert if [<Object>] matches ARIA snapshot [<Data>]",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@- heading \"todos\"",
+        inputHelp = "expected ARIA snapshot text",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
+    public void assertElementMatchesAriaSnapshot() {
+        try {
+            LocatorAssertions.MatchesAriaSnapshotOptions options = new LocatorAssertions.MatchesAriaSnapshotOptions();
+            options.setTimeout(getTimeoutValue());
+            highlightElement();
+            assertThat(Locator).matchesAriaSnapshot(Data, options);
+            Report.updateTestLog(
+                Action,
+                "Element [" + ObjectName + "] matches ARIA snapshot",
+                Status.PASS
+            );
+        } catch (PlaywrightException e) {
+            PlaywrightExceptionLogging(e);
+        } catch (AssertionFailedError err) {
+            assertionLogging(err, "[" + ObjectName + "] does not match ARIA snapshot");
+        } finally {
+            removeHighlightFromElement();
+        }
+    }
+
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Assert if [<Object>] does not match ARIA snapshot [<Data>]",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@- heading \"todos\"",
+        inputHelp = "ARIA snapshot text expected to be absent",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
+    )
+    public void assertElementNotMatchesAriaSnapshot() {
+        try {
+            LocatorAssertions.MatchesAriaSnapshotOptions options = new LocatorAssertions.MatchesAriaSnapshotOptions();
+            options.setTimeout(getTimeoutValue());
+            highlightElement();
+            assertThat(Locator).not().matchesAriaSnapshot(Data, options);
+            Report.updateTestLog(
+                Action,
+                "Element [" + ObjectName + "] does not match ARIA snapshot",
+                Status.PASS
+            );
+        } catch (PlaywrightException e) {
+            PlaywrightExceptionLogging(e);
+        } catch (AssertionFailedError err) {
+            assertionLogging(err, "[" + ObjectName + "] matches ARIA snapshot");
+        } finally {
+            removeHighlightFromElement();
+        }
+    }
+
     /**
      * *************************************************************************************************************
      */
@@ -1294,6 +1847,14 @@ public class Assertions extends General {
         object = ObjectType.BROWSER,
         desc = "Assert if Page has title [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.REGEX,
+        inputExample = "@Welcome, .*",
+        inputHelp = "expected page title text or regex",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
     )
     public void assertPageTitleMatches() {
         try {
@@ -1317,6 +1878,14 @@ public class Assertions extends General {
         object = ObjectType.BROWSER,
         desc = "Assert if Page has URL [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.REGEX,
+        inputExample = "@https://example.com/.*",
+        inputHelp = "expected page URL text or regex",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional assertion timeout in ms (e.g. 5000)"
     )
     public void assertPageURLMatches() {
         try {

@@ -250,4 +250,13 @@ public class PlaywrightDriverCreation implements PlaywrightDriverCreationApi {
     public Object getPlaywright() {
         return playwright;
     }
+
+    public boolean isLambdaTestExecutionPlatform() {
+        String url = Control.exe.getExecSettings().getRunSettings().getRemoteGridURL();
+        return (
+            url != null &&
+            url.contains("lambdatest.com") &&
+            Control.exe.getExecSettings().getRunSettings().isGridExecution()
+        );
+    }
 }

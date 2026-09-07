@@ -1,4 +1,4 @@
-# INGenious Playwright Studio - Test Automation for Everyone
+# INGenious - Test Automation for Everyone
 
 ## **Getting Started**
 
@@ -52,7 +52,7 @@
 ### Steps for recording
 
 
-* Launch **INGenious Playwright Studio**
+* Launch **INGenious**
 
 * Click on the **Recorder** icon
 
@@ -84,7 +84,7 @@ Internally this will call the following `mvn` command :
 ### Import the recording
 
 
-* From **INGenious Playwright Studio**, navigate to **Tools** > **Import Playwright Recording** > **Import Playwright Recording**.
+* From **INGenious**, navigate to **Tools** > **Import Playwright Recording** > **Import Playwright Recording**.
 
 * Locate the **.txt file** and click [OK].
 

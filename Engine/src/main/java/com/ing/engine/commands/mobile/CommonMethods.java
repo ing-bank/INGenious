@@ -2,9 +2,12 @@ package com.ing.engine.commands.mobile;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.mobile.ElementException;
 import com.ing.ingenious.api.exception.mobile.ElementException.ExceptionType;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.io.File;
@@ -30,6 +33,11 @@ public class CommonMethods extends MobileGeneral {
     }
 
     @Action(object = ObjectType.MOBILE, desc = "Navigate to previous page")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void back() {
         try {
             mDriver.navigate().back();
@@ -41,6 +49,11 @@ public class CommonMethods extends MobileGeneral {
     }
 
     @Action(object = ObjectType.APP, desc = "Hover over the [<Object>] element")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void mouseOverElement() {
         if (elementPresent()) {
             new Actions(mDriver).moveToElement(Element).build().perform();
@@ -53,34 +66,14 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    //    @Action(object = ObjectType.APP, desc = "Drags the [<Object>]")
-    //    public void dragElement() {
-    //        if (elementPresent()) {
-    //            getRunTimeElement().push(Element);
-    //            Report.updateTestLog(Action, "'" + ObjectName
-    //                    + "' dragged", Status.DONE);
-    //        } else {
-    //            throw new ElementException(ElementException.ExceptionType.Element_Not_Found, ObjectName);
-    //        }
-    //    }
-    //
-    //    @Action(object = ObjectType.APP, desc = "Drops the Dragged Object to [<Object>]")
-    //    public void dropElement() {
-    //        if (elementPresent()) {
-    //            if (!getRunTimeElement().empty()) {
-    //                new Actions(mDriver)
-    //                        .dragAndDrop(getRunTimeElement().pop(), Element)
-    //                        .build().perform();
-    //                Report.updateTestLog(Action, "Element  dropped to '"
-    //                        + ObjectName + "' ", Status.DONE);
-    //            } else {
-    //                throw new ElementException(ElementException.ExceptionType.Element_Not_Found, "Drop Target");
-    //            }
-    //        } else {
-    //            throw new ElementException(ElementException.ExceptionType.Element_Not_Found, ObjectName);
-    //        }
-    //    }
     @Action(object = ObjectType.APP, desc = "drag and drop operation of ", input = InputType.YES)
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void dragToAndDropElement() {
         try {
             String Page = Data.split(":", 2)[0];
@@ -113,6 +106,11 @@ public class CommonMethods extends MobileGeneral {
     }
 
     @Action(object = ObjectType.APP, desc = "Tap and hold the [<Object>] element ")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void TapAndHoldElement() {
         if (elementEnabled()) {
             new Actions(mDriver).clickAndHold(Element).build().perform();
@@ -128,6 +126,11 @@ public class CommonMethods extends MobileGeneral {
     @Action(
         object = ObjectType.APP,
         desc = "Release the dragged element over the [<Object>] element "
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void releaseElement() {
         if (elementEnabled()) {
@@ -146,6 +149,13 @@ public class CommonMethods extends MobileGeneral {
         desc = "Take screenshot of the current page and store it in the location [<Input>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void saveScreenshot() {
         try {
             String strFullpath = Data;
@@ -163,6 +173,11 @@ public class CommonMethods extends MobileGeneral {
     }
 
     @Action(object = ObjectType.MOBILE, desc = "Take a Screen Shot ")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void takeScreenshot() {
         try {
             Report.updateTestLog(Action, "Screenshot is taken", Status.PASS);
@@ -176,6 +191,13 @@ public class CommonMethods extends MobileGeneral {
         object = ObjectType.MOBILE,
         desc = "Answer the alert present with [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void answerAlert() {
         String setAlertText = Data;
@@ -193,6 +215,11 @@ public class CommonMethods extends MobileGeneral {
     }
 
     @Action(object = ObjectType.MOBILE, desc = "Accept the alert present")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void acceptAlert() {
         try {
             mDriver.switchTo().alert().accept();
@@ -204,6 +231,11 @@ public class CommonMethods extends MobileGeneral {
     }
 
     @Action(object = ObjectType.MOBILE, desc = "Dismiss the alert present")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void dismissAlert() {
         try {
             mDriver.switchTo().alert().dismiss();
@@ -243,6 +275,13 @@ public class CommonMethods extends MobileGeneral {
         desc = "Store the [<Object>] element's text into the Runtime variable: [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void storeText() {
         if (elementPresent()) {
             String strObj = Input;
@@ -265,6 +304,13 @@ public class CommonMethods extends MobileGeneral {
         object = ObjectType.APP,
         desc = "Store the [<Object>] element's text into datasheet:columname [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void storeTextinDataSheet() {
         if (elementPresent()) {
@@ -311,6 +357,14 @@ public class CommonMethods extends MobileGeneral {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
+    )
     public void storeTextPresent() {
         try {
             if (elementPresent()) {
@@ -348,6 +402,13 @@ public class CommonMethods extends MobileGeneral {
         desc = "Store [<Object>] element  selection state into Runtime variable: -> [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void storeElementSelected() {
         if (elementPresent()) {
             String strObj = Input;
@@ -376,6 +437,14 @@ public class CommonMethods extends MobileGeneral {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
+    )
     public void storeElementAttribute() {
         if (elementPresent()) {
             addVar(Condition, Element.getAttribute(Data));
@@ -393,6 +462,13 @@ public class CommonMethods extends MobileGeneral {
         object = ObjectType.APP,
         desc = "Store [<Object>] element's  value  into Runtime variable: -> [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void storeElementValue() {
         if (elementPresent()) {
@@ -416,29 +492,17 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    /*
-    @Action(object = ObjectType.MOBILE, desc = "Store in Runtime variable Exist/Not Exist based on the  presence of cookie ->[<Data>]", input = InputType.YES, condition = InputType.YES)
-    public void storeCookiePresent() {
-        String variableName = Condition;
-        String cookieName = Data;
-        if (variableName.matches("%.*%")) {
-            if (mDriver.manage().getCookieNamed(cookieName) != null) {
-                addVar(variableName, "Exist");
-            } else {
-                addVar(variableName, "Not Exist");
-            }
-            Report.updateTestLog(Action,
-                    "Cookie presense flag is stored in variable " + variableName + "",
-                    Status.DONE);
-        } else {
-            Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
-        }
-    }
-*/
     @Action(
         object = ObjectType.MOBILE,
         desc = "Store \"Exist\" or \"Not Exist\" based on the alert presence into -> [<Data>] Runtime variable",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void storeAlertPresent() {
         String strObj = Input;
@@ -468,6 +532,13 @@ public class CommonMethods extends MobileGeneral {
         object = ObjectType.APP,
         desc = "Send Keys [<Data>]  to object [<Object>].",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void sendKeysToElement() {
         if (elementPresent()) {
@@ -512,6 +583,13 @@ public class CommonMethods extends MobileGeneral {
         object = ObjectType.MOBILE,
         desc = "Send Keys [<Data>]  to Window.",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void sendKeysToWindow() {
         Actions builder = new Actions(mDriver);
@@ -592,211 +670,4 @@ public class CommonMethods extends MobileGeneral {
                 }
         }
     }
-    /*
-    @Action(object = ObjectType.MOBILE, desc = "Refresh current page ")
-    public void refreshDriver() {
-        try {
-            mDriver.navigate().refresh();
-            Report.updateTestLog("refreshDriver", "Page is refreshed",
-                    Status.DONE);
-        } catch (WebDriverException e) {
-            Report.updateTestLog("refreshDriver", e.getMessage(), Status.FAIL);
-            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
-        }
-
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "browser navigates to next page.")
-    public void forward() {
-        try {
-            mDriver.navigate().forward();
-            Report.updateTestLog("forward", "Navigate page forward is success",
-                    Status.DONE);
-        } catch (WebDriverException e) {
-            Report.updateTestLog("forward", e.getMessage(), Status.FAIL);
-            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "Close the current browser session")
-    public void close() {
-        try {
-            mDriver.close();
-            Report.updateTestLog("close", "Selenium Webdriver is closed",
-                    Status.DONE);
-        } catch (WebDriverException e) {
-            Report.updateTestLog("close", e.getMessage(), Status.FAIL);
-            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
-        }
-    }
-
-    @Action(object = ObjectType.APP, desc = "To Perform Right Click action on WebPage/Element")
-    public void rightClick() {
-        String desc = "Right click action performed on ";
-        Actions action = new Actions(mDriver);
-        if (Element != null) {
-            action.contextClick(Element).build().perform();
-            desc += "Element - " + ObjectName;
-        } else {
-            action.contextClick().build().perform();
-            desc += "Webpage";
-        }
-        Report.updateTestLog(Action, desc, Status.DONE);
-    }
-
-    @Action(object = ObjectType.APP, desc = "Double click [<Object>] element")
-    public void doubleClickElement() {
-        if (elementEnabled()) {
-            new Actions(mDriver).doubleClick(Element).build().perform();
-            Report.updateTestLog("doubleClickElement", "'" + Element
-                    + "' is doubleClicked", Status.DONE);
-        } else {
-            throw new ElementException(ExceptionType.Element_Not_Enabled, ObjectName);
-        }
-    }
-
-    @Action(object = ObjectType.APP, desc = "Drags the [<Object>]")
-    public void dragElement() {
-        if (elementPresent()) {
-            getRunTimeElement().push(Element);
-            Report.updateTestLog(Action, "'" + ObjectName
-                    + "' dragged", Status.DONE);
-        } else {
-            throw new ElementException(ElementException.ExceptionType.Element_Not_Found, ObjectName);
-        }
-    }
-
-    @Action(object = ObjectType.APP, desc = "Drops the Dragged Object to [<Object>]")
-    public void dropElement() {
-        if (elementPresent()) {
-            if (!getRunTimeElement().empty()) {
-                new Actions(mDriver)
-                        .dragAndDrop(getRunTimeElement().pop(), Element)
-                        .build().perform();
-                Report.updateTestLog(Action, "Element  dropped to '"
-                        + ObjectName + "' ", Status.DONE);
-            } else {
-                throw new ElementException(ElementException.ExceptionType.Element_Not_Found, "Drop Target");
-            }
-        } else {
-            throw new ElementException(ElementException.ExceptionType.Element_Not_Found, ObjectName);
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "Add the cookie of name with value [<Data>].", input = InputType.YES)
-    public void addCookie() {
-
-        try {
-            String strCookieName = Data.split(":", 2)[0];
-            String strCookieValue = Data.split(":", 2)[1];
-            Cookie oCookie = new Cookie.Builder(strCookieName, strCookieValue)
-                    .build();
-            mDriver.manage().addCookie(oCookie);
-            Report.updateTestLog(Action, "Cookie Name- '" + strCookieName
-                    + "' with value '" + strCookieValue + "' is added",
-                    Status.DONE);
-        } catch (Exception e) {
-            Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
-            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "delete the cookie having name [<Data>].", input = InputType.YES)
-    public void deleteCookie() {
-        try {
-            String strCookieName = Data;
-            Cookie oCookie = mDriver.manage().getCookieNamed(strCookieName);
-            if (oCookie != null) {
-                mDriver.manage().deleteCookie(oCookie);
-                Report.updateTestLog(Action, "Cookie Name- '"
-                        + strCookieName + "' is deleted", Status.DONE);
-            } else {
-                Report.updateTestLog(Action, "Cookie doesn't exist",
-                        Status.FAIL);
-            }
-        } catch (Exception e) {
-            Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
-            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "Take a Screen Shot ")
-    public void takeScreenshot() {
-        try {
-            Report.updateTestLog(Action, "Screenshot is taken", Status.PASS);
-        } catch (Exception e) {
-            Report.updateTestLog(Action, e.getMessage(), Status.DEBUG);
-            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "Store the current page url into the Runtime variable: [<Data>]", input = InputType.YES)
-    public void storeCurrentUrl() {
-        String strObj = Input;
-        if (strObj.startsWith("%") && strObj.endsWith("%")) {
-            addVar(strObj, mDriver.getCurrentUrl());
-            Report.updateTestLog(Action, "Current URL '" + mDriver.getCurrentUrl()
-                    + "' is stored in variable '" + strObj + "'", Status.PASS);
-        } else {
-            Report.updateTestLog(Action, "Variable format is not correct", Status.FAIL);
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "store the webpage title in variable named [<Data>].", input = InputType.YES)
-    public void storeTitle() {
-        String strObj = Input;
-        if (strObj.startsWith("%") && strObj.endsWith("%")) {
-            addVar(strObj, mDriver.getTitle());
-            Report.updateTestLog(Action, "Page title '" + mDriver.getTitle() + "' is stored in '"
-                    + strObj + "'", Status.PASS);
-        } else {
-            Report.updateTestLog(Action, "Variable format is not correct", Status.FAIL);
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "Store in Runtime variable Exist/Not Exist based on the  presence of cookie ->[<Data>]", input = InputType.YES, condition = InputType.YES)
-    public void storeCookiePresent() {
-        String variableName = Condition;
-        String cookieName = Data;
-        if (variableName.matches("%.*%")) {
-            if (mDriver.manage().getCookieNamed(cookieName) != null) {
-                addVar(variableName, "Exist");
-            } else {
-                addVar(variableName, "Not Exist");
-            }
-            Report.updateTestLog(Action,
-                    "Cookie presense flag is stored in variable " + variableName + "",
-                    Status.DONE);
-        } else {
-            Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "Store value of cookie into Runtime variable -> [<Data>]", input = InputType.YES, condition = InputType.YES)
-    public void storeCookieByName() {
-        String variableName = Condition;
-        String cookieName = Data;
-        if (variableName.matches("%.*%")) {
-            addVar(variableName, mDriver.manage().getCookieNamed(cookieName)
-                    .getValue());
-            Report.updateTestLog(Action, "Cookie Stored", Status.DONE);
-        } else {
-            Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
-        }
-    }
-    
-        @Action(object = ObjectType.MOBILE, desc = "Store the result of Javascript expression value in a variable", input = InputType.YES, condition = InputType.YES)
-    public void storeEval() {
-        String javaScript = Data;
-        String variableName = Condition;
-        if (variableName.matches("%.*%")) {
-            JavascriptExecutor js = (JavascriptExecutor) mDriver;
-            addVar(variableName, js.executeScript(javaScript).toString());
-            Report.updateTestLog(Action, "Eval Stored", Status.DONE);
-        } else {
-            Report.updateTestLog(Action, "Variable format is not correct", Status.FAIL);
-        }
-    }
-
-     */
 }

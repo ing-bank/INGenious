@@ -2,8 +2,11 @@ package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.microsoft.playwright.Download;
@@ -22,6 +25,14 @@ public class DownloadFiles extends General {
         desc = "Set InputFile path in [<Object>]",
         input = InputType.YES,
         condition = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.FILE_PATH,
+        inputExample = "@/tmp/downloads",
+        inputHelp = "destination folder path where file will be saved (e.g. @/tmp/downloads)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "report.pdf",
+        conditionHelp = "optional filename (e.g. report.pdf); if empty, uses browser suggested filename"
     )
     public void DownloadandSaveAs() {
         String fileName = "";

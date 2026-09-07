@@ -157,6 +157,9 @@ public class AppActionListener implements ActionListener {
             case "Archetype Configurations":
                 driverSettings.open();
                 break;
+            case "Manage Archetypes":
+                com.ing.ide.main.settings.ArchetypeManagerDialog.open(sMainFrame);
+                break;
             case "AzureDevOps TestPlan Configuration":
                 tmSettings.open();
                 break;
@@ -180,6 +183,9 @@ public class AppActionListener implements ActionListener {
             case "Har Compare":
                 sMainFrame.getDashBoardManager().openHarComapareInBrowser();
                 break;
+            case "Project Health":
+                showProjectHealth();
+                break;
             case "Help":
                 Help.openHelp();
                 break;
@@ -188,6 +194,9 @@ public class AppActionListener implements ActionListener {
                 break;
             case "Show Log":
                 UILogger.get().openLog();
+                break;
+            case "Start Tour":
+                sMainFrame.startTour();
                 break;
             case "Test Design":
                 sMainFrame.showTestDesign();
@@ -201,9 +210,12 @@ public class AppActionListener implements ActionListener {
             case "API Workbench":
                 sMainFrame.showAPITester();
                 break;
-            case "AI Assistant":
-                sMainFrame.showAICopilot();
+            case "Performance Studio":
+                sMainFrame.showPerfStudio();
                 break;
+            // case "INGenie":
+            //     sMainFrame.showAICopilot();
+            //     break;
             case "Refresh":
                 doRefresh();
                 break;
@@ -322,6 +334,33 @@ public class AppActionListener implements ActionListener {
                     System.out.println("UNHANDLED ACTION: [" + ae.getActionCommand() + "]");
                     sMainFrame.getLoader().showIDontCare();
                 }
+        }
+    }
+
+    /**
+     * Runs a read-only project health analysis on the currently open project
+     * and displays the result in a modern HTML overlay. The external
+     * {@code ingenious project validate} CLI command is unaffected.
+     */
+    private void showProjectHealth() {
+        if (sMainFrame.getProject() == null) {
+            Notification.show("Please open a project first to check its health.");
+            return;
+        }
+        sMainFrame.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+        try {
+            com.ing.ide.main.mainui.components.health.ProjectHealthReport report = com.ing.ide.main.mainui.components.health.ProjectHealthAnalyzer.analyse(
+                sMainFrame.getProject()
+            );
+            com.ing.ide.main.mainui.components.health.ProjectHealthDialog.showReport(
+                sMainFrame,
+                report
+            );
+        } catch (Exception ex) {
+            Logger.getLogger(AppActionListener.class.getName()).log(Level.SEVERE, null, ex);
+            Notification.show("Could not analyse project health: " + ex.getMessage());
+        } finally {
+            sMainFrame.setCursor(java.awt.Cursor.getDefaultCursor());
         }
     }
 

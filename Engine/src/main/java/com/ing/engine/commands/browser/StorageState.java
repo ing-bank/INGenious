@@ -3,8 +3,11 @@ package com.ing.engine.commands.browser;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.microsoft.playwright.BrowserContext;
@@ -26,6 +29,13 @@ public class StorageState extends Command {
         object = ObjectType.BROWSER,
         desc = "Store Storage State in JSON file",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.FILE_PATH,
+        inputExample = "@/tmp/storage-state.json",
+        inputHelp = "file path where storage state JSON will be written",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void StoreStorageState() {
         try {

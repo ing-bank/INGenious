@@ -4,8 +4,11 @@ import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.microsoft.playwright.*;
@@ -29,6 +32,13 @@ public class RequestFulfill extends Command {
         desc = "Set Endpoint for mocking request",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@**/api/users",
+        inputHelp = "route endpoint/pattern (e.g. @**/api/users) to mock (supports {Sheet:Column} and {var} placeholders)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void RouteFulfillEndpoint() {
         try {
             String resource = handlePayloadorEndpoint(Data);
@@ -48,6 +58,13 @@ public class RequestFulfill extends Command {
         object = ObjectType.BROWSER,
         desc = "Set body for mocking request",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.JSON_BODY,
+        inputExample = "{\"id\":\"{Users:id}\",\"name\":\"John\"}",
+        inputHelp = "mock response body string (JSON/text) with optional data placeholders",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void RouteFulfillSetBody() {
         try {

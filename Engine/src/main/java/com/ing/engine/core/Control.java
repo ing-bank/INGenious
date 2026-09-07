@@ -111,9 +111,10 @@ public class Control {
         FilePath.initDateTime();
         MethodExecutor.init();
         ConsoleReport.init();
-        SystemDefaults.printSystemInfo();
 
-        // Print INGenious ASCII Banner
+        // Print INGenious ASCII Banner (system info is already in the run
+        // banner/report; a separate "=====" system-info dump right before it
+        // just duplicated the separator and bloated every run's log).
         printExecutionBanner();
 
         WebDriverFactory.initDriverLocation(exe.getProject().getProjectSettings());
@@ -281,6 +282,10 @@ public class Control {
 
         // New CLI subcommands & global flags
         String[] newCommands = {
+            "ai",
+            "chat",
+            "assistant",
+            "plugins",
             "project",
             "scenario",
             "testcase",
@@ -293,7 +298,11 @@ public class Control {
             "data",
             "action",
             "actions",
+            "import",
+            "apicollection",
             "run",
+            "perf",
+            "performance",
             "report",
             "config",
             "server",
@@ -318,6 +327,7 @@ public class Control {
     }
 
     public static void main(String[] args) throws UnCaughtException {
+        redirectMcpStderrIfRequested();
         initDeps();
 
         if (args != null && args.length > 0) {
@@ -333,14 +343,46 @@ public class Control {
                 LookUp.exe(args);
             }
         } else {
-            // No args - show CLI help with banner
-            int exitCode = com.ing.engine.cli.INGeniousCLI.run(new String[0]);
+            // No args: in a real terminal launch the interactive AI CLI;
+            // when piped/scripted fall back to help so automation never hangs.
+            String[] fallback = System.console() != null ? new String[] { "ai" } : new String[0];
+            int exitCode = com.ing.engine.cli.INGeniousCLI.run(fallback);
             System.exit(exitCode);
         }
     }
 
+    /** When the AI-CLI Copilot-SDK provider launches this as an MCP server it sets
+     * {@code INGENIOUS_MCP_STDERR}; redirect stderr there so startup failures are captured. */
+    private static void redirectMcpStderrIfRequested() {
+        String errLog = System.getenv("INGENIOUS_MCP_STDERR");
+        if (errLog == null || errLog.isBlank()) {
+            return;
+        }
+        try {
+            System.setErr(
+                new java.io.PrintStream(new java.io.FileOutputStream(errLog, true), true, "UTF-8")
+            );
+            System.err.println(
+                "[ingenious-mcp] starting; user.dir=" +
+                System.getProperty("user.dir") +
+                " at " +
+                new java.util.Date()
+            );
+        } catch (Exception ignore) {
+            // diagnostics only
+        }
+    }
+
     /**
-     * Print INGenious ASCII banner at execution start
+     * Print the INGenious execution banner at run start.
+     *
+     * <p>The IDE's live Console view sets the {@code ingenious.console.webview}
+     * system property (see {@code ConsolePanel.start()}) when it starts capturing
+     * output, since {@code System.console() != null} is unreliable here (the IDE
+     * itself may have been launched from a terminal). When that property is set, a
+     * single {@code [INGENIOUS]}-tagged line is printed instead of the box-drawing
+     * ASCII art, which the IDE console renders as a compact brand pill; real CLI
+     * usage is unaffected and still gets the full ASCII art.</p>
      */
     private void printExecutionBanner() {
         String projectName = exe.getProject() != null ? exe.getProject().getName() : "Unknown";
@@ -349,6 +391,23 @@ public class Control {
             browser = "Default";
         }
         String platform = System.getProperty("os.name", "Unknown");
+        String version = com.ing.engine.constants.SystemDefaults.getBuildVersion();
+
+        if (isWebViewConsole()) {
+            System.out.println();
+            System.out.println(
+                "[INGENIOUS] Test Automation Framework v" +
+                version +
+                " | Project: " +
+                projectName +
+                " | Browser: " +
+                browser +
+                " | Platform: " +
+                platform
+            );
+            System.out.println();
+            return;
+        }
 
         System.out.println();
         System.out.println(
@@ -378,12 +437,7 @@ public class Control {
         System.out.println(
             "║                                                                              ║"
         );
-        System.out.println(
-            formatVersionBannerLine(
-                "🚀 Test Automation Framework v" +
-                com.ing.engine.constants.SystemDefaults.getBuildVersion()
-            )
-        );
+        System.out.println(formatVersionBannerLine("🚀 Test Automation Framework v" + version));
         System.out.println(
             "║                                                                              ║"
         );
@@ -401,6 +455,14 @@ public class Control {
             "══════════════════════════════════════════════════════════════════════════════"
         );
         System.out.println();
+    }
+
+    /**
+     * Whether output is being captured by the IDE's live Console webview rather
+     * than a real terminal (see {@code ConsolePanel.start()} in the IDE module).
+     */
+    public static boolean isWebViewConsole() {
+        return "true".equalsIgnoreCase(System.getProperty("ingenious.console.webview"));
     }
 
     /**

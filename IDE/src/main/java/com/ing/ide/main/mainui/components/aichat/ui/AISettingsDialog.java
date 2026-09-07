@@ -33,7 +33,7 @@ public final class AISettingsDialog {
         Window owner = SwingUtilities.getWindowAncestor(parent);
         JDialog dialog = new JDialog(
             owner,
-            "AI Assistant Settings",
+            "INGenie Settings",
             JDialog.ModalityType.APPLICATION_MODAL
         );
 

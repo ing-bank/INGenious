@@ -8,7 +8,8 @@ import com.ing.ide.main.mainui.components.aichat.auth.AICredentials;
 import com.ing.ide.main.mainui.components.aichat.auth.DeviceCodeResponse;
 import com.ing.ide.main.mainui.components.aichat.auth.GitHubDeviceAuthService;
 import com.ing.ide.main.mainui.components.aichat.client.GitHubModelsClient;
-import com.ing.ide.main.mainui.components.aichat.mcp.INGeniousToolServer;
+import com.ing.ide.main.mainui.components.aichat.history.ChatHistoryStore;
+import com.ing.ide.main.mainui.components.aichat.mcp.MCPToolBridge;
 import com.ing.ide.main.mainui.components.aichat.model.ChatCompletionRequest;
 import com.ing.ide.main.mainui.components.aichat.model.ChatMessage;
 import com.ing.ide.main.mainui.components.aichat.model.ChatSession;
@@ -17,11 +18,14 @@ import com.ing.ide.main.mainui.components.aichat.model.TokenUsage;
 import com.ing.ide.main.mainui.components.aichat.skills.AuthoringSkill;
 import com.ing.ide.main.mainui.components.aichat.ui.AICopilotUI;
 import com.ing.ide.main.mainui.components.aichat.ui.AISettingsDialog;
-import com.ing.ide.main.mainui.components.aichat.ui.ToolApprovalDialog;
 import com.ing.ide.main.mainui.components.aichat.util.TokenUsageTracker;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -44,19 +48,64 @@ public class AICopilot implements SlideShow.SlideChangeListener {
     private final TokenUsageTracker usageTracker = new TokenUsageTracker();
     private final ChatSession session;
     private final AICopilotUI ui;
-    private final INGeniousToolServer toolServer;
+    private final MCPToolBridge toolServer;
+    private final ChatHistoryStore historyStore = new ChatHistoryStore();
+    private String currentConversationId;
+
+    /**
+     * OpenAI-compatible base URL of a running VS Code Copilot bridge, or
+     * {@code null} to use the direct GitHub Models auth flow. When set, the
+     * assistant works without a GitHub token. Re-evaluated by {@link #connectToVsCode()}.
+     */
+    private volatile String bridgeBaseUrl;
 
     private volatile Thread activeTurn;
     private volatile GitHubDeviceAuthService activeAuth;
     private volatile AgentOrchestrator activeAgent;
 
+    /** Inline approval futures keyed by tool-call id, resolved by chat buttons. */
+    private final java.util.Map<String, CompletableFuture<Boolean>> pendingApprovals = new ConcurrentHashMap<>();
+    private final AtomicInteger toolSeq = new AtomicInteger();
+
+    /** Lazily-created, self-agentic Copilot SDK provider (drives the Copilot CLI). */
+    private volatile com.ing.engine.aicli.ai.CopilotSdkProvider copilotSdkProvider;
+
+    /** Live-context system message kept in sync before each turn. */
+    private ChatMessage contextMessage;
+
     public AICopilot(AppMainFrame mainFrame) {
         this.mainFrame = mainFrame;
         this.session = new ChatSession(credentials.getSelectedModel());
         this.session.addMessage(ChatMessage.system(AuthoringSkill.systemPrompt()));
-        this.toolServer = new INGeniousToolServer(mainFrame);
+        this.toolServer = new MCPToolBridge(mainFrame);
+        this.toolServer.addRefreshListener((toolName, result) -> scheduleLiveReload());
         this.ui = new AICopilotUI(this);
+        // Prefer a locally running VS Code Copilot bridge over direct GitHub auth.
+        this.bridgeBaseUrl =
+            com.ing.ide.main.mainui.components.aichat.client.BridgeDiscovery.detect();
+        if (bridgeBaseUrl != null) {
+            client.useLocalBridge(bridgeBaseUrl);
+            LOG.log(Level.INFO, "Using VS Code Copilot bridge at {0}", bridgeBaseUrl);
+        }
         refreshAuthState();
+    }
+
+    /** True when the assistant is backed by a local VS Code Copilot bridge. */
+    private boolean bridgeActive() {
+        return bridgeBaseUrl != null;
+    }
+
+    /**
+     * The token to send with requests: the real GitHub token when present, a
+     * non-null placeholder when the bridge is active (so token gates pass and
+     * the client simply omits the {@code Authorization} header), else null.
+     */
+    private String effectiveToken() {
+        String token = credentials.getToken();
+        if (token != null && !token.isEmpty()) {
+            return token;
+        }
+        return bridgeActive() ? "local-bridge" : null;
     }
 
     public AICopilotUI getAICopilotUI() {
@@ -67,25 +116,237 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         return mainFrame;
     }
 
+    /**
+     * Resolves a prompt-library token to a live value from the current IDE
+     * selection. Returns {@code null} when nothing is selected so the UI can
+     * fall back to a guide-friendly default.
+     */
+    public String resolveContextToken(String token) {
+        try {
+            if ("currentProject".equals(token)) {
+                return mainFrame.getProject() == null ? null : mainFrame.getProject().getName();
+            }
+            com.ing.datalib.component.TestCase tc = mainFrame
+                .getTestDesign()
+                .getTestCaseComp()
+                .getCurrentTestCase();
+            if (tc == null) {
+                return null;
+            }
+            if ("currentTestCase".equals(token)) {
+                return tc.getName();
+            }
+            if ("currentScenario".equals(token)) {
+                return tc.getScenario() == null ? null : tc.getScenario().getName();
+            }
+        } catch (Exception ex) {
+            LOG.log(Level.FINE, "Could not resolve context token: " + token, ex);
+        }
+        return null;
+    }
+
     private void refreshAuthState() {
-        boolean signedIn = credentials.isSignedIn();
-        ui.setSignedIn(signedIn, credentials.getLogin());
-        if (signedIn) {
+        if (copilotSdkEnabled()) {
+            ui.setConnected(true, "Copilot CLI (SDK) \u00b7 " + credentials.getCopilotSdkModel());
+            loadCopilotSdkModelsAsync();
+            return;
+        }
+        if (bridgeActive()) {
+            ui.setConnected(
+                true,
+                "Connected \u00b7 port " + bridgePort() + " \u00b7 " + toolCount() + " tools"
+            );
             loadCatalogAsync();
+        } else if (credentials.isSignedIn()) {
+            String login = credentials.getLogin();
+            ui.setConnected(true, login != null && !login.isEmpty() ? login : "Connected");
+            loadCatalogAsync();
+        } else {
+            ui.setConnected(false, "Not connected");
+        }
+    }
+
+    /**
+     * Connects the assistant. When the Copilot SDK backend is active this
+     * validates the Copilot CLI session (green bulb on success); otherwise it
+     * (re)detects a running VS Code Copilot bridge.
+     */
+    public void connectToVsCode() {
+        if (copilotSdkEnabled()) {
+            probeCopilotSdk();
+            return;
+        }
+        ui.setStatus("Connecting to VS Code\u2026");
+        new Thread(
+            () -> {
+                String url = com.ing.ide.main.mainui.components.aichat.client.BridgeDiscovery.detect();
+                if (url == null) {
+                    SwingUtilities.invokeLater(
+                        () -> {
+                            ui.setConnected(false, "Not connected");
+                            showError(
+                                "VS Code bridge not found. In VS Code, install and run the " +
+                                "'VSCode INGenious Bridge' extension (it starts automatically), " +
+                                "then click Connect to VS Code."
+                            );
+                        }
+                    );
+                    return;
+                }
+                bridgeBaseUrl = url;
+                client.useLocalBridge(url);
+                int port = bridgePort();
+                LOG.log(Level.INFO, "Connected to VS Code Copilot bridge at {0}", url);
+                SwingUtilities.invokeLater(
+                    () -> {
+                        int tools = toolCount();
+                        ui.setConnected(
+                            true,
+                            "Connected \u00b7 port " + port + " \u00b7 " + tools + " tools"
+                        );
+                        ui.showTemporaryMessage(
+                            "\u2713 Connected on port " +
+                            port +
+                            " \u2014 " +
+                            tools +
+                            " tools available"
+                        );
+                    }
+                );
+                loadCatalogAsync();
+            },
+            "aichat-connect"
+        )
+        .start();
+    }
+
+    /**
+     * Validates the Copilot SDK backend by opening (or reusing) the Copilot CLI
+     * session. Turns the status bulb green when the CLI is installed and
+     * authenticated, otherwise surfaces a clear, actionable error.
+     */
+    public void probeCopilotSdk() {
+        ui.setStatus("Checking Copilot CLI\u2026");
+        new Thread(
+            () -> {
+                try {
+                    ensureCopilotSdkProvider().warmUp();
+                    SwingUtilities.invokeLater(
+                        () -> {
+                            ui.setConnected(
+                                true,
+                                "Copilot CLI (SDK) \u00b7 " + credentials.getCopilotSdkModel()
+                            );
+                            ui.showTemporaryMessage("\u2713 Copilot CLI ready");
+                            ui.setFooter(creditSummary());
+                        }
+                    );
+                    loadCopilotSdkModelsAsync();
+                } catch (Exception ex) {
+                    SwingUtilities.invokeLater(
+                        () -> {
+                            ui.setConnected(false, "Copilot CLI not ready");
+                            showError(copilotSdkHint(ex));
+                        }
+                    );
+                }
+            },
+            "aichat-copilot-sdk-probe"
+        )
+        .start();
+    }
+
+    /** Builds an actionable hint for a Copilot SDK/CLI failure. */
+    private String copilotSdkHint(Throwable ex) {
+        String msg = ex.getMessage() == null ? ex.toString() : ex.getMessage();
+        String hint =
+            "Could not reach the GitHub Copilot CLI.\n\n" +
+            "\u2022 Ensure the 'copilot' CLI is installed and on PATH (run 'copilot --version').\n" +
+            "\u2022 Authenticate with 'copilot auth login'.\n";
+        if (
+            msg != null && (msg.contains("503") || msg.contains("No server is currently available"))
+        ) {
+            hint +=
+                "\u2022 GitHub returned a temporary 503 (service unavailable). This is a transient " +
+                "GitHub outage \u2014 wait a moment and click Connect again.\n";
+        }
+        return hint + "\nDetails: " + msg;
+    }
+
+    /** Cumulative AI credits/tokens for the current Copilot SDK session, CLI-style. */
+    private String creditSummary() {
+        if (!copilotSdkEnabled() || copilotSdkProvider == null) {
+            return " ";
+        }
+        com.ing.engine.aicli.ai.Usage total = copilotSdkProvider.usage();
+        if (total == null || total.isEmpty()) {
+            return " ";
+        }
+        return "AI credits: " + total.summary();
+    }
+
+    /** Port of the currently connected bridge, or -1 when unknown. */
+    private int bridgePort() {
+        try {
+            return bridgeBaseUrl == null ? -1 : URI.create(bridgeBaseUrl).getPort();
+        } catch (Exception ex) {
+            return -1;
+        }
+    }
+
+    /** Number of INGenious tools currently exposed to the model (diagnostic). */
+    private int toolCount() {
+        try {
+            return toolServer.toolDefinitions().size();
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, "Could not list tool definitions", ex);
+            return -1;
         }
     }
 
     // ── Model selection ───────────────────────────────────────────────────
 
     public void onModelSelected(String modelId) {
-        if (modelId != null && !modelId.isEmpty()) {
+        if (modelId == null || modelId.isEmpty()) {
+            return;
+        }
+        if (copilotSdkEnabled()) {
+            credentials.setCopilotSdkModel(modelId);
+            ui.setConnected(true, "Copilot CLI (SDK) \u00b7 " + modelId);
+        } else {
             session.setModel(modelId);
             credentials.setSelectedModel(modelId);
         }
     }
 
+    /**
+     * Loads the model list visible to the authenticated Copilot CLI account and
+     * fills the dropdown, pre-selecting the persisted Copilot SDK model.
+     */
+    private void loadCopilotSdkModelsAsync() {
+        new Thread(
+            () -> {
+                try {
+                    List<String> ids = com.ing.engine.aicli.ai.CopilotSdkProvider.listAvailableModels();
+                    List<ModelInfo> models = new ArrayList<>();
+                    for (String id : ids) {
+                        ModelInfo mi = new ModelInfo();
+                        mi.setId(id);
+                        mi.setName(id);
+                        models.add(mi);
+                    }
+                    ui.setModels(models, credentials.getCopilotSdkModel());
+                } catch (Exception ex) {
+                    LOG.log(Level.WARNING, "Failed to load Copilot SDK model list", ex);
+                }
+            },
+            "aichat-sdk-catalog"
+        )
+        .start();
+    }
+
     private void loadCatalogAsync() {
-        String token = credentials.getToken();
+        String token = effectiveToken();
         if (token == null) {
             return;
         }
@@ -104,6 +365,20 @@ public class AICopilot implements SlideShow.SlideChangeListener {
     }
 
     // ── Authentication ────────────────────────────────────────────────────
+
+    public boolean isCopilotSdkEnabled() {
+        return credentials.isCopilotSdkEnabled();
+    }
+
+    /** Toggles between the GitHub Copilot SDK/CLI backend and GitHub Models. */
+    public void setCopilotSdkEnabled(boolean enabled) {
+        credentials.setCopilotSdkEnabled(enabled);
+        refreshAuthState();
+    }
+
+    private boolean copilotSdkEnabled() {
+        return credentials.isCopilotSdkEnabled();
+    }
 
     public void toggleSignIn() {
         if (credentials.isSignedIn()) {
@@ -190,28 +465,91 @@ public class AICopilot implements SlideShow.SlideChangeListener {
     // ── Chat turn ─────────────────────────────────────────────────────────
 
     public void sendUserMessage(String text) {
-        if (!credentials.isSignedIn()) {
-            showError("Please sign in to GitHub before chatting.");
+        if (!copilotSdkEnabled() && !credentials.isSignedIn() && !bridgeActive()) {
+            showError(
+                "Not connected. Enable \"Copilot SDK\" to use the GitHub Copilot CLI, or click " +
+                "\"Connect to VS Code\" to use GitHub Copilot via the bridge."
+            );
             return;
         }
+        syncContextMessage();
         ChatMessage userMessage = ChatMessage.user(text);
         session.addMessage(userMessage);
         ui.getChatWebView().addMessage(userMessage);
-        if (ui.isAgentMode()) {
+        if (copilotSdkEnabled()) {
+            startCopilotSdkTurn(text);
+            return;
+        }
+        // Tools require an open project. Whenever one is open, use the tool-calling
+        // (agent) loop so the assistant can actually act on the project — the model
+        // still decides whether to call any tools. Fall back to plain chat otherwise.
+        if (mainFrame.getProject() != null) {
             startAgentTurn();
         } else {
             startStreamingTurn();
         }
     }
 
+    /**
+     * Keeps a single system message with the live IDE context (project,
+     * scenario, test case) just after the base authoring prompt, refreshing it
+     * before each turn so the model always sees the current selection without
+     * the history growing unbounded.
+     */
+    private void syncContextMessage() {
+        try {
+            List<ChatMessage> msgs = session.getMessages();
+            if (contextMessage != null) {
+                msgs.remove(contextMessage);
+            }
+            contextMessage = ChatMessage.system(buildContextSnapshot());
+            int idx = msgs.isEmpty() ? 0 : 1;
+            msgs.add(Math.min(idx, msgs.size()), contextMessage);
+        } catch (Exception ex) {
+            LOG.log(Level.FINE, "Could not sync context message", ex);
+        }
+    }
+
+    private String buildContextSnapshot() {
+        StringBuilder sb = new StringBuilder("# Current IDE context\n");
+        try {
+            com.ing.datalib.component.Project p = mainFrame.getProject();
+            sb.append("Project: ").append(p == null ? "(none)" : p.getName());
+            if (p != null) {
+                sb.append("  (path: ").append(p.getLocation()).append(")");
+            }
+            sb.append('\n');
+            com.ing.datalib.component.TestCase tc = mainFrame
+                .getTestDesign()
+                .getTestCaseComp()
+                .getCurrentTestCase();
+            if (tc != null) {
+                if (tc.getScenario() != null) {
+                    sb
+                        .append("Selected scenario: ")
+                        .append(tc.getScenario().getName())
+                        .append('\n');
+                }
+                sb.append("Selected test case: ").append(tc.getName()).append('\n');
+            }
+        } catch (Exception ex) {
+            LOG.log(Level.FINE, "Could not build context snapshot", ex);
+        }
+        sb.append(
+            "\nWhen the user refers to \"this\"/\"current\" project, scenario, or " +
+            "test case, use the values above. Pass the project path to tools."
+        );
+        return sb.toString();
+    }
+
     private void startStreamingTurn() {
-        final String token = credentials.getToken();
+        final String token = effectiveToken();
         if (token == null) {
             showError("Not signed in.");
             return;
         }
         ui.setGenerating(true);
-        ui.getChatWebView().beginAssistantMessage();
+        usageTracker.beginTask();
 
         final ChatCompletionRequest request = new ChatCompletionRequest(
             session.getModel(),
@@ -220,6 +558,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         );
 
         final StringBuilder accumulated = new StringBuilder();
+        final boolean[] started = { false };
 
         Thread turn = new Thread(
             () -> {
@@ -230,6 +569,10 @@ public class AICopilot implements SlideShow.SlideChangeListener {
 
                         @Override
                         public void onToken(String chunk) {
+                            if (!started[0]) {
+                                started[0] = true;
+                                ui.getChatWebView().beginAssistantMessage();
+                            }
                             accumulated.append(chunk);
                             ui.getChatWebView().updateAssistantMessage(accumulated.toString());
                         }
@@ -252,6 +595,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                             ui.getChatWebView().endAssistantMessage();
                             ui.setGenerating(false);
                             activeTurn = null;
+                            persistCurrentConversation();
                         }
 
                         @Override
@@ -287,6 +631,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         if (agent != null) {
             agent.cancel();
         }
+        failPendingApprovals();
         Thread turn = activeTurn;
         if (turn != null) {
             turn.interrupt();
@@ -296,10 +641,180 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         }
     }
 
+    // ── Copilot SDK turn (drives the Copilot CLI directly, same as the AI CLI) ──
+
+    /** Lazily creates (or recreates on model change) the Copilot SDK provider. */
+    private synchronized com.ing.engine.aicli.ai.CopilotSdkProvider ensureCopilotSdkProvider() {
+        String wanted = credentials.getCopilotSdkModel();
+        if (
+            copilotSdkProvider == null ||
+            !java.util.Objects.equals(copilotSdkProvider.model(), wanted)
+        ) {
+            copilotSdkProvider =
+                new com.ing.engine.aicli.ai.CopilotSdkProvider(
+                    wanted,
+                    () -> {
+                        com.ing.datalib.component.Project p = mainFrame.getProject();
+                        return p == null ? null : p.getLocation();
+                    }
+                );
+        }
+        return copilotSdkProvider;
+    }
+
+    /**
+     * Turn for the Copilot SDK provider: the Copilot CLI plans and calls the
+     * INGenious MCP tools itself (identical wiring to the AI CLI's
+     * {@code copilot-sdk} provider), so this only relays the prompt, mirrors its
+     * live tool activity into the transcript, and renders the final report.
+     */
+    private void startCopilotSdkTurn(String text) {
+        ui.setGenerating(true);
+        final com.ing.engine.aicli.ai.CopilotSdkProvider provider = ensureCopilotSdkProvider();
+        final java.util.List<Object[]> activities = java.util.Collections.synchronizedList(
+            new ArrayList<>()
+        );
+        provider.setActivity(
+            new com.ing.engine.aicli.ai.CopilotActivity() {
+
+                @Override
+                public void onToolStart(String toolCallId, String toolName, String argsSummary) {
+                    ui
+                        .getChatWebView()
+                        .appendToolCall(toolCallId, toolName, oneLine(argsSummary, 80));
+                }
+
+                @Override
+                public void onToolComplete(
+                    String toolCallId,
+                    String toolName,
+                    boolean success,
+                    String resultSummary
+                ) {
+                    activities.add(new Object[] { toolName, success, resultSummary });
+                    ui
+                        .getChatWebView()
+                        .resolveToolCall(
+                            toolCallId,
+                            oneLine(resultSummary, 80),
+                            !success,
+                            resultSummary
+                        );
+                }
+            }
+        );
+
+        String prompt = buildContextSnapshot() + "\n\nUser request: " + text;
+        Thread turn = new Thread(
+            () -> {
+                try {
+                    String answer = provider.chat(
+                        List.of(com.ing.engine.aicli.ai.ChatMessage.user(prompt))
+                    );
+                    provider.setActivity(null);
+                    if (answer != null && !answer.isBlank()) {
+                        ChatMessage assistantMessage = ChatMessage.assistant(answer);
+                        session.addMessage(assistantMessage);
+                        ui.getChatWebView().addMessage(assistantMessage);
+                    }
+                    if (!activities.isEmpty()) {
+                        ui
+                            .getChatWebView()
+                            .addMessage(ChatMessage.assistant(toolReportMarkdown(activities)));
+                        triggerLiveReloadNow();
+                    }
+                    com.ing.engine.aicli.ai.TurnStats stats = provider.lastTurnStats();
+                    if (stats != null) {
+                        String line = com.ing.engine.aicli.ai.TurnStatusFormatter.plainLine(
+                            stats,
+                            provider.model()
+                        );
+                        String cumulative = creditSummary();
+                        if (cumulative != null && !cumulative.isBlank()) {
+                            line = line + "   \u2022   " + cumulative;
+                        }
+                        ui.setFooter(line);
+                    } else {
+                        ui.setFooter(creditSummary());
+                    }
+                    ui.setGenerating(false);
+                    activeTurn = null;
+                    persistCurrentConversation();
+                } catch (com.ing.engine.aicli.ai.AiProvider.AiException ex) {
+                    provider.setActivity(null);
+                    ui.setGenerating(false);
+                    activeTurn = null;
+                    showError(copilotSdkHint(ex));
+                }
+            },
+            "aichat-copilot-sdk"
+        );
+        activeTurn = turn;
+        turn.start();
+    }
+
+    /** Renders the turn's tool activity as a Markdown table with emoji status badges. */
+    private String toolReportMarkdown(List<Object[]> activities) {
+        StringBuilder sb = new StringBuilder("**Tools used (" + activities.size() + ")**\n\n");
+        sb.append("| Status | Tool | Result |\n|---|---|---|\n");
+        int ok = 0;
+        int info = 0;
+        int warn = 0;
+        int fail = 0;
+        for (Object[] a : activities) {
+            String name = (String) a[0];
+            boolean success = (Boolean) a[1];
+            String summary = (String) a[2];
+            String kind = com.ing.engine.aicli.ai.ToolReportUtil.classify(
+                name,
+                success,
+                summary,
+                null
+            );
+            String badge;
+            switch (kind) {
+                case "FAIL":
+                    badge = "\u274c FAIL";
+                    fail++;
+                    break;
+                case "WARN":
+                    badge = "\u26a0\ufe0f WARN";
+                    warn++;
+                    break;
+                case "INFO":
+                    badge = "\u2139\ufe0f INFO";
+                    info++;
+                    break;
+                default:
+                    badge = "\u2705 OK";
+                    ok++;
+            }
+            sb
+                .append("| ")
+                .append(badge)
+                .append(" | `")
+                .append(name)
+                .append("` | ")
+                .append(oneLine(summary, 90).replace("|", "\\|"))
+                .append(" |\n");
+        }
+        sb.append("\n").append(ok).append(" OK");
+        if (info > 0) {
+            sb.append("  \u00b7  ").append(info).append(" INFO");
+        }
+        if (warn > 0) {
+            sb.append("  \u00b7  ").append(warn).append(" WARN");
+        }
+        if (fail > 0) {
+            sb.append("  \u00b7  ").append(fail).append(" FAIL");
+        }
+        return sb.toString();
+    }
+
     // ── Agent turn (tool-calling) ─────────────────────────────────────────
 
     private void startAgentTurn() {
-        final String token = credentials.getToken();
+        final String token = effectiveToken();
         if (token == null) {
             showError("Not signed in.");
             return;
@@ -309,7 +824,9 @@ public class AICopilot implements SlideShow.SlideChangeListener {
             return;
         }
         ui.setGenerating(true);
+        usageTracker.beginTask();
         final boolean[] mutated = { false };
+        final AtomicReference<String> currentId = new AtomicReference<>("tc0");
         final AgentOrchestrator orchestrator = new AgentOrchestrator(client, toolServer);
         activeAgent = orchestrator;
 
@@ -319,7 +836,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                     token,
                     session,
                     (toolName, argumentsJson) ->
-                        ToolApprovalDialog.confirm(ui, toolName, argumentsJson),
+                        requestInlineApproval(currentId.get(), toolName, argumentsJson),
                     new AgentOrchestrator.AgentListener() {
 
                         @Override
@@ -329,7 +846,18 @@ public class AICopilot implements SlideShow.SlideChangeListener {
 
                         @Override
                         public void onToolStart(String toolName, String argumentsJson) {
+                            String id = "tc" + toolSeq.incrementAndGet();
+                            currentId.set(id);
                             ui.setFooter("Running tool: " + toolName + "…");
+                            ui
+                                .getChatWebView()
+                                .appendToolCall(id, toolName, oneLine(argumentsJson, 80));
+                        }
+
+                        @Override
+                        public void onUsage(TokenUsage usage) {
+                            usageTracker.record(usage);
+                            ui.setFooter(usageTracker.statusText());
                         }
 
                         @Override
@@ -339,10 +867,11 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                             }
                             ui
                                 .getChatWebView()
-                                .addMessage(
-                                    ChatMessage.assistant(
-                                        (error ? "⚠️ **" : "🔧 **") + toolName + "** — " + summary
-                                    )
+                                .resolveToolCall(
+                                    currentId.get(),
+                                    oneLine(summary, 80),
+                                    error,
+                                    summary
                                 );
                         }
 
@@ -351,17 +880,20 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                             ui.setGenerating(false);
                             ui.setFooter(usageTracker.statusText());
                             activeAgent = null;
+                            failPendingApprovals();
                             if (mutated[0]) {
-                                refreshTrees();
+                                triggerLiveReloadNow();
                             }
+                            persistCurrentConversation();
                         }
 
                         @Override
                         public void onError(Throwable error) {
                             ui.setGenerating(false);
                             activeAgent = null;
+                            failPendingApprovals();
                             if (mutated[0]) {
-                                refreshTrees();
+                                triggerLiveReloadNow();
                             }
                             handleTurnError(error);
                         }
@@ -374,24 +906,181 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         turn.start();
     }
 
-    private void refreshTrees() {
+    /**
+     * Renders an inline approval row in the transcript and blocks the calling
+     * (agent) thread until the user clicks Apply or Skip, or the turn is
+     * cancelled. Returns {@code true} only if the user approved.
+     */
+    private boolean requestInlineApproval(String id, String toolName, String argsJson) {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        pendingApprovals.put(id, future);
+        String summary = "will run with " + oneLine(argsJson, 120);
+        ui.showApproval(
+            toolName,
+            summary,
+            approved -> {
+                CompletableFuture<Boolean> f = pendingApprovals.remove(id);
+                if (f != null) {
+                    f.complete(approved);
+                }
+            }
+        );
+        try {
+            return future.get();
+        } catch (Exception ex) {
+            return false;
+        } finally {
+            pendingApprovals.remove(id);
+        }
+    }
+
+    /** Resolves any outstanding approval rows as denied (e.g. on cancel/complete). */
+    private void failPendingApprovals() {
+        pendingApprovals.forEach((id, future) -> future.complete(false));
+        pendingApprovals.clear();
+        ui.hideApproval();
+    }
+
+    private static String oneLine(String s, int max) {
+        if (s == null) {
+            return "";
+        }
+        String flat = s.replaceAll("\\s+", " ").trim();
+        if (flat.length() > max) {
+            flat = flat.substring(0, max - 1) + "…";
+        }
+        return escapeHtml(flat);
+    }
+
+    private static String escapeHtml(String s) {
+        if (s == null) {
+            return "";
+        }
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    private javax.swing.Timer reloadDebounce;
+
+    /**
+     * Coalesces the agent's rapid, successive mutations into a single live
+     * project reload so the IDE reflects changes as the AI works, without
+     * thrashing the trees on every individual tool call.
+     */
+    private void scheduleLiveReload() {
         SwingUtilities.invokeLater(
             () -> {
-                try {
-                    mainFrame.getTestDesign().getProjectTree().load();
-                    mainFrame.getTestDesign().getReusableTree().load();
-                } catch (Exception ex) {
-                    LOG.log(Level.FINE, "Could not refresh trees after agent run", ex);
+                if (reloadDebounce == null) {
+                    reloadDebounce = new javax.swing.Timer(400, e -> mainFrame.reloadProject());
+                    reloadDebounce.setRepeats(false);
                 }
+                reloadDebounce.restart();
+            }
+        );
+    }
+
+    /**
+     * Reloads the project immediately (e.g. at the end of an agent turn),
+     * cancelling any pending debounced reload.
+     */
+    private void triggerLiveReloadNow() {
+        SwingUtilities.invokeLater(
+            () -> {
+                if (reloadDebounce != null) {
+                    reloadDebounce.stop();
+                }
+                mainFrame.reloadProject();
             }
         );
     }
 
     public void clearConversation() {
         session.clear();
+        contextMessage = null;
         session.addMessage(ChatMessage.system(AuthoringSkill.systemPrompt()));
         usageTracker.reset();
         ui.getChatWebView().clear();
+        ui.setFooter(" ");
+    }
+
+    // ── Conversation history ───────────────────────────────────
+
+    /** Persists the current conversation (excluding the system prompt). */
+    private void persistCurrentConversation() {
+        try {
+            List<ChatMessage> saved = new ArrayList<>();
+            String title = null;
+            for (ChatMessage m : session.getMessages()) {
+                if (ChatMessage.ROLE_SYSTEM.equals(m.getRole())) {
+                    continue;
+                }
+                saved.add(m);
+                if (
+                    title == null &&
+                    ChatMessage.ROLE_USER.equals(m.getRole()) &&
+                    m.getContent() != null
+                ) {
+                    title = m.getContent();
+                }
+            }
+            if (saved.isEmpty() || title == null) {
+                return;
+            }
+            if (currentConversationId == null) {
+                currentConversationId = historyStore.newId();
+            }
+            ChatHistoryStore.Conversation c = new ChatHistoryStore.Conversation();
+            c.id = currentConversationId;
+            c.title = title.length() > 60 ? title.substring(0, 60) + "\u2026" : title;
+            c.model = session.getModel();
+            long now = System.currentTimeMillis();
+            c.createdAt = now;
+            c.updatedAt = now;
+            c.messages = saved;
+            historyStore.save(c);
+        } catch (Exception ex) {
+            LOG.log(Level.FINE, "Could not persist conversation", ex);
+        }
+    }
+
+    /** Saves the current chat and starts a fresh one. */
+    public void newConversation() {
+        persistCurrentConversation();
+        currentConversationId = null;
+        clearConversation();
+    }
+
+    /** History entries for the menu, most recently updated first. */
+    public List<ChatHistoryStore.Entry> listHistory() {
+        return historyStore.list();
+    }
+
+    /** Loads a saved conversation into the chat, saving the current one first. */
+    public void loadConversation(String id) {
+        ChatHistoryStore.Conversation c = historyStore.load(id);
+        if (c == null) {
+            return;
+        }
+        persistCurrentConversation();
+        currentConversationId = id;
+        session.clear();
+        contextMessage = null;
+        session.addMessage(ChatMessage.system(AuthoringSkill.systemPrompt()));
+        if (c.model != null && !c.model.isEmpty()) {
+            session.setModel(c.model);
+        }
+        usageTracker.reset();
+        ui.getChatWebView().clear();
+        for (ChatMessage m : c.messages) {
+            session.addMessage(m);
+            String role = m.getRole();
+            boolean renderable =
+                (ChatMessage.ROLE_USER.equals(role) || ChatMessage.ROLE_ASSISTANT.equals(role)) &&
+                m.getContent() != null &&
+                !m.getContent().isBlank();
+            if (renderable) {
+                ui.getChatWebView().addMessage(m);
+            }
+        }
         ui.setFooter(" ");
     }
 

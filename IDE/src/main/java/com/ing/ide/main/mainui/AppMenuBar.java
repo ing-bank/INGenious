@@ -281,6 +281,9 @@ public class AppMenuBar extends JMenuBar {
             withMnemonics(withShortCut(Utils.createMenuItem("Har Compare", sActionListener)), 'H')
         );
 
+        tools.addSeparator();
+        tools.add(withMnemonics(Utils.createMenuItem("Project Health", sActionListener), 'P'));
+
         return tools;
     }
 
@@ -298,6 +301,9 @@ public class AppMenuBar extends JMenuBar {
         help.add(
             withMnemonics(withShortCut(Utils.createMenuItem("Show Log", sActionListener)), 'o')
         );
+        help.addSeparator();
+        help.add(withMnemonics(Utils.createMenuItem("Manage Archetypes", sActionListener), 'M'));
+        help.add(withMnemonics(Utils.createMenuItem("Start Tour", sActionListener), 'T'));
 
         return help;
     }
@@ -325,14 +331,12 @@ public class AppMenuBar extends JMenuBar {
 
         window.add(createAPIWorkbenchMenuItem());
 
-        window.add(
-            withMnemonics(
-                withShortCut(
-                    withCopilotIcon(Utils.createMenuItem("AI Assistant", sActionListener))
-                ),
-                'I'
-            )
-        );
+        // window.add(
+        //     withMnemonics(
+        //         withShortCut(withCopilotIcon(Utils.createMenuItem("INGenie", sActionListener))),
+        //         'I'
+        //     )
+        // );
 
         window.add(
             withMnemonics(withShortCut(Utils.createMenuItem("AdjustUI", sActionListener)), 'A')

@@ -15,7 +15,6 @@ import com.ing.engine.reporting.util.RDS;
 import com.ing.engine.reporting.util.RDS.TestCase;
 import com.ing.engine.reporting.util.ReportUtils;
 import com.ing.ingenious.api.status.Status;
-import io.opentelemetry.exporter.logging.SystemOutLogRecordExporter;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;

@@ -1,0 +1,105 @@
+{
+  "templateName": "ingenious-ui-migrator-template",
+  "version": "2.0.0",
+  "ingeniousVersion": "3.1.x",
+  "format": "YAML Object Repository + YAML Reusable Components + YAML Test Cases + YAML Test Lab",
+  "basePath": ".github/skills/ingenious-ui-migrator/templates",
+  "scaffolder": {
+    "scripts": {
+      "macos-linux": "create-project.sh",
+      "windows": "create-project.ps1"
+    },
+    "runtime": "native shell (bash 3.2+ / PowerShell 5.1+), no Node required",
+    "crossPlatform": true,
+    "command": {
+      "macos-linux": "./create-project.sh --name <ProjectName> [--projects-root Projects] [--no-samples] [--with-env-helpers] [--with-db-helpers] [--scenarios a,b] [--tags @x,@y] [--sync]",
+      "windows": ".\\create-project.ps1 -Name <ProjectName> [-ProjectsRoot Projects] [-NoSamples] [-WithEnvHelpers] [-WithDbHelpers] [-Scenarios a,b] [-Tags @x,@y] [-Sync]"
+    },
+    "token": "{{PROJECT_NAME}}"
+  },
+  "projectTemplate": {
+    "root": "project-template",
+    "folders": [
+      "ObjectRepository/Web",
+      "ObjectRepository/Mobile",
+      "ObjectRepository/SAP",
+      "ObjectRepository/StructuredData",
+      "ReusableComponents",
+      "TestPlan",
+      "TestLab",
+      "TestData",
+      "Settings",
+      "Settings/API",
+      "Settings/BrowserContexts",
+      "Settings/Capabilities",
+      "Settings/Databases",
+      "Settings/TestExecution",
+      "Recording",
+      "api/collections",
+      "api/environments",
+      "api/history"
+    ],
+    "sampleFiles": [
+      {
+        "path": "ObjectRepository/Web/SamplePage.yaml",
+        "kind": "objectRepository",
+        "description": "YAML page object: page, scope (PROJECT|SHARED), elements keyed by friendly name with one locator (role|testId|label|placeholder|text|css|xpath)."
+      },
+      {
+        "path": "ReusableComponents/Common/Launch.yaml",
+        "kind": "reusable",
+        "description": "YAML reusable component (schemaVersion, testCase, scenario, steps[])."
+      },
+      {
+        "path": "ReusableComponents/SampleScenario/SampleFlow.yaml",
+        "kind": "reusable",
+        "description": "Reusable flow built from object-level steps (Fill/Click/assert)."
+      },
+      {
+        "path": "TestPlan/SampleScenario/SampleTestCase.yaml",
+        "kind": "testCase",
+        "description": "YAML test case (schemaVersion, testCase, scenario, tags[], steps[]) orchestrating reusables via Execute -> Scenario:Reusable."
+      },
+      {
+        "path": "TestLab/SampleRelease/SampleSet.yaml",
+        "kind": "testLab",
+        "description": "YAML execution set (schemaVersion, name, release, executions[] with execute/testScenario/testCase/iteration/browser/platform)."
+      },
+      {
+        "path": "TestData/GlobalData.csv",
+        "kind": "testData",
+        "description": "Global data sheet keyed by GlobalDataID; referenced as #VariableID."
+      },
+      {
+        "path": "TestData/SampleData.csv",
+        "kind": "testData",
+        "description": "Named data sheet keyed by Scenario,Flow,Iteration,SubIteration; referenced as Sheet:Column."
+      }
+    ]
+  },
+  "optionalHelpers": {
+    "root": "optional-helpers",
+    "items": [
+      {
+        "flag": "--with-env-helpers",
+        "source": "optional-helpers/ReusableComponents/GetEnv",
+        "target": "ReusableComponents/GetEnv",
+        "description": "Environment / URL selection reusables (SelectEnv, SelectEnvWithCluster, SelectToken, SelectURL)."
+      },
+      {
+        "flag": "--with-db-helpers",
+        "source": "optional-helpers/ReusableComponents/DatabaseConnection",
+        "target": "ReusableComponents/DatabaseConnection",
+        "description": "Generic database connection reusable (initDBConnection -> executeSelectQuery -> storeDBValueinDataSheet -> closeDBConnection)."
+      }
+    ]
+  },
+  "generatedFiles": [
+    {
+      "target": ".project",
+      "generator": "create-project.sh / create-project.ps1",
+      "format": "JSON schema version 3.1.0. Built by scanning TestPlan/*.yaml (testcase) and ReusableComponents/*.yaml (reusable); _meta holds the base scenario attribute plus discovered scenarios and tags; data holds id (Scenario#Name), name, tags and type/scenario attributes.",
+      "regenerate": "./create-project.sh --name <ProjectName> --sync  (macOS/Linux)  |  .\\create-project.ps1 -Name <ProjectName> -Sync  (Windows)"
+    }
+  ]
+}

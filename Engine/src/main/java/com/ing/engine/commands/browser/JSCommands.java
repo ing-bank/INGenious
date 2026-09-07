@@ -2,8 +2,11 @@ package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.microsoft.playwright.PlaywrightException;
@@ -25,6 +28,13 @@ public class JSCommands extends General {
         desc = "To execute the JavaScript commands",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@() => document.title",
+        inputHelp = "JavaScript expression/function (e.g. @() => document.title) to evaluate on page",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void BrowserExecuteEval() {
         try {
             Page.evaluate(Data);
@@ -40,6 +50,13 @@ public class JSCommands extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "To execute the JavaScript commands",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@element => element.textContent",
+        inputHelp = "JavaScript expression/function (e.g. @element => element.textContent) to evaluate on locator",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void LocatorExecuteEval() {
         try {
@@ -57,6 +74,14 @@ public class JSCommands extends General {
         desc = "To Store value from the JavaScript command",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@() => document.title",
+        inputHelp = "JavaScript expression/function (e.g. @() => document.title) to evaluate on page",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%pageValue%",
+        conditionHelp = "runtime variable name in %var% format"
     )
     public void BrowserStoreEval() {
         try {
@@ -81,6 +106,14 @@ public class JSCommands extends General {
         desc = "To Store value from the JavaScript command on a Locator",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@element => element.textContent",
+        inputHelp = "JavaScript expression/function (e.g. @element => element.textContent) to evaluate on locator",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%locatorValue%",
+        conditionHelp = "runtime variable name in %var% format"
     )
     public void LocatorStoreEval() {
         try {
@@ -133,6 +166,13 @@ public class JSCommands extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Enter the value [<Data>] in the Field [<Object>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@John Doe",
+        inputHelp = "text value to set in the field via JavaScript",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void fillByJS() {
         try {

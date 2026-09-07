@@ -245,29 +245,57 @@ public final class SummaryReport implements OverviewReport {
     }
 
     /**
-     * Print execution summary with emojis
+     * Print the execution summary at run end.
+     *
+     * <p>The IDE's live Console view sets the {@code ingenious.console.webview}
+     * system property (see {@code Control.isWebViewConsole()}) when active, since
+     * {@code System.console() != null} is unreliable there. When set, a single
+     * structured {@code [SUMMARY]}-tagged JSON line is printed instead of the
+     * hand-padded box-drawing summary (whose manual character padding misaligns
+     * with emoji/variable-width fonts); the IDE console renders its own properly-
+     * aligned, beautified summary card from it. Real CLI usage is unaffected.</p>
      */
     private void printExecutionSummary() {
         long totalDuration = System.currentTimeMillis() - executionStartTime;
         long minutes = (totalDuration / 1000) / 60;
         long seconds = (totalDuration / 1000) % 60;
+        String durationText = String.format("%dm %ds", minutes, seconds);
+        boolean passed = failedTestCases == 0;
 
-        String overallStatus = (failedTestCases == 0) ? "✅ PASSED" : "❌ FAILED";
+        if (com.ing.engine.core.Control.isWebViewConsole()) {
+            System.out.println();
+            System.out.println(
+                "[SUMMARY]{\"status\":\"" +
+                (passed ? "PASSED" : "FAILED") +
+                "\",\"total\":" +
+                totalTestCases +
+                ",\"passed\":" +
+                passedTestCases +
+                ",\"failed\":" +
+                failedTestCases +
+                ",\"duration\":\"" +
+                durationText +
+                "\"}"
+            );
+            System.out.println("[REPORTPATH]" + FilePath.getCurrentResultsPath());
+            System.out.println();
+            return;
+        }
+
+        String overallStatus = passed ? "✅ PASSED" : "❌ FAILED";
 
         System.out.println();
         System.out.println(
             "╔═════════════════════════════════════════════════════════════════════════════╗"
         );
-        System.out.println(formatBoxLine("🏁 EXECUTION SUMMARY 🏁", true));
+        System.out.println(formatBoxLine(" Execution Summary ", true));
         System.out.println(
             "╠═════════════════════════════════════════════════════════════════════════════╣"
         );
         System.out.println(formatBoxLine("📊 Total Tests:  " + totalTestCases, false));
         System.out.println(formatBoxLine("✅ Passed:       " + passedTestCases, false));
         System.out.println(formatBoxLine("❌ Failed:       " + failedTestCases, false));
-        System.out.println(
-            formatBoxLine("⏱️  Duration:     " + String.format("%dm %ds", minutes, seconds), false)
-        );
+        System.out.println(formatBoxLine("⏱️  Duration:     " + durationText, false));
         System.out.println(
             "╠═════════════════════════════════════════════════════════════════════════════╣"
         );

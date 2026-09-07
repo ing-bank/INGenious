@@ -15,7 +15,7 @@ import javax.swing.tree.TreeNode;
  *
  */
 public class ReusableNode extends CommonNode {
-    private static final String DEFAULT_GROUP = "Project Reusable Components";
+    private static final String DEFAULT_GROUP = "Reusable Intents";
 
     Project project;
 
