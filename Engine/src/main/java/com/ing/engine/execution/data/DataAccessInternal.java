@@ -42,7 +42,7 @@ public class DataAccessInternal {
             context.testcase()
         );
 
-        if (validEnv(context)) {
+        if (validEnvFor(context, sheet)) {
             return getIter(context, getModel(context, sheet), getDefModel(context, sheet));
         } else {
             return getIter(context, getDefModel(context, sheet));
@@ -59,7 +59,7 @@ public class DataAccessInternal {
      * @return the sub iterations
      */
     public static Set<String> getSubIterations(TestCaseRunner context, String sheet) {
-        if (validEnv(context)) {
+        if (validEnvFor(context, sheet)) {
             return getSubIter(context, getModel(context, sheet), getDefModel(context, sheet));
         } else {
             return getSubIter(context, getDefModel(context, sheet));
@@ -674,6 +674,17 @@ public class DataAccessInternal {
         }
         String env = String.valueOf(context.executor().sharedRunEnv());
         return !shared.defEnv().equals(env) && shared.getEnvironments().contains(env);
+    }
+
+    /**
+     * Environment-validity check for the given sheet reference: {@link #validSharedEnv} for a
+     * {@code [Shared]}-tagged sheet (it resolves against {@code sharedRunEnv()}), otherwise
+     * {@link #validEnv} (project {@code runEnv()}). A run can select a Shared environment while
+     * leaving the Project environment on Default - and vice versa - so the two scopes must be
+     * checked independently rather than letting the project env gate Shared data lookups.
+     */
+    protected static boolean validEnvFor(TestCaseRunner context, String sheet) {
+        return isSharedScopeRef(sheet) ? validSharedEnv(context) : validEnv(context);
     }
 
     public static boolean notNull(Object ins) {

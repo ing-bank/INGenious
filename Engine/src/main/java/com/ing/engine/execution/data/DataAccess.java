@@ -52,7 +52,7 @@ public class DataAccess extends DataAccessInternal {
         Object val;
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
-        if (validEnv(context)) {
+        if (validEnvFor(context, sheet)) {
             env = getModel(context, sheet);
             val = getData(context, env, def, field, iter, subIter);
         } else {
@@ -102,7 +102,7 @@ public class DataAccess extends DataAccessInternal {
 
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
-        if (validEnv(context)) {
+        if (validEnvFor(context, sheet)) {
             env = getModel(context, sheet);
             val =
                 getDataFromModelWithScope(env, field, scn, tc, iter, nextSubIteration, scopeFilter);
@@ -142,7 +142,7 @@ public class DataAccess extends DataAccessInternal {
         Boolean updated;
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
-        if (validEnv(context)) {
+        if (validEnvFor(context, sheet)) {
             env = getModel(context, sheet);
             updated = putData(context, env, def, field, newVal, iter, subIter);
         } else {
@@ -186,7 +186,7 @@ public class DataAccess extends DataAccessInternal {
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
         String scope = getScopeFilter(context, scn, tc);
-        if (validEnv(context)) {
+        if (validEnvFor(context, sheet)) {
             env = getModel(context, sheet);
             val = getDataFromModelWithScope(env, field, scn, tc, iter, subIter, scope);
         }
@@ -232,7 +232,7 @@ public class DataAccess extends DataAccessInternal {
         boolean updated = false;
         TestDataModel def = getDefModel(context, sheet);
         String scope = getScopeFilter(context, scn, tc);
-        if (validEnv(context)) {
+        if (validEnvFor(context, sheet)) {
             updated =
                 putDataToModel(
                     getModel(context, sheet),
@@ -700,7 +700,7 @@ public class DataAccess extends DataAccessInternal {
     public static TestDataView getTestData(TestCaseRunner context, String sheet) {
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
-        if (validEnv(context)) {
+        if (validEnvFor(context, sheet)) {
             env = getModel(context, sheet);
         } else {
             env = def;
