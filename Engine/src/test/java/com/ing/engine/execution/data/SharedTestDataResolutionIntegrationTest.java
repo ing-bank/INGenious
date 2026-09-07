@@ -101,6 +101,11 @@ public class SharedTestDataResolutionIntegrationTest {
         when(executor.dataProvider()).thenReturn(project.getTestData());
         when(executor.runEnv()).thenReturn(projectEnv);
         when(executor.sharedRunEnv()).thenReturn(sharedEnv);
+        // Enough wiring for getIterations()/getIter() on a Test Plan (unscoped) test case.
+        when(context.getRoot()).thenReturn(context);
+        when(context.scenario()).thenReturn("MortgageCalculation-Browser");
+        when(context.testcase()).thenReturn("High Income");
+        when(context.isReusable()).thenReturn(false);
         return context;
     }
 
@@ -184,6 +189,21 @@ public class SharedTestDataResolutionIntegrationTest {
 
         assertThat(sharedVal).isEqualTo("SHARED_SIT_VALUE");
         assertThat(projVal).isEqualTo("PROJECT_VALUE");
+    }
+
+    @Test
+    public void testGetIterationsForSharedSheetHonoursSharedRunEnvNotProjectEnv() {
+        // Regression: getIterations() gated the env lookup on validEnv() (project runEnv), so a
+        // [Shared] sheet with a Shared env selected but the Project env left on Default fell
+        // back to Shared Default and reported "Iteration 1 missing".
+        TestCaseRunner context = mockContext("Default", "SIT");
+
+        java.util.Set<String> iters = DataAccessInternal.getIterations(
+            context,
+            "[Shared] TestData0"
+        );
+
+        assertThat(iters).contains("1");
     }
 
     @Test
