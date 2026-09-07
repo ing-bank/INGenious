@@ -34,7 +34,6 @@ print -r -- "$PACKAGE_VERSION" |
 readonly SCRIPT_DIR="${0:A:h}"
 readonly REPO_ROOT="${SCRIPT_DIR:h}"
 
-readonly WORKSPACE_SOURCE="$REPO_ROOT/Resources/Workspace"
 readonly POSTINSTALL_SOURCE="$SCRIPT_DIR/macos-pkg/postinstall"
 readonly CLI_WRAPPER_SOURCE="$SCRIPT_DIR/macos-pkg/ingenious"
 readonly DISTRIBUTION_TEMPLATE="$SCRIPT_DIR/macos-pkg/Distribution.xml"
@@ -87,18 +86,6 @@ print -- "$jvm_info"
 
 [[ "$jvm_info" == *"$EXPECTED_ARCH"* ]] ||
   fail "Source application JVM is not $EXPECTED_ARCH"
-
-[[ -d "$WORKSPACE_SOURCE/Configuration" ]] ||
-  fail "Workspace template is missing Configuration."
-
-[[ -d "$WORKSPACE_SOURCE/Projects" ]] ||
-  fail "Workspace template is missing Projects."
-
-[[ -d "$WORKSPACE_SOURCE/Shared" ]] ||
-  fail "Workspace template is missing Shared."
-
-[[ -d "$WORKSPACE_SOURCE/plugins" ]] ||
-  fail "Workspace template is missing plugins."
 
 [[ -f "$POSTINSTALL_SOURCE" ]] ||
   fail "Post-install script is missing: $POSTINSTALL_SOURCE"
@@ -167,10 +154,6 @@ print -- "[3/5] Staging application and Workspace template"
   "$POSTINSTALL_SOURCE" \
   "$PACKAGE_SCRIPTS/postinstall"
 
-/usr/bin/ditto \
-  "$WORKSPACE_SOURCE" \
-  "$PACKAGE_SCRIPTS/Workspace"
-
 chmod 755 "$PACKAGE_SCRIPTS/postinstall"
 chmod 755 "$PAYLOAD_ROOT/usr/local/bin/ingenious"
 
@@ -179,18 +162,6 @@ chmod 755 "$PAYLOAD_ROOT/usr/local/bin/ingenious"
 
 [[ -x "$PAYLOAD_ROOT/usr/local/bin/ingenious" ]] ||
   fail "Staged CLI wrapper is missing or not executable."
-
-[[ -d "$PACKAGE_SCRIPTS/Workspace/Configuration" ]] ||
-  fail "Staged Workspace is missing Configuration."
-
-[[ -d "$PACKAGE_SCRIPTS/Workspace/Projects" ]] ||
-  fail "Staged Workspace is missing Projects."
-
-[[ -d "$PACKAGE_SCRIPTS/Workspace/Shared" ]] ||
-  fail "Staged Workspace is missing Shared."
-
-[[ -d "$PACKAGE_SCRIPTS/Workspace/plugins" ]] ||
-  fail "Staged Workspace is missing plugins."
 
 print -- ""
 print -- "[4/5] Building non-relocatable component package"

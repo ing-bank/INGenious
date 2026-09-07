@@ -283,7 +283,7 @@ if (-not $ConfigText.Contains('java-options=-Dingenious.app.home=$APPDIR')) {
 }
 
 if ($ConfigText.Contains("java-options=-Dingenious.workspace=")) {
-    Fail "The installed Windows launcher must discover Local AppData at runtime"
+    Fail "The installed Windows launcher must discover the user Documents folder at runtime"
 }
 
 if (-not $ConfigText.Contains("app.mainclass=com.ing.ide.main.Main")) {
@@ -358,7 +358,7 @@ Write-Host "Installed application:"
 Write-Host "  C:\Program Files\INGenious"
 Write-Host ""
 Write-Host "Per-user Workspace:"
-Write-Host "  %LOCALAPPDATA%\INGenious"
+Write-Host "  %USERPROFILE%\Documents\INGenious\Workspace"
 Write-Host ""
 Write-Host "Start menu:"
 Write-Host "  INGenious\INGenious"

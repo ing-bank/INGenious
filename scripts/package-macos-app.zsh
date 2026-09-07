@@ -132,6 +132,7 @@ print -- "[1/5] Recreating jpackage input"
 rm -rf -- "$INPUT"
 mkdir -p -- "$INPUT"
 ditto "$RELEASE_RUNTIME" "$INPUT"
+ditto "$RELEASE_WORKSPACE" "$INPUT/WorkspaceTemplate"
 
 print -- ""
 print -- "Keeping JavaFX classifier: $JAVAFX_CLASSIFIER"
@@ -170,6 +171,8 @@ for item in \
   "$INPUT/Tools" \
   "$INPUT/web" \
   "$INPUT/Configuration" \
+  "$INPUT/WorkspaceTemplate" \
+  "$INPUT/WorkspaceTemplate/plugins" \
   "$INPUT/${IDE_JAR_NAME}"
 do
   [[ -e "$item" ]] ||
@@ -261,6 +264,8 @@ for item in \
   "$APP_DIR/Tools" \
   "$APP_DIR/web" \
   "$APP_DIR/Configuration" \
+  "$APP_DIR/WorkspaceTemplate" \
+  "$APP_DIR/WorkspaceTemplate/plugins" \
   "$APP_DIR/${IDE_JAR_NAME}"
 do
   [[ -e "$item" ]] ||
