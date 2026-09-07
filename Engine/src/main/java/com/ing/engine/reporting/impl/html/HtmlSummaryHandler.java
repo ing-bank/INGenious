@@ -712,7 +712,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
     /**
      * Copies the current results to the latest results location.
      */
-    private synchronized void createLatest() {
+    public synchronized void createLatest() {
         try {
             File latestResult = new File(FilePath.getLatestResultsLocation());
             if (latestResult.exists()) {

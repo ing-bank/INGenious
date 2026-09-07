@@ -81,6 +81,20 @@ public final class SummaryReport implements OverviewReport {
     }
 
     /**
+     * Re-copies the run folder into {@code Latest}, the snapshot the Dashboard
+     * renders. Must run after the console re-embed, otherwise the Dashboard
+     * shows a copy taken before the sync publish output existed.
+     */
+    public void refreshLatestResults() {
+        for (SummaryHandler handler : REPORT_HANDLERS) {
+            if (handler instanceof HtmlSummaryHandler) {
+                ((HtmlSummaryHandler) handler).createLatest();
+                return;
+            }
+        }
+    }
+
+    /**
      * initialize the report data file.
      *
      * @param runTime

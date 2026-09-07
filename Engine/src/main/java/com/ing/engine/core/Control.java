@@ -227,6 +227,8 @@ public class Control {
                     // The sync publish prints after finalizeReport() already embedded
                     // console.txt, so re-embed to capture that trailing output.
                     embedConsoleIntoReports();
+                    // finalizeReport() snapshotted Latest before the publish output existed.
+                    ReportManager.refreshLatestResults();
                 }
                 // Auto-open the report only now, so the browser tab isn't opened
                 // (and cached stale) before the sync publish output above exists.
