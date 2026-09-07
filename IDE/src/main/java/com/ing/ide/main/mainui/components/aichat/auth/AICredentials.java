@@ -81,4 +81,26 @@ public final class AICredentials {
         );
         AppSettings.store("AI client id updated");
     }
+
+    /** Whether the assistant should be driven by the GitHub Copilot SDK/CLI instead of GitHub Models. */
+    public boolean isCopilotSdkEnabled() {
+        return Boolean.parseBoolean(AppSettings.get(APP_SETTINGS.AI_COPILOT_SDK_ENABLED.getKey()));
+    }
+
+    public void setCopilotSdkEnabled(boolean enabled) {
+        AppSettings.set(APP_SETTINGS.AI_COPILOT_SDK_ENABLED.getKey(), Boolean.toString(enabled));
+        AppSettings.store("AI Copilot SDK mode updated");
+    }
+
+    /** Model id used with the Copilot SDK provider (distinct from the GitHub Models selection). */
+    public String getCopilotSdkModel() {
+        return AppSettings.get(APP_SETTINGS.AI_COPILOT_SDK_MODEL.getKey());
+    }
+
+    public void setCopilotSdkModel(String model) {
+        if (model != null && !model.isEmpty()) {
+            AppSettings.set(APP_SETTINGS.AI_COPILOT_SDK_MODEL.getKey(), model);
+            AppSettings.store("AI Copilot SDK model updated");
+        }
+    }
 }

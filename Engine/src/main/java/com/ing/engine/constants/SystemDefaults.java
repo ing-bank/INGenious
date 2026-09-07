@@ -65,7 +65,7 @@ public class SystemDefaults {
     public static void printSystemInfo() {
         System.out.println("Run Information");
         System.out.println("========================");
-        System.out.println("INGenious Playwright Studio engine : " + getBuildVersion());
+        System.out.println("INGenious engine : " + getBuildVersion());
         printSystemInfo("java.runtime.name");
         printSystemInfo("java.version");
         printSystemInfo("java.home");

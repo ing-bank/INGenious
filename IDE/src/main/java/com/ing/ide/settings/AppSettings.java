@@ -35,7 +35,16 @@ public class AppSettings {
         AI_GITHUB_TOKEN("githubModelsToken", ""),
         AI_GITHUB_LOGIN("githubModelsLogin", ""),
         AI_SELECTED_MODEL("githubModelsModel", "openai/gpt-4o-mini"),
-        AI_GITHUB_CLIENT_ID("githubOAuthClientId", "");
+        AI_GITHUB_CLIENT_ID("githubOAuthClientId", ""),
+        AI_COPILOT_SDK_ENABLED("aiCopilotSdkEnabled", "true"),
+        AI_COPILOT_SDK_MODEL("aiCopilotSdkModel", "claude-sonnet-4.5"),
+        AI_SIDEBAR_VISIBLE("aiSidebarVisible", "false"),
+        AI_SIDEBAR_WIDTH("aiSidebarWidth", "675"),
+        TC_VISIBLE_COLUMNS(
+            "testCaseVisibleColumns",
+            "Step,ObjectName,Description,Action,Input,Condition,Reference"
+        ),
+        TOUR_COMPLETED("tourCompleted", "false");
 
         private final String key;
         private final String val;
@@ -117,6 +126,30 @@ public class AppSettings {
 
     public static String getHelpLoc() {
         return AppSettings.get(APP_SETTINGS.HELP_DOC.getKey());
+    }
+
+    /**
+     * The Test Case / Reusable canvas columns the user has chosen to keep
+     * visible, in view order. IDE-only view preference; never affects the model
+     * or on-disk test cases.
+     */
+    public static java.util.List<String> getVisibleTestCaseColumns() {
+        String raw = AppSettings.get(APP_SETTINGS.TC_VISIBLE_COLUMNS.getKey());
+        java.util.List<String> cols = new java.util.ArrayList<>();
+        if (raw != null) {
+            for (String token : raw.split(",")) {
+                String name = token.trim();
+                if (!name.isEmpty()) {
+                    cols.add(name);
+                }
+            }
+        }
+        return cols;
+    }
+
+    public static void setVisibleTestCaseColumns(java.util.List<String> cols) {
+        AppSettings.set(APP_SETTINGS.TC_VISIBLE_COLUMNS.getKey(), String.join(",", cols));
+        AppSettings.store("Test case visible columns updated");
     }
 
     private static void check() {

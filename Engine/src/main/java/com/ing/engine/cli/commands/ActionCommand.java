@@ -466,8 +466,30 @@ public class ActionCommand implements Callable<Integer> {
 
     /**
      * Discover all @Action annotated methods from all command packages.
+     *
+     * <p>Delegates to {@link com.ing.engine.mcp.ActionCatalog} – the single
+     * source of truth shared with the MCP server.
      */
     private static List<ActionInfo> discoverAllActions() {
+        List<ActionInfo> out = new ArrayList<>();
+        for (com.ing.engine.mcp.ActionCatalog.ActionInfo a : com.ing.engine.mcp.ActionCatalog.all()) {
+            out.add(
+                new ActionInfo(
+                    a.name,
+                    a.category,
+                    a.objectType,
+                    a.description,
+                    a.inputRequired,
+                    a.conditionSupported
+                )
+            );
+        }
+        return out;
+    }
+
+    /** Retained for backward compatibility – no longer used. */
+    @SuppressWarnings("unused")
+    private static List<ActionInfo> discoverAllActionsLegacy() {
         List<ActionInfo> actions = new ArrayList<>();
 
         // Known command classes - explicit list based on actual JAR contents
@@ -498,21 +520,18 @@ public class ActionCommand implements Callable<Integer> {
             "com.ing.engine.commands.browser.UploadFiles",
             "com.ing.engine.commands.browser.WaitFor",
             // Mobile commands
+            "com.ing.engine.commands.mobile.AdbCommands",
             "com.ing.engine.commands.mobile.AppiumDeviceCommands",
             "com.ing.engine.commands.mobile.AssertElement",
             "com.ing.engine.commands.mobile.Assertions",
             "com.ing.engine.commands.mobile.Basic",
             "com.ing.engine.commands.mobile.ByLabel",
-            "com.ing.engine.commands.mobile.CheckBox",
             "com.ing.engine.commands.mobile.CommonMethods",
             "com.ing.engine.commands.mobile.DynamicObject",
-            "com.ing.engine.commands.mobile.JSCommands",
             "com.ing.engine.commands.mobile.MobileGeneral",
-            "com.ing.engine.commands.mobile.Performance",
             "com.ing.engine.commands.mobile.RelativeCommand",
             "com.ing.engine.commands.mobile.Scroll",
             "com.ing.engine.commands.mobile.SwitchTo",
-            "com.ing.engine.commands.mobile.Table",
             "com.ing.engine.commands.mobile.WaitFor",
             "com.ing.engine.commands.mobile.WebButton",
             // Database commands

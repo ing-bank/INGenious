@@ -1,0 +1,1 @@
+[{"module":"AzureDevOps TestPlan","options":[{"name":"AzureDevOps URL","value":"https://dev.azure.com/YOUR_AZURE_ORGANIZATION/"},{"name":"AzureDevOps Project","value":""},{"name":"PersonalAccessToken","value":""},{"name":"AzureDevOps TestPlanId","value":""},{"name":"useProxy","value":"false"},{"name":"proxyHost","value":""},{"name":"proxyPort","value":""}]}]

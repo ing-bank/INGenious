@@ -28,7 +28,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.materialdesign2.*;
 
 /**
- * Beautiful JavaFX-based StartUp screen for INGenious Playwright Studio.
+ * Beautiful JavaFX-based StartUp screen for INGenious.
  * Replaces the old Swing StartUp dialog with a modern, visually appealing UI.
  * <p>
  * Features a sidebar navigation with 4 views:
@@ -61,7 +61,7 @@ public class FXStartUp extends JDialog {
         super(new JFrame());
         this.sMainFrame = sMainFrame;
         setModal(true);
-        setTitle("INGenious Playwright Studio");
+        setTitle("INGenious");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         addWindowListener(
             new java.awt.event.WindowAdapter() {

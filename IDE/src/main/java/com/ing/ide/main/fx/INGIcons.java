@@ -181,6 +181,7 @@ public final class INGIcons {
         register("testexecution", MaterialDesignP.PLAY_BOX, CLR_RUN);
         register("dashboard", MaterialDesignV.VIEW_DASHBOARD, CLR_CREATE);
         register("apidock", MaterialDesignS.SERVER_NETWORK, CLR_TOOL);
+        register("perfstudio", MaterialDesignS.SPEEDOMETER, CLR_RUN);
 
         // ── Table ──
         register("cut", MaterialDesignC.CONTENT_CUT, CLR_NAV);
@@ -258,6 +259,9 @@ public final class INGIcons {
         register("startup.create", MaterialDesignR.ROCKET_LAUNCH, CLR_CREATE);
         register("startup.project", MaterialDesignF.FOLDER_COG, CLR_CONFIG);
         register("startup.folder", MaterialDesignF.FOLDER, CLR_OPEN);
+
+        // ── Tour ──
+        register("tour", MaterialDesignF.FLAG_OUTLINE, CLR_INFO);
 
         // ══════════════════════════════════════════════════════════════════
         // ══ PNG Replacement Icons ══

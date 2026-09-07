@@ -3,8 +3,11 @@ package com.ing.engine.commands.browser;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.ing.util.encryption.Encryption;
@@ -28,6 +31,11 @@ public class Switch extends Command {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Switch to new Page", input = InputType.NO)
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void clickAndSwitchToNewPage() {
         try {
             Page.WaitForPopupOptions options = new Page.WaitForPopupOptions();
@@ -53,6 +61,13 @@ public class Switch extends Command {
     }
 
     @Action(object = ObjectType.BROWSER, desc = "Switch to new Page", input = InputType.YES)
+    @Args(
+        input = ArgType.URL,
+        inputExample = "@https://example.com",
+        inputHelp = "URL to open in the new page",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void createAndSwitchToNewPage() {
         try {
             Page.NavigateOptions options = new Page.NavigateOptions();
@@ -77,9 +92,67 @@ public class Switch extends Command {
 
     @Action(
         object = ObjectType.BROWSER,
+        desc = "Initialize Browser with named Context",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.URL,
+        inputExample = "@https://example.com",
+        inputHelp = "URL to open in the initial browser context (e.g. @https://example.com)",
+        condition = ConditionKind.NONE,
+        conditionExample = "#Context1",
+        conditionHelp = "context alias prefixed with # (e.g. #Context1)"
+    )
+    public void initializeWithContext() {
+        try {
+            Browser.NewContextOptions newContextOptions = new Browser.NewContextOptions();
+            Page.NavigateOptions options = new Page.NavigateOptions();
+            if (!Condition.startsWith("#")) {
+                options.setTimeout(getTimeoutValue());
+            } else {
+                String contextAlias = Condition.replace("#", "");
+                newContextOptions = enhancedContextOptions(newContextOptions, contextAlias);
+                options.setTimeout(
+                    Double.parseDouble(getSpecificContextValue(contextAlias, "pageTimeout"))
+                );
+            }
+
+            com.microsoft.playwright.Browser browser = BrowserContext.browser();
+            BrowserContext.close();
+
+            BrowserContext = browser.newContext(newContextOptions);
+            Page = BrowserContext.newPage();
+            Page.navigate(Data, options);
+            AObject.setPage(Page);
+            Page.bringToFront();
+            Driver.setPage(Page);
+            Driver.browserContext = BrowserContext;
+
+            Report.updateTestLog(
+                Action,
+                "Successfully initialized Browser Context with URL: " + Data,
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(Action, "Something went wrong" + e.getMessage(), Status.DEBUG);
+            throw new ActionException(e);
+        }
+    }
+
+    @Action(
+        object = ObjectType.BROWSER,
         desc = "Switch to new Browser Context",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.URL,
+        inputExample = "@https://example.com",
+        inputHelp = "URL to open in the new browser context (e.g. @https://example.com)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "#mobileCtx",
+        conditionHelp = "optional context alias (prefix with #) or timeout in ms"
     )
     public void createAndSwitchToNewContext() {
         try {
@@ -114,6 +187,13 @@ public class Switch extends Command {
     }
 
     @Action(object = ObjectType.BROWSER, desc = "Switch to Page by index", input = InputType.YES)
+    @Args(
+        input = ArgType.INTEGER,
+        inputExample = "@0",
+        inputHelp = "zero-based page index (e.g. @0 for first page, @1 for second page)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void switchToPageByIndex() {
         try {
             int index = Integer.parseInt(Data);
@@ -138,6 +218,14 @@ public class Switch extends Command {
         desc = "Switch to Context by index",
         input = InputType.YES,
         condition = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.INTEGER,
+        inputExample = "@0",
+        inputHelp = "zero-based browser context index (e.g. @0 for first context, @1 for second context)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "0",
+        conditionHelp = "optional zero-based page index inside the context"
     )
     public void switchToContextByIndex() throws InterruptedException {
         try {
@@ -171,6 +259,14 @@ public class Switch extends Command {
         desc = "Switch to Context by Page Title",
         input = InputType.YES,
         condition = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Dashboard",
+        inputHelp = "page title substring to match (e.g. @Dashboard)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "0",
+        conditionHelp = "optional zero-based page index inside each context"
     )
     public void switchToContextByPageTitle() {
         try {
@@ -216,6 +312,14 @@ public class Switch extends Command {
         desc = "Switch to Context by Page URL",
         input = InputType.YES,
         condition = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@/login",
+        inputHelp = "page URL substring to match (e.g. @/login)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "0",
+        conditionHelp = "optional zero-based page index inside each context"
     )
     public void switchToContextByPageURL() {
         try {

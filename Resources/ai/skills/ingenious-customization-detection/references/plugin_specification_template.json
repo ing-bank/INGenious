@@ -1,0 +1,28 @@
+{
+  "plugins": [
+    {
+      "name": "custom-browser-actions",
+      "type": "browser",
+      "priority": "high",
+      "api_contract": "BrowserPluginApi",
+      "actions": [
+        {
+          "method_name": "customClick",
+          "description": "Click element with custom behavior",
+          "object_type": "PLAYWRIGHT",
+          "input_required": false,
+          "source_file": "Engine/src/main/java/com/ing/engine/commands/WebCommands.java",
+          "source_lines": "145-167",
+          "code_snippet": "[extracted code]"
+        }
+      ],
+      "dependencies": [
+        {
+          "groupId": "com.example",
+          "artifactId": "custom-lib",
+          "version": "1.0.0"
+        }
+      ]
+    }
+  ]
+}

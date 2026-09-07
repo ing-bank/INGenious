@@ -37,6 +37,27 @@ public class GitHubModelsClient {
     private static final String CATALOG_URL = "https://models.github.ai/catalog/models";
     private static final String CHAT_URL = "https://models.github.ai/inference/chat/completions";
 
+    // Endpoints are instance fields so the client can be pointed at a local
+    // VS Code Copilot bridge (OpenAI-compatible) instead of the GitHub Models API.
+    private String catalogUrl = CATALOG_URL;
+    private String chatUrl = CHAT_URL;
+
+    /**
+     * Route this client at a local OpenAI-compatible bridge (e.g. the VS Code
+     * Copilot LLM Bridge). {@code baseUrl} is like {@code http://127.0.0.1:8765/v1}.
+     * When in bridge mode the access token is optional.
+     */
+    public void useLocalBridge(String baseUrl) {
+        String base = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+        this.chatUrl = base + "/chat/completions";
+        this.catalogUrl = base + "/models";
+    }
+
+    /** True when a bearer token should be sent (real GitHub Models, not the bridge). */
+    private static boolean hasToken(String token) {
+        return token != null && !token.isBlank();
+    }
+
     private final ObjectMapper mapper = new ObjectMapper()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -85,14 +106,16 @@ public class GitHubModelsClient {
      * @param token GitHub access token with the {@code models} scope
      */
     public List<ModelInfo> catalog(String token) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest
+        HttpRequest.Builder catalogBuilder = HttpRequest
             .newBuilder()
-            .uri(URI.create(CATALOG_URL))
+            .uri(URI.create(catalogUrl))
             .header("Accept", "application/json")
-            .header("Authorization", "Bearer " + token)
             .timeout(Duration.ofSeconds(30))
-            .GET()
-            .build();
+            .GET();
+        if (hasToken(token)) {
+            catalogBuilder.header("Authorization", "Bearer " + token);
+        }
+        HttpRequest request = catalogBuilder.build();
         HttpResponse<String> response = httpClient.send(
             request,
             HttpResponse.BodyHandlers.ofString()
@@ -123,15 +146,17 @@ public class GitHubModelsClient {
     public ChatCompletionResponse complete(String token, ChatCompletionRequest request)
         throws IOException, InterruptedException {
         request.setStream(false);
-        HttpRequest httpRequest = HttpRequest
+        HttpRequest.Builder completeBuilder = HttpRequest
             .newBuilder()
-            .uri(URI.create(CHAT_URL))
+            .uri(URI.create(chatUrl))
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer " + token)
             .timeout(Duration.ofSeconds(120))
-            .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(request)))
-            .build();
+            .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(request)));
+        if (hasToken(token)) {
+            completeBuilder.header("Authorization", "Bearer " + token);
+        }
+        HttpRequest httpRequest = completeBuilder.build();
         HttpResponse<String> response = httpClient.send(
             httpRequest,
             HttpResponse.BodyHandlers.ofString()
@@ -158,15 +183,17 @@ public class GitHubModelsClient {
         request.setStream(true);
         request.requestStreamingUsage();
         try {
-            HttpRequest httpRequest = HttpRequest
+            HttpRequest.Builder streamBuilder = HttpRequest
                 .newBuilder()
-                .uri(URI.create(CHAT_URL))
+                .uri(URI.create(chatUrl))
                 .header("Accept", "text/event-stream")
                 .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer " + token)
                 .timeout(Duration.ofMinutes(5))
-                .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(request)))
-                .build();
+                .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(request)));
+            if (hasToken(token)) {
+                streamBuilder.header("Authorization", "Bearer " + token);
+            }
+            HttpRequest httpRequest = streamBuilder.build();
 
             HttpResponse<InputStream> response = httpClient.send(
                 httpRequest,

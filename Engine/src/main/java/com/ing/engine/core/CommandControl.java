@@ -388,7 +388,141 @@ public abstract class CommandControl {
 
     public void sync(Step curr, String subIter) throws Exception {
         curr.Data = DataProcessor.resolve(curr.Input, (TestCaseRunner) context(), subIter);
+        applyInlineObjectProperties(curr, subIter);
         sync(curr);
+    }
+
+    /**
+     * Applies an <b>inline object-property override</b> carried in a locator step's
+     * Condition column (see {@link InlineObjectProperty}). Each {@code #token=value}
+     * pair's value is resolved through the normal data pipeline and written into the
+     * active driver's dynamic-value map <em>before</em> the element is found, so the
+     * locator placeholders are substituted for this step without a separate
+     * {@code setObjectProperty} step.
+     *
+     * <p>The Condition value is then "consumed": for the object-scoped variant it is
+     * cleared (find type {@code DEFAULT}); for the global variant it is replaced with
+     * {@code GlobalObject} so the object resolves against the global map.</p>
+     */
+    private void applyInlineObjectProperties(Step curr, String subIter) {
+        String condition = curr.Condition;
+        if (!InlineObjectProperty.isInline(condition)) {
+            return;
+        }
+        boolean global = InlineObjectProperty.isGlobal(condition);
+        // Log under a dedicated action label so the report does not repeat the real
+        // action (e.g. "Fill") for the property-setting sub-step.
+        String logAction = global ? "setGlobalObjectProperty" : "setObjectProperty";
+        List<String[]> pairs = InlineObjectProperty.parsePairs(
+            InlineObjectProperty.stripMarker(condition)
+        );
+
+        // Consume the marker so downstream find-type parsing is not confused by it.
+        curr.Condition = global ? InlineObjectProperty.GLOBAL_FIND_TYPE : "";
+
+        if (pairs.isEmpty()) {
+            Report.updateTestLog(
+                logAction,
+                "Inline property override has no valid '#token=value' pairs; skipped",
+                Status.DEBUG
+            );
+            return;
+        }
+        if (!global && (isBlank(curr.ObjectName) || isBlank(curr.Reference))) {
+            Report.updateTestLog(
+                logAction,
+                "Inline object property requires an Object Repository element; skipped",
+                Status.DEBUG
+            );
+            return;
+        }
+
+        StringBuilder applied = new StringBuilder();
+        for (String[] pair : pairs) {
+            String token = pair[0];
+            // A per-token |subiter=N overrides the step's own sub-iteration for
+            // data-sheet lookups; otherwise fall back to the step sub-iteration.
+            String pairSubIter = (pair.length > 2 && pair[2] != null && !pair[2].isEmpty())
+                ? pair[2]
+                : subIter;
+            String resolved;
+            try {
+                resolved = DataProcessor.resolve(pair[1], (TestCaseRunner) context(), pairSubIter);
+            } catch (Exception ex) {
+                resolved = pair[1];
+            }
+            applyInlineProperty(global, curr.Reference, curr.ObjectName, token, resolved);
+            if (applied.length() > 0) {
+                applied.append("; ");
+            }
+            applied.append(token).append('=').append(resolved);
+        }
+        Report.updateTestLog(
+            logAction,
+            String.format(
+                "Inline %s applied [%s]",
+                global ? "global property" : "object property",
+                applied
+            ),
+            Status.DONE
+        );
+    }
+
+    /** Writes a resolved token/value into the active driver's dynamic-value map(s). */
+    private void applyInlineProperty(
+        boolean global,
+        String reference,
+        String objectName,
+        String key,
+        String value
+    ) {
+        if (global) {
+            if (SAPsession != null && SAPObject != null) {
+                SAPObject.globalDynamicValue.put(key, value);
+            } else if (webDriver != null && MObject != null) {
+                MobileObject.globalDynamicValue.put(key, value);
+            } else {
+                AutomationObject.globalDynamicValue.put(key, value);
+                StructuredDataObject.globalDynamicValue.put(key, value);
+            }
+        } else {
+            if (SAPsession != null && SAPObject != null) {
+                InlineObjectProperty.putObjectProperty(
+                    SAPObject.dynamicValue,
+                    reference,
+                    objectName,
+                    key,
+                    value
+                );
+            } else if (webDriver != null && MObject != null) {
+                InlineObjectProperty.putObjectProperty(
+                    MobileObject.dynamicValue,
+                    reference,
+                    objectName,
+                    key,
+                    value
+                );
+            } else {
+                InlineObjectProperty.putObjectProperty(
+                    AutomationObject.dynamicValue,
+                    reference,
+                    objectName,
+                    key,
+                    value
+                );
+                InlineObjectProperty.putObjectProperty(
+                    StructuredDataObject.dynamicValue,
+                    reference,
+                    objectName,
+                    key,
+                    value
+                );
+            }
+        }
+    }
+
+    private static boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
     }
 
     public Map<String, String> getRunTimeVars() {

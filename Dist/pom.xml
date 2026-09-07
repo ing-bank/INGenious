@@ -119,6 +119,12 @@
                                         <include>**/*.txt</include>
                                         <include>**/*.md</include>
                                     </includes>
+                                    <!-- AI skills + shipped IDE config are copied verbatim (see unfiltered entry below) so Maven does not interpolate ${...} placeholders -->
+                                    <excludes>
+                                        <exclude>ai/skills/**</exclude>
+                                        <exclude>.github/**</exclude>
+                                        <exclude>.vscode/**</exclude>
+                                    </excludes>
                                 </resource>
                                 <resource>
                                     <directory>${resourceDir}</directory>
@@ -129,6 +135,15 @@
                                         <exclude>**/*.txt</exclude>
                                         <exclude>**/*.md</exclude>
                                     </excludes>
+                                </resource>
+                                <resource>
+                                    <directory>${resourceDir}</directory>
+                                    <filtering>false</filtering>
+                                    <includes>
+                                        <include>ai/skills/**</include>
+                                        <include>.github/**</include>
+                                        <include>.vscode/**</include>
+                                    </includes>
                                 </resource>
                             </resources>
                         </configuration>

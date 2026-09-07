@@ -1,0 +1,27 @@
+schemaVersion: 1
+testCase: DatabaseConnection
+scenario: DatabaseConnection
+steps:
+  - step: 1
+    object: Database
+    description: Initiate the DB transaction
+    action: initDBConnection
+    input: "#coreDB"
+
+  - step: 2
+    object: Database
+    description: "Execute the Query in [<Input>] and store the result set"
+    action: executeSelectQuery
+    input: "@SELECT TOP 1 ID FROM YourTable ORDER BY NEWID();"
+
+  - step: 3
+    object: Database
+    description: Save DB value in Test Data Sheet
+    action: storeDBValueinDataSheet
+    input: TestData:RecordId
+    condition: ID
+
+  - step: 4
+    object: Database
+    description: Close the DB Connection
+    action: closeDBConnection

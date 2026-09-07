@@ -26,6 +26,8 @@ public class TableColumnManager
 
     private List<TableColumn> allColumns;
 
+    private Runnable onVisibilityChanged;
+
     /**
      * Convenience constructor for creating a TableColumnManager for a table.
      * Support for a popup menu on the table header will be enabled.
@@ -69,6 +71,74 @@ public class TableColumnManager
 
         for (int i = 0; i < count; i++) {
             allColumns.add(tcm.getColumn(i));
+        }
+    }
+
+    /**
+     * Register a callback fired whenever the user changes column visibility
+     * (via the header popup). Used to persist the selection.
+     */
+    public void setOnVisibilityChanged(Runnable callback) {
+        this.onVisibilityChanged = callback;
+    }
+
+    private void fireVisibilityChanged() {
+        if (onVisibilityChanged != null) {
+            onVisibilityChanged.run();
+        }
+    }
+
+    /**
+     * @return the currently visible column header names, in view order.
+     */
+    public List<String> getVisibleColumnNames() {
+        List<String> names = new ArrayList<>();
+        for (int i = 0; i < tcm.getColumnCount(); i++) {
+            names.add(tcm.getColumn(i).getHeaderValue().toString());
+        }
+        return names;
+    }
+
+    /**
+     * Apply a persisted visibility set: show every managed column whose name is
+     * in {@code visible} and hide the rest, restoring each column to its natural
+     * position. Unknown/duplicate names are ignored; an empty or fully-invalid
+     * set leaves the table unchanged (all columns visible). Does not fire the
+     * visibility callback, since this reflects already-persisted state.
+     *
+     * @param visible header names to keep visible
+     */
+    public void applyVisible(List<String> visible) {
+        if (visible == null || visible.isEmpty()) {
+            return;
+        }
+        java.util.Set<String> known = new java.util.HashSet<>();
+        for (TableColumn c : allColumns) {
+            known.add(c.getHeaderValue().toString());
+        }
+        List<String> wanted = new ArrayList<>();
+        for (String name : visible) {
+            if (known.contains(name) && !wanted.contains(name)) {
+                wanted.add(name);
+            }
+        }
+        if (wanted.isEmpty()) {
+            return;
+        }
+        for (TableColumn c : new ArrayList<>(allColumns)) {
+            String name = c.getHeaderValue().toString();
+            boolean currentlyVisible;
+            try {
+                tcm.getColumnIndex(name);
+                currentlyVisible = true;
+            } catch (IllegalArgumentException e) {
+                currentlyVisible = false;
+            }
+            if (wanted.contains(name) && !currentlyVisible) {
+                showColumn(name);
+            } else if (!wanted.contains(name) && currentlyVisible) {
+                hideColumn(name);
+            }
         }
     }
 
@@ -255,11 +325,37 @@ public class TableColumnManager
      */
     private void showPopup(int index) {
         Object headerValue = tcm.getColumn(index).getHeaderValue();
+        JPopupMenu popup = buildColumnMenu();
+
+        //  Pre-select the item for the column that was clicked.
+        for (Component c : popup.getComponents()) {
+            if (
+                c instanceof JCheckBoxMenuItem &&
+                ((JCheckBoxMenuItem) c).getText().equals(headerValue.toString())
+            ) {
+                popup.setSelected((JCheckBoxMenuItem) c);
+                break;
+            }
+        }
+
+        //  Display the popup below the TableHeader
+        JTableHeader header = table.getTableHeader();
+        Rectangle r = header.getHeaderRect(index);
+        popup.show(header, r.x, r.height);
+    }
+
+    /**
+     * Build a checkbox popup menu listing every managed column with its current
+     * visibility state. Reused by the header right-click and by external UI
+     * (e.g. a toolbar "Columns" button). The last visible column's item is
+     * disabled so the table can never be emptied.
+     *
+     * @return a fresh column-selection popup menu
+     */
+    public JPopupMenu buildColumnMenu() {
         int columnCount = tcm.getColumnCount();
         JPopupMenu popup = new SelectPopupMenu();
 
-        //  Create a menu item for all columns managed by the table column
-        //  manager, checking to see if the column is shown or hidden.
         for (TableColumn tableColumn : allColumns) {
             Object value = tableColumn.getHeaderValue();
             JCheckBoxMenuItem item = new JCheckBoxMenuItem(value.toString());
@@ -277,16 +373,9 @@ public class TableColumnManager
             }
 
             popup.add(item);
-
-            if (value == headerValue) {
-                popup.setSelected(item);
-            }
         }
 
-        //  Display the popup below the TableHeader
-        JTableHeader header = table.getTableHeader();
-        Rectangle r = header.getHeaderRect(index);
-        popup.show(header, r.x, r.height);
+        return popup;
     }
 
     //
@@ -306,6 +395,8 @@ public class TableColumnManager
         } else {
             hideColumn(item.getText());
         }
+
+        fireVisibilityChanged();
     }
 
     //

@@ -11,17 +11,33 @@ public class TokenUsageTracker {
     private final TokenUsage cumulative = new TokenUsage();
     private TokenUsage lastTurn = new TokenUsage();
 
+    // "Credits" = billable model requests. Tracked per task and per session.
+    private int taskRequests;
+    private int sessionRequests;
+    private final TokenUsage taskUsage = new TokenUsage();
+
     private String rateLimitRemaining;
     private String rateLimitLimit;
     private String rateLimitReset;
 
-    /** Records usage for a completed turn and adds it to the cumulative total. */
+    /** Marks the start of a new user task so per-task credits restart at zero. */
+    public synchronized void beginTask() {
+        taskRequests = 0;
+        taskUsage.setPromptTokens(0);
+        taskUsage.setCompletionTokens(0);
+        taskUsage.setTotalTokens(0);
+    }
+
+    /** Records usage for one model response (one credit) within the current task. */
     public synchronized void record(TokenUsage turn) {
         if (turn == null) {
             return;
         }
         this.lastTurn = turn;
         this.cumulative.add(turn);
+        this.taskUsage.add(turn);
+        this.taskRequests++;
+        this.sessionRequests++;
     }
 
     public synchronized void recordRateLimit(String remaining, String limit, String reset) {
@@ -43,18 +59,31 @@ public class TokenUsageTracker {
         cumulative.setCompletionTokens(0);
         cumulative.setTotalTokens(0);
         lastTurn = new TokenUsage();
+        taskRequests = 0;
+        sessionRequests = 0;
+        taskUsage.setPromptTokens(0);
+        taskUsage.setCompletionTokens(0);
+        taskUsage.setTotalTokens(0);
     }
 
     /** Builds a compact summary suitable for a footer label. */
     public synchronized String statusText() {
         StringBuilder sb = new StringBuilder();
         sb
-            .append("Last turn: ")
-            .append(lastTurn.getPromptTokens())
+            .append("Credits this task: ")
+            .append(taskRequests)
+            .append(taskRequests == 1 ? " request" : " requests")
+            .append(" · ")
+            .append(taskUsage.getTotalTokens())
+            .append(" tokens (")
+            .append(taskUsage.getPromptTokens())
             .append(" in / ")
-            .append(lastTurn.getCompletionTokens())
-            .append(" out")
-            .append("  •  Session total: ")
+            .append(taskUsage.getCompletionTokens())
+            .append(" out)")
+            .append("  •  Session: ")
+            .append(sessionRequests)
+            .append(sessionRequests == 1 ? " request" : " requests")
+            .append(" · ")
             .append(cumulative.getTotalTokens())
             .append(" tokens");
         if (rateLimitRemaining != null && rateLimitLimit != null) {

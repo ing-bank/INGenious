@@ -2,11 +2,16 @@ package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.microsoft.playwright.Locator.WaitForOptions;
+import com.microsoft.playwright.Page.WaitForLoadStateOptions;
+import com.microsoft.playwright.options.LoadState;
 import com.microsoft.playwright.options.WaitForSelectorState;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,6 +27,12 @@ public class WaitFor extends Command {
         desc = "Wait for [<Object>] to be visible ",
         condition = InputType.OPTIONAL
     )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional timeout in ms (e.g. 5000)"
+    )
     public void waitForElementToBeVisible() {
         waitForElement("VISIBLE", "Successfully waited for [" + ObjectName + "] to be visible");
     }
@@ -31,6 +42,12 @@ public class WaitFor extends Command {
         desc = "Wait for [<Object>] to be hidden ",
         condition = InputType.OPTIONAL
     )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional timeout in ms (e.g. 5000)"
+    )
     public void waitForElementToBeHidden() {
         waitForElement("HIDDEN", "Successfully waited for [" + ObjectName + "] to be hidden");
     }
@@ -39,6 +56,12 @@ public class WaitFor extends Command {
         object = ObjectType.PLAYWRIGHT,
         desc = "Wait for [<Object>] to be attached to the DOM ",
         condition = InputType.OPTIONAL
+    )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional timeout in ms (e.g. 5000)"
     )
     public void waitForElementToBeAttached() {
         waitForElement(
@@ -52,6 +75,12 @@ public class WaitFor extends Command {
         desc = "Wait for [<Object>] to be detached from the DOM ",
         condition = InputType.OPTIONAL
     )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional timeout in ms (e.g. 5000)"
+    )
     public void waitForElementToBeDetached() {
         waitForElement(
             "DETACHED",
@@ -64,9 +93,34 @@ public class WaitFor extends Command {
         desc = "Wait for required load state has been reached",
         condition = InputType.OPTIONAL
     )
+    @Args(
+        input = ArgType.ENUM,
+        inputExample = "@load",
+        inputHelp = "optional load state: @load, @domcontentloaded, or @networkidle; leave blank for default load",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional timeout in ms (e.g. 5000)"
+    )
     public void waitForLoadState() {
         try {
-            Page.waitForLoadState();
+            WaitForLoadStateOptions loadStateOptions = new WaitForLoadStateOptions();
+            boolean hasTimeout = Condition != null && Condition.matches("[0-9]+");
+            if (hasTimeout) {
+                loadStateOptions.setTimeout(Double.parseDouble(Condition));
+            }
+
+            if (Data != null && !Data.isBlank()) {
+                LoadState loadState = LoadState.valueOf(Data.trim().toUpperCase());
+                if (hasTimeout) {
+                    Page.waitForLoadState(loadState, loadStateOptions);
+                } else {
+                    Page.waitForLoadState(loadState);
+                }
+            } else if (hasTimeout) {
+                Page.waitForLoadState(LoadState.LOAD, loadStateOptions);
+            } else {
+                Page.waitForLoadState();
+            }
             Report.updateTestLog(
                 Action,
                 "Successfully waited for required load state has been reached",

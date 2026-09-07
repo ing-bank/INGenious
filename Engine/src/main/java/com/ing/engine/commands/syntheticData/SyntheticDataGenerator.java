@@ -6,7 +6,10 @@ import com.github.javafaker.Internet;
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.text.SimpleDateFormat;
@@ -28,6 +31,11 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Set Faker locale for testing", input = InputType.YES)
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void setLocale() {
         try {
             String locale = Data;
@@ -51,6 +59,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random street address",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void streetAddress() {
         try {
@@ -78,6 +91,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void streetName() {
         try {
             String strObj = Input;
@@ -103,6 +121,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random secondary address",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void secondaryAddress() {
         try {
@@ -130,6 +153,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void buildingNumber() {
         try {
             String strObj = Input;
@@ -155,6 +183,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random address city",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void city() {
         try {
@@ -182,6 +215,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void cityPrefix() {
         try {
             String strObj = Input;
@@ -207,6 +245,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random city suffix",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void citySuffix() {
         try {
@@ -234,6 +277,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void zipCode() {
         try {
             String strObj = Input;
@@ -259,6 +307,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random zip code by state",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void zipCodeByState() {
         try {
@@ -287,6 +340,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void state() {
         try {
             String strObj = Input;
@@ -312,6 +370,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random state abbreviation",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void stateAbbreviation() {
         try {
@@ -339,6 +402,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void country() {
         try {
             String strObj = Input;
@@ -364,6 +432,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random country code",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void countryCode() {
         try {
@@ -391,6 +464,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void latitude() {
         try {
             String strObj = Input;
@@ -416,6 +494,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random longitude",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void longitude() {
         try {
@@ -443,6 +526,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void fullAddress() {
         try {
             String strObj = Input;
@@ -468,6 +556,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate country by zip code",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void countryByZipCode() {
         try {
@@ -496,6 +589,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void streetAddressIncludeSecondary() {
         try {
             String strObj = Input;
@@ -523,6 +621,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void streetAddressNumber() {
         try {
             String strObj = Input;
@@ -548,6 +651,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random street prefix",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void streetPrefix() {
         try {
@@ -575,6 +683,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void streetSuffix() {
         try {
             String strObj = Input;
@@ -600,6 +713,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random time zone",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void timezone() {
         try {
@@ -627,6 +745,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void cityName() {
         try {
             String strObj = Input;
@@ -652,6 +775,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random address first name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void addressFirstName() {
         try {
@@ -679,6 +807,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void addressLastName() {
         try {
             String strObj = Input;
@@ -704,6 +837,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random God's name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void god() {
         try {
@@ -731,6 +869,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void primordial() {
         try {
             String strObj = Input;
@@ -756,6 +899,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random titan's name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void titan() {
         try {
@@ -783,6 +931,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void hero() {
         try {
             String strObj = Input;
@@ -808,6 +961,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random application name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void appName() {
         try {
@@ -835,6 +993,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void appVersion() {
         try {
             String strObj = Input;
@@ -860,6 +1023,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random application author",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void appAuthor() {
         try {
@@ -887,6 +1055,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void artistName() {
         try {
             String strObj = Input;
@@ -912,6 +1085,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random avatar URL",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void avatarUrl() {
         try {
@@ -939,6 +1117,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void aircraft() {
         try {
             String strObj = Input;
@@ -964,6 +1147,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random airport name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void airport() {
         try {
@@ -991,6 +1179,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void metar() {
         try {
             String strObj = Input;
@@ -1016,6 +1209,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a character name from Back to the Future",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void characterBackToTheFuture() {
         try {
@@ -1043,6 +1241,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void quoteBackToTheFuture() {
         try {
             String strObj = Input;
@@ -1068,6 +1271,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a date from Back to the Future",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void dateBackToTheFuture() {
         try {
@@ -1095,6 +1303,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void beerName() {
         try {
             String strObj = Input;
@@ -1120,6 +1333,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random beer style",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void beerStyle() {
         try {
@@ -1147,6 +1365,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void beerHop() {
         try {
             String strObj = Input;
@@ -1172,6 +1395,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random beer yeast variety",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void beerYeast() {
         try {
@@ -1199,6 +1427,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void beerMalt() {
         try {
             String strObj = Input;
@@ -1224,6 +1457,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random book title",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void bookTitle() {
         try {
@@ -1251,6 +1489,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void bookAuthor() {
         try {
             String strObj = Input;
@@ -1276,6 +1519,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random book genre",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void bookGenre() {
         try {
@@ -1303,6 +1551,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void bookPublisher() {
         try {
             String strObj = Input;
@@ -1328,6 +1581,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random boolean value",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void randomBool() {
         try {
@@ -1355,6 +1613,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void creditCardNumber() {
         try {
             String strObj = Input;
@@ -1380,6 +1643,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random credit card type",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void creditCardType() {
         try {
@@ -1407,6 +1675,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void creditCardExpiry() {
         try {
             String strObj = Input;
@@ -1432,6 +1705,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random cat name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void catName() {
         try {
@@ -1459,6 +1737,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void catBreed() {
         try {
             String strObj = Input;
@@ -1484,6 +1767,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random cat registry",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void catRegistry() {
         try {
@@ -1511,6 +1799,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void chuckNorrisFact() {
         try {
             String strObj = Input;
@@ -1536,6 +1829,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random ISBN-10 number",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void isbn10() {
         try {
@@ -1563,6 +1861,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void isbn13() {
         try {
             String strObj = Input;
@@ -1588,6 +1891,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random GTIN-8 code",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void gtin8() {
         try {
@@ -1615,6 +1923,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void gtin13() {
         try {
             String strObj = Input;
@@ -1640,6 +1953,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random EAN-8 code",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void ean8() {
         try {
@@ -1667,6 +1985,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void ean13() {
         try {
             String strObj = Input;
@@ -1692,6 +2015,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random ASIN number",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void asin() {
         try {
@@ -1719,6 +2047,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void imei() {
         try {
             String strObj = Input;
@@ -1744,6 +2077,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random ISBN group",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void isbnGroup() {
         try {
@@ -1771,6 +2109,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void isbnGs1() {
         try {
             String strObj = Input;
@@ -1797,6 +2140,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void isbnRegistrant() {
         try {
             String strObj = Input;
@@ -1822,6 +2170,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random ISBN-10 number with separator",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void isbn10WithSeparator() {
         try {
@@ -1850,6 +2203,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void isbn13WithSeparator() {
         try {
             String strObj = Input;
@@ -1877,6 +2235,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void colorName() {
         try {
             String strObj = Input;
@@ -1903,6 +2266,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void hex() {
         try {
             String strObj = Input;
@@ -1928,6 +2296,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random hexadecimal color code (full form)",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void hexIncludeHashSign() {
         try {
@@ -1956,6 +2329,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void productName() {
         try {
             String strObj = Input;
@@ -1981,6 +2359,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random commerce department name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void commerceDepartment() {
         try {
@@ -2008,6 +2391,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void commercePrice() {
         try {
             String strObj = Input;
@@ -2033,6 +2421,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate price within a range",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void priceWithinRange() {
         try {
@@ -2064,6 +2457,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void commerceMaterial() {
         try {
             String strObj = Input;
@@ -2089,6 +2487,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random color name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void commerceColor() {
         try {
@@ -2116,6 +2519,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void promotionCode() {
         try {
             String strObj = Input;
@@ -2141,6 +2549,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random promotion code with digits",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void promotionCodeWithDigits() {
         try {
@@ -2170,6 +2583,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void companyName() {
         try {
             String strObj = Input;
@@ -2195,6 +2613,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random company industry",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void companyIndustry() {
         try {
@@ -2222,6 +2645,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void companyCatchPhrase() {
         try {
             String strObj = Input;
@@ -2247,6 +2675,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random company buzzword",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void companyBuzzword() {
         try {
@@ -2274,6 +2707,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void companyBS() {
         try {
             String strObj = Input;
@@ -2299,6 +2737,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random company logo URL",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void companyLogo() {
         try {
@@ -2326,6 +2769,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void profession() {
         try {
             String strObj = Input;
@@ -2351,6 +2799,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random company suffix",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void companySuffix() {
         try {
@@ -2378,6 +2831,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void companyUrl() {
         try {
             String strObj = Input;
@@ -2403,6 +2861,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random capital city",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void capital() {
         try {
@@ -2430,6 +2893,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void countryCode2() {
         try {
             String strObj = Input;
@@ -2455,6 +2923,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random 3-letter country code",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void countryCode3() {
         try {
@@ -2482,6 +2955,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void countryCurrency() {
         try {
             String strObj = Input;
@@ -2507,6 +2985,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random currency code",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void countryCurrencyCode() {
         try {
@@ -2534,6 +3017,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void flag() {
         try {
             String strObj = Input;
@@ -2559,6 +3047,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random country name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void countryName() {
         try {
@@ -2586,6 +3079,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void md5() {
         try {
             String strObj = Input;
@@ -2611,6 +3109,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random SHA-1 hash",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void sha1() {
         try {
@@ -2638,6 +3141,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void sha256() {
         try {
             String strObj = Input;
@@ -2663,6 +3171,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random SHA-512 hash",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void sha512() {
         try {
@@ -2690,6 +3203,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void currencyName() {
         try {
             String strObj = Input;
@@ -2716,6 +3234,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void currencyCode() {
         try {
             String strObj = Input;
@@ -2741,6 +3264,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generates a future date from now",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void futureUpto() {
         try {
@@ -2771,6 +3299,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generates a future date from now, with a minimum time",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void futureWithinRange() {
         try {
@@ -2803,6 +3336,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generates a future date relative to the reference date",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void futureUptoBasedOnRefDate() {
         try {
@@ -2837,6 +3375,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void pastUpto() {
         try {
             String strObj = Input;
@@ -2866,6 +3409,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generates a past date from now, with a minimum time",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void pastWithinRange() {
         try {
@@ -2898,6 +3446,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generates a past date relative to the reference date",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void pastUptoBasedOnRefDate() {
         try {
@@ -2932,6 +3485,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void dateBetween() {
         try {
             String strObj = Input;
@@ -2963,6 +3521,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void birthday() {
         try {
             String strObj = Input;
@@ -2988,6 +3551,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generates a random birthday between two ages",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void birthdayWithinRange() {
         try {
@@ -3019,6 +3587,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void race() {
         try {
             String strObj = Input;
@@ -3044,6 +3617,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random educational attainment",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void educationalAttainment() {
         try {
@@ -3071,6 +3649,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void sex() {
         try {
             String strObj = Input;
@@ -3096,6 +3679,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random marital status",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void maritalStatus() {
         try {
@@ -3123,6 +3711,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void demonym() {
         try {
             String strObj = Input;
@@ -3148,6 +3741,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random dog name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void dogName() {
         try {
@@ -3175,6 +3773,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void dogBreed() {
         try {
             String strObj = Input;
@@ -3200,6 +3803,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random dog sound",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void dogSound() {
         try {
@@ -3227,6 +3835,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void dogAge() {
         try {
             String strObj = Input;
@@ -3252,6 +3865,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random dog coat length",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void dogCoatLength() {
         try {
@@ -3279,6 +3897,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void dogSize() {
         try {
             String strObj = Input;
@@ -3304,6 +3927,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random dog gender",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void dogGender() {
         try {
@@ -3331,6 +3959,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void memePhrase() {
         try {
             String strObj = Input;
@@ -3356,6 +3989,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Dragon Ball character name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void characterDragonBall() {
         try {
@@ -3383,6 +4021,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void university() {
         try {
             String strObj = Input;
@@ -3408,6 +4051,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random course name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void course() {
         try {
@@ -3435,6 +4083,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void campus() {
         try {
             String strObj = Input;
@@ -3460,6 +4113,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random secondary school name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void secondarySchool() {
         try {
@@ -3487,6 +4145,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void esportsTeam() {
         try {
             String strObj = Input;
@@ -3512,6 +4175,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random esports player name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void esportsPlayer() {
         try {
@@ -3539,6 +4207,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void esportsGame() {
         try {
             String strObj = Input;
@@ -3564,6 +4237,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random esports event name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void esportsEvent() {
         try {
@@ -3591,6 +4269,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void esportsLeague() {
         try {
             String strObj = Input;
@@ -3617,6 +4300,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void fileName() {
         try {
             String strObj = Input;
@@ -3642,6 +4330,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random file name with details",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void fileNameWithDetails() {
         try {
@@ -3676,6 +4369,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void mimeType() {
         try {
             String strObj = Input;
@@ -3700,6 +4398,11 @@ public class SyntheticDataGenerator extends Command {
         object = ObjectType.DATA,
         desc = "Generate a random file name with an optional file extension",
         input = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void fileNameWithExtension() {
         try {
@@ -3727,6 +4430,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void financeCreditCardNumber() {
         try {
             String strObj = Input;
@@ -3752,6 +4460,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random credit card number based on type",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void creditCardNumberBasedOnType() {
         try {
@@ -3781,6 +4494,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void bic() {
         try {
             String strObj = Input;
@@ -3807,6 +4525,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void iban() {
         try {
             String strObj = Input;
@@ -3832,6 +4555,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random IBAN with a specific country code",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void ibanByCountry() {
         try {
@@ -3860,6 +4588,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void ingredient() {
         try {
             String strObj = Input;
@@ -3885,6 +4618,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random spice",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void spice() {
         try {
@@ -3912,6 +4650,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void measurement() {
         try {
             String strObj = Input;
@@ -3937,6 +4680,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random character name from the TV show \"Friends\"",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void characterFriends() {
         try {
@@ -3964,6 +4712,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void locationFriends() {
         try {
             String strObj = Input;
@@ -3989,6 +4742,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random quote from the TV show \"Friends\"",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void quoteFriends() {
         try {
@@ -4016,6 +4774,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void funnyName() {
         try {
             String strObj = Input;
@@ -4041,6 +4804,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random character name from the Game of Thrones series",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void characterGOT() {
         try {
@@ -4068,6 +4836,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void houseGOT() {
         try {
             String strObj = Input;
@@ -4093,6 +4866,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random city name from the Game of Thrones series",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void cityGOT() {
         try {
@@ -4120,6 +4898,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void dragonGOT() {
         try {
             String strObj = Input;
@@ -4145,6 +4928,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random quote from the Game of Thrones series",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void quoteGOT() {
         try {
@@ -4172,6 +4960,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void hackerAbbreviation() {
         try {
             String strObj = Input;
@@ -4197,6 +4990,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random adjective used in hacker slang",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void hackerAdjective() {
         try {
@@ -4224,6 +5022,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void hackerNoun() {
         try {
             String strObj = Input;
@@ -4249,6 +5052,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random verb used in hacker slang",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void hackerVerb() {
         try {
@@ -4276,6 +5084,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void hackerIngVerb() {
         try {
             String strObj = Input;
@@ -4301,6 +5114,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random character name from the Harry Potter series",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void characterHarryPotter() {
         try {
@@ -4328,6 +5146,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void locationHarryPotter() {
         try {
             String strObj = Input;
@@ -4353,6 +5176,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random quote from the Harry Potter series",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void quoteHarryPotter() {
         try {
@@ -4380,6 +5208,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void bookHarryPotter() {
         try {
             String strObj = Input;
@@ -4405,6 +5238,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random word related to hipster culture",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void hipsterWord() {
         try {
@@ -4432,6 +5270,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void characterHitchhiker() {
         try {
             String strObj = Input;
@@ -4457,6 +5300,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random location name from the Hitchhiker's Guide to the Galaxy series",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void locationHitchhiker() {
         try {
@@ -4484,6 +5332,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void marvinQuoteHitchhiker() {
         try {
             String strObj = Input;
@@ -4509,6 +5362,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random quote from the Hitchhiker's Guide to the Galaxy series",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void quoteHitchhiker() {
         try {
@@ -4536,6 +5394,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void planetHitchhiker() {
         try {
             String strObj = Input;
@@ -4561,6 +5424,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random species name from the Hitchhiker's Guide to the Galaxy series",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void specieHitchhiker() {
         try {
@@ -4588,6 +5456,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void starshipHitchhiker() {
         try {
             String strObj = Input;
@@ -4613,6 +5486,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random character name from The Hobbit series",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void characterHobbit() {
         try {
@@ -4640,6 +5518,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void locationHobbit() {
         try {
             String strObj = Input;
@@ -4665,6 +5548,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random quote from The Hobbit series",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void quoteHobbit() {
         try {
@@ -4692,6 +5580,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void thorinsCompanyHobbit() {
         try {
             String strObj = Input;
@@ -4717,6 +5610,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random character name from How I Met Your Mother",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void characterHowIMetYourMother() {
         try {
@@ -4744,6 +5642,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void quoteHowIMetYourMother() {
         try {
             String strObj = Input;
@@ -4769,6 +5672,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random catchphrase from How I Met Your Mother",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void catchPhraseHowIMetYourMother() {
         try {
@@ -4796,6 +5704,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void highFiveHowIMetYourMother() {
         try {
             String strObj = Input;
@@ -4821,6 +5734,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a valid random ID number",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void validIdNumber() {
         try {
@@ -4848,6 +5766,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void invalidIdNumber() {
         try {
             String strObj = Input;
@@ -4873,6 +5796,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random valid SSN",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void validSsn() {
         try {
@@ -4900,6 +5828,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void invalidSsn() {
         try {
             String strObj = Input;
@@ -4925,6 +5858,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random valid SSN",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void ssnValid() {
         try {
@@ -4952,6 +5890,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void emailAddress() {
         try {
             String strObj = Input;
@@ -4977,6 +5920,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random email address with local part",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void emailAddressWithLocalPart() {
         try {
@@ -5005,6 +5953,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void safeEmailAddress() {
         try {
             String strObj = Input;
@@ -5030,6 +5983,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random safe email address with local part",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void safeEmailAddressWithLocalPart() {
         try {
@@ -5058,6 +6016,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void domainName() {
         try {
             String strObj = Input;
@@ -5083,6 +6046,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random domain suffix",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void domainSuffix() {
         try {
@@ -5110,6 +6078,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void domainWord() {
         try {
             String strObj = Input;
@@ -5135,6 +6108,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random URL",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void internetUrl() {
         try {
@@ -5162,6 +6140,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void ipV4Address() {
         try {
             String strObj = Input;
@@ -5187,6 +6170,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random IP (IPv6) address",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void ipV6Address() {
         try {
@@ -5214,6 +6202,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void ipV4Cidr() {
         try {
             String strObj = Input;
@@ -5239,6 +6232,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random IP (IPv6) CIDR address",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void ipV6Cidr() {
         try {
@@ -5266,6 +6264,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void macAddress() {
         try {
             String strObj = Input;
@@ -5291,6 +6294,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random MAC address with Prefix",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void macAddressWithPrefix() {
         try {
@@ -5319,6 +6327,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void privateIpV4Address() {
         try {
             String strObj = Input;
@@ -5344,6 +6357,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random public IP (IPv6) address",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void publicIpV6Address() {
         try {
@@ -5371,6 +6389,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void internetAvatar() {
         try {
             String strObj = Input;
@@ -5397,6 +6420,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void internetImage() {
         try {
             String strObj = Input;
@@ -5422,6 +6450,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random internet image with specs",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void internetImageWithSpecs() {
         try {
@@ -5456,6 +6489,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void internetPasswordWithLength() {
         try {
             String strObj = Input;
@@ -5486,6 +6524,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void internetPassword() {
         try {
             String strObj = Input;
@@ -5511,6 +6554,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random password including digits",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void internetPasswordWithDigits() {
         try {
@@ -5538,6 +6586,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random password with custom length and uppercase included",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void internetPasswordWithLengthUppercase() {
         try {
@@ -5573,6 +6626,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void internetPasswordWithLengthUppercaseSpecial() {
         try {
             String strObj = Input;
@@ -5607,6 +6665,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random password with custom length, uppercase, special character and digits",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void internetPasswordwithUppercaseSpecialDigit() {
         try {
@@ -5644,6 +6707,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void slug() {
         try {
             String strObj = Input;
@@ -5669,6 +6737,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random slug (like a URL slug) with specs",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void slugWithSpecs() {
         try {
@@ -5703,6 +6776,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void userAgentWithAgentType() {
         try {
             String strObj = Input;
@@ -5731,6 +6809,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void userAgentAny() {
         try {
             String strObj = Input;
@@ -5756,6 +6839,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate any random uuid",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void internetUUID() {
         try {
@@ -5783,6 +6871,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void jobTitle() {
         try {
             String strObj = Input;
@@ -5808,6 +6901,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random field of job",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void jobField() {
         try {
@@ -5835,6 +6933,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void jobKeySkills() {
         try {
             String strObj = Input;
@@ -5860,6 +6963,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random seniority level for the job",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void jobSeniority() {
         try {
@@ -5887,6 +6995,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void jobPosition() {
         try {
             String strObj = Input;
@@ -5912,6 +7025,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random League of Legends champion",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void championLOL() {
         try {
@@ -5939,6 +7057,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void summonerSpellLOL() {
         try {
             String strObj = Input;
@@ -5964,6 +7087,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random League of Legends masteries",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void masteriesLOL() {
         try {
@@ -5991,6 +7119,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void quoteLOL() {
         try {
             String strObj = Input;
@@ -6016,6 +7149,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random League of Legends rank",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void rankLOL() {
         try {
@@ -6043,6 +7181,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void locationLOL() {
         try {
             String strObj = Input;
@@ -6068,6 +7211,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random character name from The Big Lebowski",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void characterLebowski() {
         try {
@@ -6095,6 +7243,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void quoteLebowski() {
         try {
             String strObj = Input;
@@ -6120,6 +7273,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random actor from The Big Lebowski",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void actorLebowski() {
         try {
@@ -6147,6 +7305,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void characterLordOfTheRings() {
         try {
             String strObj = Input;
@@ -6172,6 +7335,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Lord of the Rings location",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void locationLordOfTheRings() {
         try {
@@ -6199,6 +7367,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void loremWord() {
         try {
             String strObj = Input;
@@ -6225,6 +7398,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void loremWords() {
         try {
             String strObj = Input;
@@ -6250,6 +7428,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a list of random Lorem words",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void loremWordsWithCount() {
         try {
@@ -6279,6 +7462,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void sentence() {
         try {
             String strObj = Input;
@@ -6304,6 +7492,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Lorem sentence with a given word count",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void sentenceWithCount() {
         try {
@@ -6336,6 +7529,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Lorem sentence with a given word count and words to add",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void sentenceWithCountAndRandomWords() {
         try {
@@ -6371,6 +7569,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void sentences() {
         try {
             String strObj = Input;
@@ -6403,6 +7606,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void paragraph() {
         try {
             String strObj = Input;
@@ -6428,6 +7636,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Lorem paragraph with a given sentence count",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void paragraphWithSentenceCount() {
         try {
@@ -6461,6 +7674,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void paragraphsWithParagraphCount() {
         try {
             String strObj = Input;
@@ -6489,6 +7707,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void loremCharacter() {
         try {
             String strObj = Input;
@@ -6515,6 +7738,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void loremCharacters() {
         try {
             String strObj = Input;
@@ -6540,6 +7768,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate random Lorem character including uppercase",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void loremCharacterIncludeUpperCase() {
         try {
@@ -6568,6 +7801,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void loremCharactersIncludeUpperCase() {
         try {
             String strObj = Input;
@@ -6594,6 +7832,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate random Lorem characters with fixed number of characters",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void loremCharactersWithNumberOfChars() {
         try {
@@ -6622,6 +7865,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate random Lorem characters with fixed number of characters and uppercase",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void loremCharactersWithNumberOfCharsUpperCase() {
         try {
@@ -6654,6 +7902,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate random Lorem characters with fixed number of characters, uppercase and digit",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void loremCharactersWithNumberOfCharsUpperCaseDigit() {
         try {
@@ -6688,6 +7941,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void loremCharactersWithinLength() {
         try {
             String strObj = Input;
@@ -6717,6 +7975,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate random Lorem characters with min and max length including uppercase",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void loremCharactersWithinLengthUpperCase() {
         try {
@@ -6751,6 +8014,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a list of random Lorem characters with min and max length including uppercase and digits",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void loremCharactersWithinLengthUpperCaseDigit() {
         try {
@@ -6787,6 +8055,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void loremFixedString() {
         try {
             String strObj = Input;
@@ -6815,6 +8088,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void quoteMatz() {
         try {
             String strObj = Input;
@@ -6840,6 +8118,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random medical disease name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void diseaseName() {
         try {
@@ -6867,6 +8150,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void hospitalName() {
         try {
             String strObj = Input;
@@ -6892,6 +8180,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random medical medication name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void medicineName() {
         try {
@@ -6919,6 +8212,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void symptoms() {
         try {
             String strObj = Input;
@@ -6944,6 +8242,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random music genre",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void musicGenre() {
         try {
@@ -6971,6 +8274,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void musicalInstrument() {
         try {
             String strObj = Input;
@@ -6996,6 +8304,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random music chord",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void musicChord() {
         try {
@@ -7023,6 +8336,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void musicKey() {
         try {
             String strObj = Input;
@@ -7048,6 +8366,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random first name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void firstName() {
         try {
@@ -7075,6 +8398,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void lastName() {
         try {
             String strObj = Input;
@@ -7100,6 +8428,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random full name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void fullName() {
         try {
@@ -7127,6 +8460,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void namePrefix() {
         try {
             String strObj = Input;
@@ -7152,6 +8490,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random name with suffix",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void nameSuffix() {
         try {
@@ -7179,6 +8522,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void nameTitle() {
         try {
             String strObj = Input;
@@ -7204,6 +8552,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random username",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void username() {
         try {
@@ -7232,6 +8585,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void name() {
         try {
             String strObj = Input;
@@ -7257,6 +8615,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random name with middle name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void nameWithMiddleName() {
         try {
@@ -7284,6 +8647,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void digit() {
         try {
             String strObj = Input;
@@ -7309,6 +8677,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate random digits",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void digits() {
         try {
@@ -7338,6 +8711,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void randomNumber() {
         try {
             String strObj = Input;
@@ -7363,6 +8741,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random number from 0-9 (both inclusive)",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void randomDigit() {
         try {
@@ -7390,6 +8773,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void randomDigitNot0() {
         try {
             String strObj = Input;
@@ -7415,6 +8803,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random number between 2 integers",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void randomIntegerNumberBetween() {
         try {
@@ -7446,6 +8839,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void randomLongNumberBetween() {
         try {
             String strObj = Input;
@@ -7475,6 +8873,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random double between 2 integers with maximum number of decimals",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void randomDoubleBetweenIntegers() {
         try {
@@ -7508,6 +8911,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void randomDoubleBetweenLong() {
         try {
             String strObj = Input;
@@ -7540,6 +8948,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void randomNumberWithNoOfDigits() {
         try {
             String strObj = Input;
@@ -7569,6 +8982,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void optionFromBoolean() {
         try {
             String strObj = Input;
@@ -7594,6 +9012,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Pick a random value from a predefined list of integers",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void optionFromIntegers() {
         try {
@@ -7627,6 +9050,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void optionFromDoubles() {
         try {
             String strObj = Input;
@@ -7658,6 +9086,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Pick a random value from a predefined list of Longs",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void optionFromLong() {
         try {
@@ -7691,6 +9124,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void optionFromStrings() {
         try {
             String strObj = Input;
@@ -7722,6 +9160,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate next element from an array of strings",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void nextElementStringArray() {
         try {
@@ -7784,6 +9227,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void heroOverWatch() {
         try {
             String strObj = Input;
@@ -7809,6 +9257,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Overwatch location",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void locationOverWatch() {
         try {
@@ -7836,6 +9289,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void quoteOverWatch() {
         try {
             String strObj = Input;
@@ -7861,6 +9319,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random phone number",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void phoneNumber() {
         try {
@@ -7888,6 +9351,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void cellPhone() {
         try {
             String strObj = Input;
@@ -7913,6 +9381,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Pokemon name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void namePokemon() {
         try {
@@ -7940,6 +9413,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void locationPokemon() {
         try {
             String strObj = Input;
@@ -7966,6 +9444,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void randomHex() {
         try {
             String strObj = Input;
@@ -7991,6 +9474,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random hex with specified length",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void randomHexWithLength() {
         try {
@@ -8020,6 +9508,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void randomNextIntWithLength() {
         try {
             String strObj = Input;
@@ -8047,6 +9540,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random integer within a range",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void randomNextIntInRange() {
         try {
@@ -8078,6 +9576,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void randomNextLong() {
         try {
             String strObj = Input;
@@ -8103,6 +9606,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random long number with length",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void randomNextLongWithLength() {
         try {
@@ -8132,6 +9640,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void randomNextBoolean() {
         try {
             String strObj = Input;
@@ -8157,6 +9670,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Double number",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void randomNextDouble() {
         try {
@@ -8184,6 +9702,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void characterRickAndMorty() {
         try {
             String strObj = Input;
@@ -8209,6 +9732,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Rick and Morty location",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void locationRickAndMorty() {
         try {
@@ -8236,6 +9764,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void quoteRickAndMorty() {
         try {
             String strObj = Input;
@@ -8261,6 +9794,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Robin quote",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void quoteRobin() {
         try {
@@ -8288,6 +9826,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void nameRockBand() {
         try {
             String strObj = Input;
@@ -8313,6 +9856,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Hamlet quote",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void quoteHamlet() {
         try {
@@ -8340,6 +9888,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void quoteAsYouLikeIt() {
         try {
             String strObj = Input;
@@ -8365,6 +9918,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random King Richard III quote",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void quoteKingRichard() {
         try {
@@ -8392,6 +9950,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void quoteRomeoAndJuliet() {
         try {
             String strObj = Input;
@@ -8417,6 +9980,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Slack emoji",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void slackEmoji() {
         try {
@@ -8444,6 +10012,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void slackEmojiPeople() {
         try {
             String strObj = Input;
@@ -8469,6 +10042,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Slack emoji related to nature",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void slackEmojiNature() {
         try {
@@ -8496,6 +10074,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void slackEmojiFoodAndDrink() {
         try {
             String strObj = Input;
@@ -8521,6 +10104,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Slack emoji related to celebration",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void slackEmojiCelebration() {
         try {
@@ -8548,6 +10136,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void slackEmojiActivity() {
         try {
             String strObj = Input;
@@ -8573,6 +10166,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Slack emoji related to travel and places",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void slackEmojiTravelAndPlaces() {
         try {
@@ -8600,6 +10198,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void slackEmojiObjectsAndSymbols() {
         try {
             String strObj = Input;
@@ -8625,6 +10228,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Slack emoji related to custom emojis",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void slackEmojiCustom() {
         try {
@@ -8652,6 +10260,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void planet() {
         try {
             String strObj = Input;
@@ -8677,6 +10290,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random moon name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void moon() {
         try {
@@ -8704,6 +10322,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void galaxy() {
         try {
             String strObj = Input;
@@ -8729,6 +10352,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random nebula name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void nebula() {
         try {
@@ -8756,6 +10384,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void starCluster() {
         try {
             String strObj = Input;
@@ -8781,6 +10414,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random constellation name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void constellation() {
         try {
@@ -8808,6 +10446,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void star() {
         try {
             String strObj = Input;
@@ -8833,6 +10476,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random agency name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void spaceAgency() {
         try {
@@ -8860,6 +10508,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void spaceAgencyAbbreviation() {
         try {
             String strObj = Input;
@@ -8885,6 +10538,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random space company name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void spaceCompany() {
         try {
@@ -8912,6 +10570,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void distanceMeasurement() {
         try {
             String strObj = Input;
@@ -8937,6 +10600,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random meteorite name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void meteorite() {
         try {
@@ -8964,6 +10632,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void nasaSpaceCraft() {
         try {
             String strObj = Input;
@@ -8989,6 +10662,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Star Trek character name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void characterStarTrek() {
         try {
@@ -9016,6 +10694,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void locationStarTrek() {
         try {
             String strObj = Input;
@@ -9041,6 +10724,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Star Trek species",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void specieStarTrek() {
         try {
@@ -9068,6 +10756,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void villainStarTrek() {
         try {
             String strObj = Input;
@@ -9093,6 +10786,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random stock ticker symbol from the NYSE exchange",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void nyseSymbol() {
         try {
@@ -9120,6 +10818,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void nsdqSymbol() {
         try {
             String strObj = Input;
@@ -9145,6 +10848,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random superhero name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void superheroName() {
         try {
@@ -9172,6 +10880,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void superheroPower() {
         try {
             String strObj = Input;
@@ -9197,6 +10910,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random superhero prefix",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void superheroPrefix() {
         try {
@@ -9224,6 +10942,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void superheroSuffix() {
         try {
             String strObj = Input;
@@ -9249,6 +10972,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random superhero descriptor",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void superheroDescriptor() {
         try {
@@ -9276,6 +11004,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void teamName() {
         try {
             String strObj = Input;
@@ -9301,6 +11034,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random team sport",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void teamSport() {
         try {
@@ -9328,6 +11066,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void teamState() {
         try {
             String strObj = Input;
@@ -9353,6 +11096,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random team creature",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void teamCreature() {
         try {
@@ -9380,6 +11128,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void characterTwinPeaks() {
         try {
             String strObj = Input;
@@ -9405,6 +11158,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Twin Peaks location",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void locationTwinPeaks() {
         try {
@@ -9432,6 +11190,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void quoteTwinPeaks() {
         try {
             String strObj = Input;
@@ -9457,6 +11220,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random university name",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void universityName() {
         try {
@@ -9484,6 +11252,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void universityPrefix() {
         try {
             String strObj = Input;
@@ -9509,6 +11282,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random university suffix",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void universitySuffix() {
         try {
@@ -9536,6 +11314,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void weatherDescription() {
         try {
             String strObj = Input;
@@ -9561,6 +11344,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random temperature in Celsius",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void temperatureCelsius() {
         try {
@@ -9588,6 +11376,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void temperatureFahrenheit() {
         try {
             String strObj = Input;
@@ -9613,6 +11406,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random temperature in Celsius within a range",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void temperatureCelsiusWithinRange() {
         try {
@@ -9644,6 +11442,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void temperatureFahrenheitWithinRange() {
         try {
             String strObj = Input;
@@ -9674,6 +11477,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void characterWitcher() {
         try {
             String strObj = Input;
@@ -9699,6 +11507,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Witcher location",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void locationWitcher() {
         try {
@@ -9726,6 +11539,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void quoteWitcher() {
         try {
             String strObj = Input;
@@ -9751,6 +11569,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Witcher",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void witcher() {
         try {
@@ -9778,6 +11601,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void monsterWitcher() {
         try {
             String strObj = Input;
@@ -9803,6 +11631,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Witcher school",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void schoolWitcher() {
         try {
@@ -9830,6 +11663,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void quoteYoda() {
         try {
             String strObj = Input;
@@ -9855,6 +11693,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random Zelda character",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void characterZelda() {
         try {
@@ -9882,6 +11725,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void gameZelda() {
         try {
             String strObj = Input;
@@ -9907,6 +11755,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random expression based on input string",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void expression() {
         try {
@@ -9935,6 +11788,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void bothify() {
         try {
             String strObj = Input;
@@ -9961,6 +11819,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random expression based on input pattern",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void bothifyWithUpper() {
         try {
@@ -9990,6 +11853,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void letterify() {
         try {
             String strObj = Input;
@@ -10016,6 +11884,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random expression based on input pattern",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void letterifyWithUpper() {
         try {
@@ -10045,6 +11918,11 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void numerify() {
         try {
             String strObj = Input;
@@ -10071,6 +11949,11 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random expression based on input pattern",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void regexify() {
         try {

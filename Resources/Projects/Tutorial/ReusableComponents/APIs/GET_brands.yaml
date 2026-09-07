@@ -20,8 +20,8 @@ steps:
     action: getRestRequest
 
   - step: 4
-    object: Webservice
-    description: 'Assert Response Body contains '
-    action: assertResponsebodycontains
+    object: _0_name
+    description: "Assert JSON: $[0].name"
+    action: assertJsonPathResultContains
     input: '@ForgeFlex Tools'
     reference: "[Project] APIRequest"
