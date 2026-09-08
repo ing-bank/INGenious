@@ -229,4 +229,41 @@ public class SharedTestDataResolutionIntegrationTest {
         assertThat(DataProcessor.isInputPatternDataSheet("[Shared] TestData0:URL")).isTrue();
         assertThat(DataProcessor.isInputPatternDataSheet("[Project] Basic:URL")).isTrue();
     }
+
+    @Test
+    public void testTestDataTokenParseFeedsScopeAwareModelLookup() {
+        TestCaseRunner context = mockContext();
+
+        // Untagged, {braced}, and [Project]-tagged all resolve to the same project sheet+value.
+        for (String ref : new String[] {
+            "Basic:URL",
+            "{Basic:URL}",
+            "[Project] Basic:URL",
+            "{[Project] Basic:URL}"
+        }) {
+            String[] sc = TestDataToken.parse(ref);
+            assertThat(sc).as(ref).isNotNull();
+            TestDataModel model = DataAccessInternal.getModel(context, sc[0]);
+            assertThat(model).as(ref).isNotNull();
+            assertThat(model.getName()).as(ref).isEqualTo("Basic");
+            assertThat(
+                    DataAccessInternal.getDataFromModelWithScope(
+                        model,
+                        sc[1],
+                        "MortgageCalculation-Browser",
+                        "High Income",
+                        "1",
+                        "1",
+                        ""
+                    )
+                )
+                .as(ref)
+                .isEqualTo("PROJECT_VALUE");
+        }
+
+        // The [Shared] tag routes to the app-root Shared store instead.
+        String[] shared = TestDataToken.parse("{[Shared] TestData0:URL}");
+        assertThat(DataAccessInternal.getModel(context, shared[0]).getName())
+            .isEqualTo("TestData0");
+    }
 }

@@ -52,6 +52,27 @@ public class DataCommand implements Callable<Integer> {
     }
 
     /**
+     * Resolves a (possibly scope-tagged) sheet reference to its CSV file. {@code "[Shared] Foo"}
+     * -> {@code <workspace>/Shared/SharedTestData/Foo.csv}; {@code "[Project] Foo"} / {@code "Foo"}
+     * -> {@code <project>/TestData/Foo.csv}.
+     */
+    static File resolveSheetCsv(String projectPath, String taggedSheet) {
+        String s = taggedSheet == null ? "" : taggedSheet.trim();
+        if (s.startsWith("[Shared]")) {
+            String name = s.substring("[Shared]".length()).trim();
+            File parent = new File(projectPath).getParentFile();
+            File sharedRoot = parent != null
+                ? new File(new File(parent, "Shared"), "SharedTestData")
+                : sharedTestDataDir();
+            return new File(sharedRoot, name + ".csv");
+        }
+        if (s.startsWith("[Project]")) {
+            s = s.substring("[Project]".length()).trim();
+        }
+        return new File(new File(projectPath, "TestData"), s + ".csv");
+    }
+
+    /**
      * List data sheets/environments.
      */
     @Command(name = "list", description = "List data sheets")
@@ -241,25 +262,27 @@ public class DataCommand implements Callable<Integer> {
                 return 1;
             }
 
-            // Parse reference: Sheet:Column:Row or Sheet.Column[Row]
+            // Parse reference: [ [Project]|[Shared] ] Sheet:Column:Row
             String[] parts = reference.split(":");
             if (parts.length != 3) {
-                cli.printError("Invalid reference format. Use: Sheet:Column:Row");
+                cli.printError(
+                    "Invalid reference format. Use: [[Project]|[Shared]] Sheet:Column:Row"
+                );
                 return 1;
             }
 
-            String sheet = parts[0];
+            String sheet = parts[0].trim();
             String column = parts[1];
             int row;
             try {
-                row = Integer.parseInt(parts[2]);
+                row = Integer.parseInt(parts[2].trim());
             } catch (NumberFormatException e) {
                 cli.printError("Invalid row number: " + parts[2]);
                 return 1;
             }
 
             try {
-                File dataFile = new File(path, "TestData/" + sheet + ".csv");
+                File dataFile = resolveSheetCsv(path, sheet);
                 if (!dataFile.exists()) {
                     cli.printError("Data sheet not found: " + sheet);
                     return 1;
@@ -343,22 +366,24 @@ public class DataCommand implements Callable<Integer> {
 
             String[] parts = reference.split(":");
             if (parts.length != 3) {
-                cli.printError("Invalid reference format. Use: Sheet:Column:Row");
+                cli.printError(
+                    "Invalid reference format. Use: [[Project]|[Shared]] Sheet:Column:Row"
+                );
                 return 1;
             }
 
-            String sheet = parts[0];
+            String sheet = parts[0].trim();
             String column = parts[1];
             int targetRow;
             try {
-                targetRow = Integer.parseInt(parts[2]);
+                targetRow = Integer.parseInt(parts[2].trim());
             } catch (NumberFormatException e) {
                 cli.printError("Invalid row number: " + parts[2]);
                 return 1;
             }
 
             try {
-                File dataFile = new File(path, "TestData/" + sheet + ".csv");
+                File dataFile = resolveSheetCsv(path, sheet);
                 if (!dataFile.exists()) {
                     cli.printError("Data sheet not found: " + sheet);
                     return 1;

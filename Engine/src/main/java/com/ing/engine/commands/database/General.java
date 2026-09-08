@@ -6,6 +6,7 @@ import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.contract.DatabasePluginApi;
 import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
 import com.ing.ingenious.api.dto.DMLResult;
@@ -96,14 +97,12 @@ public class General extends Command implements DatabasePluginApi {
     }
 
     /**
-     * Detects and resolves all variables in the input string, including datasheet variables,
-     * user-defined variables, and runtime variables.
-     *
-     * <p>If no variables are present, the original string is returned unchanged.</p>
-     *
-     * @param str the input string to evaluate; may or may not contain variables
-     * @return a string with all detected variables replaced by their corresponding values,
-     *         or the original string if none are found
+     * Resolves a Database-connection config value (connectionString / user / password / driver /
+     * ...). A single value may <b>mix</b> literal text, embedded {@code {Sheet:Column}} test-data
+     * tokens (braces required as the delimiter; {@code [Project]}/{@code [Shared]} tags honoured
+     * via {@link TestDataToken#resolveEmbeddedTokens}) and {@code %runtimeVar%} references, e.g.
+     * {@code jdbc:mysql://{[Project] DbCfg:Host}:%port%/{DbCfg:Schema}}. Test-data tokens are
+     * substituted first, then runtime vars. A value with none is returned unchanged.
      */
     private String resolveAllVariables(String str) {
         str = handleDataSheetVariables(str);
@@ -273,8 +272,10 @@ public class General extends Command implements DatabasePluginApi {
                     if (s.contains("%")) {
                         replace = getVar(s);
                     } else {
-                        String[] sheet = s.split(":");
-                        replace = userData.getData(sheet[0], sheet[1]);
+                        // Accepts Sheet:Column, [Project] Sheet:Column and [Shared] Sheet:Column
+                        // (split on the first ':' so a column name may itself contain one).
+                        String[] sheet = TestDataToken.parse(s);
+                        replace = sheet == null ? null : userData.getData(sheet[0], sheet[1]);
                     }
                     if (replace != null) {
                         Data = Data.replace("{" + s + "}", "'" + replace + "'");
@@ -322,30 +323,9 @@ public class General extends Command implements DatabasePluginApi {
      * @return the query with datasheet variables replaced
      */
     private String handleDataSheetVariables(String query) {
-        List<String> sheetlist = Control
-            .getCurrentProject()
-            .getTestData()
-            .getTestDataFor(Control.exe.runEnv())
-            .getTestDataNames();
-        for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
-            if (query.contains("{" + sheetlist.get(sheet) + ":")) {
-                com.ing.datalib.testdata.model.TestDataModel tdModel = Control
-                    .getCurrentProject()
-                    .getTestData()
-                    .getTestDataByName(sheetlist.get(sheet));
-                List<String> columns = tdModel.getColumns();
-                for (int col = 0; col < columns.size(); col++) {
-                    if (query.contains("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}")) {
-                        query =
-                            query.replace(
-                                "{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
-                                userData.getData(sheetlist.get(sheet), columns.get(col))
-                            );
-                    }
-                }
-            }
-        }
-        return query;
+        // Resolves {Sheet:Column} / {[Project] Sheet:Column} / {[Shared] Sheet:Column} tokens;
+        // unknown tokens are left literal.
+        return TestDataToken.resolveEmbeddedTokens(query, userData);
     }
 
     /**
