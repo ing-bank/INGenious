@@ -304,6 +304,18 @@ public class TestStep {
         return getObject().equals("Execute") && getAction().matches(".+:.+");
     }
 
+    /**
+     * True when this step's <b>whole Input</b> is a Test Data reference - used for IDE
+     * validation / colouring / the "TestData/Column not available" check. Braces are optional
+     * for a whole-input reference: bare {@code Sheet:Column} and {@code [Project]/[Shared]
+     * Sheet:Column} (bare or braced) all count.
+     *
+     * <p>This is <em>not</em> about embedded {@code {Sheet:Column}} tokens inside a larger Input
+     * (a webservice / MQ payload, SQL text, a file template, a connection string). Those are a
+     * literal/payload Input as far as the IDE is concerned; the command resolves the tokens at
+     * execution time via {@code TestDataToken.resolveEmbeddedTokens} where the {@code {...}}
+     * braces are the required delimiter.</p>
+     */
     public Boolean isTestDataStep() {
         if (isScopedTestDataRef(getInput())) {
             return true;
@@ -322,8 +334,9 @@ public class TestStep {
      * mirroring DataProcessor.isInputPatternDataSheet on the execution side.
      */
     private boolean isScopedTestDataRef(String inp) {
+        // \s* (not \s+) to stay in step with the engine's DataProcessor.SCOPED_DATASHEET_PATTERN.
         return unwrapBraces(inp)
-            .matches("(\\[Shared\\]|\\[Project\\])\\s+[^:{}\\[\\]]+:[^:{}\\[\\]]+");
+            .matches("(\\[Shared\\]|\\[Project\\])\\s*[^:{}\\[\\]]+:[^:{}\\[\\]]+");
     }
 
     private String unwrapBraces(String inp) {

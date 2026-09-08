@@ -12,6 +12,7 @@ import com.ing.engine.execution.data.DataIterator;
 import com.ing.engine.execution.data.DataProcessor;
 import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.data.StepSet;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.engine.execution.exception.AppiumDriverException;
 import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.TestFailedException;
@@ -334,17 +335,17 @@ public class TestCaseRunner {
             String data = "";
             String testInput = testStep.getInput();
             TestCase parentTestCase = this.testCase.getParentTestCase();
-            if (!testInput.startsWith("@") && DataProcessor.isInputPatternDataSheet(testInput)) {
-                String sheet = testStep.getInput().split(":")[0];
-                String dataCol = testStep.getInput().split(":")[1];
-
+            // Split via TestDataToken so a braced and/or [Project]/[Shared]-tagged reference
+            // ("{[Shared] Sheet:Col}") yields a usable sheet name instead of "{[Shared] Sheet".
+            String[] ref = testInput.startsWith("@") ? null : TestDataToken.parse(testInput);
+            if (ref != null && DataProcessor.isInputPatternDataSheet(testInput)) {
                 data =
                     DataAccess.getNextData(
                         this,
                         getRoot().getTestCase().getScenario().getName(),
                         getRoot().getTestCase().getName(),
-                        sheet,
-                        dataCol,
+                        ref[0],
+                        ref[1],
                         parameter.getIteration() + "",
                         (this.currentSubIteration) + ""
                     );

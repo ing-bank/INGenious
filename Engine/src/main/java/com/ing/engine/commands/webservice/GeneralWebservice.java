@@ -4,6 +4,7 @@ import com.ing.engine.commands.browser.Command;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.contract.WebservicePluginApi;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
@@ -525,34 +526,9 @@ public class GeneralWebservice extends Command implements WebservicePluginApi {
     }
 
     protected String handleDataSheetVariables(String payloadstring) {
-        List<String> sheetlist = Control
-            .getCurrentProject()
-            .getTestData()
-            .getTestDataFor(Control.exe.runEnv())
-            .getTestDataNames();
-        for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
-            if (payloadstring.contains("{" + sheetlist.get(sheet) + ":")) {
-                com.ing.datalib.testdata.model.TestDataModel tdModel = Control
-                    .getCurrentProject()
-                    .getTestData()
-                    .getTestDataByName(sheetlist.get(sheet));
-                List<String> columns = tdModel.getColumns();
-                for (int col = 0; col < columns.size(); col++) {
-                    if (
-                        payloadstring.contains(
-                            "{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}"
-                        )
-                    ) {
-                        payloadstring =
-                            payloadstring.replace(
-                                "{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
-                                userData.getData(sheetlist.get(sheet), columns.get(col))
-                            );
-                    }
-                }
-            }
-        }
-        return payloadstring;
+        // Resolves every embedded {Sheet:Column} token - untagged (project), "{[Project] ...}"
+        // and "{[Shared] ...}" alike. Unknown tokens are left literal, keeping JSON/YAML safe.
+        return TestDataToken.resolveEmbeddedTokens(payloadstring, userData);
     }
 
     protected String handleuserDefinedVariables(String payloadstring) {
