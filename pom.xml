@@ -7,6 +7,7 @@
     <version>4.0.0</version>
     <packaging>pom</packaging>
     <modules>
+        <module>ingenious-api</module>
         <module>StoryWriter</module>
         <module>TestData - Csv</module>
         <module>Datalib</module>

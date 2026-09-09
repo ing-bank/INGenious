@@ -598,18 +598,17 @@
     <!--
         Lightweight archetype-based distribution (RELEASE_STRATEGY.md §9.3).
 
-        The default build produces the Browser archetype. Optional archetypes whose
-        dependencies are cleanly separable are activated with -P:
+        The default build produces the Browser + Database archetypes, since the DB
+        Workbench UI is always present and needs its JDBC drivers on the classpath.
+        Additional archetypes are activated with -P:
 
-            mvn clean package                 (browser - default)
-            mvn clean package -P database     (browser + JDBC drivers)
-            mvn clean package -P kafka        (browser + Kafka/Avro)
-            mvn clean package -P database,kafka
+            mvn clean package                 (browser + database - default)
+            mvn clean package -P kafka        (browser + database + Kafka/Avro)
             mvn clean package -P full         (everything)
 
-        Only the database (JDBC drivers, loaded reflectively at runtime) and kafka
-        (source currently disabled; deps optional) archetypes can be fully gated
-        today, so those profiles strip real dependencies from the default build.
+        Only the kafka (source currently disabled; deps optional) archetype can be
+        fully gated today, so that profile strips real dependencies from the default
+        build.
 
         The mobile (Appium), api (Apache HttpClient), sap (JACOB) and axe (axe-core)
         archetypes currently ship inside the core <dependencies> block because engine
@@ -640,6 +639,12 @@
 
         <profile>
             <id>database</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <!-- JDBC drivers required by the DB Workbench UI, which is a core
+                 IDE feature (not opt-in), so this profile is active by default
+                 alongside 'browser'. -->
             <dependencies>
                 <dependency>
                     <groupId>com.microsoft.sqlserver</groupId>
