@@ -1,6 +1,7 @@
 package com.ing.ide.main.mainui.components.testdesign.testdata;
 
 import com.ing.datalib.component.EnvTestData;
+import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestData;
@@ -680,6 +681,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 case "Go To TestCase":
                     tdPanel.goToSelectedTestCase();
                     break;
+                case "Make As Shared TestData":
+                    makeSelectedSheetShared(tdPanel);
+                    break;
             }
         }
     }
@@ -1042,6 +1046,298 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 String.join(", ", imported.keySet()) +
                 "  |  skipped (already present): " +
                 String.join(", ", skipped)
+            );
+        }
+    }
+
+    // ─── "Make As Shared TestData" ────────────────────────────────────────────
+
+    /** Outcome of the "also move the test cases?" prompt. */
+    private static final class PromoteChoice {
+        /** true when the user dismissed the prompt - the whole operation is aborted. */
+        boolean cancelled;
+        /** test cases the user chose to convert to Shared Reusables (empty when declined). */
+        final List<TestCase> toPromote = new ArrayList<>();
+        /** test cases left behind because the user said No (empty when there were none / Yes). */
+        final List<TestCase> leftBehind = new ArrayList<>();
+    }
+
+    /**
+     * Moves the selected project datasheet into Shared Test Data and rewrites every reference
+     * to it (Test Plan, Project Reusables, Shared Reusables) to a {@code [Shared]} reference.
+     * Offered only on the project's own Test Data panel, never the Shared one.
+     */
+    private void makeSelectedSheetShared(TestDataTablePanel tdPanel) {
+        if (shared || tdPanel == null || testDesign.getProject() == null) {
+            return;
+        }
+        if (tdPanel.isGlobalData) {
+            Notification.showWarning(
+                "Global Data cannot be moved on its own - use the environment's " +
+                "\"Make As Shared TestData\"."
+            );
+            return;
+        }
+        String sheetName = tdPanel.std.getName();
+        String envName = envTab.getTitleAt(envTab.getSelectedIndex());
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Move Test Data '" +
+            sheetName +
+            "' from environment '" +
+            envName +
+            "' to Shared Test Data?\n" +
+            "References to it will be updated to [Shared] (unless the same sheet still exists " +
+            "in another environment).",
+            "Make As Shared TestData",
+            JOptionPane.YES_NO_OPTION
+        );
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        PromoteChoice choice = askMoveTestCasesToShared(
+            testDesign.getProject().getPromotableTestCasesForSheet(sheetName)
+        );
+        if (choice.cancelled) {
+            return;
+        }
+
+        try {
+            Project.MakeSharedTestDataResult result = testDesign
+                .getProject()
+                .makeTestDataSheetShared(envName, sheetName, choice.toPromote);
+            offerToMovePromotedTestCaseObjectsToShared(result.promoted);
+            notifyResult(result, choice.leftBehind);
+        } catch (IOException ex) {
+            Logger.getLogger(TestDataComponent.class.getName()).log(Level.SEVERE, null, ex);
+            Notification.showError(
+                "Could not move '" + sheetName + "' to Shared Test Data: " + ex.getMessage()
+            );
+        }
+        testDesign.load();
+    }
+
+    /**
+     * Moves the selected project Test Data environment - all its datasheets and its Global
+     * Data - into Shared Test Data, then removes the environment from the project ({@code
+     * Default} is kept but emptied).
+     */
+    private void makeSelectedEnvironmentShared() {
+        if (shared || testDesign.getProject() == null) {
+            return;
+        }
+        int index = envTab.getSelectedIndex();
+        if (index < 0 || index == envTab.getTabCount() - 1) {
+            return;
+        }
+        String envName = envTab.getTitleAt(index);
+        TestData envData = envTestData().getTestDataFor(envName);
+        if (envData == null) {
+            return;
+        }
+        boolean hasSheets = !envData.getTestDataList().isEmpty();
+        if (envData.getGlobalData() != null) {
+            envData.getGlobalData().loadTableModel();
+        }
+        boolean hasGlobal =
+            envData.getGlobalData() != null && envData.getGlobalData().getRowCount() > 0;
+        if (!hasSheets && !hasGlobal) {
+            Notification.showWarning("Environment '" + envName + "' has no Test Data to move.");
+            return;
+        }
+        String fate = "Default".equals(envName)
+            ? "The Default environment stays but is emptied."
+            : "The environment is then removed from the project.";
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Move ALL Test Data and Global Data of environment '" +
+            envName +
+            "' to Shared Test Data?\n" +
+            fate +
+            "\nAll references to the moved sheets will be updated to [Shared].",
+            "Make As Shared TestData",
+            JOptionPane.YES_NO_OPTION
+        );
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        List<TestCase> promotable = new ArrayList<>();
+        for (TestDataModel model : envData.getTestDataList()) {
+            promotable.addAll(
+                testDesign.getProject().getPromotableTestCasesForSheet(model.getName())
+            );
+        }
+        PromoteChoice choice = askMoveTestCasesToShared(promotable);
+        if (choice.cancelled) {
+            return;
+        }
+
+        try {
+            Project.MakeSharedTestDataResult result = testDesign
+                .getProject()
+                .makeEnvironmentTestDataShared(envName, choice.toPromote);
+            offerToMovePromotedTestCaseObjectsToShared(result.promoted);
+            notifyResult(result, choice.leftBehind);
+        } catch (IOException ex) {
+            Logger.getLogger(TestDataComponent.class.getName()).log(Level.SEVERE, null, ex);
+            Notification.showError(
+                "Could not move environment '" +
+                envName +
+                "' to Shared Test Data: " +
+                ex.getMessage()
+            );
+        }
+        testDesign.load();
+    }
+
+    /**
+     * After referencing test cases have been promoted to Shared Reusables, reuse the Project
+     * tree's helper to detect the project-scoped Object Repository items those test cases use
+     * and prompt to move them to the Shared OR as well - the same second step the normal
+     * "Make As Shared Reusable" flow runs.
+     */
+    private void offerToMovePromotedTestCaseObjectsToShared(List<TestCase> promoted) {
+        if (promoted == null || promoted.isEmpty()) {
+            return;
+        }
+        try {
+            testDesign.getProjectTree().confirmAndMoveProjectObjectsForTestCases(promoted);
+        } catch (Exception ex) {
+            Logger
+                .getLogger(TestDataComponent.class.getName())
+                .log(Level.WARNING, "Optional object move after test case promotion failed", ex);
+        }
+    }
+
+    /**
+     * Asks whether the Test Plan / Project-Reusable test cases tied to the datasheet(s) being
+     * moved (they use it, or hold its data rows) should also be converted to Shared Reusables
+     * so other consumers of the shared data can run them.
+     *
+     * <p>Yes converts them and rewrites their references to {@code [Shared]}; No moves only the
+     * Test Data and records the left-behind cases so the caller can warn about them; dismissing
+     * the dialog aborts the whole operation.</p>
+     *
+     * @param promotable candidate test cases (any order, may contain duplicates)
+     * @return the user's choice
+     */
+    private PromoteChoice askMoveTestCasesToShared(List<TestCase> promotable) {
+        PromoteChoice choice = new PromoteChoice();
+        List<TestCase> distinct = new ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (TestCase tc : promotable) {
+            if (tc.getScenario() == null || tc.getScenario().isSharedReusableScenario()) {
+                continue;
+            }
+            if (seen.add(tc.getScenario().getName() + " / " + tc.getName())) {
+                distinct.add(tc);
+            }
+        }
+        if (distinct.isEmpty()) {
+            return choice;
+        }
+
+        StringBuilder list = new StringBuilder();
+        for (TestCase tc : distinct) {
+            list
+                .append(tc.getScenario().getScopeLabel())
+                .append(":  ")
+                .append(tc.getScenario().getName())
+                .append("  /  ")
+                .append(tc.getName())
+                .append('\n');
+        }
+        javax.swing.JTextArea area = new javax.swing.JTextArea(list.toString().trim());
+        area.setEditable(false);
+        area.setOpaque(false);
+        JScrollPane scroll = new JScrollPane(area);
+        scroll.setPreferredSize(
+            new java.awt.Dimension(460, Math.min(220, 24 + distinct.size() * 18))
+        );
+
+        JPanel panel = new JPanel(new BorderLayout(0, 6));
+        panel.add(
+            new JLabel(
+                "<html>" +
+                distinct.size() +
+                " impacted Test Plan / Project Reusable test case(s) use the Test Data being " +
+                "moved:</html>"
+            ),
+            BorderLayout.NORTH
+        );
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(
+            new JLabel(
+                "<html><br>Also move these test case(s) to <b>Shared Reusables</b> (their " +
+                "references updated to [Shared])?<br>" +
+                "Choosing <b>No</b> moves only the Test Data &mdash; other users of the shared " +
+                "data may not be able to run the test case(s) above.<br>" +
+                "Closing this dialog cancels the whole operation.</html>"
+            ),
+            BorderLayout.SOUTH
+        );
+
+        int option = JOptionPane.showConfirmDialog(
+            this,
+            panel,
+            "Make As Shared TestData",
+            JOptionPane.YES_NO_OPTION
+        );
+        if (option == JOptionPane.YES_OPTION) {
+            choice.toPromote.addAll(distinct);
+        } else if (option == JOptionPane.NO_OPTION) {
+            choice.leftBehind.addAll(distinct);
+        } else {
+            // Dialog dismissed (Esc / window close) - abort everything.
+            choice.cancelled = true;
+        }
+        return choice;
+    }
+
+    private void notifyResult(Project.MakeSharedTestDataResult result, List<TestCase> leftBehind) {
+        List<String> parts = new ArrayList<>();
+        for (java.util.Map.Entry<String, String> e : result.movedSheets.entrySet()) {
+            parts.add(
+                e.getKey().equals(e.getValue()) ? e.getKey() : e.getKey() + " → " + e.getValue()
+            );
+        }
+        StringBuilder m = new StringBuilder("Moved to Shared Test Data: ");
+        m.append(parts.isEmpty() ? "(none)" : String.join(", ", parts));
+        m.append(".  ").append(result.referenceUpdates).append(" reference(s) updated");
+        if (!result.promoted.isEmpty()) {
+            m
+                .append("; ")
+                .append(result.promoted.size())
+                .append(" test case(s) converted to Shared Reusables");
+        }
+        m.append('.');
+        Notification.showSuccess(m.toString());
+
+        if (leftBehind != null && !leftBehind.isEmpty()) {
+            List<String> names = new ArrayList<>();
+            for (TestCase tc : leftBehind) {
+                names.add(tc.getScenario().getName() + " / " + tc.getName());
+            }
+            Notification.showWarning(
+                leftBehind.size() +
+                " test case(s) were NOT moved to Shared Reusables - other users of the shared " +
+                "Test Data may not be able to run them: " +
+                String.join(", ", names)
+            );
+        }
+
+        if (!result.partiallyMovedSheets.isEmpty()) {
+            List<String> notes = new ArrayList<>();
+            for (java.util.Map.Entry<String, List<String>> e : result.partiallyMovedSheets.entrySet()) {
+                notes.add(e.getKey() + " (still in: " + String.join(", ", e.getValue()) + ")");
+            }
+            Notification.showWarning(
+                "References were NOT updated to [Shared] for: " +
+                String.join("; ", notes) +
+                " - the same sheet still exists in those project environment(s). Move those " +
+                "environments too to finish the migration."
             );
         }
     }
@@ -2046,6 +2342,15 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
             add(addNew);
             add(addInAll);
+            // Promoting a sheet to Shared Test Data only makes sense from the project's own
+            // Test Data panel, not the Shared one.
+            if (!shared) {
+                JMenuItem makeShared = new JMenuItem("Make As Shared TestData");
+                makeShared.setActionCommand("Make As Shared TestData");
+                makeShared.addActionListener(TestDataComponent.this);
+                addSeparator();
+                add(makeShared);
+            }
             addSeparator();
             add(search);
             addSeparator();
@@ -2090,6 +2395,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             reopen.addActionListener(this);
 
             add(addNew);
+            if (!shared) {
+                JMenuItem makeShared = new JMenuItem("Make As Shared TestData");
+                makeShared.setActionCommand("Make Env As Shared TestData");
+                makeShared.addActionListener(this);
+                addSeparator();
+                add(makeShared);
+            }
             addSeparator();
             add(close);
             add(delete);
@@ -2104,6 +2416,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 case "Add New Enivronment":
                     envTab.setSelectedIndex(envTab.getTabCount() - 1);
                     environmentPanel.selectTextBox();
+                    break;
+                case "Make Env As Shared TestData":
+                    makeSelectedEnvironmentShared();
                     break;
                 case "Close Enivronment":
                     if (envTab.getSelectedIndex() != envTab.getTabCount() - 1) {

@@ -20,6 +20,9 @@ import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import com.ing.datalib.settings.ProjectSettings;
+import com.ing.datalib.testdata.model.AbstractDataModel;
+import com.ing.datalib.testdata.model.GlobalDataModel;
+import com.ing.datalib.testdata.model.Record;
 import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.datalib.util.data.FileScanner;
 import java.io.File;
@@ -28,8 +31,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
@@ -1735,6 +1740,364 @@ public class Project {
 
         // Reload so both the project and shared TestData reflect the transferred sheet
         loadTestDatas();
+    }
+
+    // ─── "Make As Shared TestData" ────────────────────────────────────────────
+
+    /**
+     * Outcome of a "Make As Shared TestData" operation, for user feedback.
+     */
+    public static final class MakeSharedTestDataResult {
+        /** original sheet name -&gt; final name in the Shared store (suffixed on collision). */
+        public final Map<String, String> movedSheets = new LinkedHashMap<>();
+
+        /** whole-input Test Data references rewritten to {@code [Shared] ...}. */
+        public int referenceUpdates = 0;
+
+        /**
+         * Moved sheet name -&gt; the project environments that still contain a sheet of that
+         * name, so references were <em>not</em> retagged (doing so would break those
+         * environments). Populated only for the environment-scoped move.
+         */
+        public final Map<String, List<String>> partiallyMovedSheets = new LinkedHashMap<>();
+
+        /**
+         * The Shared Reusable test cases created by promoting referencing Test Plan /
+         * Project-Reusable cases (the moved copies, not the originals). Empty when the user
+         * declined promotion. The IDE feeds these to the "move referenced project objects to
+         * Shared OR too?" prompt.
+         */
+        public final List<TestCase> promoted = new ArrayList<>();
+
+        /** reusable-reference (Execute step) updates caused by those promotions. */
+        public int promotedReferenceUpdates = 0;
+    }
+
+    /**
+     * Test cases across <em>every</em> scope (Test Plan, Project Reusables, Shared Reusables)
+     * whose whole-input Test Data reference points at {@code testDataName}. Unlike
+     * {@link #getImpactedTestDataTestCases(String)} (Test Plan only) this is scope-wide, so it
+     * can drive the "also convert to Shared Reusable" prompt.
+     *
+     * @param testDataName datasheet name
+     * @return impacted test cases, in scenario iteration order
+     */
+    public List<TestCase> getImpactedTestDataTestCasesAllScopes(String testDataName) {
+        List<TestCase> impacted = new ArrayList<>();
+        for (Scenario scenario : getAllScenarios()) {
+            impacted.addAll(scenario.getImpactedTestDataTestCases(testDataName));
+        }
+        return impacted;
+    }
+
+    /**
+     * Test cases a datasheet holds data rows for - the distinct (Scenario, Flow) pairs in its
+     * rows - that live in the Test Plan or Project Reusables (per each row's {@code Scope}
+     * column, falling back to a name lookup). These are the cases another user of the Shared
+     * data could not run if the sheet moves to Shared Test Data without them.
+     *
+     * @param sheetName datasheet name
+     * @return the served Test Plan / Project-Reusable test cases, de-duplicated
+     */
+    public List<TestCase> getTestCasesServedByDataSheet(String sheetName) {
+        java.util.LinkedHashMap<String, TestCase> found = new LinkedHashMap<>();
+        for (TestData env : testData.getAllEnvironments()) {
+            TestDataModel model = env.getByNameIgnoreCase(sheetName);
+            if (model == null) {
+                continue;
+            }
+            model.loadTableModel();
+            for (Record record : model.getRecords()) {
+                String scen = Objects.toString(record.getScenario(), "").trim();
+                String tc = Objects.toString(record.getTestcase(), "").trim();
+                String scope = Objects.toString(record.getScope(), "").trim();
+                if (scen.isEmpty() || tc.isEmpty() || "[Shared]".equals(scope)) {
+                    continue;
+                }
+                Scenario scenario = "[Project]".equals(scope)
+                    ? getReusableScenarioByName(scen)
+                    : getTestPlanScenarioByName(scen);
+                if (scenario == null) {
+                    scenario = getTestPlanScenarioByName(scen);
+                }
+                if (scenario == null) {
+                    scenario = getReusableScenarioByName(scen);
+                }
+                if (scenario == null || scenario.isSharedReusableScenario()) {
+                    continue;
+                }
+                TestCase testCase = scenario.getTestCaseByName(tc);
+                if (testCase != null) {
+                    found.putIfAbsent(scenario.getName() + " " + tc, testCase);
+                }
+            }
+        }
+        return new ArrayList<>(found.values());
+    }
+
+    /**
+     * Every Test Plan / Project-Reusable test case that would be "left behind" if
+     * {@code sheetName} moves to Shared Test Data: the union of the cases the sheet holds data
+     * for ({@link #getTestCasesServedByDataSheet(String)}) and the cases whose steps reference
+     * it ({@link #getImpactedTestDataTestCasesAllScopes(String)}). Drives the "also convert
+     * these test cases to Shared Reusables?" prompt.
+     *
+     * @param sheetName datasheet name
+     * @return de-duplicated promotable test cases
+     */
+    public List<TestCase> getPromotableTestCasesForSheet(String sheetName) {
+        java.util.LinkedHashMap<String, TestCase> byId = new LinkedHashMap<>();
+        for (TestCase tc : getTestCasesServedByDataSheet(sheetName)) {
+            byId.putIfAbsent(promotableId(tc), tc);
+        }
+        for (TestCase tc : getImpactedTestDataTestCasesAllScopes(sheetName)) {
+            if (tc.getScenario() != null && !tc.getScenario().isSharedReusableScenario()) {
+                byId.putIfAbsent(promotableId(tc), tc);
+            }
+        }
+        return new ArrayList<>(byId.values());
+    }
+
+    private static String promotableId(TestCase tc) {
+        return (tc.getScenario() == null ? "" : tc.getScenario().getName()) + " " + tc.getName();
+    }
+
+    /**
+     * Rewrites every whole-input Test Data reference to {@code originalName} (untagged,
+     * {@code [Project]} or {@code [Shared]}) across all scenarios to
+     * {@code [Shared] finalName:Column}, saving each changed test case.
+     *
+     * @param originalName the datasheet name references currently point at
+     * @param finalName the datasheet name in the Shared store (may differ on collision)
+     * @return number of test steps changed
+     */
+    public int retagTestDataReferencesToShared(String originalName, String finalName) {
+        int count = 0;
+        for (Scenario scenario : getAllScenarios()) {
+            count += scenario.retagTestDataReferencesToShared(originalName, finalName);
+        }
+        return count;
+    }
+
+    /**
+     * Moves one project datasheet from environment {@code env} into Shared Test Data and, when
+     * that was the only project environment holding a sheet of that name, rewrites every
+     * reference to it (Test Plan, Project Reusables, Shared Reusables) to {@code [Shared] ...}.
+     * If the same sheet name still exists in another project environment, the references are
+     * left untouched and the sheet is recorded in
+     * {@link MakeSharedTestDataResult#partiallyMovedSheets}.
+     *
+     * @param env environment the datasheet belongs to
+     * @param sheetName datasheet to move
+     * @param testCasesToPromote referencing Test Plan / Project-Reusable test cases the user
+     *     opted to also convert to Shared Reusables (may be {@code null} / empty)
+     * @return summary of what changed
+     */
+    public MakeSharedTestDataResult makeTestDataSheetShared(
+        String env,
+        String sheetName,
+        List<TestCase> testCasesToPromote
+    )
+        throws IOException {
+        save();
+        MakeSharedTestDataResult result = new MakeSharedTestDataResult();
+        promoteReferencingTestCases(testCasesToPromote, result);
+        moveSheetToSharedInEnv(env, sheetName, result);
+        save();
+        return result;
+    }
+
+    /**
+     * Moves a whole project Test Data environment into Shared Test Data: <em>only that
+     * environment's</em> datasheets and Global Data (merged by {@code GlobalDataID} into the
+     * Shared environment's single Global Data). The project environment is then removed
+     * entirely - folder, {@code GlobalData.csv} and all - except {@code Default}, which cannot
+     * be removed and is instead left empty. Other environments are untouched.
+     *
+     * @param env environment to move
+     * @param testCasesToPromote see {@link #makeTestDataSheetShared(String, String, List)}
+     * @return summary of what changed
+     */
+    public MakeSharedTestDataResult makeEnvironmentTestDataShared(
+        String env,
+        List<TestCase> testCasesToPromote
+    )
+        throws IOException {
+        save();
+        MakeSharedTestDataResult result = new MakeSharedTestDataResult();
+        promoteReferencingTestCases(testCasesToPromote, result);
+
+        TestData projEnv = testData.getTestDataFor(env);
+        if (projEnv != null) {
+            String envFolder = projEnv.getLocation();
+
+            List<String> sheetNames = new ArrayList<>();
+            for (TestDataModel model : projEnv.getTestDataList()) {
+                sheetNames.add(model.getName());
+            }
+            for (String name : sheetNames) {
+                moveSheetToSharedInEnv(env, name, result);
+            }
+
+            if (sharedTestData.getTestDataFor(env) == null) {
+                sharedTestData.createNewEnvironment(env);
+            }
+            mergeGlobalData(
+                projEnv.getGlobalData(),
+                sharedTestData.getTestDataFor(env).getGlobalData()
+            );
+
+            if ("Default".equals(env)) {
+                // Default cannot be removed; clear its Global Data and drop the stale file.
+                clearAllRecords(projEnv.getGlobalData());
+                new File(projEnv.getGlobalData().getLocation()).delete();
+                projEnv.getGlobalData().setSaved(true);
+            } else {
+                testData.deleteEnvironment(env);
+                // deleteEnvironment leaves the folder and GlobalData.csv on disk - remove them.
+                FileUtils.deleteFile(envFolder);
+            }
+        }
+
+        save();
+        return result;
+    }
+
+    private void promoteReferencingTestCases(
+        List<TestCase> testCases,
+        MakeSharedTestDataResult result
+    ) {
+        if (testCases == null) {
+            return;
+        }
+        for (TestCase testCase : testCases) {
+            if (
+                testCase.getScenario() == null || testCase.getScenario().isSharedReusableScenario()
+            ) {
+                continue;
+            }
+            try {
+                TestCase moved = moveTestCaseToSharedReusable(testCase);
+                if (moved != null) {
+                    result.promoted.add(moved);
+                }
+                result.promotedReferenceUpdates +=
+                    getAndResetLastImpactedReusableReferenceUpdates();
+            } catch (TestCaseConversionException ex) {
+                LOGGER.log(
+                    Level.WARNING,
+                    "Could not promote test case '" + testCase.getName() + "' to Shared Reusable",
+                    ex
+                );
+            }
+        }
+    }
+
+    /**
+     * Moves {@code env}'s copy of {@code sheetName} into {@code Shared/<env>} (suffixing the
+     * name on collision <em>within that Shared environment</em>). References are retagged to
+     * {@code [Shared] finalName} only when no project environment still holds a sheet of that
+     * name; otherwise the sheet is recorded in {@code partiallyMovedSheets} and references are
+     * left as-is so the other environments keep working.
+     */
+    private void moveSheetToSharedInEnv(
+        String env,
+        String sheetName,
+        MakeSharedTestDataResult result
+    ) {
+        TestData projEnv = testData.getTestDataFor(env);
+        TestDataModel source = projEnv == null ? null : projEnv.getByName(sheetName);
+        if (source == null) {
+            return;
+        }
+        if (sharedTestData.getTestDataFor(env) == null) {
+            sharedTestData.createNewEnvironment(env);
+        }
+        TestData sharedEnv = sharedTestData.getTestDataFor(env);
+        if (sharedEnv == null) {
+            return;
+        }
+        String finalName = uniqueSharedSheetNameInEnv(env, sheetName);
+        TestDataModel target = sharedEnv.addTestData(sharedEnv.getNewTestData(finalName));
+        source.cloneAs(target);
+        target.save();
+        projEnv.deleteTestData(sheetName);
+
+        result.movedSheets.put(sheetName, finalName);
+
+        List<String> stillInProject = testData.findEnvironmentsWithDatasheet(sheetName);
+        if (stillInProject.isEmpty()) {
+            result.referenceUpdates += retagTestDataReferencesToShared(sheetName, finalName);
+        } else {
+            result.partiallyMovedSheets.put(sheetName, stillInProject);
+        }
+    }
+
+    private String uniqueSharedSheetNameInEnv(String env, String base) {
+        TestData sharedEnv = sharedTestData.getTestDataFor(env);
+        if (sharedEnv == null || sharedEnv.getByNameIgnoreCase(base) == null) {
+            return base;
+        }
+        int i = 1;
+        while (sharedEnv.getByNameIgnoreCase(base + "_" + i) != null) {
+            i++;
+        }
+        return base + "_" + i;
+    }
+
+    /**
+     * Upserts every {@code GlobalDataID}-keyed row of {@code src} into {@code dst}, adding any
+     * missing columns and overwriting a {@code dst} cell only with a non-empty {@code src}
+     * value. There is a single Global Data per environment, so this merges rather than
+     * replaces.
+     */
+    private static void mergeGlobalData(GlobalDataModel src, GlobalDataModel dst) {
+        if (src == null || dst == null) {
+            return;
+        }
+        src.loadTableModel();
+        dst.loadTableModel();
+        for (String col : src.getColumns()) {
+            if (!dst.hasColumn(col)) {
+                dst.addColumn(col);
+            }
+        }
+        int srcKey = src.getColumnIndex("GlobalDataID");
+        int dstKey = dst.getColumnIndex("GlobalDataID");
+        for (int r = 0; r < src.getRowCount(); r++) {
+            String key = srcKey < 0 ? "" : Objects.toString(src.getValueAt(r, srcKey), "").trim();
+            if (key.isEmpty()) {
+                continue;
+            }
+            int dstRow = dst.getRecordIndexByKey(key);
+            if (dstRow < 0) {
+                dst.addRecord();
+                dstRow = dst.getRowCount() - 1;
+                dst.setValueAt(key, dstRow, dstKey);
+            }
+            for (String col : src.getColumns()) {
+                if ("GlobalDataID".equals(col)) {
+                    continue;
+                }
+                int dc = dst.getColumnIndex(col);
+                String val = Objects.toString(src.getValueAt(r, src.getColumnIndex(col)), "");
+                if (dc >= 0 && !val.isEmpty()) {
+                    dst.setValueAt(val, dstRow, dc);
+                }
+            }
+        }
+        dst.setSaved(false);
+    }
+
+    private static void clearAllRecords(AbstractDataModel<?> model) {
+        if (model == null) {
+            return;
+        }
+        model.loadTableModel();
+        for (int r = model.getRowCount() - 1; r >= 0; r--) {
+            model.removeRecord(r);
+        }
+        model.setSaved(false);
     }
 
     /**

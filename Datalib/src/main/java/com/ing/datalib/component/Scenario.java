@@ -642,6 +642,20 @@ public class Scenario extends DataModel {
         }
     }
 
+    /**
+     * Rewrites every whole-input Test Data reference to {@code originalName} in this scenario's
+     * test cases to {@code [Shared] finalName:Column}. Used by "Make As Shared TestData".
+     *
+     * @return number of test steps changed
+     */
+    public int retagTestDataReferencesToShared(String originalName, String finalName) {
+        int count = 0;
+        for (TestCase testCase : testCases) {
+            count += testCase.retagTestDataReferencesToShared(originalName, finalName);
+        }
+        return count;
+    }
+
     public void refactorTestDataColumn(
         String testDataName,
         String oldColumnName,
