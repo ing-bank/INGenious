@@ -54,8 +54,8 @@ Workspace resolution follows this precedence:
 1. `ingenious.workspace` JVM property
 2. `INGENIOUS_WORKSPACE` environment variable
 3. Valid sibling Workspace for a portable macOS distribution
-4. `~/Documents/INGenious/Workspace` for an installed macOS application
-5. `%USERPROFILE%\Documents\INGenious\Workspace` for an installed Windows application
+4. `~/Documents/INGenious Workspace` for an installed macOS application
+5. `%USERPROFILE%\Documents\INGenious Workspace` for an installed Windows application
 6. Current working directory for legacy compatibility
 
 The resolver provides paths for `Configuration`, `Projects`, `Shared`, `UserDefined`, and the persistent user plugin directory at `Workspace/plugins`.
@@ -152,7 +152,7 @@ The package version is represented by `@APP_VERSION@` and is rendered from Maven
 Added first-launch Workspace initialization.
 
 - Resolves the Workspace for the user launching INGenious.
-- Initializes `~/Documents/INGenious/Workspace`.
+- Initializes `~/Documents/INGenious Workspace`.
 - Copies only missing entries from the packaged `WorkspaceTemplate`.
 - Preserves existing Workspace files and plugins.
 - Uses the same Workspace for the installed GUI and CLI.
@@ -180,7 +180,7 @@ Added Windows application-image and MSI generation using Java 17 `jpackage`.
 - Uses the INGenious Windows icon.
 - Packages `WorkspaceTemplate` for per-user initialization.
 - Installs the application under `C:\Program Files\INGenious`.
-- Uses `%USERPROFILE%\Documents\INGenious\Workspace` for writable per-user data.
+- Uses `%USERPROFILE%\Documents\INGenious Workspace` for writable per-user data.
 - Adds Start menu integration.
 - Validates required Runtime resources, Engine JAR placement, and launcher configuration.
 - Prevents the active writable Workspace from being embedded in the application image.
