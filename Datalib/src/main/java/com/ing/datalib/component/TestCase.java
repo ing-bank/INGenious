@@ -772,6 +772,16 @@ public class TestCase extends DataModel {
                         .getLogger(TestCase.class.getName())
                         .log(Level.FINE, "Failed to update shared reusable projects.items", ex);
                 }
+                // ...and any Shared Test Data references, mirroring the same convention.
+                try {
+                    if (referencesSharedTestData()) {
+                        Project.addSharedTestDataProjectEntry(getProject());
+                    }
+                } catch (Exception ex) {
+                    Logger
+                        .getLogger(TestCase.class.getName())
+                        .log(Level.FINE, "Failed to update shared test data projects.items", ex);
+                }
             } catch (Exception ex) {
                 Logger
                     .getLogger(TestCase.class.getName())
@@ -804,6 +814,26 @@ public class TestCase extends DataModel {
         if (!sharedReusableNames.isEmpty()) {
             updateSharedReusableProjectsItems(getProject(), sharedReusableNames);
         }
+    }
+
+    /**
+     * Whether any step in this test case carries a {@code [Shared]} Test Data reference -
+     * whole-input ({@code [Shared] Sheet:Col}) or an embedded {@code {[Shared] Sheet:Col}}
+     * token in the Input / Condition.
+     */
+    private boolean referencesSharedTestData() {
+        for (TestStep step : testSteps) {
+            if (step.isTestDataStep() && "[Shared]".equals(step.getTestDataScopeTag())) {
+                return true;
+            }
+            if (
+                TestStep.containsSharedTestDataToken(step.getInput()) ||
+                TestStep.containsSharedTestDataToken(step.getCondition())
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

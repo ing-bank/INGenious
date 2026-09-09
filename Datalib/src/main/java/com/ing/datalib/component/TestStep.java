@@ -348,6 +348,19 @@ public class TestStep {
     }
 
     /**
+     * A {@code [Shared] Sheet:Column} Test Data reference anywhere in {@code s} - whole-input
+     * or an embedded {@code {[Shared] Sheet:Column}} token inside a larger string (payload,
+     * SQL, template, condition). Used to decide whether a project consumes Shared Test Data.
+     */
+    private static final java.util.regex.Pattern SHARED_TD_TOKEN = java.util.regex.Pattern.compile(
+        "\\[Shared\\]\\s*[^:{}\\[\\]]+:[^:{}\\[\\]]+"
+    );
+
+    public static boolean containsSharedTestDataToken(String s) {
+        return s != null && SHARED_TD_TOKEN.matcher(s).find();
+    }
+
+    /**
      * Returns the "[Shared]"/"[Project]" scope tag this step's Input carries, or "" if unscoped.
      */
     public String getTestDataScopeTag() {

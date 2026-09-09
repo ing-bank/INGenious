@@ -525,18 +525,50 @@ public class Project {
     }
 
     /**
-     * Registers this project as a consumer of Shared Test Data by recording it in the
-     * shared root's projects.items file, mirroring the shared reusable components convention.
-     * No-op if the project has no shared test data sheets to consume.
+     * True when any test step in this project (Test Plan, Project Reusables or Shared
+     * Reusables) carries a {@code [Shared]}-scoped Test Data reference - i.e. the project
+     * consumes the app-root Shared Test Data store.
+     *
+     * @return whether this project references Shared Test Data
      */
-    private void registerSharedTestDataUsage() {
+    public boolean usesSharedTestData() {
+        for (Scenario scenario : getAllScenarios()) {
+            for (TestCase testCase : scenario.getTestCases()) {
+                testCase.loadTableModel();
+                for (TestStep step : testCase.getTestSteps()) {
+                    if (
+                        (step.isTestDataStep() && "[Shared]".equals(step.getTestDataScopeTag())) ||
+                        TestStep.containsSharedTestDataToken(step.getInput()) ||
+                        TestStep.containsSharedTestDataToken(step.getCondition())
+                    ) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Adds {@code project} to {@code Shared/SharedTestData/projects.items} if not already
+     * present (never removes). The lightweight per-save counterpart to
+     * {@link #registerSharedTestDataUsage()} - called from {@link TestCase#save()} whenever a
+     * saved test case carries a {@code [Shared]} Test Data reference, mirroring how Shared
+     * Reusable consumers are tracked.
+     *
+     * @param project the project to record as a Shared Test Data consumer
+     */
+    public static void addSharedTestDataProjectEntry(Project project) {
+        if (project == null || project.getName() == null) {
+            return;
+        }
         try {
             File sharedRoot = new File(getSharedTestDataPath());
-            if (!sharedRoot.exists() || !sharedRoot.isDirectory()) {
-                return;
+            if (!sharedRoot.exists()) {
+                sharedRoot.mkdirs();
             }
-
             File projectsFile = new File(sharedRoot, "projects.items");
+
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             java.util.List<java.util.Map<String, String>> projects = new java.util.ArrayList<>();
             if (projectsFile.exists()) {
@@ -552,17 +584,82 @@ public class Project {
                 }
             }
 
-            boolean alreadyRegistered = projects
-                .stream()
-                .anyMatch(p -> location.equals(p.get("path")));
-            if (alreadyRegistered) {
+            String path = project.getLocation();
+            if (projects.stream().anyMatch(p -> path.equals(p.get("path")))) {
                 return;
             }
-
             java.util.Map<String, String> entry = new java.util.LinkedHashMap<>();
-            entry.put("name", name);
-            entry.put("path", location);
+            entry.put("name", project.getName());
+            entry.put("path", path);
             projects.add(entry);
+
+            String jsonOutput = mapper
+                .writerWithDefaultPrettyPrinter()
+                .writeValueAsString(projects);
+            File tmp = new File(projectsFile.getPath() + ".tmp");
+            FileScanner.writeFile(tmp, jsonOutput);
+            if (!tmp.exists() || !tmp.renameTo(projectsFile)) {
+                FileScanner.writeFile(projectsFile, jsonOutput);
+            }
+        } catch (Exception ex) {
+            Logger
+                .getLogger(Project.class.getName())
+                .log(Level.WARNING, "Failed to add shared test data project entry", ex);
+        }
+    }
+
+    /**
+     * Keeps this project's entry in {@code Shared/SharedTestData/projects.items} in step with
+     * whether it currently {@link #usesSharedTestData() references Shared Test Data} - adding
+     * the entry when it does, removing it when it no longer does. Mirrors the Shared Reusable
+     * Components / Shared Object Repository {@code projects.items} convention so the Shared
+     * Test Data panel can warn which projects a rename/delete would impact.
+     */
+    public void registerSharedTestDataUsage() {
+        try {
+            boolean uses = usesSharedTestData();
+            File sharedRoot = new File(getSharedTestDataPath());
+            File projectsFile = new File(sharedRoot, "projects.items");
+            if (!uses && !projectsFile.exists()) {
+                return;
+            }
+            if (!sharedRoot.exists()) {
+                if (!uses) {
+                    return;
+                }
+                sharedRoot.mkdirs();
+            }
+
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            java.util.List<java.util.Map<String, String>> projects = new java.util.ArrayList<>();
+            if (projectsFile.exists()) {
+                String content = FileScanner.readFile(projectsFile);
+                if (content != null && !content.isEmpty()) {
+                    projects =
+                        mapper.readValue(
+                            content,
+                            mapper
+                                .getTypeFactory()
+                                .constructCollectionType(java.util.List.class, java.util.Map.class)
+                        );
+                }
+            }
+
+            boolean present = projects.stream().anyMatch(p -> location.equals(p.get("path")));
+            boolean changed = false;
+            if (uses && !present) {
+                java.util.Map<String, String> entry = new java.util.LinkedHashMap<>();
+                entry.put("name", name);
+                entry.put("path", location);
+                projects.add(entry);
+                changed = true;
+            } else if (!uses && present) {
+                projects.removeIf(p -> location.equals(p.get("path")));
+                changed = true;
+            }
+            if (!changed) {
+                return;
+            }
 
             String jsonOutput = mapper
                 .writerWithDefaultPrettyPrinter()
@@ -573,6 +670,50 @@ public class Project {
                 .getLogger(Project.class.getName())
                 .log(Level.WARNING, "Failed to register shared test data usage", ex);
         }
+    }
+
+    /**
+     * Projects other than this one recorded in {@code Shared/SharedTestData/projects.items} as
+     * consumers of Shared Test Data. Each item is {@code "name | path"} (or just the name when
+     * no path was recorded). Used to warn before a Shared Test Data rename / delete.
+     *
+     * @return referencing project labels, empty when none / file missing
+     */
+    public List<String> getOtherProjectsUsingSharedTestData() {
+        List<String> result = new ArrayList<>();
+        try {
+            File projectsFile = new File(getSharedTestDataPath(), "projects.items");
+            if (!projectsFile.exists()) {
+                return result;
+            }
+            String content = FileScanner.readFile(projectsFile);
+            if (content == null || content.trim().isEmpty()) {
+                return result;
+            }
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            List<Map<String, String>> projects = mapper.readValue(
+                content,
+                mapper.getTypeFactory().constructCollectionType(List.class, Map.class)
+            );
+            for (Map<String, String> proj : projects) {
+                String projName = proj.get("name");
+                String projPath = proj.get("path");
+                if (projName == null || projName.isEmpty()) {
+                    continue;
+                }
+                if (projName.equals(name) && projPath != null && projPath.equals(location)) {
+                    continue; // exclude the current project
+                }
+                result.add(
+                    projPath == null || projPath.isEmpty() ? projName : projName + " | " + projPath
+                );
+            }
+        } catch (Exception ex) {
+            Logger
+                .getLogger(Project.class.getName())
+                .log(Level.WARNING, "Failed to read shared test data projects.items", ex);
+        }
+        return result;
     }
 
     /**
@@ -1904,6 +2045,7 @@ public class Project {
         promoteReferencingTestCases(testCasesToPromote, result);
         moveSheetToSharedInEnv(env, sheetName, result);
         save();
+        registerSharedTestDataUsage();
         return result;
     }
 
@@ -1960,6 +2102,7 @@ public class Project {
         }
 
         save();
+        registerSharedTestDataUsage();
         return result;
     }
 
