@@ -109,6 +109,7 @@ public class InputRenderer extends AbstractRenderer {
             return true;
         }
 
+        // (?s) so multi-line inputs (e.g. a formatted SQL body) still match.
         if (val.matches("(?s)(@.+)|(=.+)|(%.+%)|(#.+)")) {
             return true;
         }

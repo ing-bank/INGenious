@@ -86,20 +86,6 @@ public class OverrideOptions {
     List<String> kafkaSsl;
 
     @Option(
-        names = { "--kafka-producer" },
-        description = "Kafka producer config override. Format: '<name>.<key>=value' (repeatable).",
-        paramLabel = "<name.k=v>"
-    )
-    List<String> kafkaProducer;
-
-    @Option(
-        names = { "--kafka-consumer" },
-        description = "Kafka consumer config override. Format: '<name>.<key>=value' (repeatable).",
-        paramLabel = "<name.k=v>"
-    )
-    List<String> kafkaConsumer;
-
-    @Option(
         names = { "--lambdatest-cap" },
         description = "LambdaTest Grid Capabilities override. Format: 'key=value' (repeatable).",
         paramLabel = "<k=v>"
@@ -157,8 +143,6 @@ public class OverrideOptions {
         addAll(context, "context.");
         addAll(api, "api.");
         addAll(kafkaSsl, "kafkaSsl.");
-        addAll(kafkaProducer, "kafkaProducer.");
-        addAll(kafkaConsumer, "kafkaConsumer.");
         addAll(lambdatestCap, "lambdatest.");
         addAll(browserArg, "browserArg.");
         addAll(browserSet, "browser.");
@@ -197,8 +181,6 @@ public class OverrideOptions {
             nonEmpty(context) ||
             nonEmpty(api) ||
             nonEmpty(kafkaSsl) ||
-            nonEmpty(kafkaProducer) ||
-            nonEmpty(kafkaConsumer) ||
             nonEmpty(lambdatestCap) ||
             nonEmpty(browserArg) ||
             nonEmpty(browserSet) ||

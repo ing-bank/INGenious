@@ -1,11 +1,13 @@
 package com.ing.ide.main.mainui.components.dbworkbench;
 
+import com.ing.ide.main.mainui.components.dbworkbench.connections.ConnectionDialog;
 import com.ing.ide.main.mainui.components.dbworkbench.connections.ConnectionTree;
 import com.ing.ide.main.mainui.components.dbworkbench.query.QueryEditorPanel;
 import com.ing.ide.main.mainui.components.dbworkbench.result.ResultGridPanel;
 import com.ing.ide.main.mainui.components.dbworkbench.util.JdbcExecutor;
 import java.awt.BorderLayout;
 import java.sql.Connection;
+import java.util.List;
 import java.util.Properties;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
@@ -30,7 +32,7 @@ public class DBWorkbenchUI extends JPanel {
 
         connectionTree = new ConnectionTree(controller);
         queryEditor = new QueryEditorPanel(this);
-        resultPanel = new ResultGridPanel();
+        resultPanel = new ResultGridPanel(this);
 
         JSplitPane rightSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, queryEditor, resultPanel);
         rightSplit.setResizeWeight(0.45);
@@ -76,11 +78,14 @@ public class DBWorkbenchUI extends JPanel {
         queryEditor.refreshConnections(controller.getConnectionAliases());
     }
 
-    /** Executes the SQL currently in the editor against the selected connection. */
+    /**
+     * Executes the SQL currently in the editor (or just the selected text)
+     * against the selected connection. Multi-statement scripts run in order on
+     * the same connection.
+     */
     public void runCurrentQuery() {
         final String alias = queryEditor.getSelectedAlias();
-        final String sql = queryEditor.getSql();
-        final boolean dml = queryEditor.isDml();
+        final String sql = queryEditor.getSqlToRun();
         if (alias == null) {
             resultPanel.showError("Select a database connection first.");
             return;
@@ -95,38 +100,29 @@ public class DBWorkbenchUI extends JPanel {
             resultPanel.showError("No connection details found for '" + alias + "'.");
             return;
         }
-        if (dml && Boolean.parseBoolean(props.getProperty("readOnly", "false"))) {
-            resultPanel.showError(
-                "Connection '" + alias + "' is marked read-only; DML statements are blocked."
-            );
-            return;
-        }
+        final boolean readOnly = Boolean.parseBoolean(
+            props.getProperty(ConnectionDialog.READ_ONLY, "false")
+        );
         final int timeout = parseTimeout(props);
 
-        new SwingWorker<Object, Void>() {
+        new SwingWorker<List<JdbcExecutor.StatementOutcome>, Void>() {
 
             @Override
-            protected Object doInBackground() throws Exception {
+            protected List<JdbcExecutor.StatementOutcome> doInBackground() throws Exception {
                 JdbcExecutor exec = controller.getExecutor();
                 Connection c = exec.getConnection(alias, props);
-                if (dml) {
-                    return exec.executeUpdate(c, sql, timeout);
-                }
-                return exec.executeQuery(c, sql, timeout);
+                return exec.executeScript(c, sql, timeout, readOnly);
             }
 
             @Override
             protected void done() {
                 try {
-                    Object result = get();
-                    if (result instanceof JdbcExecutor.QueryResult) {
-                        resultPanel.showResult((JdbcExecutor.QueryResult) result);
-                    } else if (result instanceof JdbcExecutor.DmlResult) {
-                        resultPanel.showDml((JdbcExecutor.DmlResult) result);
-                    }
+                    resultPanel.showOutcomes(alias, get());
                 } catch (Exception ex) {
                     Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-                    resultPanel.showError(cause.getMessage());
+                    resultPanel.showError(
+                        cause.getMessage() == null ? cause.toString() : cause.getMessage()
+                    );
                 }
             }
         }
@@ -181,6 +177,47 @@ public class DBWorkbenchUI extends JPanel {
             queryEditor.loadQuery(choice);
             resultPanel.clearValidations();
         }
+    }
+
+    /**
+     * Applies an edited grid cell to its base table on the editor's connection.
+     *
+     * @param result the result the grid was built from
+     * @param column the column being written
+     * @param newValue the new value, {@code null} for SQL NULL
+     * @param keyValues primary-key values identifying the row
+     * @return the number of rows changed
+     * @throws Exception when no connection is selected or the update fails
+     */
+    public int applyGridEdit(
+        JdbcExecutor.QueryResult result,
+        String column,
+        Object newValue,
+        java.util.Map<String, Object> keyValues
+    )
+        throws Exception {
+        String alias = queryEditor.getSelectedAlias();
+        if (alias == null) {
+            throw new IllegalStateException("Select a database connection first.");
+        }
+        Properties props = controller.resolveConnectionProps(alias);
+        if (props == null) {
+            throw new IllegalStateException("No connection details found for '" + alias + "'.");
+        }
+        if (Boolean.parseBoolean(props.getProperty(ConnectionDialog.READ_ONLY, "false"))) {
+            throw new IllegalStateException(
+                "Connection '" + alias + "' is marked read-only; grid edits are blocked."
+            );
+        }
+        JdbcExecutor exec = controller.getExecutor();
+        Connection c = exec.getConnection(alias, props);
+        return exec.updateCell(c, result, column, newValue, keyValues);
+    }
+
+    /** @return true when the editor's connection runs inside a transaction */
+    public boolean isCurrentConnectionTransactional() {
+        String alias = queryEditor.getSelectedAlias();
+        return alias != null && controller.getExecutor().isTransactional(alias);
     }
 
     private void transaction(boolean commit) {
