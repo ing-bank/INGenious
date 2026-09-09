@@ -142,6 +142,7 @@ public class ConnectionTree extends JPanel {
     }
 
     public final void refresh() {
+        String previouslySelected = getSelectedAlias();
         root.removeAllChildren();
         DBProperties dbp = controller.getDatabaseSettings();
         if (dbp != null) {
@@ -152,6 +153,35 @@ public class ConnectionTree extends JPanel {
             }
         }
         treeModel.reload();
+        // A full reload clears the selection; restore it (or default to the first
+        // connection) so Edit/Delete/Test remain usable without an extra click.
+        reselect(previouslySelected);
+    }
+
+    private void reselect(String alias) {
+        if (root.getChildCount() == 0) return;
+        int targetIndex = 0;
+        if (alias != null) {
+            for (int i = 0; i < root.getChildCount(); i++) {
+                DefaultMutableTreeNode child = (DefaultMutableTreeNode) root.getChildAt(i);
+                if (alias.equals(((ConnNode) child.getUserObject()).alias)) {
+                    targetIndex = i;
+                    break;
+                }
+            }
+        }
+        tree.setSelectionPath(
+            new TreePath(((DefaultMutableTreeNode) root.getChildAt(targetIndex)).getPath())
+        );
+    }
+
+    private void showNoSelectionWarning() {
+        JOptionPane.showMessageDialog(
+            this,
+            "Select a connection first.",
+            "No Connection Selected",
+            JOptionPane.WARNING_MESSAGE
+        );
     }
 
     /** Alias of the selected node (a connection, or the parent of a table node). */
@@ -254,7 +284,10 @@ public class ConnectionTree extends JPanel {
 
     private void onEdit() {
         String alias = getSelectedAlias();
-        if (alias == null) return;
+        if (alias == null) {
+            showNoSelectionWarning();
+            return;
+        }
         DBProperties dbp = controller.getDatabaseSettings();
         Properties existing = dbp.getDBPropertiesFor(alias);
         ConnectionDialog dialog = new ConnectionDialog(
@@ -274,7 +307,10 @@ public class ConnectionTree extends JPanel {
 
     private void onDelete() {
         String alias = getSelectedAlias();
-        if (alias == null) return;
+        if (alias == null) {
+            showNoSelectionWarning();
+            return;
+        }
         if ("default".equals(alias)) {
             JOptionPane.showMessageDialog(
                 this,
@@ -299,9 +335,20 @@ public class ConnectionTree extends JPanel {
 
     private void onTest() {
         final String alias = getSelectedAlias();
-        if (alias == null) return;
+        if (alias == null) {
+            showNoSelectionWarning();
+            return;
+        }
         final Properties props = controller.resolveConnectionProps(alias);
-        if (props == null) return;
+        if (props == null) {
+            JOptionPane.showMessageDialog(
+                this,
+                "No connection details found for '" + alias + "'.",
+                "Missing Connection",
+                JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
         final JPanel self = this;
         new SwingWorker<String, Void>() {
 
