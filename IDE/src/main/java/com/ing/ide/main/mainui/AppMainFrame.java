@@ -131,7 +131,8 @@ public class AppMainFrame extends JFrame {
     private enum QUIT_TYPE {
         NORMAL,
         FORCE,
-        RESTART
+        RESTART,
+        WORKSPACE_MOVE_RESTART
     }
 
     private Consumer<Integer> onProgress;
@@ -214,7 +215,10 @@ public class AppMainFrame extends JFrame {
                             sActionListener.closeBddEditorIfOpen();
                         }
                         setDefaultCloseOperation(AppMainFrame.EXIT_ON_CLOSE);
-                        if (quitType == QUIT_TYPE.RESTART) {
+                        if (
+                            quitType == QUIT_TYPE.RESTART ||
+                            quitType == QUIT_TYPE.WORKSPACE_MOVE_RESTART
+                        ) {
                             doRestart();
                         }
                         dispose();
@@ -1192,6 +1196,13 @@ public class AppMainFrame extends JFrame {
     }
 
     private Boolean iCanQuit() {
+        if (quitType == QUIT_TYPE.WORKSPACE_MOVE_RESTART) {
+            recentItems.save();
+            dashBoardManager.stopServer();
+            Main.finish();
+            return true;
+        }
+
         return iCanQuit(
             quitType == QUIT_TYPE.FORCE
                 ? JOptionPane.YES_NO_OPTION
@@ -1222,6 +1233,16 @@ public class AppMainFrame extends JFrame {
 
     public void restart() {
         quitType = QUIT_TYPE.RESTART;
+        quit();
+    }
+
+    /**
+     * Restarts after a completed Workspace move without saving the project
+     * again. The project was saved before relocation, and the previous
+     * Workspace may already have been deleted.
+     */
+    public void restartAfterWorkspaceMove() {
+        quitType = QUIT_TYPE.WORKSPACE_MOVE_RESTART;
         quit();
     }
 

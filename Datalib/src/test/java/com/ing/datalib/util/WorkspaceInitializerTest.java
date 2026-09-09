@@ -104,6 +104,42 @@ public class WorkspaceInitializerTest {
     }
 
     @Test
+    public void validWorkspaceIsNotOverlaidFromTemplate() throws Exception {
+        Path root = Files.createTempDirectory("workspace-no-template-overlay");
+        Path template = root.resolve("WorkspaceTemplate");
+        Path workspace = root.resolve("INGenious Workspace");
+
+        Path originalTemplateCase = template
+            .resolve("Projects")
+            .resolve("Tutorial")
+            .resolve("High Income");
+
+        Path renamedWorkspaceCase = workspace
+            .resolve("Projects")
+            .resolve("Tutorial")
+            .resolve("High Income 2");
+
+        Files.createDirectories(originalTemplateCase);
+        Files.createDirectories(template.resolve("Configuration"));
+        Files.createDirectories(template.resolve("Shared"));
+
+        Files.createDirectories(renamedWorkspaceCase);
+        Files.createDirectories(workspace.resolve("Configuration"));
+        Files.createDirectories(workspace.resolve("Shared"));
+
+        Files.writeString(originalTemplateCase.resolve("TestCase.json"), "template-content");
+        Files.writeString(renamedWorkspaceCase.resolve("TestCase.json"), "renamed-user-content");
+
+        WorkspaceInitializer.initialize(template, workspace);
+
+        assertThat(workspace.resolve("Projects").resolve("Tutorial").resolve("High Income"))
+            .doesNotExist();
+
+        assertThat(renamedWorkspaceCase.resolve("TestCase.json"))
+            .hasContent("renamed-user-content");
+    }
+
+    @Test
     public void doesNothingWhenTemplateIsMissing() throws Exception {
         Path root = Files.createTempDirectory("workspace-no-template");
         Path template = root.resolve("MissingTemplate");

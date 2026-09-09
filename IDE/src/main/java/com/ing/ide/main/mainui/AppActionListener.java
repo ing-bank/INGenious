@@ -18,6 +18,7 @@ import com.ing.ide.main.ui.AboutUI;
 import com.ing.ide.main.ui.InjectScript;
 import com.ing.ide.main.ui.NewProject;
 import com.ing.ide.main.ui.Options;
+import com.ing.ide.main.ui.WorkspaceLocationDialog;
 import com.ing.ide.main.utils.CMProjectCreator;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.util.Notification;
@@ -153,6 +154,9 @@ public class AppActionListener implements ActionListener {
                 break;
             case "Settings":
                 openSettings();
+                break;
+            case "Workspace Location":
+                WorkspaceLocationDialog.open(sMainFrame);
                 break;
             case "Archetype Configurations":
                 driverSettings.open();

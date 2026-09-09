@@ -93,10 +93,7 @@ public class WorkspacePathTest {
 
         assertThat(appHome.mkdirs()).isTrue();
 
-        File expected = new File(
-            new File(new File(userHome, "Documents"), "INGenious"),
-            "Workspace"
-        );
+        File expected = new File(new File(userHome, "Documents"), "INGenious Workspace");
 
         String actual = WorkspacePath.resolveWorkspaceRoot(
             null,
@@ -120,10 +117,7 @@ public class WorkspacePathTest {
         assertThat(appHome.mkdirs()).isTrue();
         assertThat(new File(workspace, "Configuration").mkdirs()).isTrue();
 
-        File expected = new File(
-            new File(new File(userHome, "Documents"), "INGenious"),
-            "Workspace"
-        );
+        File expected = new File(new File(userHome, "Documents"), "INGenious Workspace");
 
         String actual = WorkspacePath.resolveWorkspaceRoot(
             null,
@@ -141,10 +135,7 @@ public class WorkspacePathTest {
     public void packagedWindowsApplicationUsesDocumentsWorkspace() throws Exception {
         File userHome = createTemporaryDirectory("ingenious-windows-user-home");
 
-        File expected = new File(
-            new File(new File(userHome, "Documents"), "INGenious"),
-            "Workspace"
-        );
+        File expected = new File(new File(userHome, "Documents"), "INGenious Workspace");
 
         String actual = WorkspacePath.resolveWorkspaceRoot(
             null,
@@ -156,6 +147,48 @@ public class WorkspacePathTest {
         );
 
         assertThat(actual).isEqualTo(expected.getCanonicalPath());
+    }
+
+    @Test
+    public void installedApplicationUsesConfiguredWorkspaceBase() throws Exception {
+        File userHome = createTemporaryDirectory("ingenious-user-home");
+        File selectedBase = new File(userHome, "Selected Base With Spaces");
+        File expected = new File(selectedBase, "INGenious Workspace");
+
+        String actual = WorkspacePath.resolveWorkspaceRoot(
+            null,
+            null,
+            "/Applications/INGenious.app/Contents/app",
+            "Mac OS X",
+            userHome.getPath(),
+            "/test/current",
+            selectedBase.getPath()
+        );
+
+        assertThat(actual).isEqualTo(expected.getCanonicalPath());
+    }
+
+    @Test
+    public void portableWorkspaceIgnoresConfiguredWorkspaceBase() throws Exception {
+        File distribution = createTemporaryDirectory("ingenious-portable");
+        File appHome = new File(distribution, "INGenious.app/Contents/app");
+        File workspace = new File(distribution, "Workspace");
+        File selectedBase = new File(distribution, "Selected Base");
+
+        assertThat(appHome.mkdirs()).isTrue();
+        createValidWorkspace(workspace);
+
+        String actual = WorkspacePath.resolveWorkspaceRoot(
+            null,
+            null,
+            appHome.getPath(),
+            "Mac OS X",
+            "/test/home",
+            "/test/current",
+            selectedBase.getPath()
+        );
+
+        assertThat(actual).isEqualTo(workspace.getCanonicalPath());
     }
 
     @Test
@@ -172,6 +205,58 @@ public class WorkspacePathTest {
         );
 
         assertThat(actual).isEqualTo(currentDirectory.getCanonicalPath());
+    }
+
+    @Test
+    public void installedApplicationLoadsSavedWorkspaceBase() throws Exception {
+        File userHome = createTemporaryDirectory("saved-workspace-home");
+        File appHome = new File(userHome, "Applications/INGenious.app/Contents/app");
+        File selectedBase = new File(userHome, "Selected Base With Spaces");
+        File expected = new File(selectedBase, "INGenious Workspace");
+
+        assertThat(appHome.mkdirs()).isTrue();
+
+        String originalWorkspace = System.getProperty(WorkspacePath.WORKSPACE_PROPERTY);
+        String originalAppHome = System.getProperty(WorkspacePath.APP_HOME_PROPERTY);
+        String originalUserHome = System.getProperty("user.home");
+        String originalOsName = System.getProperty("os.name");
+
+        try {
+            WorkspacePreference.saveWorkspaceBase(userHome.getPath(), selectedBase.toPath());
+
+            System.clearProperty(WorkspacePath.WORKSPACE_PROPERTY);
+            System.setProperty(WorkspacePath.APP_HOME_PROPERTY, appHome.getPath());
+            System.setProperty("user.home", userHome.getPath());
+            System.setProperty("os.name", "Mac OS X");
+
+            assertThat(WorkspacePath.getWorkspaceRoot()).isEqualTo(expected.getCanonicalPath());
+        } finally {
+            restoreProperty(WorkspacePath.WORKSPACE_PROPERTY, originalWorkspace);
+            restoreProperty(WorkspacePath.APP_HOME_PROPERTY, originalAppHome);
+            restoreProperty("user.home", originalUserHome);
+            restoreProperty("os.name", originalOsName);
+        }
+    }
+
+    @Test
+    public void derivesWorkspaceFolderFromSelectedBase() throws Exception {
+        File selectedBase = createTemporaryDirectory("selected-base");
+
+        assertThat(WorkspacePath.deriveInstalledWorkspace(selectedBase.getPath()))
+            .isEqualTo(new File(selectedBase, "INGenious Workspace").getCanonicalPath());
+    }
+
+    @Test
+    public void explicitWorkspaceDisablesCustomization() {
+        String original = System.getProperty(WorkspacePath.WORKSPACE_PROPERTY);
+
+        try {
+            System.setProperty(WorkspacePath.WORKSPACE_PROPERTY, "/explicit/Workspace");
+
+            assertThat(WorkspacePath.isWorkspaceCustomizationAvailable()).isFalse();
+        } finally {
+            restoreProperty(WorkspacePath.WORKSPACE_PROPERTY, original);
+        }
     }
 
     @Test

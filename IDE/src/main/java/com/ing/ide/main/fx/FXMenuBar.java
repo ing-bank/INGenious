@@ -1,5 +1,6 @@
 package com.ing.ide.main.fx;
 
+import com.ing.datalib.util.WorkspacePath;
 import com.ing.ide.main.mainui.AppActionListener;
 import com.ing.ide.main.utils.recentItem.RecentItem;
 import com.ing.ide.util.Notification;
@@ -255,16 +256,26 @@ public class FXMenuBar extends JFXPanel {
 
     private Menu createConfigurationMenu() {
         Menu config = new Menu("Configurations");
+
         config
             .getItems()
-            .addAll(
+            .add(
                 menuItem(
                     "Settings",
                     "settings",
                     KeyCode.S,
                     KeyCombination.SHORTCUT_DOWN,
                     KeyCombination.ALT_DOWN
-                ),
+                )
+            );
+
+        if (WorkspacePath.isWorkspaceCustomizationAvailable()) {
+            config.getItems().add(menuItem("Workspace Location", "settings"));
+        }
+
+        config
+            .getItems()
+            .addAll(
                 menuItem("Archetype Configurations", "BrowserConfiguration"),
                 new SeparatorMenuItem(),
                 menuItem("Options", "settings")
