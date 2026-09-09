@@ -1375,6 +1375,42 @@ public class TestCase extends DataModel {
     }
 
     /**
+     * Rewrites every whole-input Test Data reference to {@code originalName} (whatever scope tag
+     * it currently carries, or none) to {@code [Shared] finalName:Column...}, then persists the
+     * test case. Used by "Make As Shared TestData" when a project datasheet moves to the Shared
+     * store; {@code finalName} differs from {@code originalName} only when the name collided in
+     * the Shared store and was suffixed.
+     *
+     * @return number of test steps changed
+     */
+    public int retagTestDataReferencesToShared(String originalName, String finalName) {
+        Boolean clearOnExit = getTestSteps().isEmpty();
+        loadTableModel();
+        int count = 0;
+        for (TestStep testStep : testSteps) {
+            String[] values = testStep.getTestDataFromInput();
+            if (values != null && values[0].equals(originalName)) {
+                StringBuilder ref = new StringBuilder(finalName);
+                for (int i = 1; i < values.length; i++) {
+                    ref.append(":").append(values[i]);
+                }
+                String newInput = "[Shared] " + ref;
+                if (!newInput.equals(testStep.getInput())) {
+                    testStep.setInput(newInput);
+                    count++;
+                }
+            }
+        }
+        if (count > 0 || clearOnExit) {
+            save();
+        }
+        if (clearOnExit) {
+            getTestSteps().clear();
+        }
+        return count;
+    }
+
+    /**
      * Re-applies the "[Shared]"/"[Project]" scope tag a test data reference carried, since
      * refactorTestData/refactorTestDataColumn rebuild the Input from bare sheet/column names.
      */
