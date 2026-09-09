@@ -999,6 +999,53 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         }
     }
 
+    /**
+     * Imports {@code file} as a new datasheet into each of {@code targetEnvironments}, then
+     * refreshes the affected environment tabs. Environments that already contain a datasheet
+     * with the same name are skipped, and the outcome is reported via a notification.
+     *
+     * <p>Unlike {@link #importTestData(File)}, this works regardless of which environment tab is
+     * currently selected and can target the Shared Test Data component too.</p>
+     *
+     * @param file source datasheet file
+     * @param targetEnvironments environment names to import into
+     */
+    public void importTestData(File file, List<String> targetEnvironments) {
+        if (file == null || targetEnvironments == null || targetEnvironments.isEmpty()) {
+            return;
+        }
+        Map<String, TestDataModel> imported = envTestData()
+            .importTestData(file, targetEnvironments);
+        for (String env : imported.keySet()) {
+            reloadEnvironment(env);
+        }
+
+        String sheet = file.getName();
+        List<String> skipped = new ArrayList<>(targetEnvironments);
+        skipped.removeAll(imported.keySet());
+        if (imported.isEmpty()) {
+            Notification.show(
+                "'" +
+                sheet +
+                "' not imported - a datasheet with that name already exists in: " +
+                String.join(", ", skipped)
+            );
+        } else if (skipped.isEmpty()) {
+            Notification.show(
+                "Imported '" + sheet + "' into: " + String.join(", ", imported.keySet())
+            );
+        } else {
+            Notification.show(
+                "Imported '" +
+                sheet +
+                "' into: " +
+                String.join(", ", imported.keySet()) +
+                "  |  skipped (already present): " +
+                String.join(", ", skipped)
+            );
+        }
+    }
+
     class TestDataTablePanel extends JPanel {
         // Number of frozen (non-scrollable) columns on the left.
         private static final int frozenColumnCount = 5;

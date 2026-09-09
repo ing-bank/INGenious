@@ -116,6 +116,14 @@ public class TestDesignUI extends JPanel {
     }
 
     /**
+     * Whether the Shared (rather than Project) Test Data sub-tab is currently in front. Used to
+     * default the "Import into" scope in the Import Test Data dialog.
+     */
+    public boolean isSharedTestDataTabSelected() {
+        return testDataTabbedPane != null && testDataTabbedPane.getSelectedIndex() == 1;
+    }
+
+    /**
      * Applies themed backgrounds to the panes.
      * Called at init and when theme changes via adjustUI().
      * Only applies custom backgrounds in dark mode - light mode uses default FlatLaf colors.

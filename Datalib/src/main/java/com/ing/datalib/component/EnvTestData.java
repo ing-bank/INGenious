@@ -143,6 +143,39 @@ public class EnvTestData {
         }
     }
 
+    /**
+     * Imports {@code file} as a new datasheet into each of the given environments.
+     *
+     * <p>Works for both the project's own and the Shared ({@code locationOverride}) instance -
+     * each environment receives its own independent copy, written under its own folder. An
+     * environment that does not exist, or that already has a datasheet with the same name, is
+     * skipped.</p>
+     *
+     * @param file source datasheet file to import
+     * @param environments environment names to import the datasheet into
+     * @return the datasheets actually imported, keyed by environment name (skipped environments
+     *     are absent)
+     */
+    public Map<String, TestDataModel> importTestData(File file, Collection<String> environments) {
+        Map<String, TestDataModel> imported = new LinkedHashMap<>();
+        String sheetName = baseName(file.getName());
+        for (String env : environments) {
+            TestData sTestData = getTestDataFor(env);
+            if (sTestData == null || sTestData.getByNameIgnoreCase(sheetName) != null) {
+                continue;
+            }
+            TestDataModel model = sTestData.importTestData(file);
+            sTestData.addTestData(model);
+            imported.put(env, model);
+        }
+        return imported;
+    }
+
+    private static String baseName(String fileName) {
+        int dot = fileName.lastIndexOf('.');
+        return dot > 0 ? fileName.substring(0, dot) : fileName;
+    }
+
     public void duplicateColumnInOtherEnv(
         String envName,
         TestDataModel model,
