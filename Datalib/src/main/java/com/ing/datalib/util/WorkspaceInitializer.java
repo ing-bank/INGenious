@@ -37,20 +37,12 @@ public final class WorkspaceInitializer {
     }
 
     static void initialize(Path template, Path workspace) {
-        if (!Files.isDirectory(template)) {
+        if (!Files.isDirectory(template) || isInitializedWorkspace(workspace)) {
             return;
         }
 
         try {
-            Files.createDirectories(workspace);
-
-            try (Stream<Path> paths = Files.walk(template)) {
-                paths
-                    .sorted(
-                        Comparator.comparingInt(Path::getNameCount).thenComparing(Path::toString)
-                    )
-                    .forEach(source -> copyMissing(template, workspace, source));
-            }
+            initializeFromTemplate(template, workspace);
         } catch (IOException ex) {
             Logger
                 .getLogger(WorkspaceInitializer.class.getName())
@@ -58,29 +50,36 @@ public final class WorkspaceInitializer {
         }
     }
 
-    private static void copyMissing(Path template, Path workspace, Path source) {
-        Path relative = template.relativize(source);
-        Path destination = workspace.resolve(relative);
+    private static boolean isInitializedWorkspace(Path workspace) {
+        return (
+            Files.isDirectory(workspace) &&
+            Files.isDirectory(workspace.resolve("Configuration")) &&
+            Files.isDirectory(workspace.resolve("Projects")) &&
+            Files.isDirectory(workspace.resolve("Shared"))
+        );
+    }
 
-        try {
-            if (Files.isDirectory(source)) {
-                Files.createDirectories(destination);
-            } else if (Files.notExists(destination)) {
-                Files.createDirectories(destination.getParent());
-                Files.copy(source, destination, StandardCopyOption.COPY_ATTRIBUTES);
+    private static void initializeFromTemplate(Path template, Path workspace) throws IOException {
+        Files.createDirectories(workspace);
+
+        try (Stream<Path> paths = Files.walk(template)) {
+            for (Path source : paths
+                .sorted(Comparator.comparingInt(Path::getNameCount).thenComparing(Path::toString))
+                .toList()) {
+                copyMissing(template, workspace, source);
             }
-        } catch (IOException ex) {
-            throw new WorkspaceInitializationException(
-                "Could not copy Workspace entry: " + relative,
-                ex
-            );
         }
     }
 
-    private static final class WorkspaceInitializationException extends RuntimeException {
+    private static void copyMissing(Path template, Path workspace, Path source) throws IOException {
+        Path relative = template.relativize(source);
+        Path destination = workspace.resolve(relative);
 
-        private WorkspaceInitializationException(String message, Throwable cause) {
-            super(message, cause);
+        if (Files.isDirectory(source)) {
+            Files.createDirectories(destination);
+        } else if (Files.notExists(destination)) {
+            Files.createDirectories(destination.getParent());
+            Files.copy(source, destination, StandardCopyOption.COPY_ATTRIBUTES);
         }
     }
 }

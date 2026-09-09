@@ -31,13 +31,16 @@ public final class WorkspacePath {
      * @return canonical absolute Workspace path
      */
     public static String getWorkspaceRoot() {
+        String userHome = System.getProperty("user.home");
+
         return resolveWorkspaceRoot(
             System.getProperty(WORKSPACE_PROPERTY),
             System.getenv(WORKSPACE_ENVIRONMENT),
             System.getProperty(APP_HOME_PROPERTY),
             System.getProperty("os.name"),
-            System.getProperty("user.home"),
-            System.getProperty("user.dir")
+            userHome,
+            System.getProperty("user.dir"),
+            WorkspacePreference.loadWorkspaceBase(userHome)
         );
     }
 
@@ -48,6 +51,26 @@ public final class WorkspacePath {
         String osName,
         String userHome,
         String userDirectory
+    ) {
+        return resolveWorkspaceRoot(
+            configuredPath,
+            environmentPath,
+            appHome,
+            osName,
+            userHome,
+            userDirectory,
+            null
+        );
+    }
+
+    static String resolveWorkspaceRoot(
+        String configuredPath,
+        String environmentPath,
+        String appHome,
+        String osName,
+        String userHome,
+        String userDirectory,
+        String workspaceBase
     ) {
         if (configuredPath != null && !configuredPath.isBlank()) {
             return canonicalPath(configuredPath);
@@ -64,14 +87,51 @@ public final class WorkspacePath {
                 return canonicalPath(portableWorkspace.getPath());
             }
 
-            return canonicalPath(installedWorkspace(userHome).getPath());
+            return canonicalPath(installedWorkspace(userHome, workspaceBase).getPath());
         }
 
         if (isPackagedWindowsApplication(appHome, osName)) {
-            return canonicalPath(installedWorkspace(userHome).getPath());
+            return canonicalPath(installedWorkspace(userHome, workspaceBase).getPath());
         }
 
         return canonicalPath(userDirectory);
+    }
+
+    public static boolean isWorkspaceCustomizationAvailable() {
+        String configuredPath = System.getProperty(WORKSPACE_PROPERTY);
+        String environmentPath = System.getenv(WORKSPACE_ENVIRONMENT);
+        String appHome = System.getProperty(APP_HOME_PROPERTY);
+        String osName = System.getProperty("os.name");
+
+        if (
+            configuredPath != null &&
+            !configuredPath.isBlank() ||
+            environmentPath != null &&
+            !environmentPath.isBlank()
+        ) {
+            return false;
+        }
+
+        if (isPackagedMacApplication(appHome, osName)) {
+            return !isValidWorkspace(new File(appHome, "../../../Workspace"));
+        }
+
+        return isPackagedWindowsApplication(appHome, osName);
+    }
+
+    public static String getInstalledWorkspaceBase() {
+        String userHome = System.getProperty("user.home");
+        String configuredBase = WorkspacePreference.loadWorkspaceBase(userHome);
+
+        File base = configuredBase == null || configuredBase.isBlank()
+            ? new File(userHome, "Documents")
+            : new File(configuredBase);
+
+        return canonicalPath(base.getPath());
+    }
+
+    public static String deriveInstalledWorkspace(String basePath) {
+        return canonicalPath(new File(basePath, "INGenious Workspace").getPath());
     }
 
     public static String getConfigurationPath() {
@@ -97,10 +157,12 @@ public final class WorkspacePath {
         return getWorkspaceRoot() + File.separator + "plugins";
     }
 
-    private static File installedWorkspace(String userHome) {
-        File documents = new File(userHome, "Documents");
-        File ingenious = new File(documents, "INGenious");
-        return new File(ingenious, "Workspace");
+    private static File installedWorkspace(String userHome, String workspaceBase) {
+        File base = workspaceBase == null || workspaceBase.isBlank()
+            ? new File(userHome, "Documents")
+            : new File(workspaceBase);
+
+        return new File(base, "INGenious Workspace");
     }
 
     private static boolean isPackagedMacApplication(String appHome, String osName) {

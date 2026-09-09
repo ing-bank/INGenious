@@ -178,6 +178,11 @@ public class AppMenuBar extends JMenuBar {
                 'S'
             )
         );
+
+        configure.add(
+            withMnemonics(Utils.createMenuItem("Workspace Location", sActionListener), 'W')
+        );
+
         configure.add(
             withMnemonics(
                 withIcon(Utils.createMenuItem("Archetype Configurations", sActionListener)),
