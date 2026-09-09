@@ -1375,6 +1375,12 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         private void reload() {
             stopCellEditing();
             std.load();
+            // Re-sync the toolbar's saved indicator and the frozen-column view with the
+            // reloaded model, mirroring load(); std.load() alone only fires a structure event.
+            changeSave(std.isSaved());
+            if (!isGlobalData && frozenScrollPane != null) {
+                frozenScrollPane.updateModel();
+            }
         }
 
         private void addLastRow() {
