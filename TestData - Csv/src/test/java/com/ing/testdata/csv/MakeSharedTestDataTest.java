@@ -269,4 +269,66 @@ public class MakeSharedTestDataTest {
             )
             .isNotNull();
     }
+
+    @Test
+    public void registersAndListsProjectsThatUseSharedTestData() throws Exception {
+        importSharedSheet("Common");
+        testPlanCaseReferencing("S1", "TC1", "[Shared] Common:URL");
+
+        project.registerSharedTestDataUsage();
+
+        File items = new File(Project.getSharedTestDataPath(), "projects.items");
+        assertThat(items).exists();
+        assertThat(new String(java.nio.file.Files.readAllBytes(items.toPath())))
+            .contains("SampleProject");
+
+        // a second project rooted at the same shared store sees the first as a consumer,
+        // and neither project lists itself
+        Project other = new Project(tempDir.resolve("OtherProject").toString(), "csv")
+        .createProject();
+        assertThat(other.getOtherProjectsUsingSharedTestData())
+            .anyMatch(s -> s.contains("SampleProject"));
+        assertThat(project.getOtherProjectsUsingSharedTestData())
+            .noneMatch(s -> s.contains("SampleProject"));
+    }
+
+    @Test
+    public void savingATestCaseThatReferencesSharedDataRegistersTheProject() throws Exception {
+        importSharedSheet("Common");
+        // no explicit registerSharedTestDataUsage() call - TestCase.save() must do it
+        testPlanCaseReferencing("S1", "TC1", "[Shared] Common:URL");
+
+        File items = new File(Project.getSharedTestDataPath(), "projects.items");
+        assertThat(items).exists();
+        assertThat(new String(java.nio.file.Files.readAllBytes(items.toPath())))
+            .contains("SampleProject");
+    }
+
+    @Test
+    public void detectsSharedTestDataReferencedByAnEmbeddedToken() throws Exception {
+        importSharedSheet("Common");
+        testPlanCaseReferencing("S1", "TC1", "{\"url\":\"{[Shared] Common:URL}\"}");
+
+        assertThat(project.usesSharedTestData()).isTrue();
+        File items = new File(Project.getSharedTestDataPath(), "projects.items");
+        assertThat(new String(java.nio.file.Files.readAllBytes(items.toPath())))
+            .contains("SampleProject");
+    }
+
+    @Test
+    public void unregistersWhenProjectNoLongerReferencesSharedTestData() throws Exception {
+        importSharedSheet("Common");
+        TestCase tc = testPlanCaseReferencing("S1", "TC1", "[Shared] Common:URL");
+        project.registerSharedTestDataUsage();
+        File items = new File(Project.getSharedTestDataPath(), "projects.items");
+        assertThat(new String(java.nio.file.Files.readAllBytes(items.toPath())))
+            .contains("SampleProject");
+
+        tc.getTestSteps().get(0).setInput("Local:URL");
+        tc.save();
+        project.registerSharedTestDataUsage();
+
+        assertThat(new String(java.nio.file.Files.readAllBytes(items.toPath())))
+            .doesNotContain("SampleProject");
+    }
 }

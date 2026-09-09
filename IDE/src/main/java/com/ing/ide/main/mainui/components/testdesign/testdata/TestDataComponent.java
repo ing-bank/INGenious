@@ -519,13 +519,16 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         if (!panel.isGlobalData) {
             int index = tab.getSelectedIndex();
             String name = tab.getTitleAt(index);
-            int option = JOptionPane.showConfirmDialog(
-                null,
-                "Are you sure want to delete the TestData [" + name + "]",
-                "Delete TestData",
-                JOptionPane.YES_NO_OPTION
-            );
-            if (option == JOptionPane.YES_OPTION) {
+            boolean proceed = shared
+                ? confirmSharedTestDataChange("Delete", "datasheet '" + name + "'")
+                : JOptionPane.showConfirmDialog(
+                    null,
+                    "Are you sure want to delete the TestData [" + name + "]",
+                    "Delete TestData",
+                    JOptionPane.YES_NO_OPTION
+                ) ==
+                JOptionPane.YES_OPTION;
+            if (proceed) {
                 Boolean flag = envTestData()
                     .getTestDataFor(envTab.getTitleAt(envTab.getSelectedIndex()))
                     .deleteTestData(name);
@@ -907,6 +910,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private Boolean renameEnvironment(String newName) {
         String envName = envTab.getTitleAt(envTab.getSelectedIndex());
         if (!envName.equals("Default") && !envName.equals(newName.trim())) {
+            if (!confirmSharedTestDataChange("Rename", "environment '" + envName + "'")) {
+                return false;
+            }
             boolean renamed = envTestData().renameEnvironment(envName, newName);
             if (renamed) {
                 String oldKey = getTestDataTabOrderKey(envName);
@@ -939,14 +945,17 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private void deleteEnvironment() {
         String envName = envTab.getTitleAt(envTab.getSelectedIndex());
         if (!envName.equals("Default")) {
-            int option = JOptionPane.showConfirmDialog(
-                null,
-                "Are you sure want to delete Environment [" + envName + "]",
-                "Delete Environent",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE
-            );
-            if (option == JOptionPane.YES_OPTION) {
+            boolean proceed = shared
+                ? confirmSharedTestDataChange("Delete", "environment '" + envName + "'")
+                : JOptionPane.showConfirmDialog(
+                    null,
+                    "Are you sure want to delete Environment [" + envName + "]",
+                    "Delete Environent",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+                ) ==
+                JOptionPane.YES_OPTION;
+            if (proceed) {
                 envTab.removeTabAt(envTab.getSelectedIndex());
                 envTestData().deleteEnvironment(envName);
                 testDesign
@@ -967,6 +976,45 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 testDesign.getProject().getImpactedTestDataTestCases(tdPanel.std.getName()),
                 tdPanel.std.getName()
             );
+    }
+
+    /**
+     * On the Shared Test Data panel, confirms a rename / delete that other projects may
+     * depend on, listing them from {@code Shared/SharedTestData/projects.items} (the same
+     * cross-project reference check Shared Reusables and the Shared Object Repository use).
+     * Always returns {@code true} for the project's own Test Data (no prompt).
+     *
+     * @param verb "Rename" / "Delete"
+     * @param what e.g. {@code "datasheet 'Login'"} / {@code "environment 'QA'"}
+     * @return {@code true} to proceed
+     */
+    private boolean confirmSharedTestDataChange(String verb, String what) {
+        if (!shared || testDesign.getProject() == null) {
+            return true;
+        }
+        List<String> projects = testDesign.getProject().getOtherProjectsUsingSharedTestData();
+        String message;
+        if (projects.isEmpty()) {
+            message = verb + " shared Test Data " + what + "?";
+        } else {
+            message =
+                verb +
+                " shared Test Data " +
+                what +
+                ".\n\nIt is referenced by these project(s):\n\n  " +
+                String.join("\n  ", projects) +
+                "\n\nThey may break. Continue?";
+        }
+        return (
+            JOptionPane.showConfirmDialog(
+                this,
+                message,
+                "Shared Test Data",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+            ) ==
+            JOptionPane.YES_OPTION
+        );
     }
 
     public Boolean navigateToTestData(String sheetName, String columnName) {
@@ -1647,6 +1695,10 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         private Boolean rename(String newName) {
             String oldName = std.getName();
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
+
+            if (!confirmSharedTestDataChange("Rename", "datasheet '" + oldName + "'")) {
+                return false;
+            }
 
             // Check for duplicates in other environments
             List<String> otherEnvsWithSameName = envTestData()
