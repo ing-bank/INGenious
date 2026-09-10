@@ -1242,6 +1242,15 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         }
 
         private void encrypt() {
+            if (!isGlobalData && frozenScrollPane != null) {
+                JTable fixedTable = frozenScrollPane.getFixedTable();
+                if (fixedTable != null && fixedTable.getSelectedColumn() >= 0) {
+                    Notification.show(
+                        "Cannot encrypt cells in the fixed area. Select cells in the scrollable area only."
+                    );
+                    return;
+                }
+            }
             int[] cols = table.getSelectedColumns();
             int[] rows = table.getSelectedRows();
             std.getUndoManager().startGroupEdit();
