@@ -6,11 +6,9 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
 import java.util.function.IntConsumer;
@@ -53,6 +51,9 @@ public class FrozenColumnScrollPane extends JScrollPane {
     private CellEditorProvider cellEditorProvider;
 
     private InsertRowPromptFeature fixedInsertRowPromptFeature;
+
+    // Table that owns the column selection anchor for the current selection gesture.
+    private JTable columnAnchorTable;
 
     // Theme-aware color getters
     private static Color getFixedColumnBg() {
@@ -259,6 +260,24 @@ public class FrozenColumnScrollPane extends JScrollPane {
             public Color getBackground() {
                 return getFixedColumnBg();
             }
+
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                if (e == null || e.getFirstRow() == TableModelEvent.HEADER_ROW) {
+                    super.tableChanged(e);
+                    return;
+                }
+                if (
+                    e.getType() == TableModelEvent.INSERT || e.getType() == TableModelEvent.DELETE
+                ) {
+                    // Since fixedTable shares selectionModel with mainTable,
+                    // mainTable already handles selectionModel adjustment.
+                    // Avoid duplicate selectionModel index shifting on the shared model.
+                    repaint();
+                    return;
+                }
+                super.tableChanged(e);
+            }
         };
 
         // CRITICAL: Prevent automatic column model recreation
@@ -266,6 +285,9 @@ public class FrozenColumnScrollPane extends JScrollPane {
 
         // Copy properties from main table
         fixed.setSelectionModel(mainTable.getSelectionModel());
+        fixed.setCellSelectionEnabled(true);
+        fixed.setRowSelectionAllowed(true);
+        fixed.setColumnSelectionAllowed(true);
         fixed.setRowHeight(mainTable.getRowHeight());
         fixed.setFont(mainTable.getFont());
         fixed.setIntercellSpacing(new Dimension(0, 0)); // Remove intercell spacing to avoid white lines
@@ -458,9 +480,173 @@ public class FrozenColumnScrollPane extends JScrollPane {
                 e -> {
                     if (!e.getValueIsAdjusting()) {
                         fixedTable.repaint();
+                        mainTable.repaint();
                     }
                 }
             );
+
+        mainTable
+            .getColumnModel()
+            .getSelectionModel()
+            .addListSelectionListener(
+                e -> {
+                    if (!e.getValueIsAdjusting()) {
+                        fixedTable.repaint();
+                        mainTable.repaint();
+                    }
+                }
+            );
+
+        fixedTable
+            .getColumnModel()
+            .getSelectionModel()
+            .addListSelectionListener(
+                e -> {
+                    if (!e.getValueIsAdjusting()) {
+                        fixedTable.repaint();
+                        mainTable.repaint();
+                    }
+                }
+            );
+
+        mainTable.addMouseListener(
+            new MouseAdapter() {
+
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    onTableMousePressed(mainTable, fixedTable, e);
+                }
+            }
+        );
+
+        fixedTable.addMouseListener(
+            new MouseAdapter() {
+
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    onTableMousePressed(fixedTable, mainTable, e);
+                }
+            }
+        );
+
+        fixedTable.addFocusListener(
+            new FocusAdapter() {
+
+                @Override
+                public void focusGained(FocusEvent e) {
+                    fixedTable.repaint();
+                    mainTable.repaint();
+                }
+
+                @Override
+                public void focusLost(FocusEvent e) {
+                    fixedTable.repaint();
+                    mainTable.repaint();
+                }
+            }
+        );
+
+        mainTable.addFocusListener(
+            new FocusAdapter() {
+
+                @Override
+                public void focusGained(FocusEvent e) {
+                    fixedTable.repaint();
+                    mainTable.repaint();
+                }
+
+                @Override
+                public void focusLost(FocusEvent e) {
+                    fixedTable.repaint();
+                    mainTable.repaint();
+                }
+            }
+        );
+    }
+
+    /**
+     * Indicates whether a click should extend the existing selection instead of replacing it.
+     *
+     * <p>Modifier clicks let a selection span the fixed and scrollable tables, so the other
+     * table's column selection must be preserved.</p>
+     *
+     * @param e mouse event to inspect
+     * @return true when the click extends the current selection
+     */
+    private boolean isSelectionExtendingClick(MouseEvent e) {
+        return e.isShiftDown() || e.isControlDown() || e.isMetaDown();
+    }
+
+    /**
+     * Keeps column selection coherent when the user clicks across the fixed/scrollable split.
+     *
+     * <p>A plain click resets the other table and becomes the new anchor. An extending click in
+     * the table that does not own the anchor produces a contiguous range across the split,
+     * ignoring the clicked table's own stale anchor.</p>
+     *
+     * @param clicked table that received the click
+     * @param other the counterpart table
+     * @param e mouse event to inspect
+     */
+    private void onTableMousePressed(JTable clicked, JTable other, MouseEvent e) {
+        if (!isSelectionExtendingClick(e)) {
+            columnAnchorTable = clicked;
+            if (other.getColumnModel().getSelectionModel().getMinSelectionIndex() >= 0) {
+                other.getColumnModel().getSelectionModel().clearSelection();
+                other.repaint();
+            }
+            return;
+        }
+
+        if (columnAnchorTable == null || columnAnchorTable == clicked) {
+            return;
+        }
+
+        int anchorColumn = other.getColumnModel().getSelectionModel().getAnchorSelectionIndex();
+        int clickedColumn = clicked.columnAtPoint(e.getPoint());
+        if (
+            other.getColumnModel().getSelectionModel().getMinSelectionIndex() < 0 ||
+            anchorColumn < 0 ||
+            anchorColumn >= other.getColumnCount() ||
+            clickedColumn < 0
+        ) {
+            return;
+        }
+
+        // The anchor table keeps everything from its anchor up to the split; the clicked table
+        // is filled from the split up to the clicked column.
+        if (clicked == mainTable) {
+            other.setColumnSelectionInterval(anchorColumn, other.getColumnCount() - 1);
+            clicked.setColumnSelectionInterval(0, clickedColumn);
+        } else {
+            clicked.setColumnSelectionInterval(clickedColumn, clicked.getColumnCount() - 1);
+            other.setColumnSelectionInterval(0, anchorColumn);
+        }
+
+        clicked.repaint();
+        other.repaint();
+    }
+
+    private boolean isRowSelected(JTable table, int row) {
+        if (table == null) {
+            return false;
+        }
+        for (int selectedRow : table.getSelectedRows()) {
+            if (selectedRow == row) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isPassiveRowHighlightFor(JTable table, int row) {
+        JTable activeTable = mainTable.hasFocus()
+            ? mainTable
+            : fixedTable.hasFocus() ? fixedTable : null;
+        if (activeTable == null || activeTable == table) {
+            return false;
+        }
+        return isRowSelected(activeTable, row);
     }
 
     private void applyFixedColumnStyling() {
@@ -485,12 +671,35 @@ public class FrozenColumnScrollPane extends JScrollPane {
                     column
                 );
 
-                if (!isSelected) {
-                    setBackground(getFixedColumnBg());
-                    setForeground(getFixedColumnFg());
-                } else {
+                // Only the currently focused table should act as the selected row source.
+                // The other table mirrors that row as a passive highlight without owning the actual selection.
+                boolean passiveRowHighlight = !isSelected && isPassiveRowHighlightFor(table, row);
+
+                if (isSelected && (table.hasFocus() || hasFocus)) {
                     setBackground(getFixedColumnSelectedBg());
                     setForeground(Color.WHITE);
+                } else if (isSelected) {
+                    setBackground(
+                        isDarkMode()
+                            ? TableColor.FIXED_COLUMN_SELECTED_BG_DARK
+                            : TableColor.FIXED_COLUMN_SELECTED_BG_LIGHT
+                    );
+                    setForeground(getFixedColumnFg());
+                } else if (passiveRowHighlight) {
+                    Color rowSelBg = UIManager.getColor("ing.selectionBackground");
+                    setBackground(
+                        rowSelBg != null
+                            ? rowSelBg
+                            : (
+                                isDarkMode()
+                                    ? TableColor.FIXED_COLUMN_SELECTED_BG_DARK
+                                    : TableColor.FIXED_COLUMN_SELECTED_BG_LIGHT
+                            )
+                    );
+                    setForeground(getFixedColumnFg());
+                } else {
+                    setBackground(getFixedColumnBg());
+                    setForeground(getFixedColumnFg());
                 }
 
                 // Add right border on last fixed column
