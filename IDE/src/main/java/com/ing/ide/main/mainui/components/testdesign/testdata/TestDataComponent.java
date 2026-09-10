@@ -1163,6 +1163,19 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 "Could not move '" + sheetName + "' to Shared Test Data: " + ex.getMessage()
             );
         }
+        refreshAfterMakeShared();
+    }
+
+    /**
+     * Re-reads the project from disk and rebuilds every Test Design view so the scenario /
+     * test case / Test Data auto-suggests pick up test cases that were also promoted to
+     * Shared Reusables - mirroring what the tree "Make As Shared Reusable" flow does
+     * ({@code getProject().reload(); load();}).
+     */
+    private void refreshAfterMakeShared() {
+        if (testDesign.getProject() != null) {
+            testDesign.getProject().reload();
+        }
         testDesign.load();
     }
 
@@ -1237,7 +1250,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 ex.getMessage()
             );
         }
-        testDesign.load();
+        refreshAfterMakeShared();
     }
 
     /**
