@@ -1265,9 +1265,7 @@ public class AppMainFrame extends JFrame {
                 }
 
                 if (SystemInfo.isWindows()) {
-                    File launcher = new File(releaseRoot, "ingenious.bat");
-                    processBuilder =
-                        new ProcessBuilder("cmd", "/c", "start", "", launcher.getAbsolutePath());
+                    processBuilder = createWindowsRestartProcess(appRoot, releaseRoot);
                 } else if (SystemInfo.osx()) {
                     File launcher = new File(releaseRoot, "ingenious.command");
                     processBuilder =
@@ -1293,6 +1291,37 @@ public class AppMainFrame extends JFrame {
                 .getLogger(AppMainFrame.class.getName())
                 .log(Level.WARNING, "Failed to restart INGenious", ex);
         }
+    }
+
+    static ProcessBuilder createWindowsRestartProcess(File appRoot, File releaseRoot)
+        throws IOException {
+        if ("app".equals(appRoot.getName())) {
+            File launcher = new File(releaseRoot, "INGenious.exe");
+
+            if (!launcher.isFile()) {
+                throw new IOException("Installed Windows launcher is missing: " + launcher);
+            }
+
+            ProcessBuilder processBuilder = new ProcessBuilder(launcher.getAbsolutePath());
+            processBuilder.directory(releaseRoot);
+            return processBuilder;
+        }
+
+        File launcher = new File(releaseRoot, "ingenious.bat");
+
+        if (!launcher.isFile()) {
+            throw new IOException("Portable Windows launcher is missing: " + launcher);
+        }
+
+        ProcessBuilder processBuilder = new ProcessBuilder(
+            "cmd",
+            "/c",
+            "start",
+            "",
+            launcher.getAbsolutePath()
+        );
+        processBuilder.directory(releaseRoot);
+        return processBuilder;
     }
 
     private static File getContainingAppBundle(File appRoot) {
