@@ -3,7 +3,7 @@ package com.ing.engine.cli.commands;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.engine.cli.INGeniousCLI;
-import java.io.File;
+import com.ing.engine.constants.AppResourcePath;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.*;
@@ -49,8 +49,8 @@ public class RunCommand implements Callable<Integer> {
             "Auto-detected target. Either:",
             "  <Project>/<Scenario>/<TestCase>  - a test case under TestPlan/",
             "  <Project>/<Release>/<TestSet>    - a test set under TestLab/",
-            "<Project> may be a folder under the current directory,",
-            "under ./Projects/, or an absolute path."
+            "<Project> may be an absolute path, a folder under the current directory,",
+            "under ./Projects/, or under the configured Workspace Projects directory."
         }
     )
     private String autoPath;
@@ -128,6 +128,8 @@ public class RunCommand implements Callable<Integer> {
                 projectName +
                 ", ./Projects/" +
                 projectName +
+                ", " +
+                new File(AppResourcePath.getProjectsPath(), projectName).getPath() +
                 ", and as an absolute path."
             );
             return 1;
@@ -317,6 +319,7 @@ public class RunCommand implements Callable<Integer> {
      *   1. as an absolute path
      *   2. as a folder under the current working directory
      *   3. as a folder under {@code ./Projects/}
+     *   4. as a folder under the configured Workspace Projects directory
      * Returns {@code null} if none of those resolve to a directory.
      */
     private static File resolveProjectDir(String name) {
@@ -329,9 +332,13 @@ public class RunCommand implements Callable<Integer> {
         if (rel.isDirectory()) {
             return rel;
         }
-        File underProjects = new File(cwd, "Projects/" + name);
-        if (underProjects.isDirectory()) {
-            return underProjects;
+        File underCurrentProjects = new File(cwd, "Projects/" + name);
+        if (underCurrentProjects.isDirectory()) {
+            return underCurrentProjects;
+        }
+        File underWorkspaceProjects = new File(AppResourcePath.getProjectsPath(), name);
+        if (underWorkspaceProjects.isDirectory()) {
+            return underWorkspaceProjects;
         }
         return null;
     }
