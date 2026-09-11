@@ -103,16 +103,6 @@ When the user selects a custom Workspace location, the application stores the se
 
     ~/.ingenious/config.properties
 
-using:
-
-    workspace.base=<selected base>
-
-The final Workspace path is derived as:
-
-    <workspace.base>/INGenious Workspace
-
-Only the selected base is persisted. The `INGenious Workspace` directory name is appended by the application.
-
 ### Portable Workspace convention
 
 Portable distributions remain fixed to:
@@ -231,16 +221,6 @@ This allows installed applications to initialize the default or configured Works
 
 ---
 
-## Installed Workspace Location Feature
-
-The installed application includes a Workspace-location command under:
-
-    Configurations → Workspace Location
-
-The command is shown only when Workspace customization is available.
-
-Portable distributions do not expose installed Workspace customization because their launchers explicitly set `ingenious.workspace`.
-
 ### Preference storage
 
 The selected installed Workspace base is saved to:
@@ -280,26 +260,6 @@ Relocation rejects unsafe destinations, including:
 - A destination where `INGenious Workspace` already exists.
 - A base path that is not a directory.
 - A base path that is not writable.
-
-### Existing Workspace behavior
-
-A valid existing Workspace remains authoritative.
-
-The packaged `WorkspaceTemplate` is not overlaid onto a valid Workspace after relocation or restart. Renamed or deleted user content must not be recreated merely because it exists in the packaged template.
-
-### Scope boundary
-
-The installed Workspace feature does not provide:
-
-- Migration from `Documents/INGenious/Workspace`.
-- Detection of older Workspace layouts.
-- Legacy configuration keys.
-- Compatibility aliases.
-- Automatic import of previous Workspaces.
-- Automatic Workspace merging.
-- Portable Workspace customization.
-- Network or cloud Workspace support.
-- Installer upgrade migration.
 
 ---
 
@@ -551,125 +511,6 @@ Project lookup supports Workspace Projects while retaining explicit absolute and
 
 ---
 
-## StoryWriter Subprocess Fix
-
-### `IDE/src/main/java/com/ing/ide/main/bdd/BddParser.java`
-
-Updated StoryWriter launch behavior for packaged applications.
-
-- Resolves Tools through `AppResourcePath.getToolsPath()`.
-- Locates the StoryWriter JAR in the packaged Tools directory.
-- Uses Java from `System.getProperty("java.home")`.
-- Uses `java.exe` on Windows and `java` on Unix and macOS.
-- Launches the JAR by absolute path.
-- Sets the Tools directory as the subprocess working directory.
-- Avoids dependence on the system `PATH`.
-- Avoids duplicate StoryWriter processes.
-- Logs missing Tools directories and missing bundled Java.
-
----
-
-## Playwright Recorder Subprocess Fix
-
-### `IDE/src/main/java/com/ing/ide/main/mainui/components/testdesign/testcase/TestCaseComponent.java`
-
-Updated Playwright recording for packaged applications.
-
-- Resolves Java from the active or bundled `java.home`.
-- Resolves Playwright libraries through `RuntimePath.getLibPath()`.
-- Uses the platform classpath separator.
-- Sets Runtime as the child-process working directory.
-- Removes dependence on terminal login-shell behavior.
-- Preserves Windows `PrintDeps.exe` initialization.
-- Improves error logging.
-
-This fixes Playwright CLI loading in the packaged macOS application.
-
----
-
-## UserDefined Scripts
-
-### `InjectScript.java`
-
-- Loads `SampleScript.java` from Runtime configuration.
-- Stores compiled classes under Workspace `UserDefined`.
-- Creates `UserDefined` when needed.
-- References the Workspace root in user guidance.
-
-### `AnnontationUtil.java`
-
-### `Discovery.java`
-
-User-defined package discovery uses the Workspace `UserDefined` directory.
-
----
-
-## Settings, Logs, and Tokens
-
-### `SecureTokenStore.java`
-
-The AI chat encryption key resides under writable Workspace configuration.
-
-### `AppSettings.java`
-
-Application settings use the Workspace configuration directory and create the directory before writing.
-
-### `UILogger.java`
-
-- Resolves relative log paths against the Workspace.
-- Preserves explicitly configured absolute paths.
-- Creates missing log directories.
-- Exposes the resolved log-file path publicly.
-
-### `LoadingFail.java`
-
-The Playwright failure window opens the configured application log instead of assuming `user.dir/log.txt`.
-
----
-
-## Font Loading
-
-### IDE font utility
-
-Added:
-
-    IDE/src/main/java/com/ing/ide/main/utils/AppFonts.java
-
-The utility:
-
-- Loads `ingme_regular.ttf` from the classpath.
-- Registers the font once.
-- Caches registration state.
-- Logs missing or invalid resources.
-- Removes dependence on filesystem-relative font paths.
-
-Updated IDE consumers include:
-
-- `Main.java`
-- `AppMenuBar.java`
-- `AppToolBar.java`
-- `TestDesignUI.java`
-- `ObjectTree.java`
-- `ProjectTree.java`
-- `TestSetTree.java`
-- `StartUp.java`
-- `XTable.java`
-
-### StoryWriter font utility
-
-Added:
-
-    StoryWriter/src/main/java/com/ing/storywriter/util/AppFonts.java
-
-Updated:
-
-- `StoryWriter/src/main/java/com/ing/storywriter/bdd/editor/StyledEditor.java`
-- `StoryWriter/src/main/java/com/ing/storywriter/bdd/ui/UI2.java`
-
-StoryWriter loads the ING Me font from its packaged classpath instead of a relative filesystem location.
-
----
-
 ## Application Icons
 
 ### `IDE/src/main/java/com/ing/ide/main/utils/AppIcon.java`
@@ -707,82 +548,6 @@ Native macOS restart uses:
 Launcher and application paths are resolved from the Runtime and release layout instead of the process working directory.
 
 The installed Workspace relocation flow restarts without saving into the deleted source Workspace.
-
----
-
-## Dashboard and Static Resources
-
-### `DashBoardData.java`
-
-### `DashBoardServer.java`
-
-Dashboard and web resources resolve from Runtime web assets.
-
-### `MetricsProvider.java`
-
-`har_to_pagespeed.exe` resolves from Runtime configuration.
-
-### `ActionCatalog.java`
-
-### `StepMap.java`
-
-StepMap resources resolve through centralized application paths.
-
-### `CMProjectCreator.java`
-
-Engine and SampleScript locations resolve from Runtime paths.
-
----
-
-## Project Creation and Selection
-
-Updated:
-
-- `FXStartUp.java`
-- `StartUp.java`
-- `NewProject.java`
-- `INGeniousFileChooser.java`
-
-Default project selection and creation use:
-
-    <Workspace>/Projects
-
-Explicit external project paths remain supported.
-
----
-
-## Portable Launchers
-
-Updated:
-
-- `Resources/ingenious`
-- `Resources/ingenious.command`
-- `Resources/ingenious.bat`
-
-The portable launchers calculate:
-
-- `INSTALL_DIR`
-- `RUNTIME_DIR`
-- `WORKSPACE_DIR`
-- `APP_CLASSPATH`
-
-All portable launchers pass both:
-
-    -Dingenious.app.home=<portable root>/Runtime
-    -Dingenious.workspace=<portable root>/Workspace
-
-They retain:
-
-    -Djdk.internal.httpclient.disableHostnameVerification=true
-    -Djdk.httpclient.allowRestrictedHeaders=host,connection,content-length,upgrade,expect,via,date,accept-encoding
-
-The Windows launcher uses detached-launch syntax:
-
-    start "" javaw
-
-Portable launchers do not depend on the terminal's current working directory to locate Runtime resources.
-
-The explicit `ingenious.workspace` property is the distribution marker that keeps portable Workspace behavior fixed and disables installed Workspace customization.
 
 ---
 
@@ -887,10 +652,6 @@ The macOS package must not delete, replace, merge, or migrate:
 
     ~/Documents/INGenious Workspace
 
-The installer must not probe for or migrate:
-
-    ~/Documents/INGenious/Workspace
-
 The packaged application must contain the `WorkspaceTemplate` required by startup initialization.
 
 If package scripts are present, they must not make the installed application depend on installer-time Workspace creation.
@@ -978,14 +739,6 @@ No compatibility aliases or legacy launcher conventions are introduced.
 ## Installer Data-Preservation Rules
 
 Workspace content is user data.
-
-Installers and uninstallers must not delete:
-
-    ~/Documents/INGenious Workspace
-
-or:
-
-    %USERPROFILE%\Documents\INGenious Workspace
 
 Installers must not:
 
@@ -1165,7 +918,13 @@ Installer and uninstaller logic must not delete user Workspace content.
 Observed generated artifacts include:
 
     Dist/release/INGenious.app
-    Dist/target/INGenious-4.0.0.pkg
+
+    Dist/target/INGenious-4.0.0-macos-arm64.pkg
+    Dist/target/INGenious-4.0.0-macos-arm64.zip
+
+    Dist/target/INGenious-4.0.0-macos-x86_64.pkg
+    Dist/target/INGenious-4.0.0-macos-x86_64.zip
+
     Dist/release/Runtime/ingenious-ide-4.0.0.jar
     Dist/release/Runtime/lib/ingenious-engine-4.0.0.jar
 
@@ -1241,6 +1000,30 @@ Filesystem access should not introduce new assumptions based on:
 
 ---
 
+## Installed Components
+
+1. Application Bundle
+
+    `INGenious.app`
+
+    `INGenious.exe`
+
+2. Workspace
+
+    Default Location:
+    `~/Documents/INGenious Workspace`
+
+    Custom Location:
+    `<selected base>/INGenious Workspace`
+
+3. Global CLI Shortcut
+
+    `/usr/local/bin/ingenious`
+
+4. INGenious Workspace location configuration
+
+    `~/.ingenious/config.properties`
+
 ## Handoff Summary
 
 The INGenious packaging architecture now separates replaceable application resources from persistent user data.
@@ -1260,4 +1043,6 @@ The key invariants are:
 
 ## Next Steps
 
-
+1. Uninstall flow for Homebrew
+2. Chocolatey / WinGet implementation
+3. ING-Variant Homebrew implementation (Cask in any repo, PKG in Artifact Feed)
