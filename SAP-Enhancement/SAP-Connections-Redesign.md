@@ -8,8 +8,8 @@ later, additive phase.
 
 | | |
 |---|---|
-| **Branch** | `tasks/sap-enhancement-supp-browser-actions` |
-| **Status** | Proposal — for review |
+| **Branch** | `task/sap-multi-conn-session-win` |
+| **Status** | Phases 1–2 implemented, tested and pushed. Phase 3 not started. |
 | **Scope** | Engine · Datalib · IDE |
 
 ---
@@ -29,8 +29,8 @@ later, additive phase.
 11. [Known limitation — environment prerequisites](#known-limitation--environment-prerequisites)
 12. [Compatibility — migration](#compatibility--migration)
 13. [Roadmap — phased plan](#roadmap--phased-plan)
-    - [Phase 1 — now](#phase-1--now)
-    - [Phase 2](#phase-2)
+    - [Phase 1 — delivered](#phase-1--delivered)
+    - [Phase 2 — delivered](#phase-2--delivered)
     - [Phase 3](#phase-3)
     - [Follow-up — legacy project rewrite (separate request)](#follow-up--legacy-project-rewrite-separate-request)
     - [Phase 4 — deferred](#phase-4--deferred)
@@ -698,7 +698,11 @@ Phases 1–3 deliver both original requests; legacy projects keep running on the
 separate requests follow: the legacy project rewrite (Option A) and the Phase 4
 multi-session enhancement — both additive, no rework of 1–3.
 
-### Phase 1 — now
+**Where we are:** Phases 1 and 2 are implemented, unit-tested against fakes, and pushed to
+`task/sap-multi-conn-session-win`. Phase 3 (removing the legacy shim, guardrails, the
+`ProjectMigration` SPI, and the Scripting Tracker importer changes) has not been started.
+
+### Phase 1 — delivered
 
 - **Delivers:** Multiple SAP connections selectable; SAP runs driverless; driverless actions
   already mix.
