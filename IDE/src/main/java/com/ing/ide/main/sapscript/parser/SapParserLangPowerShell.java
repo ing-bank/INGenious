@@ -30,6 +30,8 @@ import java.util.regex.Pattern;
 public class SapParserLangPowerShell extends SapLanguageParser {
     // Track variable assignments: $ID -> SAP object ID
     private Map<String, String> variableMap = new HashMap<>();
+    // Phase 4: $ID -> the session label it was captured under (null = primary)
+    private Map<String, String> variableSessionMap = new HashMap<>();
     private String currentTransaction = null;
 
     // Patterns for PowerShell helper functions
@@ -43,8 +45,11 @@ public class SapParserLangPowerShell extends SapLanguageParser {
         Pattern.CASE_INSENSITIVE
     );
 
+    // Group 1: the result variable ($ID); group 2: the session variable it was found via
+    // ($session, $session2, ...) - captured (not hardcoded to "$session") so a recording that
+    // switches sessions via a differently-named variable is recognised, not silently dropped.
     private static final Pattern VARIABLE_ASSIGNMENT_PATTERN = Pattern.compile(
-        "(\\$\\w+)\\s*=\\s*Invoke-Method\\s+-object\\s+\\$\\w+\\s+-methodName\\s+\"findById\"\\s+-methodParameter\\s+@\\(\"([^\"]+)\"\\)",
+        "(\\$\\w+)\\s*=\\s*Invoke-Method\\s+-object\\s+(\\$\\w+)\\s+-methodName\\s+\"findById\"\\s+-methodParameter\\s+@\\(\"([^\"]+)\"\\)",
         Pattern.CASE_INSENSITIVE
     );
 
@@ -78,6 +83,7 @@ public class SapParserLangPowerShell extends SapLanguageParser {
         );
 
         variableMap.clear();
+        variableSessionMap.clear();
         currentTransaction = null;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -98,7 +104,7 @@ public class SapParserLangPowerShell extends SapLanguageParser {
                 if (transaction != null) {
                     currentTransaction = transaction;
                     LOGGER.fine("Found transaction: " + currentTransaction);
-                    sapActions.add(
+                    addAction(
                         new SapAction("Transaction", "SAP_SYSTEM", currentTransaction, lineNumber)
                     );
                     continue;
@@ -124,8 +130,15 @@ public class SapParserLangPowerShell extends SapLanguageParser {
         Matcher varAssignMatcher = VARIABLE_ASSIGNMENT_PATTERN.matcher(line);
         if (varAssignMatcher.find()) {
             String varName = varAssignMatcher.group(1);
-            String objectId = varAssignMatcher.group(2);
+            String sessionVar = varAssignMatcher.group(2);
+            String objectId = varAssignMatcher.group(3);
             variableMap.put(varName, objectId);
+
+            // Phase 4: which session this element was found on - resolved (and, the first time
+            // a non-primary one is seen, opened) from the $session/$session2/... it came via.
+            String label = labelForSessionVar(sessionVar.substring(1)); // strip the $ prefix
+            variableSessionMap.put(varName, label);
+            noteSessionLabel(label, lineNumber);
 
             // Extract transaction from object ID
             extractTransactionFromId(objectId);
@@ -144,6 +157,9 @@ public class SapParserLangPowerShell extends SapLanguageParser {
 
             String objectId = variableMap.get(objectVar);
             if (objectId != null) {
+                // Phase 4: re-sync if this line acts on a variable captured under a different
+                // session than the one currently active (interleaved multi-session scripts).
+                noteSessionLabel(variableSessionMap.get(objectVar), lineNumber);
                 parseInvokeMethod(objectId, methodName, parameters, lineNumber);
             }
             return;
@@ -158,6 +174,7 @@ public class SapParserLangPowerShell extends SapLanguageParser {
 
             String objectId = variableMap.get(objectVar);
             if (objectId != null) {
+                noteSessionLabel(variableSessionMap.get(objectVar), lineNumber);
                 parseSetProperty(objectId, propertyName, propertyValue, lineNumber);
             }
         }
@@ -266,7 +283,7 @@ public class SapParserLangPowerShell extends SapLanguageParser {
                 addAction("Set", objectId, value, lineNumber);
 
                 // Also store the text property in the object
-                SapObject obj = sapObjects.get(objectId);
+                SapObject obj = getSapObject(objectId);
                 if (obj != null) {
                     obj.text = value;
                 }
@@ -336,23 +353,15 @@ public class SapParserLangPowerShell extends SapLanguageParser {
         return input.trim().replaceAll("^@\\(|\\)$", "").trim();
     }
 
+    // storeObject/addAction delegate to the base class (addSapObject / addAction(SapAction)) so
+    // this parser picks up the same session tagging, absolute-id stripping and session-scoped
+    // name dedup as the base-class-driven languages, instead of duplicating that logic here.
     private void storeObject(String objectId, int lineNumber) {
-        if (!sapObjects.containsKey(objectId)) {
-            String objectType = determineObjectType(objectId);
-            SapObject obj = new SapObject(objectId, objectType, currentTransaction);
-            sapObjects.put(objectId, obj);
-
-            LOGGER.fine("Stored SAP object: " + objectId + " (type: " + objectType + ")");
-        }
+        addSapObject(objectId, determineObjectType(objectId), currentTransaction);
     }
 
     private void addAction(String actionType, String objectId, String value, int lineNumber) {
-        SapAction action = new SapAction(actionType, objectId, value, lineNumber);
-        sapActions.add(action);
-
-        LOGGER.fine(
-            String.format("Added action: %s on %s (line %d)", actionType, objectId, lineNumber)
-        );
+        addAction(new SapAction(actionType, objectId, value, lineNumber));
     }
 
     private void extractTransactionFromId(String objectId) {

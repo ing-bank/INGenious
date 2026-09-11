@@ -924,7 +924,10 @@ public class TestCaseAutoSuggest {
             }
 
             if (isSapObject(objectName, pageToken)) {
-                return MethodInfoManager.getMethodListFor(ObjectType.SAP);
+                // A real SAP OR element (resolved via isSapObject) only ever needs the
+                // element-level actions - ObjectType.SAP is reserved for the literal
+                // "SAP" object (initConnection, transactions, ...), which needs no element.
+                return MethodInfoManager.getMethodListFor(ObjectType.SAP_OBJECT);
             }
 
             return new ArrayList<>();

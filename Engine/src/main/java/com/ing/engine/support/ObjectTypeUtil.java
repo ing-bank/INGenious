@@ -80,6 +80,7 @@ public final class ObjectTypeUtil {
         objectTypesforIDEDropdown.add(ObjectType.DATA);
         objectTypesforIDEDropdown.add(ObjectType.FILE);
         objectTypesforIDEDropdown.add(ObjectType.GENERAL);
+        objectTypesforIDEDropdown.add(ObjectType.SAP);
         objectTypesforIDEDropdown.add("Execute");
         objectTypesforIDEDropdown.add(ObjectType.STRINGOPERATIONS);
         objectTypesforIDEDropdown.addAll(pluginObjectTypes);

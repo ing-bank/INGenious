@@ -20,7 +20,9 @@ import javax.swing.tree.TreeNode;
 @JacksonXmlRootElement(localName = "Root")
 public class SapOR implements ORRootInf<SapORPage> {
     public static final List<String> OBJECT_PROPS = new ArrayList<>(
-        Arrays.asList("id", "name", "Text")
+        // "session" is reserved for the Phase 4 multi-session feature: an optional
+        // label pinning this object to a specific SAP GUI session. Ignored until then.
+        Arrays.asList("id", "name", "Text", "session")
     );
 
     @JacksonXmlProperty(isAttribute = true, localName = "ref")

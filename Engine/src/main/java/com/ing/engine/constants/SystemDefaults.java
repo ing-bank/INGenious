@@ -19,6 +19,14 @@ public class SystemDefaults {
     public static AtomicBoolean getClassesFromJar = new AtomicBoolean();
     public static AtomicBoolean reportComplete = new AtomicBoolean();
     public static AtomicBoolean nextStepflag = new AtomicBoolean(true);
+    /**
+     * When true (default), SAP runs driverless: {@code Browser = "SAP"} is shimmed to
+     * {@code "No Browser"} + an implicit {@code SAP.initConnection}. Set
+     * {@code -Dsap.connectionModel.enabled=false} to disable the shim.
+     */
+    public static AtomicBoolean sapConnectionModelEnabled = new AtomicBoolean(
+        !"false".equalsIgnoreCase(System.getProperty("sap.connectionModel.enabled", "true"))
+    );
     public static Map<String, String> CLVars = new HashMap<>();
     public static Map<String, String> EnvVars = new HashMap<>();
 
