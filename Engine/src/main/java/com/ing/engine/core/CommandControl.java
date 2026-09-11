@@ -10,10 +10,11 @@ import com.ing.engine.drivers.MobileObject;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.drivers.SAPObject;
 import com.ing.engine.drivers.SAPObject.SAPFindType;
-import com.ing.engine.drivers.SAPSessionCreation;
 import com.ing.engine.drivers.StructuredDataObject;
 //Added For Mobile
 import com.ing.engine.drivers.WebDriverCreation;
+import com.ing.engine.drivers.sap.SapGuiSession;
+import com.ing.engine.drivers.sap.SapSessionManager;
 import com.ing.engine.execution.data.DataProcessor;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.execution.exception.UnCaughtException;
@@ -68,22 +69,29 @@ public abstract class CommandControl {
     //For SAPTesting
     public SAPObject SAPObject;
     public Dispatch SAPElement;
-    public SAPSessionCreation SAPsession;
     public Process SAPProcess;
+
+    /** The four SAP connection-lifecycle actions, exempt from the "no SAP connection" fail-fast. */
+    private static final java.util.Set<String> SAP_CONNECTION_ACTIONS = new HashSet<>(
+        Arrays.asList(
+            "sapInitConnection",
+            "sapSwitchConnection",
+            "sapCloseConnection",
+            "sapCloseAllConnection"
+        )
+    );
 
     public CommandControl(
         PlaywrightDriverCreation playwright,
         PlaywrightDriverCreation page,
         PlaywrightDriverCreation browserContext,
         WebDriverCreation driver,
-        SAPSessionCreation session,
         TestCaseReport report
     ) {
         Playwright = playwright;
         BrowserContext = browserContext;
         Page = page;
         webDriver = driver;
-        SAPsession = session;
         userData =
             new UserDataAccess() {
 
@@ -93,15 +101,17 @@ public abstract class CommandControl {
                 }
             };
 
-        if (webDriver == null && SAPsession == null) {
+        if (webDriver == null) {
             if (Page != null && Page.page != null) {
                 AObject = new AutomationObject(Page.page);
                 SObject = new StructuredDataObject(Page.page);
             }
-        } else if (SAPsession != null && SAPsession.session != null) {
-            SAPObject = new SAPObject(SAPsession.session);
-        } else if (webDriver != null && webDriver.driver != null) {
+        } else if (webDriver.driver != null) {
             MObject = new MobileObject(webDriver.driver);
+        }
+        // SAP objects are bound lazily once SAP.initConnection has run (driverless model).
+        if (isSapMode()) {
+            bindSapSession();
         }
         // STRUCTUREDDATA actions (JSON/XML path assertions on Webservice responses)
         // are driver-agnostic. Ensure SObject is always initialized so OR references
@@ -112,6 +122,34 @@ public abstract class CommandControl {
             SObject = new StructuredDataObject();
         }
         Report = (TestCaseReport) report;
+    }
+
+    /** @return true when a SAP connection is open for this runner thread. */
+    public boolean isSapMode() {
+        return SapSessionManager.INSTANCE.hasConnection();
+    }
+
+    private SapGuiSession sapGuiSession() {
+        return SapSessionManager.INSTANCE.current();
+    }
+
+    /** The raw {@code ActiveXComponent} of the current SAP session, or {@code null}. */
+    public Object currentSapRaw() {
+        SapGuiSession s = sapGuiSession();
+        return s == null ? null : s.raw();
+    }
+
+    /** (Re)build {@link #SAPObject} from the current SAP session; clears it when not in SAP mode. */
+    public void bindSapSession() {
+        if (isSapMode()) {
+            SAPObject = new SAPObject(sapGuiSession());
+            // null when the connection was adopted, or opened on someone else's engine -
+            // there is no process this run launched, so nothing sapCloseLogonScreen should kill.
+            SAPProcess = SapSessionManager.INSTANCE.currentProcess();
+        } else {
+            SAPObject = null;
+            SAPProcess = null;
+        }
     }
 
     public void refresh() {
@@ -129,6 +167,21 @@ public abstract class CommandControl {
         this.Input = curr.Input;
         this.Data = curr.Data;
 
+        // A SAP operation with no connection open: fail fast, don't NPE later.
+        if (
+            curr.Action != null &&
+            curr.Action.startsWith("sap") &&
+            !SAP_CONNECTION_ACTIONS.contains(curr.Action) &&
+            !isSapMode()
+        ) {
+            Report.updateTestLog(
+                curr.Action,
+                "No SAP connection - add a SAP.initConnection step.",
+                Status.FAILNS
+            );
+            return;
+        }
+
         if (curr.Condition != null && curr.Condition.length() > 0) {
             this.Condition = curr.Condition;
         }
@@ -139,10 +192,25 @@ public abstract class CommandControl {
             if (!(ObjectName.matches("(?i:app|browser|execute|executeclass)"))) {
                 this.Reference = curr.Reference;
                 if (!curr.Action.startsWith("img")) {
-                    // Skip object finding for non-SAP actions when in SAP mode
-                    if (SAPsession != null && !isSAPAction()) {
-                        // Non-SAP action in SAP test case - don't try to find SAP objects
-                        // The action handler will proceed without an object
+                    // While a SAP connection is open, non-SAP steps (General, DB, ...)
+                    // resolve nothing against SAP - the handler proceeds without an object.
+                    if (isSapMode() && !isSAPAction()) {
+                        return;
+                    }
+
+                    // SAP element finding is hoisted ahead of the web/mobile branches
+                    // because a "No Browser" run still carries a (non-driving) webDriver.
+                    if (isSapMode() && isSAPAction()) {
+                        if (SAPObject == null) {
+                            bindSapSession();
+                        }
+                        SAPObject.Action = this.Action;
+                        SAPElement =
+                            SAPObject.findSAPElement(
+                                ObjectName,
+                                Reference,
+                                SAPFindType.fromString(Condition)
+                            );
                         return;
                     }
 
@@ -164,17 +232,6 @@ public abstract class CommandControl {
                                     ObjectName,
                                     Reference,
                                     AutomationObjectApi.FindType.fromString(Condition)
-                                );
-                        } else if (SAPsession != null && SAPObject != null && isSAPAction()) {
-                            /********** Updates the Action for NLP_locator****************/
-                            SAPObject.Action = this.Action;
-                            /**************************************************************/
-
-                            SAPElement =
-                                SAPObject.findSAPElement(
-                                    ObjectName,
-                                    Reference,
-                                    SAPFindType.fromString(Condition)
                                 );
                         } else if (webDriver != null && MObject != null) {
                             /********** Updates the Action for NLP_locator****************/
@@ -215,6 +272,10 @@ public abstract class CommandControl {
             return false;
         }
 
+        if (SAPObject == null && isSapMode()) {
+            bindSapSession();
+        }
+
         // Check if this object exists in the SAP Object Repository
         if (SAPObject != null) {
             return SAPObject.getSapObject(Reference, ObjectName) != null;
@@ -224,6 +285,13 @@ public abstract class CommandControl {
     }
 
     private Boolean canIFindElement() {
+        // SAP is checked first: a "No Browser" run still carries a non-driving webDriver.
+        if (isSapMode()) {
+            if (!isSAPAction()) {
+                return false;
+            }
+            return ObjectName != null && !ObjectName.isEmpty();
+        }
         if (webDriver != null) {
             if (webDriver.isAlive()) {
                 if (webDriver.getCurrentBrowser().equalsIgnoreCase("ProtractorJS")) {
@@ -240,16 +308,6 @@ public abstract class CommandControl {
                     }
                 }
             }
-        } else if (SAPsession != null) {
-            // For SAP, only find objects if it's a SAP action
-            if (!isSAPAction()) {
-                return false;
-            }
-            // Check if we have an ObjectName to find
-            if (ObjectName == null || ObjectName.isEmpty()) {
-                return false;
-            }
-            return true;
         } else {
             if (Page != null && Page.isAlive()) {
                 switch (Action) {
@@ -477,7 +535,7 @@ public abstract class CommandControl {
         String value
     ) {
         if (global) {
-            if (SAPsession != null && SAPObject != null) {
+            if (isSapMode() && SAPObject != null) {
                 SAPObject.globalDynamicValue.put(key, value);
             } else if (webDriver != null && MObject != null) {
                 MobileObject.globalDynamicValue.put(key, value);
@@ -486,7 +544,7 @@ public abstract class CommandControl {
                 StructuredDataObject.globalDynamicValue.put(key, value);
             }
         } else {
-            if (SAPsession != null && SAPObject != null) {
+            if (isSapMode() && SAPObject != null) {
                 InlineObjectProperty.putObjectProperty(
                     SAPObject.dynamicValue,
                     reference,

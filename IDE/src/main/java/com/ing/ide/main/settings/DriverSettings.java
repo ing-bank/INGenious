@@ -104,6 +104,9 @@ public class DriverSettings extends javax.swing.JFrame {
         // from the legacy "Settings" dialog; same project-side storage backs it.
         buildKafkaSSLTab();
 
+        // Build the "SAP Connections" tab programmatically (not in generated initComponents).
+        buildSapConnectionsTab();
+
         // Allows InsertRowPromptFeature to work with these DriverSettings tables.
         registerInsertRowPromptActionsForDriverSettingsTables();
 
@@ -358,6 +361,10 @@ public class DriverSettings extends javax.swing.JFrame {
         if (kafkaSSLPanel != null && kafkaSSLPanel.table != null) {
             registerInsertRowPromptActions(kafkaSSLPanel.table);
         }
+
+        if (sapPropTable != null) {
+            registerInsertRowPromptActions(sapPropTable);
+        }
     }
 
     /**
@@ -555,6 +562,7 @@ public class DriverSettings extends javax.swing.JFrame {
         loadAPI();
         loadDevices();
         loadKafkaSSLConfigurations();
+        loadSapConnections();
     }
 
     private void loadDriverPropTable() {
@@ -613,15 +621,11 @@ public class DriverSettings extends javax.swing.JFrame {
     private List<String> getTotalBrowserList() {
         List<String> list = new ArrayList<>();
 
-        // Add Playwright browsers first
+        // Add Playwright browsers first (includes "No Browser")
         list.addAll(PlaywrightDriverFactory.Browser.getValuesAsList());
 
-        // Extract SAP and add it next (SAP remains an Emulators.json entry on purpose)
-        List<String> emulators = new ArrayList<>(settings.getEmulators().getEmulatorNames());
-        if (emulators.remove("SAP")) {
-            list.add("SAP");
-        }
-
+        // SAP is no longer a browser — it is a driverless connection managed on the
+        // SAP Connections settings and opened via a SAP.initConnection step.
         // Any leftover legacy emulator entries (unmigrated) are intentionally
         // not exposed here anymore — devices belong on the "Manage Devices" tab.
         return list;
@@ -800,15 +804,7 @@ public class DriverSettings extends javax.swing.JFrame {
         DefaultTableModel model = (DefaultTableModel) capTable.getModel();
         model.setRowCount(0);
 
-        String emulatorName = browserCombo.getSelectedItem().toString();
-        LinkedProperties properties;
-
-        // Check if adding SAP browser
-        if ("SAP".equals(emulatorName)) {
-            properties = settings.getEmulators().defaultSAPCapability();
-        } else {
-            properties = settings.getEmulators().defaultEmulatorCap();
-        }
+        LinkedProperties properties = settings.getEmulators().defaultEmulatorCap();
 
         for (Object key : properties.orderedKeys()) {
             Object value = properties.get(key);
@@ -855,6 +851,10 @@ public class DriverSettings extends javax.swing.JFrame {
         }
         if (kafkaSSLPanel != null && mainTab.getSelectedComponent() == kafkaSSLPanel) {
             saveKafkaSSLConfigurations();
+            return;
+        }
+        if (sapConnectionsPanel != null && mainTab.getSelectedComponent() == sapConnectionsPanel) {
+            saveSapProperties();
             return;
         }
         if (mainTab.getSelectedIndex() == 0) {
@@ -2209,6 +2209,12 @@ public class DriverSettings extends javax.swing.JFrame {
             // lambdaCapsPanel is created lazily; its listener is hooked up in
             // ensureLambdaCapsPanel() once the panel actually exists.
         }
+        if (sapCombo != null) {
+            sapCombo.addItemListener(saveSettingsListeners.new SaveItemListener());
+            sapPropTable
+                .getModel()
+                .addTableModelListener(saveSettingsListeners.new SaveTableModelListener());
+        }
         // End of SaveSettings Listeners
         saveListenersAttached = true;
     }
@@ -3144,6 +3150,316 @@ public class DriverSettings extends javax.swing.JFrame {
         Properties properties = PropUtils.getPropertiesFromTable(kafkaSSLPanel.table);
         settings.getKafkaSSLConfigurations().set(properties);
         settings.getKafkaSSLConfigurations().save();
+    }
+
+    // ====================================================================
+    // "SAP Connections" tab — manually-built (not part of generated form).
+    // Settings/SAP/<alias>.properties, one per connection; see
+    // com.ing.datalib.settings.SapConnections / SapDefaults.
+    // ====================================================================
+
+    private javax.swing.JPanel sapConnectionsPanel;
+    private javax.swing.JComboBox<String> sapCombo;
+    private javax.swing.JButton renameSap;
+    private javax.swing.JButton deleteSap;
+    private javax.swing.JButton setDefaultSap;
+    private javax.swing.JLabel sapDefaultLabel;
+    private javax.swing.JTable sapPropTable;
+    private javax.swing.JButton addSapPropButton;
+    private javax.swing.JButton removeSapPropButton;
+    private boolean isAddingSap = false;
+
+    private void buildSapConnectionsTab() {
+        sapConnectionsPanel = new javax.swing.JPanel(new java.awt.BorderLayout());
+
+        javax.swing.JToolBar sapToolBar = new javax.swing.JToolBar();
+        sapToolBar.setBorder(BorderFactory.createEtchedBorder());
+        sapToolBar.setRollover(true);
+        sapToolBar.setFloatable(false);
+        sapToolBar.setPreferredSize(new java.awt.Dimension(100, 50));
+
+        sapToolBar.add(javax.swing.Box.createHorizontalStrut(10));
+        sapToolBar.add(new javax.swing.JLabel("SAP Connection"));
+        sapToolBar.add(javax.swing.Box.createHorizontalStrut(10));
+
+        sapCombo = new javax.swing.JComboBox<>();
+        sapCombo.setEditable(true);
+        sapCombo.setMinimumSize(new java.awt.Dimension(150, 26));
+        sapCombo.setPreferredSize(new java.awt.Dimension(150, 26));
+        sapCombo.setMaximumSize(new java.awt.Dimension(220, 26));
+        sapCombo.setToolTipText(
+            "Select a connection, or type a new alias and press Enter to add one."
+        );
+        sapToolBar.add(sapCombo);
+
+        sapToolBar.add(javax.swing.Box.createHorizontalStrut(6));
+
+        renameSap = new javax.swing.JButton();
+        renameSap.setIcon(INGIcons.swingColored("icon.edit", 16));
+        renameSap.setToolTipText("Rename Connection");
+        renameSap.setContentAreaFilled(false);
+        renameSap.setFocusable(false);
+        sapToolBar.add(renameSap);
+
+        deleteSap = new javax.swing.JButton();
+        deleteSap.setIcon(INGIcons.swingColored("icon.deleteIcon", 16));
+        deleteSap.setToolTipText("Delete Connection");
+        deleteSap.setContentAreaFilled(false);
+        deleteSap.setFocusable(false);
+        sapToolBar.add(deleteSap);
+
+        sapToolBar.add(javax.swing.Box.createHorizontalStrut(15));
+
+        setDefaultSap = new javax.swing.JButton("Set as Default");
+        setDefaultSap.setFocusable(false);
+        sapToolBar.add(setDefaultSap);
+
+        sapToolBar.add(javax.swing.Box.createHorizontalGlue());
+
+        sapDefaultLabel = new javax.swing.JLabel();
+        sapDefaultLabel.setFont(sapDefaultLabel.getFont().deriveFont(java.awt.Font.ITALIC));
+        sapToolBar.add(sapDefaultLabel);
+        sapToolBar.add(javax.swing.Box.createHorizontalStrut(10));
+
+        sapConnectionsPanel.add(sapToolBar, java.awt.BorderLayout.PAGE_START);
+
+        sapPropTable = new XTable();
+        sapPropTable.setModel(
+            new DefaultTableModel(new Object[][] {}, new String[] { "Property", "Value" })
+        );
+
+        javax.swing.JPanel centerPanel = new javax.swing.JPanel(new java.awt.BorderLayout());
+        javax.swing.JToolBar sapPropToolBar = new javax.swing.JToolBar();
+        sapPropToolBar.setBorder(BorderFactory.createEtchedBorder());
+        sapPropToolBar.setRollover(true);
+        sapPropToolBar.setFloatable(false);
+        sapPropToolBar.add(javax.swing.Box.createHorizontalGlue());
+
+        addSapPropButton = new javax.swing.JButton();
+        addSapPropButton.setIcon(INGIcons.swingColored("icon.add", 16));
+        addSapPropButton.setToolTipText("Add Property");
+        addSapPropButton.setFocusable(false);
+        sapPropToolBar.add(addSapPropButton);
+
+        removeSapPropButton = new javax.swing.JButton();
+        removeSapPropButton.setIcon(INGIcons.swingColored("icon.remove", 16));
+        removeSapPropButton.setToolTipText("Remove Property");
+        removeSapPropButton.setFocusable(false);
+        sapPropToolBar.add(removeSapPropButton);
+
+        centerPanel.add(sapPropToolBar, java.awt.BorderLayout.PAGE_START);
+        centerPanel.add(new javax.swing.JScrollPane(sapPropTable), java.awt.BorderLayout.CENTER);
+        sapConnectionsPanel.add(centerPanel, java.awt.BorderLayout.CENTER);
+
+        mainTab.addTab("SAP Connections", sapConnectionsPanel);
+
+        // --- Listeners ---
+        sapCombo.addItemListener(
+            evt -> {
+                if (evt.getStateChange() == ItemEvent.SELECTED && !isAddingSap) {
+                    SwingUtilities.invokeLater(
+                        () -> loadSapConnection(sapCombo.getSelectedItem().toString())
+                    );
+                }
+            }
+        );
+
+        sapCombo
+            .getEditor()
+            .addActionListener(
+                ae -> {
+                    addNewSap();
+                    markDirty();
+                }
+            );
+
+        renameSap.addActionListener(ae -> renameSap());
+        deleteSap.addActionListener(ae -> deleteSap());
+        setDefaultSap.addActionListener(ae -> setSelectedSapAsDefault());
+
+        addSapPropButton.addActionListener(
+            ae -> {
+                DefaultTableModel m = (DefaultTableModel) sapPropTable.getModel();
+                m.addRow(new Object[] {});
+            }
+        );
+
+        removeSapPropButton.addActionListener(
+            ae -> {
+                int[] rows = sapPropTable.getSelectedRows();
+                if (rows != null) {
+                    DefaultTableModel m = (DefaultTableModel) sapPropTable.getModel();
+                    for (int i = rows.length - 1; i >= 0; i--) {
+                        m.removeRow(rows[i]);
+                    }
+                }
+            }
+        );
+    }
+
+    private void loadSapConnections() {
+        if (sapCombo == null) {
+            return;
+        }
+        List<String> names = new ArrayList<>(settings.getSapConnections().getSapList());
+        isAddingSap = true;
+        sapCombo.setModel(new DefaultComboBoxModel<>(names.toArray(new String[0])));
+        isAddingSap = false;
+        if (!names.isEmpty()) {
+            String def = settings.getSapDefaults().getDefaultConnection();
+            String toSelect = (def != null && names.contains(def)) ? def : names.get(0);
+            sapCombo.setSelectedItem(toSelect);
+            loadSapConnection(toSelect);
+        } else {
+            ((DefaultTableModel) sapPropTable.getModel()).setRowCount(0);
+        }
+        updateSapDefaultLabel();
+    }
+
+    private void loadSapConnection(String alias) {
+        DefaultTableModel model = (DefaultTableModel) sapPropTable.getModel();
+        model.setRowCount(0);
+        LinkedProperties prop = settings.getSapConnections().getSapPropertiesFor(alias);
+        if (prop != null) {
+            for (Object key : prop.orderedKeys()) {
+                Object value = prop.get(key);
+                model.addRow(new Object[] { key, value });
+            }
+        }
+    }
+
+    private void addNewSap() {
+        String newAlias = sapCombo.getEditor().getItem().toString().trim();
+        if (newAlias.isEmpty()) {
+            return;
+        }
+        if (settings.getSapConnections().getSapList().contains(newAlias)) {
+            Notification.show("SAP connection [" + newAlias + "] already Present");
+            return;
+        }
+        settings.getSapConnections().addSap(newAlias);
+        isAddingSap = true;
+        sapCombo.addItem(newAlias);
+        isAddingSap = false;
+        sapCombo.setSelectedItem(newAlias);
+        loadSapConnection(newAlias);
+        // First connection in the project: make it the default automatically.
+        if (settings.getSapConnections().getSapList().size() == 1) {
+            settings.getSapDefaults().setDefaultConnection(newAlias);
+            settings.getSapDefaults().save();
+        }
+        updateSapDefaultLabel();
+    }
+
+    private void renameSap() {
+        if (sapCombo.getSelectedIndex() < 0) {
+            return;
+        }
+        String oldName = sapCombo.getSelectedItem().toString();
+        String input = (String) javax.swing.JOptionPane.showInputDialog(
+            sapConnectionsPanel,
+            "Enter the new name for this SAP connection:",
+            "Rename SAP Connection",
+            javax.swing.JOptionPane.PLAIN_MESSAGE,
+            null,
+            null,
+            oldName
+        );
+        if (input == null) {
+            return; // cancelled
+        }
+        String newName = input.trim();
+        if (newName.isEmpty() || oldName.equals(newName)) {
+            return;
+        }
+        if (settings.getSapConnections().getSapList().contains(newName)) {
+            javax.swing.JOptionPane.showMessageDialog(
+                sapConnectionsPanel,
+                "A SAP connection named \"" + newName + "\" already exists.",
+                "Rename SAP Connection",
+                javax.swing.JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+        if (Boolean.TRUE.equals(settings.getSapConnections().rename(oldName, newName))) {
+            boolean wasDefault = oldName.equals(settings.getSapDefaults().getDefaultConnection());
+            if (wasDefault) {
+                settings.getSapDefaults().setDefaultConnection(newName);
+                settings.getSapDefaults().save();
+            }
+            DefaultComboBoxModel<String> m = (DefaultComboBoxModel<String>) sapCombo.getModel();
+            int idx = sapCombo.getSelectedIndex();
+            isAddingSap = true;
+            m.removeElement(oldName);
+            m.insertElementAt(newName, idx);
+            sapCombo.setSelectedIndex(idx);
+            isAddingSap = false;
+            updateSapDefaultLabel();
+            markDirty();
+        }
+    }
+
+    private void deleteSap() {
+        if (sapCombo.getSelectedIndex() == -1) {
+            return;
+        }
+        String alias = sapCombo.getSelectedItem().toString();
+        settings.getSapConnections().delete(alias);
+        isAddingSap = true;
+        sapCombo.removeItem(alias);
+        isAddingSap = false;
+        if (alias.equals(settings.getSapDefaults().getDefaultConnection())) {
+            List<String> remaining = settings.getSapConnections().getSapList();
+            settings
+                .getSapDefaults()
+                .setDefaultConnection(remaining.isEmpty() ? "" : remaining.get(0));
+            settings.getSapDefaults().save();
+        }
+        if (sapCombo.getItemCount() > 0) {
+            sapCombo.setSelectedIndex(0);
+            loadSapConnection(sapCombo.getSelectedItem().toString());
+        } else {
+            ((DefaultTableModel) sapPropTable.getModel()).setRowCount(0);
+        }
+        updateSapDefaultLabel();
+    }
+
+    private void setSelectedSapAsDefault() {
+        if (sapCombo.getSelectedIndex() == -1) {
+            return;
+        }
+        settings.getSapDefaults().setDefaultConnection(sapCombo.getSelectedItem().toString());
+        settings.getSapDefaults().save();
+        updateSapDefaultLabel();
+    }
+
+    private void updateSapDefaultLabel() {
+        if (sapDefaultLabel == null) {
+            return;
+        }
+        String def = settings.getSapDefaults().getDefaultConnection();
+        sapDefaultLabel.setText(
+            def == null || def.isEmpty() ? "No default set" : "Default: " + def
+        );
+    }
+
+    private void saveSapProperties() {
+        if (sapCombo.getSelectedIndex() == -1) {
+            return;
+        }
+        if (sapPropTable.isEditing()) {
+            sapPropTable.getCellEditor().stopCellEditing();
+        }
+        DefaultTableModel model = (DefaultTableModel) sapPropTable.getModel();
+        LinkedProperties properties = new LinkedProperties();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            String prop = Objects.toString(model.getValueAt(i, 0), "").trim();
+            if (!prop.isEmpty()) {
+                String value = Objects.toString(model.getValueAt(i, 1), "");
+                properties.setProperty(prop, value);
+            }
+        }
+        settings.getSapConnections().addSap(sapCombo.getSelectedItem().toString(), properties);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

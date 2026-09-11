@@ -207,12 +207,15 @@ public class Command implements CommandPluginApi {
 
     public Command(CommandControl cc) {
         Commander = cc;
-        if (Commander.webDriver != null) {
-            mDriver = Commander.webDriver.driver;
-            mObject = Commander.MObject;
+        // SAP is checked first: a driverless "No Browser" run still carries a
+        // (non-driving) webDriver, so testing webDriver first would mask SAP mode.
+        if (Commander.isSapMode()) {
+            SAPsession = (com.jacob.activeX.ActiveXComponent) Commander.currentSapRaw();
+            SAPProcess = Commander.SAPProcess;
+            SAPObject = Commander.SAPObject;
             Data = Commander.Data;
             ObjectName = Commander.ObjectName;
-            Element = Commander.Element;
+            SAPElement = Commander.SAPElement;
             imageObjectGroup = Commander.imageObjectGroup;
             Description = Commander.Description;
             Condition = Commander.Condition;
@@ -221,13 +224,12 @@ public class Command implements CommandPluginApi {
             Reference = Commander.Reference;
             Action = Commander.Action;
             userData = Commander.userData;
-        } else if (Commander.SAPsession != null) {
-            SAPsession = Commander.SAPsession.session;
-            SAPProcess = Commander.SAPsession.SAPProcess;
-            SAPObject = Commander.SAPObject;
+        } else if (Commander.webDriver != null) {
+            mDriver = Commander.webDriver.driver;
+            mObject = Commander.MObject;
             Data = Commander.Data;
             ObjectName = Commander.ObjectName;
-            SAPElement = Commander.SAPElement;
+            Element = Commander.Element;
             imageObjectGroup = Commander.imageObjectGroup;
             Description = Commander.Description;
             Condition = Commander.Condition;

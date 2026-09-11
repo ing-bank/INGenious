@@ -154,11 +154,11 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
     }
 
     @Override
-    public void setSapSession(com.ing.engine.drivers.SAPSessionCreation session) {
+    public void setSapSession(com.ing.engine.drivers.sap.SapGuiSession session) {
         if (session != null) {
-            testCaseData.put(TestCase.B_VERSION, session.getCurrentBrowserVersion());
-            testCaseData.put(TestCase.PLATFORM, session.getPlatform());
-            testCaseData.put(TestCase.BROWSER, session.getCurrentBrowser());
+            testCaseData.put(TestCase.B_VERSION, session.connectionInfo());
+            testCaseData.put(TestCase.PLATFORM, "SAP GUI");
+            testCaseData.put(TestCase.BROWSER, "SAP");
         }
     }
 

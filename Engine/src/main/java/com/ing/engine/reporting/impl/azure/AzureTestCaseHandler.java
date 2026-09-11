@@ -165,11 +165,11 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
     }
 
     @Override
-    public void setSapSession(com.ing.engine.drivers.SAPSessionCreation session) {
+    public void setSapSession(com.ing.engine.drivers.sap.SapGuiSession session) {
         if (session != null) {
-            testCaseData.put(TestCase.B_VERSION, session.getCurrentBrowserVersion());
-            platform = session.getPlatform();
-            browserName = session.getCurrentBrowser();
+            testCaseData.put(TestCase.B_VERSION, session.connectionInfo());
+            platform = "SAP GUI";
+            browserName = "SAP";
         }
     }
 

@@ -11,8 +11,9 @@ import com.ing.datalib.settings.RunSettings;
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
-import com.ing.engine.drivers.SAPSessionCreation;
 import com.ing.engine.drivers.WebDriverCreation;
+import com.ing.engine.drivers.sap.SapConnectionException;
+import com.ing.engine.drivers.sap.SapSessionManager;
 import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.execution.exception.DriverClosedException;
@@ -38,7 +39,6 @@ public class Task implements Runnable {
     UserDataAccess userData;
     TestCaseRunner runner;
     WebDriverCreation webDriver;
-    SAPSessionCreation session;
 
     public Task(RunContext RC) {
         runContext = RC;
@@ -66,6 +66,8 @@ public class Task implements Runnable {
         } else {
             runner = new TestCaseRunner(Control.exe, runContext.Scenario, runContext.TestCase);
         }
+        // Clear any SAP connection left on this pooled worker by a previous test case.
+        SapSessionManager.INSTANCE.resetForThread();
         report.createReport(runContext, DateTimeUtils.DateTimeNow());
 
         int iter = 1;
@@ -223,16 +225,25 @@ public class Task implements Runnable {
             if (isPlaywrightExecution()) {
                 playwrightDriver = getPlaywrightDriver();
                 launchPlaywright();
-            } else if (isSAPExecution()) {
-                session = getSAPSession();
-                launchSap();
             } else {
                 webDriver = getWebDriver();
                 launchWebDriver();
             }
+            // Legacy Browser="SAP" cases run as "No Browser" + an implicit connect to
+            // the project default (flag-gated shim; Phase 3 rewrites the stored value).
+            if (
+                runContext.sapLegacyShim &&
+                SystemDefaults.sapConnectionModelEnabled.get() &&
+                !SapSessionManager.INSTANCE.hasConnection()
+            ) {
+                SapSessionManager.INSTANCE.initConnection("", runner);
+            }
             SystemDefaults.stopCurrentIteration.set(false);
             runner.run(createControl(), iter);
             success = true;
+        } catch (SapConnectionException ex) {
+            LOG.log(Level.SEVERE, ex.getMessage(), ex);
+            report.updateTestLog("SAP Connection", ex.getMessage(), Status.FAILNS);
         } catch (DataNotFoundException ex) {
             if (!ex.cause.isEndData()) {
                 LOG.log(Level.SEVERE, ex.getMessage(), ex);
@@ -250,8 +261,6 @@ public class Task implements Runnable {
         } finally {
             if (isPlaywrightExecution()) {
                 closePlaywrightDriver();
-            } else if (isSAPExecution()) {
-                // Do nothing
             } else {
                 if (webDriver.isLambdaTestExecutionPlatform()) {
                     JavascriptExecutor js = (JavascriptExecutor) webDriver.driver;
@@ -262,6 +271,11 @@ public class Task implements Runnable {
                     }
                 }
                 closeWebDriver();
+            }
+
+            // Auto-close backstop: drop any SAP connection this iteration still owns.
+            if (SapSessionManager.INSTANCE.hasConnection()) {
+                SapSessionManager.INSTANCE.closeAll(runner);
             }
 
             report.endIteration(iter);
@@ -324,20 +338,12 @@ public class Task implements Runnable {
         report.setWebDriver(webDriver);
     }
 
-    private void launchSap() throws UnCaughtException {
-        if (!getRunSettings().useExistingDriver() || session.session == null) {
-            session.launchSession(runContext);
-        }
-        report.setSapSession(session);
-    }
-
     private CommandControl createControl() {
         return new CommandControl(
             playwrightDriver,
             playwrightDriver,
             playwrightDriver,
             webDriver,
-            session,
             report
         ) {
 
@@ -397,17 +403,6 @@ public class Task implements Runnable {
         return webDriver;
     }
 
-    private SAPSessionCreation getSAPSession() {
-        SAPSessionCreation sapSession;
-        if (!getRunSettings().useExistingDriver() || Control.getSapSession() == null) {
-            session = new SAPSessionCreation();
-            Control.setSapSession(session);
-        } else {
-            session = Control.getSapSession();
-        }
-        return session;
-    }
-
     public boolean isLocalExecution() {
         return !Control.exe.getExecSettings().getRunSettings().isGridExecution();
     }
@@ -427,19 +422,6 @@ public class Task implements Runnable {
             ex.printStackTrace();
         }
         return isBrowserExecution;
-    }
-
-    public boolean isSAPExecution() {
-        boolean isSAPExecution = false;
-        try {
-            String browserName = runContext.BrowserName;
-            if (browserName.equals("SAP")) {
-                isSAPExecution = true;
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return isSAPExecution;
     }
 
     public boolean isWebDriverExecution() {

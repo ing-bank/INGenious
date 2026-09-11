@@ -8,6 +8,7 @@ import com.ing.engine.constants.ObjectProperty;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
 import com.ing.engine.drivers.SAPObject.SAPFindType;
+import com.ing.engine.drivers.sap.SapGuiSession;
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import java.util.HashMap;
@@ -45,6 +46,14 @@ public class SAPObject {
         this.session = Session;
     }
 
+    /** Driverless model: unwrap the raw COM handle (null when not connected / for fakes). */
+    public SAPObject(SapGuiSession sapSession) {
+        this.session =
+            (sapSession == null || sapSession.raw() == null)
+                ? null
+                : (ActiveXComponent) sapSession.raw();
+    }
+
     public void setSession(ActiveXComponent session) {
         this.session = session;
     }
@@ -69,6 +78,12 @@ public class SAPObject {
         if (id == null) {
             System.out.println(
                 "Error: Element ID is null for object [" + objectKey + "] on page [" + pageKey + "]"
+            );
+            return null;
+        }
+        if (session == null) {
+            System.out.println(
+                "Error: no live SAP session - run SAP.initConnection before SAP element steps"
             );
             return null;
         }

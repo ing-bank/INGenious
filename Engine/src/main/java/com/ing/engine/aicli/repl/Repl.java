@@ -1210,9 +1210,7 @@ public final class Repl {
      * emulators configured for the active project (Settings/Emulators.json).
      */
     List<String> listBrowsers() {
-        List<String> out = new ArrayList<>(
-            List.of("Chromium", "Firefox", "WebKit", "No Browser", "SAP")
-        );
+        List<String> out = new ArrayList<>(List.of("Chromium", "Firefox", "WebKit", "No Browser"));
         String root = session.projectPath();
         if (root != null) {
             java.nio.file.Path emulators = Path.of(root, "Settings", "Emulators.json");
