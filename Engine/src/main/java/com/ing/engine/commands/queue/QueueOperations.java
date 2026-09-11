@@ -10,7 +10,9 @@ import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.jayway.jsonpath.JsonPath;
@@ -67,6 +69,7 @@ public class QueueOperations extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(input = ArgType.INTEGER, inputExample = "@1414", help = "Queue manager listener port.")
     public void setPort() {
         try {
             jmsPort.put(key, Integer.valueOf(Data));
@@ -342,6 +345,11 @@ public class QueueOperations extends Command {
         desc = "Set Text",
         input = InputType.YES,
         condition = InputType.NO
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Hello",
+        help = "Message body text (JSON/XML/plain); parameterize with {Sheet:Column} where supported."
     )
     public void setText() {
         try {

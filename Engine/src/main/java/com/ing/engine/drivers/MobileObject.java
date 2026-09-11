@@ -8,6 +8,7 @@ import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
 import com.ing.datalib.or.mobile.MobilePlatform;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
 import com.ing.engine.constants.SystemDefaults;
@@ -16,6 +17,7 @@ import com.ing.engine.core.Control;
 import com.ing.engine.drivers.findObjectBy.support.ByObjectProp;
 import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
 import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.remote.SupportsContextSwitching;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -241,17 +243,22 @@ public class MobileObject implements MobileObjectApi {
                 return mresolved.getGroup();
             }
         } catch (Exception ignore) {}
-        if (objRep.getWebSharedOR().getPageByName(page) != null) {
-            return objRep.getWebSharedOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getWebOR().getPageByName(page) != null) {
-            return objRep.getWebOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getMobileOR().getPageByName(page) != null) {
-            return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object);
+        // Resolve Web OR with scope-aware parsing so "[Project] Web" strips the prefix
+        try {
+            ResolvedWebObject.PageRef wref = ResolvedWebObject.PageRef.parse(page);
+            ResolvedWebObject wresolved = objRep.resolveWebObject(wref, object);
+            if (wresolved != null && wresolved.getGroup() != null) {
+                return wresolved.getGroup();
+            }
+        } catch (Exception ignore) {}
+        String plainPage = ResolvedWebObject.PageRef.parse(page).name;
+        if (objRep.getMobileOR().getPageByName(plainPage) != null) {
+            return objRep.getMobileOR().getPageByName(plainPage).getObjectGroupByName(object);
         } else if (
             objRep.getMobileSharedOR() != null &&
-            objRep.getMobileSharedOR().getPageByName(page) != null
+            objRep.getMobileSharedOR().getPageByName(plainPage) != null
         ) {
-            return objRep.getMobileSharedOR().getPageByName(page).getObjectGroupByName(object);
+            return objRep.getMobileSharedOR().getPageByName(plainPage).getObjectGroupByName(object);
         }
         return null;
     }
@@ -333,6 +340,7 @@ public class MobileObject implements MobileObjectApi {
         String prop
     ) {
         if (objectGroup != null && !objectGroup.getObjects().isEmpty()) {
+            autoSwitchContext(objectGroup);
             if (objectGroup.getObjects().get(0) instanceof WebORObject) {
                 return getWElements(context, objectGroup, prop);
             } else if (objectGroup.getObjects().get(0) instanceof MobileORObject) {
@@ -340,6 +348,30 @@ public class MobileObject implements MobileObjectApi {
             }
         }
         return null;
+    }
+
+    // Aligns the Appium context with the OR type before element finding; no-op for non-Appium drivers.
+    @SuppressWarnings("rawtypes")
+    private void autoSwitchContext(ObjectGroup group) {
+        if (group == null || group.getObjects().isEmpty()) return;
+        if (!(driver instanceof SupportsContextSwitching)) return;
+        SupportsContextSwitching ctx = (SupportsContextSwitching) driver;
+        try {
+            String current = ctx.getContext();
+            if (group.getObjects().get(0) instanceof WebORObject) {
+                if (current != null && current.startsWith("WEBVIEW")) return;
+                String webView = ctx
+                    .getContextHandles()
+                    .stream()
+                    .filter(c -> c.startsWith("WEBVIEW"))
+                    .findFirst()
+                    .orElse(null);
+                if (webView != null) ctx.context(webView);
+            } else if (group.getObjects().get(0) instanceof MobileORObject) {
+                if ("NATIVE_APP".equals(current)) return;
+                ctx.context("NATIVE_APP");
+            }
+        } catch (Exception ignore) {}
     }
 
     private List<WebElement> getWElements(
@@ -607,12 +639,13 @@ public class MobileObject implements MobileObjectApi {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
         WebORPage wPage = null;
         MobileORPage mPage = null;
-        if (objRep.getWebSharedOR().getPageByName(page) != null) {
-            wPage = objRep.getWebSharedOR().getPageByName(page);
-        } else if (objRep.getWebOR().getPageByName(page) != null) {
-            wPage = objRep.getWebOR().getPageByName(page);
-        } else if (objRep.getMobileOR().getPageByName(page) != null) {
-            mPage = objRep.getMobileOR().getPageByName(page);
+        String plainPage = ResolvedWebObject.PageRef.parse(page).name;
+        if (objRep.getWebSharedOR().getPageByName(plainPage) != null) {
+            wPage = objRep.getWebSharedOR().getPageByName(plainPage);
+        } else if (objRep.getWebOR().getPageByName(plainPage) != null) {
+            wPage = objRep.getWebOR().getPageByName(plainPage);
+        } else if (objRep.getMobileOR().getPageByName(plainPage) != null) {
+            mPage = objRep.getMobileOR().getPageByName(plainPage);
         }
         if (wPage == null && mPage == null) {
             throw new RuntimeException("Page [" + page + "] is not available in ObjectRepository");
@@ -651,12 +684,13 @@ public class MobileObject implements MobileObjectApi {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
         WebORPage wPage = null;
         MobileORPage mPage = null;
-        if (objRep.getWebSharedOR().getPageByName(page) != null) {
-            wPage = objRep.getWebSharedOR().getPageByName(page);
-        } else if (objRep.getWebOR().getPageByName(page) != null) {
-            wPage = objRep.getWebOR().getPageByName(page);
-        } else if (objRep.getMobileOR().getPageByName(page) != null) {
-            mPage = objRep.getMobileOR().getPageByName(page);
+        String plainPage = ResolvedWebObject.PageRef.parse(page).name;
+        if (objRep.getWebSharedOR().getPageByName(plainPage) != null) {
+            wPage = objRep.getWebSharedOR().getPageByName(plainPage);
+        } else if (objRep.getWebOR().getPageByName(plainPage) != null) {
+            wPage = objRep.getWebOR().getPageByName(plainPage);
+        } else if (objRep.getMobileOR().getPageByName(plainPage) != null) {
+            mPage = objRep.getMobileOR().getPageByName(plainPage);
         }
         if (wPage == null && mPage == null) {
             throw new RuntimeException("Page [" + page + "] is not available in ObjectRepository");

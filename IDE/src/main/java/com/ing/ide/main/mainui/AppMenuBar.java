@@ -108,18 +108,7 @@ public class AppMenuBar extends JMenuBar {
     private JMenu changeFont(JMenu menu) {
         //  menu.setFont(new Font("Default", Font.BOLD, 11));
         //  return menu;
-        try {
-            //create the font to use. Specify the size!
-            Font customFont = Font.createFont(
-                Font.TRUETYPE_FONT,
-                new File("resources/ui/resources/fonts/ingme_regular.ttf")
-            ); //.deriveFont(12f);
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            //register the font
-            ge.registerFont(customFont);
-        } catch (IOException | FontFormatException e) {
-            //  e.printStackTrace();
-        }
+        com.ing.ide.main.utils.AppFonts.register();
 
         // menu.setFont(new Font("Courier", Font.BOLD, 12));
         menu.setFont(new Font("ING Me", Font.BOLD, 12));
@@ -189,6 +178,11 @@ public class AppMenuBar extends JMenuBar {
                 'S'
             )
         );
+
+        configure.add(
+            withMnemonics(Utils.createMenuItem("Workspace Location", sActionListener), 'W')
+        );
+
         configure.add(
             withMnemonics(
                 withIcon(Utils.createMenuItem("Archetype Configurations", sActionListener)),
@@ -281,6 +275,9 @@ public class AppMenuBar extends JMenuBar {
             withMnemonics(withShortCut(Utils.createMenuItem("Har Compare", sActionListener)), 'H')
         );
 
+        tools.addSeparator();
+        tools.add(withMnemonics(Utils.createMenuItem("Project Health", sActionListener), 'P'));
+
         return tools;
     }
 
@@ -298,6 +295,9 @@ public class AppMenuBar extends JMenuBar {
         help.add(
             withMnemonics(withShortCut(Utils.createMenuItem("Show Log", sActionListener)), 'o')
         );
+        help.addSeparator();
+        help.add(withMnemonics(Utils.createMenuItem("Manage Archetypes", sActionListener), 'M'));
+        help.add(withMnemonics(Utils.createMenuItem("Start Tour", sActionListener), 'T'));
 
         return help;
     }
@@ -325,14 +325,12 @@ public class AppMenuBar extends JMenuBar {
 
         window.add(createAPIWorkbenchMenuItem());
 
-        window.add(
-            withMnemonics(
-                withShortCut(
-                    withCopilotIcon(Utils.createMenuItem("AI Assistant", sActionListener))
-                ),
-                'I'
-            )
-        );
+        // window.add(
+        //     withMnemonics(
+        //         withShortCut(withCopilotIcon(Utils.createMenuItem("INGenie", sActionListener))),
+        //         'I'
+        //     )
+        // );
 
         window.add(
             withMnemonics(withShortCut(Utils.createMenuItem("AdjustUI", sActionListener)), 'A')

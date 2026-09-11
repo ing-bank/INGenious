@@ -4,9 +4,12 @@ import com.ing.engine.commands.browser.Command;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ForcedException;
 import com.ing.ingenious.api.exception.mobile.ElementException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.time.Duration;
@@ -42,31 +45,16 @@ public class WaitFor extends Command {
         super(cc);
     }
 
-    /*
-    @Action(object = ObjectType.APP, desc = "Tap the [<Object>] and Wait for Page to be loaded", condition = InputType.OPTIONAL)
-    public void TapAndWait() {
-        if (Element != null) {
-            Element.click();
-            waitForPageLoaded();
-            Report.updateTestLog(Action, "Tap and wait for page load is done",
-                    Status.DONE);
-        } else {
-            throw new ElementException(ElementException.ExceptionType.Element_Not_Found, Condition);
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "Wait for Page to be loaded", condition = InputType.OPTIONAL)
-    public void waitForPageLoaded() {
-        waitFor(WaitType.CUSTOM_SCRIPT,
-                "Page load completed in stipulated time",
-                "return document.readyState==='complete'");
-    }
-   */
-
     @Action(
         object = ObjectType.MOBILE,
         desc = "Wait for alert to be present ",
         condition = InputType.OPTIONAL
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
     )
     public void waitForAlertPresent() {
         waitFor(WaitType.ALERT_PRESENT, "Alert popped up in stipulated time");
@@ -76,6 +64,12 @@ public class WaitFor extends Command {
         object = ObjectType.APP,
         desc = "Wait for [<Object>] to be visible ",
         condition = InputType.OPTIONAL
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
     )
     public void waitForAppElementToBeVisible() {
         waitForElement(
@@ -89,6 +83,12 @@ public class WaitFor extends Command {
         desc = "Wait for [<Object>] to be invisible ",
         condition = InputType.OPTIONAL
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
+    )
     public void waitForElementToBeInVisible() {
         waitForElement(
             WaitType.INVISIBLE,
@@ -101,6 +101,12 @@ public class WaitFor extends Command {
         desc = "Wait for [<Object>] to be Tapable ",
         condition = InputType.OPTIONAL
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
+    )
     public void waitForElementToBeTapable() {
         waitForElement(
             WaitType.CLICKABLE,
@@ -112,6 +118,12 @@ public class WaitFor extends Command {
         object = ObjectType.APP,
         desc = "Wait for [<Object>] to be selected ",
         condition = InputType.OPTIONAL
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
     )
     public void waitForElementToBeSelected() {
         waitForElement(
@@ -126,6 +138,14 @@ public class WaitFor extends Command {
         condition = InputType.OPTIONAL,
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
+    )
     public void waitForElementToContainText() {
         waitForElement(
             WaitType.TEXT_CONTAINS,
@@ -139,6 +159,14 @@ public class WaitFor extends Command {
         condition = InputType.OPTIONAL,
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
+    )
     public void waitForElementToContainValue() {
         waitForElement(
             WaitType.VALUE_CONTAINS,
@@ -151,6 +179,12 @@ public class WaitFor extends Command {
         desc = "Wait for [<Object>] element to be selected: [<Data>]",
         condition = InputType.OPTIONAL
     )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
+    )
     public void waitForElementSelectionToBeTrue() {
         waitForElement(
             WaitType.EL_SELECT_TRUE,
@@ -162,6 +196,12 @@ public class WaitFor extends Command {
         object = ObjectType.APP,
         desc = "Wait for [<Object>] element to be deselected",
         condition = InputType.OPTIONAL
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
     )
     public void waitForElementSelectionToBeFalse() {
         waitForElement(
@@ -176,6 +216,14 @@ public class WaitFor extends Command {
         input = InputType.YES,
         condition = InputType.OPTIONAL
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
+    )
     public void waitForTitleToBe() {
         waitFor(WaitType.TITLE_IS, "Title Equals '" + Data + "' in stipulated Time");
     }
@@ -186,6 +234,14 @@ public class WaitFor extends Command {
         condition = InputType.OPTIONAL,
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
+    )
     public void waitForTitleToContain() {
         waitFor(
             WaitType.TITLE_CONTAINS,
@@ -193,27 +249,16 @@ public class WaitFor extends Command {
         );
     }
 
-    /*
-    @Action(object = ObjectType.MOBILE, desc = "Wait till the given javascript condition [<Data>] returns true", input = InputType.YES, condition = InputType.OPTIONAL)
-    public void waitTillCustomScript() {
-        if (Data != null && !Data.trim().isEmpty()) {
-            if (Data.contains("return")) {
-                waitFor(WaitType.CUSTOM_SCRIPT,
-                        "Condition passed in stipulated time",
-                        Data);
-            } else {
-                Report.updateTestLog(Action, "Javascript condition should have atleast one return and the condtion should return Boolean value", Status.DEBUG);
-            }
-        } else {
-            Report.updateTestLog(Action, "Include a proper javascript condition to check", Status.DEBUG);
-        }
-    }
-    */
-
     @Action(
         object = ObjectType.APP,
         desc = "Wait  for the element [<Object>] to be present",
         condition = InputType.OPTIONAL
+    )
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
     )
     public void waitForElementToBePresent() {
         MObject.setWaitTime(getWaitTime());
@@ -243,6 +288,14 @@ public class WaitFor extends Command {
         desc = "Wait for Frame To Be Available and Switch to it",
         input = InputType.OPTIONAL,
         condition = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
     )
     public void waitForFrameAndSwitch() {
         if (Element != null) {
@@ -288,7 +341,7 @@ public class WaitFor extends Command {
             Report.updateTestLog(
                 Action,
                 "Couldn't wait for action to complete in given time - " + time + " seconds",
-                Status.DEBUG
+                Status.FAIL
             );
         }
     }

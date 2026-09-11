@@ -1,0 +1,3 @@
+Scenario,Flow,Iteration,SubIteration,URL,Username,Password
+SampleScenario,SampleTestCase,1,1,#url,sampleuser,SamplePass123
+SampleScenario,SampleTestCase,2,1,#url,seconduser,SecondPass123

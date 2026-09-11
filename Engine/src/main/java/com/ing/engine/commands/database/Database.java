@@ -3,8 +3,11 @@ package com.ing.engine.commands.database;
 import com.ing.datalib.testdata.view.TestDataView;
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.dto.DMLResult;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.sql.DatabaseMetaData;
@@ -34,6 +37,11 @@ public class Database extends General {
         object = ObjectType.DATABASE,
         desc = "Initiate the DB transaction",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.ALIAS_DB,
+        inputExample = "#PostgresMain",
+        help = "Database connection alias (#dbAlias) from project DB settings."
     )
     public void initDBConnection() {
         try {
@@ -82,6 +90,11 @@ public class Database extends General {
         desc = "Execute the Query in [<Input>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.SQL,
+        inputExample = "@SELECT * FROM users",
+        help = "SQL SELECT statement (raw query)."
+    )
     public void executeSelectQuery() {
         try {
             executeSelect();
@@ -102,6 +115,11 @@ public class Database extends General {
         object = ObjectType.DATABASE,
         desc = "Execute the Query in [<Input>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.SQL,
+        inputExample = "@UPDATE users SET active=1",
+        help = "SQL DML statement (INSERT/UPDATE/DELETE)."
     )
     public void executeDMLQuery() {
         try {
@@ -138,6 +156,14 @@ public class Database extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@expectedValue",
+        inputHelp = "expected value to assert exists in the database",
+        condition = ConditionKind.TEXT,
+        conditionExample = "USER_NAME",
+        conditionHelp = "database column name (e.g., USER_NAME); optional row can be appended as column,row"
+    )
     public void assertDBResult() {
         if (assertDB(Condition, Data)) {
             Report.updateTestLog(Action, "Value " + Data + " exist in the Database", Status.PASSNS);
@@ -160,6 +186,14 @@ public class Database extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%dbValue%",
+        inputHelp = "runtime variable name in %var% format to store the DB value into",
+        condition = ConditionKind.TEXT,
+        conditionExample = "USER_NAME",
+        conditionHelp = "database column name (e.g., USER_NAME); optional row can be appended as column,row"
+    )
     public void storeValueInGlobalVariable() {
         if (storeValue(Input, Condition, true)) {
             Report.updateTestLog(Action, "Stored in Global variable", Status.PASSNS);
@@ -176,6 +210,14 @@ public class Database extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%dbValue%",
+        inputHelp = "runtime variable name in %var% format to store the DB value into",
+        condition = ConditionKind.TEXT,
+        conditionExample = "USER_NAME",
+        conditionHelp = "database column name (e.g., USER_NAME); optional row can be appended as column,row"
+    )
     public void storeValueInVariable() {
         if (storeValue(Input, Condition, false)) {
             Report.updateTestLog(Action, "Stored in the variable", Status.PASSNS);
@@ -191,6 +233,13 @@ public class Database extends General {
         desc = "Save DB value in Test Data Sheet",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "DbData:UserName",
+        condition = ConditionKind.TEXT,
+        conditionExample = "USER_NAME",
+        help = "Input = Sheet:Column destination. Condition = DB column name."
     )
     public void storeDBValueinDataSheet() {
         try {
@@ -239,6 +288,11 @@ public class Database extends General {
      * Closes the database connection and updates the test log with the result.
      */
     @Action(object = ObjectType.DATABASE, desc = "Close the DB Connection")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void closeDBConnection() {
         try {
             if (closeConnection()) {
@@ -258,6 +312,13 @@ public class Database extends General {
         object = ObjectType.DATABASE,
         desc = "Verify Table values with the Test Data sheet ",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "TestSheet",
+        inputHelp = "test data sheet name to verify against the database",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void verifyWithDataSheet() {
         String sheetName = Data;
@@ -297,6 +358,13 @@ public class Database extends General {
         desc = "Query and save the result in variable(s) ",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.SQL,
+        inputExample = "@SELECT name FROM users",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%userName%",
+        help = "Input = SQL SELECT. Condition = runtime variable name to store into."
     )
     public void storeResultInVariable() {
         String variableName = Condition;
@@ -341,6 +409,14 @@ public class Database extends General {
         desc = "Query and save the result in Datasheet ",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.SQL,
+        inputExample = "@SELECT name FROM users",
+        inputHelp = "SQL SELECT statement to execute (e.g., @SELECT name FROM users)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "DbSheet",
+        conditionHelp = "destination datasheet name (e.g., DbSheet) to store the query result"
     )
     public void storeResultInDataSheet() {
         try {

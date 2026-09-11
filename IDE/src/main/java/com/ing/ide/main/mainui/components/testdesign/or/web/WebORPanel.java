@@ -1,21 +1,17 @@
 package com.ing.ide.main.mainui.components.testdesign.or.web;
 
 import com.ing.datalib.component.Project;
-import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree.ORSource;
 import com.ing.ide.main.utils.tree.TreeSearch;
 import java.awt.BorderLayout;
-import java.awt.Toolkit;
-import java.awt.event.KeyEvent;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.tree.TreePath;
@@ -186,6 +182,7 @@ public class WebORPanel extends JPanel {
         } else {
             splitPane.setDividerLocation(0.5);
         }
+        objectTable.adjustColumnsToViewport();
     }
 
     public Boolean navigateToObject(String objectName, String pageName) {

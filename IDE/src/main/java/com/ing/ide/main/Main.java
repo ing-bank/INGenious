@@ -4,8 +4,10 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.ing.datalib.testdata.TestDataFactory;
+import com.ing.datalib.util.WorkspaceInitializer;
 import com.ing.engine.cli.LookUp;
 import com.ing.engine.constants.SystemDefaults;
+import com.ing.engine.core.Control;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.exceptions.DuplicateMethodException;
 import com.ing.ide.main.cli.UICli;
@@ -63,6 +65,8 @@ public class Main {
     }
 
     public static void main(String[] args) {
+        WorkspaceInitializer.initialize();
+
         if (args != null && args.length > 0) {
             commandLineExecution(args);
         } else {
@@ -76,6 +80,11 @@ public class Main {
     }
 
     private static void commandLineExecution(String[] args) {
+        if (Control.isNewCLICommand(args)) {
+            Control.main(args);
+            return;
+        }
+
         initCommonDependencies();
         if (!UICli.exe(args)) {
             LookUp.exe(args);
@@ -232,7 +241,6 @@ public class Main {
         System.out.println(
             bo + l + "              ═══════════════════════════════════════════════════════════" + r
         );
-        System.out.println(bo + w + "               ✦  P L A Y W R I G H T   S T U D I O  ✦" + r);
         System.out.println(
             bo + b + "                              Version " + About.getBuildVersion() + r
         );
@@ -306,6 +314,13 @@ public class Main {
                                 frame.setVisible(true);
                                 // Swap Swing chrome for JavaFX CSS-styled chrome
                                 frame.initFXChrome();
+                                // First-run archetype selector disabled.
+                                // Manual access is still available via:
+                                // - Settings -> Archetype Configurations
+                                // - Help -> Manage Archetypes
+                                // com.ing.ide.main.settings.ArchetypeManagerDialog.maybeShowFirstRun(
+                                //     frame
+                                // );
                             }
                         );
                         delayTimer.setRepeats(false);
@@ -364,6 +379,8 @@ public class Main {
             FlatLaf.updateUI();
             // Sync JavaFX theme
             FXTheme.toggleTheme(isDarkMode);
+            // Sync the live-streaming Console webview(s)
+            com.ing.ide.main.utils.ConsoleWebView.applyThemeToAll(isDarkMode);
         } catch (Exception ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "Failed to toggle theme", ex);
         }
@@ -581,6 +598,7 @@ public class Main {
         UIManager.put("ing.webserviceStopForeground", Color.decode("#8D6E00"));
         UIManager.put("ing.webserviceRequestForeground", Color.decode("#00994D"));
         UIManager.put("ing.reusableForeground", Color.decode("#349651"));
+        UIManager.put("ing.mutedForeground", Color.decode("#9AA0A6"));
         UIManager.put("ing.errorForeground", Color.decode("#D32F2F"));
         UIManager.put("ing.borderFocus", Color.decode("#13BEFF"));
         UIManager.put("ing.borderThumb", Color.decode("#9E9E9E"));
@@ -856,6 +874,7 @@ public class Main {
         UIManager.put("ing.webserviceStopForeground", Color.decode("#FFD54F"));
         UIManager.put("ing.webserviceRequestForeground", Color.decode("#81C784"));
         UIManager.put("ing.reusableForeground", Color.decode("#66BB6A"));
+        UIManager.put("ing.mutedForeground", Color.decode("#7E8894"));
         UIManager.put("ing.errorForeground", Color.decode("#EF5350"));
         UIManager.put("ing.borderFocus", Color.decode("#BB86FC"));
         UIManager.put("ing.borderThumb", Color.decode("#4A4555"));
@@ -927,18 +946,7 @@ public class Main {
      * Registers the ING Me custom font from the resources directory.
      */
     private static void registerCustomFont() {
-        try {
-            Font customFont = Font.createFont(
-                Font.TRUETYPE_FONT,
-                new File("resources/ui/resources/fonts/ingme_regular.ttf")
-            );
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            ge.registerFont(customFont);
-        } catch (IOException | FontFormatException e) {
-            Logger
-                .getLogger(Main.class.getName())
-                .log(Level.FINE, "Custom font not found, using defaults", e);
-        }
+        com.ing.ide.main.utils.AppFonts.register();
     }
 
     public static void finish() {
@@ -947,7 +955,7 @@ public class Main {
             .getLogger(Main.class.getName())
             .log(
                 Level.INFO,
-                "INGenious Playwright Studio has been Terminated - [ Total Time : {0} ]",
+                "INGenious has been Terminated - [ Total Time : {0} ]",
                 STOP_WATCH.toString()
             );
     }

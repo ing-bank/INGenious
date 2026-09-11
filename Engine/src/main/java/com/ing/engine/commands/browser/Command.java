@@ -84,6 +84,13 @@ public class Command implements CommandPluginApi {
     public Process SAPProcess;
 
     /**
+     * *** Mobile Device Sessions ***
+     * Registry of mid-test device sessions keyed by alias (without #).
+     * Mirrors the #apiAlias pattern used for API contexts.
+     */
+    public static final Map<String, org.openqa.selenium.WebDriver> deviceSessions = new java.util.LinkedHashMap<>();
+
+    /**
      * ******API*******
      */
     public static Map<String, String> endPoints = new HashMap<>();
@@ -412,6 +419,16 @@ public class Command implements CommandPluginApi {
     }
 
     /**
+     * Updates the active WebDriver in the shared CommandControl so that
+     * subsequent steps pick up the new driver. Used by mobile device-switching
+     * actions to redirect execution to a different device session.
+     */
+    protected void switchActiveWebDriver(org.openqa.selenium.WebDriver driver) {
+        Commander.webDriver.driver = driver;
+        Commander.MObject = new MobileObject(driver);
+    }
+
+    /**
      * ******************************
      */
 
@@ -494,5 +511,10 @@ public class Command implements CommandPluginApi {
     @Override
     public UserDataAccessApi getUserData() {
         return userData;
+    }
+
+    @Override
+    public String getKey() {
+        return key;
     }
 }

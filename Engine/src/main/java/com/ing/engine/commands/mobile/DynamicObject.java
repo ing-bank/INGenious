@@ -4,11 +4,12 @@ import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.MobileObject;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DynamicObject extends Command {
 
@@ -21,6 +22,14 @@ public class DynamicObject extends Command {
         desc = "Set  all objects property to [<Data>] at runtime.",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
     )
     public void setMobileglobalObjectProperty() {
         if (!Data.isEmpty()) {
@@ -50,6 +59,14 @@ public class DynamicObject extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@value",
+        inputHelp = "input value (e.g. @value)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@value",
+        conditionHelp = "condition value (e.g. @value)"
+    )
     public void setMobileObjectProperty() {
         if (!Data.isEmpty()) {
             if (Condition.isEmpty()) {
@@ -75,18 +92,12 @@ public class DynamicObject extends Command {
     }
 
     private void setProperty(String key, String value) {
-        if (!MobileObject.dynamicValue.containsKey(Reference)) {
-            Map<String, Map<String, String>> Object = new HashMap<>();
-            Map<String, String> property = new HashMap<>();
-            property.put(key, value);
-            Object.put(ObjectName, property);
-            MobileObject.dynamicValue.put(Reference, Object);
-        } else if (!MobileObject.dynamicValue.get(Reference).containsKey(ObjectName)) {
-            Map<String, String> property = new HashMap<>();
-            property.put(key, value);
-            MobileObject.dynamicValue.get(Reference).put(ObjectName, property);
-        } else {
-            MobileObject.dynamicValue.get(Reference).get(ObjectName).put(key, value);
-        }
+        com.ing.engine.core.InlineObjectProperty.putObjectProperty(
+            MobileObject.dynamicValue,
+            Reference,
+            ObjectName,
+            key,
+            value
+        );
     }
 }

@@ -1,5 +1,6 @@
 package com.ing.ide.main.fx;
 
+import com.ing.datalib.util.WorkspacePath;
 import com.ing.ide.main.mainui.AppActionListener;
 import com.ing.ide.main.utils.recentItem.RecentItem;
 import com.ing.ide.util.Notification;
@@ -156,13 +157,13 @@ public class FXMenuBar extends JFXPanel {
             ),
             "API Workbench"
         );
-        bindAccelerator(
-            KeyStroke.getKeyStroke(
-                KeyEvent.VK_I,
-                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
-            ),
-            "AI Assistant"
-        );
+        // bindAccelerator(
+        //     KeyStroke.getKeyStroke(
+        //         KeyEvent.VK_I,
+        //         InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+        //     ),
+        //     "INGenie"
+        // );
         bindAccelerator(
             KeyStroke.getKeyStroke(
                 KeyEvent.VK_A,
@@ -255,16 +256,26 @@ public class FXMenuBar extends JFXPanel {
 
     private Menu createConfigurationMenu() {
         Menu config = new Menu("Configurations");
+
         config
             .getItems()
-            .addAll(
+            .add(
                 menuItem(
                     "Settings",
                     "settings",
                     KeyCode.S,
                     KeyCombination.SHORTCUT_DOWN,
                     KeyCombination.ALT_DOWN
-                ),
+                )
+            );
+
+        if (WorkspacePath.isWorkspaceCustomizationAvailable()) {
+            config.getItems().add(menuItem("Workspace Location", "settings"));
+        }
+
+        config
+            .getItems()
+            .addAll(
                 menuItem("Archetype Configurations", "BrowserConfiguration"),
                 new SeparatorMenuItem(),
                 menuItem("Options", "settings")
@@ -333,6 +344,9 @@ public class FXMenuBar extends JFXPanel {
                 )
             );
 
+        tools.getItems().add(new SeparatorMenuItem());
+        tools.getItems().add(menuItem("Project Health", "dashboard"));
+
         return tools;
     }
 
@@ -371,8 +385,15 @@ public class FXMenuBar extends JFXPanel {
                     KeyCombination.SHIFT_DOWN,
                     KeyCombination.ALT_DOWN
                 ),
+                menuItem(
+                    "Performance Studio",
+                    "summary",
+                    KeyCode.P,
+                    KeyCombination.SHIFT_DOWN,
+                    KeyCombination.ALT_DOWN
+                ),
                 /*  menuItem(
-                    "AI Assistant",
+                    "INGenie",
                     "AICopilot",
                     KeyCode.I,
                     KeyCombination.SHIFT_DOWN,
@@ -398,7 +419,9 @@ public class FXMenuBar extends JFXPanel {
             .addAll(
                 menuItem("Help", "help", KeyCode.F1),
                 menuItem("About", "info", KeyCode.F3),
-                menuItem("Show Log", "console", KeyCode.F9)
+                menuItem("Show Log", "console", KeyCode.F9),
+                new javafx.scene.control.SeparatorMenuItem(),
+                menuItem("Start Tour", "tour")
             );
         return help;
     }

@@ -64,16 +64,7 @@ public class XTable extends JTable {
     }
 
     private void init() {
-        try {
-            Font customFont = Font.createFont(
-                Font.TRUETYPE_FONT,
-                new File("resources/ui/resources/fonts/ingme_regular.ttf")
-            ); //.deriveFont(12f);
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            ge.registerFont(customFont);
-        } catch (IOException | FontFormatException e) {
-            //  e.printStackTrace();
-        }
+        com.ing.ide.main.utils.AppFonts.register();
         setFont(new Font("ING Me", Font.BOLD, 11));
         searchRenderer = new SearchRenderer();
         setFillsViewportHeight(true);
@@ -241,10 +232,12 @@ public class XTable extends JTable {
 
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.INSERT_ROW, "Insert");
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.ADD_ROW, "Add");
+        getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.ADD_ROWP, "Add");
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.ADD_ROWX, "Add");
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.REMOVE_ROW, "Delete");
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.REMOVE_ROWX, "Delete");
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.ADD_COL, "Add Column");
+        getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.ADD_COLP, "Add Column");
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.ADD_COLX, "Add Column");
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.REMOVE_COL, "Delete Column");
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.REMOVE_COLX, "Delete Column");

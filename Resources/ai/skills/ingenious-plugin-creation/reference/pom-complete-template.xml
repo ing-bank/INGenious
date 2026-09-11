@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Plugin Identification -->
+    <groupId>com.ing.plugin</groupId>
+    <artifactId>my-plugin</artifactId>
+    <version>1.0</version>
+    <packaging>jar</packaging>
+
+    <name>My INGenious Plugin</name>
+    <description>Custom plugin for INGenious Playwright Framework</description>
+
+    <!-- Project Properties -->
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- CRITICAL: Must match framework Java version -->
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
+
+    <!-- Dependencies -->
+    <dependencies>
+        <!-- REQUIRED: API with provided scope -->
+        <dependency>
+            <groupId>com.ing</groupId>
+            <artifactId>ingenious-api</artifactId>
+            <version>3.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- REQUIRED FOR BROWSER PLUGINS: Playwright with provided scope -->
+        <dependency>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+            <version>1.50.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- OPTIONAL: Add other compile-scoped dependencies as needed -->
+        <!-- Example: JSON processing -->
+        <!--
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+            <scope>compile</scope>
+        </dependency>
+        -->
+
+        <!-- Example: Apache Commons -->
+        <!--
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+            <scope>compile</scope>
+        </dependency>
+        -->
+    </dependencies>
+
+    <!-- Build Configuration -->
+    <build>
+        <plugins>
+            <!-- Maven Compiler Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- Copy compile-scoped dependencies to lib folder -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <includeScope>compile</includeScope>
+                            <excludeTransitive>false</excludeTransitive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Declare entry classes in JAR manifest -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <!-- CRITICAL: Single line, comma-separated for multiple classes -->
+                            <pluginEntryClasses>com.ing.plugin.MyPlugin</pluginEntryClasses>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                            <Build-Time>${maven.build.timestamp}</Build-Time>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!-- Optional: Auto-deploy to INGenious plugins directory -->
+            <!-- Configure deploy.dir based on your INGenious installation path -->
+            <!-- If you skip auto-deployment, remove this plugin entirely -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-artifacts</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <!-- CUSTOMIZE: Set to your INGenious installation path -->
+                                <property name="deploy.dir" 
+                                          value="/path/to/INGenious/plugins/${project.artifactId}"/>
+                                
+                                <!-- Create plugin directory structure -->
+                                <mkdir dir="${deploy.dir}"/>
+                                <mkdir dir="${deploy.dir}/lib"/>
+                                
+                                <!-- Copy plugin JAR -->
+                                <copy file="${project.build.directory}/${project.build.finalName}.jar"
+                                      tofile="${deploy.dir}/${project.artifactId}.jar"
+                                      overwrite="true"/>
+                                
+                                <!-- Copy dependencies to lib folder -->
+                                <copy todir="${deploy.dir}/lib" overwrite="true">
+                                    <fileset dir="${project.build.directory}/lib"/>
+                                </copy>
+                                
+                                <!-- Display deployment confirmation -->
+                                <echo message=""/>
+                                <echo message="========================================"/>
+                                <echo message="Plugin deployed successfully!"/>
+                                <echo message="Location: ${deploy.dir}"/>
+                                <echo message="========================================"/>
+                                <echo message=""/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Optional: Maven Install Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>3.1.1</version>
+            </plugin>
+
+            <!-- Optional: Maven Clean Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.3.1</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>

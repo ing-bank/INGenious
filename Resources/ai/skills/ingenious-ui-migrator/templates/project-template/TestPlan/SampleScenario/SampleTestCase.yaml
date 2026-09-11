@@ -1,0 +1,13 @@
+schemaVersion: 1
+testCase: SampleTestCase
+scenario: SampleScenario
+tags:
+  - '@smoke'
+steps:
+  - step: 1
+    object: Execute
+    action: Common:Launch
+
+  - step: 2
+    object: Execute
+    action: SampleScenario:SampleFlow

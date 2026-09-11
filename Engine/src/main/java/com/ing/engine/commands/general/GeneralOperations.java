@@ -4,8 +4,11 @@ import com.ing.engine.commands.browser.CommonMethods;
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ForcedException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.text.DecimalFormat;
@@ -25,10 +28,22 @@ public class GeneralOperations extends General {
         super(cc);
     }
 
-    @Action(object = ObjectType.GENERAL, desc = "This a dummy function helpful with testing.")
+    @Action(object = ObjectType.GENERAL, desc = "This a dummy (empty) function.")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void filler() {}
 
     @Action(object = ObjectType.GENERAL, desc = "print the data [<Data>]", input = InputType.YES)
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Hello World",
+        inputHelp = "text to print to console/log (e.g. @Hello World)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void print() {
         System.out.println(Data);
         Report.updateTestLog("print", String.format("printed %s", Data), Status.DONE);
@@ -38,6 +53,13 @@ public class GeneralOperations extends General {
         object = ObjectType.GENERAL,
         desc = "Wait for [<Data>] milli seconds",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TIMEOUT_MS,
+        inputExample = "@2000",
+        inputHelp = "sleep duration in milliseconds (e.g. @2000)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void pause() {
         try {
@@ -53,6 +75,13 @@ public class GeneralOperations extends General {
         object = ObjectType.GENERAL,
         desc = "Assert if Key:Value -> [<Data>] is valid",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%token%=abc123",
+        inputHelp = "assertion expression in key=value format (e.g. %token%=abc123)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void assertVariable() throws RuntimeException {
         try {
@@ -86,6 +115,14 @@ public class GeneralOperations extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "{sheetName:ColumnName}",
+        inputHelp = "expected value to compare against variable content (e.g. {sheetName:ColumnName})",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%myVar%",
+        conditionHelp = "variable name in %var% format to assert (e.g. %myVar%)"
+    )
     public void assertVariableFromDataSheet() throws RuntimeException {
         try {
             String strAns = getVar(Condition);
@@ -111,6 +148,14 @@ public class GeneralOperations extends General {
         desc = "Add a variable to access within testcase",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@my value",
+        inputHelp = "value or expression to store (e.g. @my value or =Replace('%a%','x','y',all))",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%myVar%",
+        conditionHelp = "destination variable in %var% format (e.g. %myVar%)"
     )
     public void AddVar() {
         if (Input.startsWith("=Replace(")) {
@@ -140,6 +185,14 @@ public class GeneralOperations extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@shared value",
+        inputHelp = "value to store as global variable (e.g. @shared value)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%globalVar%",
+        conditionHelp = "destination global variable name in %var% format (e.g. %globalVar%)"
+    )
     public void AddGlobalVar() {
         addGlobalVar(Condition, Data);
         if (getVar(Condition) != null) {
@@ -158,6 +211,14 @@ public class GeneralOperations extends General {
         desc = "store variable value [<Condition>] in data sheet[<Data>]",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "{UserData:Token",
+        inputHelp = "destination datasheet reference in Sheet:Column format (e.g. UserData:Token)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%tokenVar%",
+        conditionHelp = "source variable name in %var% format (e.g. %tokenVar%)"
     )
     public void storeVariableInDataSheet() {
         if (Input != null && Condition != null) {
@@ -326,6 +387,13 @@ public class GeneralOperations extends General {
         desc = "Verify if the specific [<Data>] is present",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%otp%=123456",
+        inputHelp = "assertion expression in key=value format (e.g. %otp%=123456)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void verifyVariable() {
         String strObj = Data;
         String[] strTemp = strObj.split("=", 2);
@@ -352,6 +420,14 @@ public class GeneralOperations extends General {
         desc = "Verify of variable [<Data>] from given datasheet",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@expectedValue",
+        inputHelp = "expected value to compare against variable content (e.g. @expectedValue)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%myVar%",
+        conditionHelp = "variable name in %var% format to verify (e.g. %myVar%)"
     )
     public void verifyVariableFromDataSheet() {
         String strAns = getVar(Condition);
@@ -391,6 +467,14 @@ public class GeneralOperations extends General {
         desc = "Store Data from Previous Test Case Data",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%copiedValue%",
+        inputHelp = "target variable (%var%) or target datasheet Sheet:Column (e.g. %copiedValue% or CurrentData:Result)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "SourceData:Token",
+        conditionHelp = "source datasheet reference in Sheet:Column format (e.g. SourceData:Token)"
     )
     public void storeDataFromPreviousTestCaseData() {
         if (Input.isBlank()) {
@@ -475,6 +559,13 @@ public class GeneralOperations extends General {
         desc = "Reset Required Variables for storeDataFromPreviousTestCaseData action",
         input = InputType.OPTIONAL
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@optional note",
+        inputHelp = "optional note appended to report log (e.g. @optional note)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void resetPreviousTestCaseDataVariables() {
         // Reset Variables
         addVar("%PreviousScenario%", null);
@@ -517,6 +608,14 @@ public class GeneralOperations extends General {
         desc = "store in Global Datasheet",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@myValue123",
+        inputHelp = "value to store in global datasheet (e.g. @myValue123)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "GlobalSheet:UserData",
+        conditionHelp = "global datasheet reference in GlobalDataID:Column format (e.g. GlobalSheet:UserData)"
     )
     public void storeInGlobalDataSheet() {
         if (Condition != null) {
@@ -582,6 +681,14 @@ public class GeneralOperations extends General {
         desc = "Store Epoch Timestamp in variable",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.ENUM,
+        inputExample = "@seconds",
+        inputHelp = "timestamp format option: @seconds, @milliseconds, or @seconds+milliseconds",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%EpochTime%",
+        conditionHelp = "destination variable name in %var% format (e.g. %EpochTime%)"
     )
     public void storeEpochTimestampInVariable() {
         if (Condition == null || Condition.isBlank() || Condition.equals("%%")) {

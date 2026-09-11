@@ -560,6 +560,14 @@ public class TestSetComponent extends JPanel implements ActionListener {
         }
     }
 
+    // Ensures previous run results don't linger before the first step of a new run executes.
+    private void resetStatusToNoRun() {
+        for (ExecutionStep step : getCurrentTestSet().getExecutableSteps()) {
+            step.setStatus("NoRun");
+        }
+        getCurrentTestSet().fireTableDataChanged();
+    }
+
     private void selectByStatus(String status) {
         for (ExecutionStep step : getCurrentTestSet().getTestSteps()) {
             if (step.getStatus().matches(status)) {
@@ -618,8 +626,11 @@ public class TestSetComponent extends JPanel implements ActionListener {
             save();
             if (getCurrentTestSet().getRowCount() > 0) {
                 if (!getCurrentTestSet().getExecutableSteps().isEmpty()) {
+                    resetStatusToNoRun();
                     getCurrentTestSet().getProject().save();
                     SystemDefaults.debugMode.set(false);
+                    testExecution.getTestExecutionUI().showConsolePanel();
+                    toolBar.setConsoleSelected(true);
                     initRunner();
                     runner.start();
                 } else {

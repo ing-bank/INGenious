@@ -2,8 +2,11 @@ package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.ing.util.encryption.Encryption;
@@ -20,6 +23,13 @@ public class TextInput extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Enter the value [<Data>] in the Field [<Object>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Hello world",
+        inputHelp = "text value to fill into the field",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void Fill() {
         try {
@@ -46,6 +56,13 @@ public class TextInput extends General {
         desc = "Enter the value [<Data>] in the Field [<Object>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Hello world",
+        inputHelp = "text value to type sequentially into the field",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void PressSequentially() {
         try {
             Locator.clear();
@@ -71,6 +88,13 @@ public class TextInput extends General {
         desc = "Enter the value [<Data>] in the [<Object>] if it Data exists",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Hello world",
+        inputHelp = "text value to fill; action is skipped when input is empty",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void FillIfDataExists() {
         Page.waitForLoadState();
         if (!Data.isEmpty()) {
@@ -85,6 +109,13 @@ public class TextInput extends General {
         desc = "Enter the value [<Data>] in the [<Object>] if visible",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Hello world",
+        inputHelp = "text value to fill when locator is visible",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void FillIfVisible() {
         Page.waitForLoadState();
         if (Locator.isVisible()) {
@@ -98,6 +129,13 @@ public class TextInput extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Enter the value [<Data>] in the Field [<Object>] and check [<Data>] matches with [<Object>] value",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Hello world",
+        inputHelp = "text value to fill and verify",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void FillAndCheck() {
         try {
@@ -128,6 +166,11 @@ public class TextInput extends General {
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Clear text [<Data>] from object [<Object>].")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void Clear() {
         try {
             Locator.clear();
@@ -151,6 +194,13 @@ public class TextInput extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Enter the Decrypted value [<Data>] in the Field [<Object>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@EncryptedValue Enc",
+        inputHelp = "encrypted text ending with ' Enc' (e.g. @EncryptedValue Enc)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void fillEncrypted() {
         if (Data != null && Data.matches(".* Enc")) {

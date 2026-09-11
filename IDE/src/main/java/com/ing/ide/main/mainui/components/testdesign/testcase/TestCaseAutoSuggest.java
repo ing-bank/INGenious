@@ -12,12 +12,17 @@ import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestData;
 import com.ing.datalib.component.TestStep;
+import com.ing.datalib.or.common.ORAttribute;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.sap.ResolvedSapObject;
 import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.testdata.model.Record;
 import com.ing.datalib.testdata.model.TestDataModel;
+import com.ing.engine.commands.aXe.Accessibility;
+import com.ing.engine.core.InlineObjectProperty;
+import com.ing.engine.mcp.ActionSpecCatalog;
+import com.ing.engine.mcp.ArgSpec;
 import com.ing.engine.support.ObjectTypeUtil;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.engine.util.data.fx.FParser;
@@ -31,11 +36,14 @@ import com.ing.ide.main.utils.table.autosuggest.AutoSuggestCellEditor;
 import com.ing.ide.main.utils.table.autosuggest.ComboSeparatorsRenderer;
 import com.ing.ide.main.utils.table.autosuggest.InputAutoSuggestCellEditor;
 import com.ing.ide.main.utils.table.autosuggest.InputMainAutoSuggest;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.ObjectType;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -51,8 +59,11 @@ import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * Auto-suggest controller for the Test Case table, providing intelligent
@@ -67,6 +78,9 @@ public class TestCaseAutoSuggest {
     private final TestDesign testDesign;
     final JTable table;
 
+    // Guards against re-entrant opening of the inline-property builder.
+    private boolean openingInlinePanel = false;
+
     private AutoSuggest objAutoSuggest;
     private AutoSuggest conditionAutoSuggest;
     private AutoSuggest actionAutoSuggest;
@@ -78,6 +92,7 @@ public class TestCaseAutoSuggest {
         this.testDesign = testDesign;
         initAutoSuggest();
         installMouseListener();
+        installInlinePropertyTrigger();
     }
 
     private void initAutoSuggest() {
@@ -88,6 +103,41 @@ public class TestCaseAutoSuggest {
             (ConditionAutoSuggest) new ConditionAutoSuggest().withOnHide(stopEditingOnFocusLost());
         conditionAutoSuggest.setRenderer(
             new ComboSeparatorsRenderer(conditionAutoSuggest.getRenderer()) {
+
+                @Override
+                protected boolean addHeaderBefore(JList list, Object value, int index) {
+                    // Add "Threshold" header before the first item when displaying severity values
+                    if (index == 0 && isDisplayingSeverityValues()) {
+                        return true;
+                    }
+                    return false;
+                }
+
+                @Override
+                protected String getHeaderLabel(JList list, Object value, int index) {
+                    return "Threshold";
+                }
+
+                @Override
+                protected Color getHeaderForeground(
+                    JList list,
+                    Object value,
+                    int index,
+                    java.awt.Component comp
+                ) {
+                    return Color.DARK_GRAY;
+                }
+
+                private boolean isDisplayingSeverityValues() {
+                    if (table.getSelectedRow() < 0) {
+                        return false;
+                    }
+                    String action = Objects.toString(
+                        table.getValueAt(table.getSelectedRow(), Action.getIndex()),
+                        ""
+                    );
+                    return "testAccessibility".equals(action);
+                }
 
                 @Override
                 protected boolean addSeparatorAfter(JList list, Object value, int index) {
@@ -120,21 +170,32 @@ public class TestCaseAutoSuggest {
                     }
                     javax.swing.JLabel lbl = (javax.swing.JLabel) comp;
                     String raw = value.toString();
-                    lbl.setText(removeScopePrefix(raw));
-                    if (raw.startsWith("[Shared]")) {
-                        // Keep shared items readable on hover/selection by using shared-specific shades.
+                    if (raw.startsWith("~M~")) {
+                        lbl.setText(raw.substring(3));
                         if (isSelected) {
                             lbl.setOpaque(true);
-                            lbl.setBackground(new Color(213, 238, 220));
-                            lbl.setForeground(new Color(0, 83, 0));
+                            lbl.setBackground(new Color(220, 232, 248));
+                            lbl.setForeground(new Color(0, 60, 150));
                         } else {
-                            lbl.setForeground(new Color(0, 128, 0));
+                            lbl.setForeground(new Color(30, 90, 180));
                         }
-                    } else if (raw.startsWith("[Project]")) {
-                        if (isSelected) {
-                            lbl.setOpaque(true);
+                    } else {
+                        lbl.setText(removeScopePrefix(raw));
+                        if (raw.startsWith("[Shared]")) {
+                            // Keep shared items readable on hover/selection by using shared-specific shades.
+                            if (isSelected) {
+                                lbl.setOpaque(true);
+                                lbl.setBackground(new Color(213, 238, 220));
+                                lbl.setForeground(new Color(0, 83, 0));
+                            } else {
+                                lbl.setForeground(new Color(0, 128, 0));
+                            }
+                        } else if (raw.startsWith("[Project]")) {
+                            if (isSelected) {
+                                lbl.setOpaque(true);
+                            }
+                            lbl.setForeground(Color.BLACK);
                         }
-                        lbl.setForeground(Color.BLACK);
                     }
                 }
 
@@ -144,6 +205,14 @@ public class TestCaseAutoSuggest {
                         return false;
                     }
                     String current = value.toString();
+                    if (current.startsWith("~M~")) {
+                        return (
+                            index == 0 ||
+                            !Objects
+                                .toString(list.getModel().getElementAt(index - 1), "")
+                                .startsWith("~M~")
+                        );
+                    }
                     if (current.startsWith("[Project]")) {
                         return (
                             index == 0 ||
@@ -169,6 +238,9 @@ public class TestCaseAutoSuggest {
                         return "";
                     }
                     String current = value.toString();
+                    if (current.startsWith("~M~")) {
+                        return "Mobile / WebView Actions";
+                    }
                     if (current.startsWith("[Project]")) {
                         return "Project Reusables";
                     }
@@ -189,10 +261,28 @@ public class TestCaseAutoSuggest {
                         return Color.DARK_GRAY;
                     }
                     String current = value.toString();
+                    if (current.startsWith("~M~")) {
+                        return new Color(30, 90, 180);
+                    }
                     if (current.startsWith("[Shared]")) {
                         return new Color(0, 128, 0);
                     }
                     return Color.BLACK;
+                }
+
+                @Override
+                protected boolean addSeparatorBefore(JList list, Object value, int index) {
+                    if (value == null) return false;
+                    // Draw a line above the Mobile/WebView section header
+                    return (
+                        value.toString().startsWith("~M~") &&
+                        (
+                            index == 0 ||
+                            !Objects
+                                .toString(list.getModel().getElementAt(index - 1), "")
+                                .startsWith("~M~")
+                        )
+                    );
                 }
 
                 @Override
@@ -238,24 +328,31 @@ public class TestCaseAutoSuggest {
     }
 
     public void installForTestCase() {
-        table.getColumnModel().getColumn(0).setMaxWidth(50);
-        table.getColumnModel().getColumn(Action.getIndex()).setPreferredWidth(250);
-        table
-            .getColumnModel()
-            .getColumn(ObjectName.getIndex())
-            .setCellEditor(new AutoSuggestCellEditor(objAutoSuggest));
-        table
-            .getColumnModel()
-            .getColumn(Action.getIndex())
-            .setCellEditor(new AutoSuggestCellEditor(actionAutoSuggest));
-        table
-            .getColumnModel()
-            .getColumn(Condition.getIndex())
-            .setCellEditor(new AutoSuggestCellEditor(conditionAutoSuggest));
-        table
-            .getColumnModel()
-            .getColumn(Input.getIndex())
-            .setCellEditor(new InputAutoSuggestCellEditor(inputAutoSuggest));
+        int stepView = table.convertColumnIndexToView(0);
+        if (stepView != -1) {
+            table.getColumnModel().getColumn(stepView).setMaxWidth(50);
+        }
+        int actionWidthView = table.convertColumnIndexToView(Action.getIndex());
+        if (actionWidthView != -1) {
+            table.getColumnModel().getColumn(actionWidthView).setPreferredWidth(250);
+        }
+        setColumnEditor(ObjectName.getIndex(), new AutoSuggestCellEditor(objAutoSuggest));
+        setColumnEditor(Action.getIndex(), new AutoSuggestCellEditor(actionAutoSuggest));
+        setColumnEditor(Condition.getIndex(), new AutoSuggestCellEditor(conditionAutoSuggest));
+        setColumnEditor(Input.getIndex(), new InputAutoSuggestCellEditor(inputAutoSuggest));
+    }
+
+    /**
+     * Install a cell editor on the column identified by its model index,
+     * resolving to the current view index. Columns hidden by the user return a
+     * view index of -1 and are skipped, so editors stay attached to the correct
+     * columns regardless of which columns are visible.
+     */
+    private void setColumnEditor(int modelIndex, javax.swing.table.TableCellEditor editor) {
+        int view = table.convertColumnIndexToView(modelIndex);
+        if (view != -1) {
+            table.getColumnModel().getColumn(view).setCellEditor(editor);
+        }
     }
 
     /**
@@ -345,6 +442,209 @@ public class TestCaseAutoSuggest {
         table.addMouseMotionListener(new MouseMotionAdapterImpl());
     }
 
+    // ── Inline object-property override (Condition column) ──────────────────
+
+    /**
+     * Installs the {@code *} trigger on the Condition cell editor: while editing the
+     * Condition of a locator step (an action whose ConditionKind is NONE and that has
+     * an OR object), typing {@code *} opens the {@link InlinePropertyDialog} builder
+     * instead of inserting the character.
+     *
+     * <p>Two complementary hooks are used because the keystroke that <em>starts</em>
+     * cell editing is not always delivered to the editor's {@code KeyListener}: a
+     * {@link KeyAdapter} handles the common mid-edit case, and a
+     * {@link DocumentListener} catches any {@code *} that still made it into the field.</p>
+     */
+    private void installInlinePropertyTrigger() {
+        JTextField field = conditionAutoSuggest.getTextField();
+        field.addKeyListener(
+            new KeyAdapter() {
+
+                @Override
+                public void keyTyped(KeyEvent e) {
+                    if (e.getKeyChar() != '*') {
+                        return;
+                    }
+                    int row = table.getSelectedRow();
+                    if (row >= 0 && isInlinePropertyRow(row)) {
+                        e.consume();
+                        final int r = row;
+                        SwingUtilities.invokeLater(() -> triggerInlinePanel(r));
+                    }
+                }
+            }
+        );
+        field
+            .getDocument()
+            .addDocumentListener(
+                new DocumentListener() {
+
+                    @Override
+                    public void insertUpdate(DocumentEvent e) {
+                        maybeTrigger();
+                    }
+
+                    @Override
+                    public void removeUpdate(DocumentEvent e) {}
+
+                    @Override
+                    public void changedUpdate(DocumentEvent e) {}
+
+                    private void maybeTrigger() {
+                        if (openingInlinePanel) {
+                            return;
+                        }
+                        String text = field.getText();
+                        if (text == null || text.indexOf('*') < 0) {
+                            return;
+                        }
+                        int row = table.getSelectedRow();
+                        if (row >= 0 && isInlinePropertyRow(row)) {
+                            SwingUtilities.invokeLater(() -> triggerInlinePanel(row));
+                        }
+                    }
+                }
+            );
+    }
+
+    /** Opens the inline-property builder for {@code row}, guarding against re-entry. */
+    private void triggerInlinePanel(int row) {
+        if (openingInlinePanel || row < 0 || !isInlinePropertyRow(row)) {
+            return;
+        }
+        openingInlinePanel = true;
+        // Remove any stray '*' the trigger left in the editor before opening.
+        try {
+            JTextField field = conditionAutoSuggest.getTextField();
+            String text = field.getText();
+            if (text != null && text.contains("*")) {
+                field.setText(text.replace("*", ""));
+            }
+        } catch (Exception ignore) {
+            // editor state is best-effort
+        }
+        openInlinePropertyDialog(row);
+    }
+
+    /**
+     * A locator step eligible for an inline override: its action declares no Condition
+     * ({@link ConditionKind#NONE}) and it references an Object Repository element.
+     */
+    private boolean isInlinePropertyRow(int row) {
+        String action = Objects.toString(table.getModel().getValueAt(row, Action.getIndex()), "");
+        String objectName = Objects.toString(
+            table.getModel().getValueAt(row, ObjectName.getIndex()),
+            ""
+        );
+        String pageToken = Objects.toString(
+            table.getModel().getValueAt(row, Reference.getIndex()),
+            ""
+        );
+        if (objectName.isBlank() || pageToken.isBlank()) {
+            return false;
+        }
+        // Locator actions such as click/Fill/clear have no explicit @Args spec (they
+        // resolve to an "inferred" spec), so only require that the action does not use
+        // the Condition column for its own semantics (ConditionKind.NONE).
+        ArgSpec spec = ActionSpecCatalog.forAction(action);
+        return spec != null && spec.conditionKind() == ConditionKind.NONE;
+    }
+
+    private void openInlinePropertyDialog(int row) {
+        String objectName = Objects.toString(
+            table.getModel().getValueAt(row, ObjectName.getIndex()),
+            ""
+        );
+        String pageToken = Objects.toString(
+            table.getModel().getValueAt(row, Reference.getIndex()),
+            ""
+        );
+        String existing = Objects.toString(
+            table.getModel().getValueAt(row, Condition.getIndex()),
+            ""
+        );
+        Set<String> tokens = getLocatorTokens(objectName, pageToken);
+        List<String> valueSuggestions = getValueSuggestions();
+        SwingUtilities.invokeLater(
+            () -> {
+                try {
+                    if (table.isEditing()) {
+                        table.getCellEditor().cancelCellEditing();
+                    }
+                    String expr = InlinePropertyDialog.show(
+                        table,
+                        tokens,
+                        valueSuggestions,
+                        existing
+                    );
+                    if (expr != null) {
+                        table.getModel().setValueAt(expr, row, Condition.getIndex());
+                    }
+                } finally {
+                    openingInlinePanel = false;
+                }
+            }
+        );
+    }
+
+    /**
+     * Builds the value-dropdown suggestions for the inline-property dialog:
+     * every {@code Sheet:Column} reference plus every {@code %variable%} defined in
+     * the project. Reuses the Input column's auto-suggest data sources.
+     */
+    @SuppressWarnings("unchecked")
+    private List<String> getValueSuggestions() {
+        List<String> suggestions = new ArrayList<>();
+        try {
+            suggestions.addAll(inputAutoSuggest.getTestData());
+        } catch (Exception ignore) {
+            // no test data available
+        }
+        try {
+            suggestions.addAll(inputAutoSuggest.getUserDefinedList());
+        } catch (Exception ignore) {
+            // no user-defined variables
+        }
+        return suggestions;
+    }
+
+    /**
+     * Discovers the distinct {@code #token} placeholders in the selected element's
+     * locator attributes across Web / Mobile / SAP / Structured-Data repositories.
+     * Returns an empty set (free-text entry) when the object cannot be resolved.
+     */
+    private Set<String> getLocatorTokens(String objectName, String pageToken) {
+        Set<String> tokens = new LinkedHashSet<>();
+        var repo = sProject.getObjectRepository();
+        try {
+            ResolvedWebObject.PageRef ref = ResolvedWebObject.PageRef.parse(pageToken);
+            ResolvedWebObject web = (ref != null && ref.name != null && ref.scope != null)
+                ? repo.resolveWebObject(ref, objectName)
+                : repo.resolveWebObjectWithScope(pageToken, objectName);
+            if (web != null && web.isPresent() && web.getObject() != null) {
+                for (ORAttribute attr : web.getObject().getAttributes()) {
+                    tokens.addAll(InlineObjectProperty.extractTokens(attr.getValue()));
+                }
+            }
+        } catch (Exception ignore) {
+            // fall through to other repositories
+        }
+        try {
+            ResolvedMobileObject.PageRef ref = ResolvedMobileObject.PageRef.parse(pageToken);
+            ResolvedMobileObject mob = (ref != null && ref.name != null && ref.scope != null)
+                ? repo.resolveMobileObject(ref, objectName)
+                : repo.resolveMobileObjectWithScope(pageToken, objectName);
+            if (mob != null && mob.isPresent() && mob.getObject() != null) {
+                for (ORAttribute attr : mob.getObject().getAttributes()) {
+                    tokens.addAll(InlineObjectProperty.extractTokens(attr.getValue()));
+                }
+            }
+        } catch (Exception ignore) {
+            // ignore
+        }
+        return tokens;
+    }
+
     private TestCase getTestCase(JTable table) {
         if (table.getModel() instanceof TestCase) {
             return (TestCase) table.getModel();
@@ -421,7 +721,7 @@ public class TestCaseAutoSuggest {
 
         private List getConditionBasedOnText(String value) {
             String objectName = Objects.toString(
-                table.getValueAt(table.getSelectedRow(), ObjectName.getIndex()),
+                table.getModel().getValueAt(table.getSelectedRow(), ObjectName.getIndex()),
                 ""
             );
             if ("Webservice".equals(objectName)) {
@@ -433,7 +733,15 @@ public class TestCaseAutoSuggest {
 
         @Override
         public void beforeSearch(String text) {
-            if (text.isEmpty()) {
+            String action = Objects.toString(
+                table.getValueAt(table.getSelectedRow(), Action.getIndex()),
+                ""
+            );
+
+            // For testAccessibility action, show Severity enum values
+            if ("testAccessibility".equals(action)) {
+                setSearchList(getAccessibilitySeverityList());
+            } else if (text.isEmpty()) {
                 setSearchList(getConditionList());
             } else {
                 if (text.startsWith("#")) {
@@ -443,6 +751,63 @@ public class TestCaseAutoSuggest {
         }
 
         private List getConditionList() {
+            // Spec-driven: offer exactly the condition values the selected action expects.
+            try {
+                int row = table.getSelectedRow();
+                if (row >= 0) {
+                    String action = Objects.toString(
+                        table.getModel().getValueAt(row, Action.getIndex()),
+                        ""
+                    );
+                    ArgSpec spec = ActionSpecCatalog.forAction(action);
+                    if (spec != null && spec.isExplicit()) {
+                        List specList = conditionListForKind(spec);
+                        if (specList != null) {
+                            return specList;
+                        }
+                    }
+                }
+            } catch (Throwable ignore) {
+                // fall back to the full default list below
+            }
+            return defaultConditionList();
+        }
+
+        private List conditionListForKind(ArgSpec spec) {
+            ConditionKind kind = spec.conditionKind();
+            List list = new ArrayList<>();
+            switch (kind) {
+                case ENUM:
+                    list.addAll(spec.conditionValues());
+                    return list;
+                case ALIAS_API:
+                    return getAPIAliasList();
+                case ALIAS_CONTEXT:
+                    return getContextAliasList();
+                case VIEWPORT:
+                    list.add("screen");
+                    list.add("viewport");
+                    return list;
+                case PARAM:
+                    list.add("Start Param");
+                    list.add("End Param");
+                    list.add("End Param:@n");
+                    return list;
+                case LOOP:
+                    list.add("Start Loop");
+                    list.add("End Loop:@n");
+                    return list;
+                case GLOBAL_OBJECT:
+                    list.add("GlobalObject");
+                    return list;
+                case NONE:
+                    return list; // action takes no condition
+                default:
+                    return null; // TEXT / unknown -> full default list
+            }
+        }
+
+        private List defaultConditionList() {
             List conditionList = new ArrayList<>();
             conditionList.add("Start Param");
             conditionList.add("End Param");
@@ -454,6 +819,16 @@ public class TestCaseAutoSuggest {
             conditionList.add("viewport");
             return conditionList;
         }
+
+        private List getAccessibilitySeverityList() {
+            List severityList = new ArrayList<>();
+            // Add in specific order with capitalized first letter
+            severityList.add("Minor");
+            severityList.add("Moderate");
+            severityList.add("Serious");
+            severityList.add("Critical");
+            return severityList;
+        }
     }
 
     class ActionAutoSuggest extends AutoSuggest {
@@ -462,6 +837,10 @@ public class TestCaseAutoSuggest {
         public void setSelectedItem(Object o) {
             if (o instanceof String) {
                 String selected = (String) o;
+                if (selected.startsWith("~M~")) {
+                    super.setSelectedItem(selected.substring(3));
+                    return;
+                }
                 if (selected.startsWith("[Project]") || selected.startsWith("[Shared]")) {
                     String scopeToken = selected.startsWith("[Shared]") ? "[Shared]" : "[Project]";
                     String actionValue = removeScopePrefix(selected);
@@ -469,12 +848,16 @@ public class TestCaseAutoSuggest {
                         table.getSelectedRow() >= 0 &&
                         "Execute".equalsIgnoreCase(
                                 Objects.toString(
-                                    table.getValueAt(table.getSelectedRow(), ObjectName.getIndex()),
+                                    table
+                                        .getModel()
+                                        .getValueAt(table.getSelectedRow(), ObjectName.getIndex()),
                                     ""
                                 )
                             )
                     ) {
-                        table.setValueAt(scopeToken, table.getSelectedRow(), Reference.getIndex());
+                        table
+                            .getModel()
+                            .setValueAt(scopeToken, table.getSelectedRow(), Reference.getIndex());
                     }
                     super.setSelectedItem(actionValue);
                     return;
@@ -497,11 +880,11 @@ public class TestCaseAutoSuggest {
          */
         private List<String> getActionBasedOnObject() {
             String objectName = Objects.toString(
-                table.getValueAt(table.getSelectedRow(), ObjectName.getIndex()),
+                table.getModel().getValueAt(table.getSelectedRow(), ObjectName.getIndex()),
                 ""
             );
             String pageToken = Objects.toString(
-                table.getValueAt(table.getSelectedRow(), Reference.getIndex()),
+                table.getModel().getValueAt(table.getSelectedRow(), Reference.getIndex()),
                 ""
             );
 
@@ -518,11 +901,18 @@ public class TestCaseAutoSuggest {
             }
 
             if (isWebObject(objectName, pageToken)) {
-                return MethodInfoManager.getMethodListFor(
-                    ObjectType.PLAYWRIGHT,
-                    ObjectType.WEB,
-                    ObjectType.ANY
+                // Web actions first (plain, sort naturally); mobile actions ~M~-prefixed so they sort after
+                List<String> combined = new ArrayList<>(
+                    MethodInfoManager.getMethodListFor(
+                        ObjectType.PLAYWRIGHT,
+                        ObjectType.WEB,
+                        ObjectType.ANY
+                    )
                 );
+                for (String a : MethodInfoManager.getMethodListFor(ObjectType.APP)) {
+                    combined.add("~M~" + a);
+                }
+                return combined;
             }
 
             if (isMobileObject(objectName, pageToken)) {
@@ -653,17 +1043,19 @@ public class TestCaseAutoSuggest {
             if (actionText.startsWith("[Project]") || actionText.startsWith("[Shared]")) {
                 String scopeToken = actionText.startsWith("[Shared]") ? "[Shared]" : "[Project]";
                 String actionValue = removeScopePrefix(actionText);
-                table.setValueAt(scopeToken, table.getSelectedRow(), Reference.getIndex());
-                table.setValueAt(actionValue, table.getSelectedRow(), Action.getIndex());
+                table
+                    .getModel()
+                    .setValueAt(scopeToken, table.getSelectedRow(), Reference.getIndex());
+                table.getModel().setValueAt(actionValue, table.getSelectedRow(), Action.getIndex());
             }
             // Set description if empty
             String val = Objects.toString(
-                table.getValueAt(table.getSelectedRow(), Description.getIndex()),
+                table.getModel().getValueAt(table.getSelectedRow(), Description.getIndex()),
                 ""
             );
             if (val.trim().isEmpty()) {
                 String desc = MethodInfoManager.getDescriptionFor(getText());
-                table.setValueAt(desc, table.getSelectedRow(), Description.getIndex());
+                table.getModel().setValueAt(desc, table.getSelectedRow(), Description.getIndex());
             }
         }
     }
@@ -806,9 +1198,12 @@ public class TestCaseAutoSuggest {
         public void afterReset() {
             prevText = null;
             isPending = false;
+            // Skip auto-appending ":" (test data Sheet:Column prompt) for values that are
+            // user-defined refs (%), engine directives (@), functions (=) or DB aliases (#) -
+            // none of these use the Sheet:Column format, so appending ":" corrupted them.
             if (
                 !getText().isEmpty() &&
-                !getText().matches("^[\\%\\@].*") &&
+                !getText().matches("^[\\%\\@\\=\\#].*") &&
                 !getText().contains(":")
             ) {
                 startEditing(this);
@@ -842,8 +1237,12 @@ public class TestCaseAutoSuggest {
 
         @Override
         public void mouseClicked(MouseEvent me) {
-            boolean isInputclicked = table.columnAtPoint(me.getPoint()) == Input.getIndex();
-            boolean isActionClicked = table.columnAtPoint(me.getPoint()) == Action.getIndex();
+            int clickedViewCol = table.columnAtPoint(me.getPoint());
+            int clickedModelCol = clickedViewCol == -1
+                ? -1
+                : table.convertColumnIndexToModel(clickedViewCol);
+            boolean isInputclicked = clickedModelCol == Input.getIndex();
+            boolean isActionClicked = clickedModelCol == Action.getIndex();
 
             if (me.isAltDown()) {
                 if (table.rowAtPoint(me.getPoint()) != -1 && getTestCase(table) != null) {
@@ -851,14 +1250,8 @@ public class TestCaseAutoSuggest {
                         .getTestSteps()
                         .get(table.rowAtPoint(me.getPoint()));
                     if (
-                        (
-                            isDataBaseQueryStep(step) &&
-                            table.columnAtPoint(me.getPoint()) == Input.getIndex()
-                        ) ||
-                        (
-                            isProtractorjsStep(step) &&
-                            table.columnAtPoint(me.getPoint()) == Input.getIndex()
-                        )
+                        (isDataBaseQueryStep(step) && isInputclicked) ||
+                        (isProtractorjsStep(step) && isInputclicked)
                     ) {
                         new SQLTextArea(null, step, getInputs());
                     }
@@ -1068,6 +1461,7 @@ public class TestCaseAutoSuggest {
             Point p = e.getPoint();
             int row = table.rowAtPoint(p);
             int col = table.columnAtPoint(p);
+            int modelCol = col == -1 ? -1 : table.convertColumnIndexToModel(col);
 
             if (row == hintCell.y && col == hintCell.x) {
                 if (!popup.isVisible()) {
@@ -1077,7 +1471,7 @@ public class TestCaseAutoSuggest {
                 return;
             }
 
-            if (row != -1 && col == Input.getIndex() && getTestCase(table) != null) {
+            if (row != -1 && modelCol == Input.getIndex() && getTestCase(table) != null) {
                 currentStep = getTestCase(table).getTestSteps().get(row);
 
                 if (updateMenuTextForStep(currentStep)) {

@@ -11,10 +11,9 @@ import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.utils.TabTitleEditListener;
 import com.ing.ide.main.utils.Utils;
+import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.main.utils.table.FrozenColumnScrollPane;
-import com.ing.ide.main.utils.table.JTableUtils;
 import com.ing.ide.main.utils.table.XTable;
-import com.ing.ide.main.utils.table.XTableUtils;
 import com.ing.ide.util.Canvas;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Utility;
@@ -22,6 +21,9 @@ import com.ing.ide.util.Validator;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -41,7 +43,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -1046,6 +1047,21 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                         }
                         return super.isCellEditable(row, column);
                     }
+
+                    @Override
+                    public void copy() {
+                        TestDataTablePanel.this.copy();
+                    }
+
+                    @Override
+                    public void cut() {
+                        TestDataTablePanel.this.cut();
+                    }
+
+                    @Override
+                    public void paste() {
+                        TestDataTablePanel.this.paste();
+                    }
                 };
             if (isGlobalData) {
                 table.setColumnRename(onRenameAction(), 0);
@@ -1088,27 +1104,16 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 // Apply popup menu to fixed table as well
                 frozenScrollPane.getFixedTable().setComponentPopupMenu(popupMenu);
 
-                // Keep Delete behavior consistent between main and fixed tables.
+                // Add clipboard key adapter to fixed table
                 frozenScrollPane
                     .getFixedTable()
-                    .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
-                    .put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Clear");
-                frozenScrollPane
-                    .getFixedTable()
-                    .getActionMap()
-                    .put(
-                        "Clear",
-                        new AbstractAction() {
-
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                clearValuesFromFixedTable();
-                            }
-                        }
+                    .addKeyListener(
+                        new com.ing.ide.main.utils.keys.ClipboardKeyAdapter(
+                            frozenScrollPane.getFixedTable()
+                        )
                     );
 
                 // Set cell editor provider for fixed columns (columns 0-4: Scenario, Flow, Scope, Iteration, SubIteration)
-
                 frozenScrollPane.setCellEditorProvider(
                     (row, column, defaultEditor) ->
                         tDAutoSuggest.getCellEditorFor(column, defaultEditor)
@@ -1258,9 +1263,36 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             }
         }
 
+        private int getSelectedRowAcrossTables() {
+            int row = table.getSelectedRow();
+            if (
+                row == -1 &&
+                !isGlobalData &&
+                frozenScrollPane != null &&
+                frozenScrollPane.getFixedTable() != null
+            ) {
+                row = frozenScrollPane.getFixedTable().getSelectedRow();
+            }
+            return row;
+        }
+
+        private int[] getSelectedRowsAcrossTables() {
+            int[] rows = table.getSelectedRows();
+            if (
+                (rows == null || rows.length == 0) &&
+                !isGlobalData &&
+                frozenScrollPane != null &&
+                frozenScrollPane.getFixedTable() != null
+            ) {
+                rows = frozenScrollPane.getFixedTable().getSelectedRows();
+            }
+            return rows;
+        }
+
         private void moveRowUp() {
-            if (table.getSelectedRows().length > 0) {
-                List<Integer> rows = Utils.getSorted(table.getSelectedRows());
+            int[] selectedRows = getSelectedRowsAcrossTables();
+            if (selectedRows != null && selectedRows.length > 0) {
+                List<Integer> rows = Utils.getSorted(selectedRows);
                 int from = rows.get(0);
                 int to = rows.get(rows.size() - 1);
                 if (std.moveRowsUp(from, to)) {
@@ -1270,8 +1302,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         }
 
         private void moveRowDown() {
-            if (table.getSelectedRows().length > 0) {
-                List<Integer> rows = Utils.getSorted(table.getSelectedRows());
+            int[] selectedRows = getSelectedRowsAcrossTables();
+            if (selectedRows != null && selectedRows.length > 0) {
+                List<Integer> rows = Utils.getSorted(selectedRows);
                 int from = rows.get(0);
                 int to = rows.get(rows.size() - 1);
                 if (std.moveRowsDown(from, to)) {
@@ -1283,14 +1316,246 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         private void ccp(String type) {
             switch (type) {
                 case "Cut":
-                    table.cut();
+                    cut();
                     break;
                 case "Copy":
-                    table.copy();
+                    copy();
                     break;
                 case "Paste":
-                    table.paste();
+                    paste();
                     break;
+            }
+        }
+
+        private void copy() {
+            copyToClipboard(false);
+        }
+
+        private void cut() {
+            copyToClipboard(true);
+        }
+
+        private void copyToClipboard(boolean isCut) {
+            stopCellEditing();
+            int[] selectedRows = table.getSelectedRows();
+            if (
+                (selectedRows == null || selectedRows.length == 0) &&
+                frozenScrollPane != null &&
+                frozenScrollPane.getFixedTable() != null
+            ) {
+                selectedRows = frozenScrollPane.getFixedTable().getSelectedRows();
+            }
+            if (selectedRows == null || selectedRows.length == 0) {
+                return;
+            }
+
+            List<Integer> modelColumnsToCopy = new ArrayList<>();
+
+            if (
+                isGlobalData || frozenScrollPane == null || frozenScrollPane.getFixedTable() == null
+            ) {
+                int[] selectedCols = table.getSelectedColumns();
+                if (selectedCols == null || selectedCols.length == 0) {
+                    return;
+                }
+                for (int viewCol : selectedCols) {
+                    int modelCol = table.convertColumnIndexToModel(viewCol);
+                    if (modelCol >= 0 && modelCol < std.getColumnCount()) {
+                        modelColumnsToCopy.add(modelCol);
+                    }
+                }
+            } else {
+                JTable fixedTable = frozenScrollPane.getFixedTable();
+                int[] fixedSelectedCols = fixedTable.getSelectedColumns();
+                int[] mainSelectedCols = table.getSelectedColumns();
+
+                boolean hasFixed = fixedSelectedCols != null && fixedSelectedCols.length > 0;
+                boolean hasMain = mainSelectedCols != null && mainSelectedCols.length > 0;
+
+                if (!hasFixed && !hasMain) {
+                    return;
+                }
+
+                if (hasFixed && hasMain) {
+                    // Allow contiguous selections that span the fixed + scrollable split.
+                    // Merge both selection ranges and de-duplicate model columns before copying.
+                    for (int viewCol : fixedSelectedCols) {
+                        int modelCol = fixedTable.convertColumnIndexToModel(viewCol);
+                        if (modelCol >= 0 && modelCol < std.getColumnCount()) {
+                            if (!modelColumnsToCopy.contains(modelCol)) {
+                                modelColumnsToCopy.add(modelCol);
+                            }
+                        }
+                    }
+                    for (int viewCol : mainSelectedCols) {
+                        int modelCol = viewCol + frozenColumnCount;
+                        if (modelCol >= 0 && modelCol < std.getColumnCount()) {
+                            if (!modelColumnsToCopy.contains(modelCol)) {
+                                modelColumnsToCopy.add(modelCol);
+                            }
+                        }
+                    }
+                } else if (hasFixed) {
+                    for (int viewCol : fixedSelectedCols) {
+                        int modelCol = fixedTable.convertColumnIndexToModel(viewCol);
+                        if (modelCol >= 0 && modelCol < std.getColumnCount()) {
+                            modelColumnsToCopy.add(modelCol);
+                        }
+                    }
+                } else {
+                    for (int viewCol : mainSelectedCols) {
+                        int modelCol = viewCol + frozenColumnCount;
+                        if (modelCol >= 0 && modelCol < std.getColumnCount()) {
+                            modelColumnsToCopy.add(modelCol);
+                        }
+                    }
+                }
+            }
+
+            if (modelColumnsToCopy.isEmpty()) {
+                return;
+            }
+
+            modelColumnsToCopy.sort(Integer::compareTo);
+
+            if (isCut) {
+                std.getUndoManager().startGroupEdit();
+            }
+
+            StringBuilder excelStr = new StringBuilder();
+            for (int i = 0; i < selectedRows.length; i++) {
+                int row = selectedRows[i];
+                for (int j = 0; j < modelColumnsToCopy.size(); j++) {
+                    int col = modelColumnsToCopy.get(j);
+                    excelStr.append(escape(std.getValueAt(row, col)));
+                    if (isCut && std.isCellEditable(row, col)) {
+                        std.setValueAt("", row, col);
+                    }
+                    if (j < modelColumnsToCopy.size() - 1) {
+                        excelStr.append("\t");
+                    }
+                }
+                excelStr.append("\n");
+            }
+
+            if (isCut) {
+                std.getUndoManager().stopGroupEdit();
+            }
+
+            StringSelection sel = new StringSelection(excelStr.toString());
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(sel, sel);
+        }
+
+        private String escape(Object cell) {
+            return Objects.toString(cell, "").replace("\n", " ").replace("\t", " ");
+        }
+
+        private void paste() {
+            stopCellEditing();
+            String pasteString;
+            try {
+                pasteString =
+                    (String) Toolkit
+                        .getDefaultToolkit()
+                        .getSystemClipboard()
+                        .getContents(null)
+                        .getTransferData(DataFlavor.stringFlavor);
+            } catch (Exception e) {
+                Logger
+                    .getLogger(TestDataComponent.class.getName())
+                    .log(Level.WARNING, "Invalid Paste Type", e);
+                return;
+            }
+
+            if (pasteString == null || pasteString.isEmpty()) {
+                return;
+            }
+
+            int startRow = 0;
+            int[] selectedRows = table.getSelectedRows();
+            if (selectedRows != null && selectedRows.length > 0) {
+                startRow = selectedRows[0];
+            } else if (
+                frozenScrollPane != null &&
+                frozenScrollPane.getFixedTable() != null &&
+                frozenScrollPane.getFixedTable().getSelectedRowCount() > 0
+            ) {
+                startRow = frozenScrollPane.getFixedTable().getSelectedRows()[0];
+            } else if (std.getRowCount() > 0) {
+                startRow = std.getRowCount() - 1;
+            }
+
+            String[] lines = pasteString.replace("\r", "").split("\n");
+            if (lines.length == 0) {
+                return;
+            }
+
+            int firstLineCols = lines[0].split("\t", -1).length;
+            int startCol = 0;
+
+            if (!isGlobalData && frozenScrollPane != null) {
+                JTable fixedTable = frozenScrollPane.getFixedTable();
+                int fixedSelectedCol = fixedTable != null ? fixedTable.getSelectedColumn() : -1;
+                int mainSelectedCol = table.getSelectedColumn();
+
+                if (firstLineCols >= std.getColumnCount()) {
+                    startCol = 0;
+                } else if (fixedTable != null && fixedTable.hasFocus() && fixedSelectedCol >= 0) {
+                    startCol = fixedSelectedCol;
+                } else if (table.hasFocus() && mainSelectedCol >= 0) {
+                    startCol = mainSelectedCol + frozenColumnCount;
+                } else if (fixedSelectedCol >= 0) {
+                    startCol = fixedSelectedCol;
+                } else if (mainSelectedCol >= 0) {
+                    startCol = mainSelectedCol + frozenColumnCount;
+                } else {
+                    startCol = frozenColumnCount;
+                }
+            } else {
+                int mainSelectedCol = table.getSelectedColumn();
+                startCol = (mainSelectedCol >= 0) ? mainSelectedCol : 0;
+            }
+
+            std.getUndoManager().startGroupEdit();
+            try {
+                for (int i = 0; i < lines.length; i++) {
+                    String line = lines[i];
+                    if (line.isEmpty() && i == lines.length - 1) {
+                        continue;
+                    }
+                    String[] cells = line.split("\t", -1);
+                    int targetRow = startRow + i;
+                    while (std.getRowCount() <= targetRow) {
+                        std.addRecord();
+                    }
+                    for (int j = 0; j < cells.length; j++) {
+                        int targetCol = startCol + j;
+                        if (targetCol < std.getColumnCount()) {
+                            std.setValueAt(cells[j], targetRow, targetCol);
+                        }
+                    }
+                }
+            } finally {
+                std.getUndoManager().stopGroupEdit();
+            }
+
+            int rowsPasted = lines.length;
+            if (lines.length > 0 && lines[lines.length - 1].isEmpty()) {
+                rowsPasted = lines.length - 1;
+            }
+            if (rowsPasted > 0) {
+                int endRow = Math.min(startRow + rowsPasted - 1, std.getRowCount() - 1);
+                if (endRow >= startRow && startRow < std.getRowCount()) {
+                    table.setRowSelectionInterval(startRow, endRow);
+                    if (frozenScrollPane != null && frozenScrollPane.getFixedTable() != null) {
+                        frozenScrollPane.getFixedTable().setRowSelectionInterval(startRow, endRow);
+                    }
+                }
+            }
+
+            table.repaint();
+            if (frozenScrollPane != null && frozenScrollPane.getFixedTable() != null) {
+                frozenScrollPane.getFixedTable().repaint();
             }
         }
 
@@ -1385,7 +1650,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         }
 
         private void addLastRow() {
-            int row = table.getSelectedRow();
+            int row = getSelectedRowAcrossTables();
             int column = table.getSelectedColumn();
             if (row == table.getRowCount() - 1 && column == table.getColumnCount() - 1) {
                 addRow();
@@ -1394,33 +1659,122 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
         private void addRow() {
             stopCellEditing();
+            int mainCol = table.getSelectedColumn();
+            int fixedCol = (
+                    !isGlobalData &&
+                    frozenScrollPane != null &&
+                    frozenScrollPane.getFixedTable() != null
+                )
+                ? frozenScrollPane.getFixedTable().getSelectedColumn()
+                : -1;
+            boolean focusOnFixed =
+                (
+                    !isGlobalData &&
+                    frozenScrollPane != null &&
+                    frozenScrollPane.getFixedTable() != null &&
+                    frozenScrollPane.getFixedTable().hasFocus()
+                );
+
+            int insertIndex = std.getRowCount();
             std.addRecord();
+            selectRowAndColumn(insertIndex, mainCol, fixedCol, focusOnFixed);
         }
 
         private void insertRowBelow() {
             stopCellEditing();
-            if (table.getSelectedRow() != -1 && table.getSelectedRow() + 1 < table.getRowCount()) {
-                std.addRecord(table.getSelectedRow() + 1);
+            int row = getSelectedRowAcrossTables();
+            int mainCol = table.getSelectedColumn();
+            int fixedCol = (
+                    !isGlobalData &&
+                    frozenScrollPane != null &&
+                    frozenScrollPane.getFixedTable() != null
+                )
+                ? frozenScrollPane.getFixedTable().getSelectedColumn()
+                : -1;
+            boolean focusOnFixed =
+                (
+                    !isGlobalData &&
+                    frozenScrollPane != null &&
+                    frozenScrollPane.getFixedTable() != null &&
+                    frozenScrollPane.getFixedTable().hasFocus()
+                );
+
+            int insertIndex;
+            if (row != -1 && row + 1 < std.getRowCount()) {
+                insertIndex = row + 1;
+                std.addRecord(insertIndex);
             } else {
+                insertIndex = std.getRowCount();
                 std.addRecord();
             }
+            selectRowAndColumn(insertIndex, mainCol, fixedCol, focusOnFixed);
         }
 
         private void insertRow() {
             stopCellEditing();
-            if (table.getSelectedRow() != -1) {
-                std.addRecord(table.getSelectedRow());
+            int row = getSelectedRowAcrossTables();
+            if (row != -1) {
+                int mainCol = table.getSelectedColumn();
+                int fixedCol = (
+                        !isGlobalData &&
+                        frozenScrollPane != null &&
+                        frozenScrollPane.getFixedTable() != null
+                    )
+                    ? frozenScrollPane.getFixedTable().getSelectedColumn()
+                    : -1;
+                boolean focusOnFixed =
+                    (
+                        !isGlobalData &&
+                        frozenScrollPane != null &&
+                        frozenScrollPane.getFixedTable() != null &&
+                        frozenScrollPane.getFixedTable().hasFocus()
+                    );
+
+                std.addRecord(row);
+                selectRowAndColumn(row, mainCol, fixedCol, focusOnFixed);
             }
+        }
+
+        private void selectRowAndColumn(int row, int mainCol, int fixedCol, boolean focusOnFixed) {
+            if (std.getRowCount() == 0) {
+                return;
+            }
+            int safeRow = Math.max(0, Math.min(row, std.getRowCount() - 1));
+            table.setRowSelectionInterval(safeRow, safeRow);
+            if (
+                !isGlobalData &&
+                frozenScrollPane != null &&
+                frozenScrollPane.getFixedTable() != null
+            ) {
+                JTable fixedTable = frozenScrollPane.getFixedTable();
+                fixedTable.setRowSelectionInterval(safeRow, safeRow);
+                if (fixedCol >= 0 && fixedCol < fixedTable.getColumnCount()) {
+                    fixedTable.setColumnSelectionInterval(fixedCol, fixedCol);
+                }
+                if (focusOnFixed) {
+                    fixedTable.requestFocusInWindow();
+                }
+                fixedTable.repaint();
+            }
+            if (mainCol >= 0 && mainCol < table.getColumnCount()) {
+                table.setColumnSelectionInterval(mainCol, mainCol);
+                if (!focusOnFixed) {
+                    table.requestFocusInWindow();
+                }
+            }
+            table.repaint();
         }
 
         private void replicateRow() {
             stopCellEditing();
-            int[] selectedRows = table.getSelectedRows();
-            int lastIndex = selectedRows[selectedRows.length - 1];
-            int added = 0;
-            for (int row : selectedRows) {
-                std.replicateRecord(row, lastIndex + 1 + added);
-                added++;
+            int[] selectedRows = getSelectedRowsAcrossTables();
+            if (selectedRows != null && selectedRows.length > 0) {
+                int lastIndex = selectedRows[selectedRows.length - 1];
+                int added = 0;
+                for (int row : selectedRows) {
+                    std.replicateRecord(row, lastIndex + 1 + added);
+                    added++;
+                }
             }
         }
 
@@ -1429,19 +1783,16 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             stopCellEditing();
 
             if (!isGlobalData && frozenScrollPane != null) {
-                // Check if focus is on fixed table - don't allow adding column there
                 JTable fixedTable = frozenScrollPane.getFixedTable();
-                int fixedSelectedCol = fixedTable.getSelectedColumn();
-                if (fixedSelectedCol >= 0) {
-                    // Fixed column selected - do nothing, user cannot add column here
+                if (fixedTable != null && fixedTable.getSelectedColumn() >= 0) {
                     Notification.show(
                         "Cannot add columns in the fixed area. Select a column in the scrollable area or add at the end."
                     );
                     return;
                 }
 
-                // Check if a column is selected in the main (scrollable) table
                 int mainSelectedCol = table.getSelectedColumn();
+
                 if (mainSelectedCol >= 0) {
                     // Main table view column needs offset: model = view + frozenColumnCount
                     int insertIndex = mainSelectedCol + frozenColumnCount + 1;
@@ -1489,12 +1840,15 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
         private void deleteSelectedRows() {
             stopCellEditing();
-            List<Integer> rowList = Utils.getReverseSorted(table.getSelectedRows());
-            std.getUndoManager().startGroupEdit();
-            for (Integer row : rowList) {
-                std.removeRecord(row);
+            int[] selectedRows = getSelectedRowsAcrossTables();
+            if (selectedRows != null && selectedRows.length > 0) {
+                List<Integer> rowList = Utils.getReverseSorted(selectedRows);
+                std.getUndoManager().startGroupEdit();
+                for (Integer row : rowList) {
+                    std.removeRecord(row);
+                }
+                std.getUndoManager().stopGroupEdit();
             }
-            std.getUndoManager().stopGroupEdit();
         }
 
         private void deleteSelectedColumns() {
@@ -1692,156 +2046,411 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         }
 
         private void addTableProps() {
-            table.setActionFor(
-                "MoveUp",
-                new AbstractAction() {
+            bindTableActions(table, false);
+            if (
+                !isGlobalData &&
+                frozenScrollPane != null &&
+                frozenScrollPane.getFixedTable() != null
+            ) {
+                bindTableActions(frozenScrollPane.getFixedTable(), true);
+            }
+        }
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        moveRowUp();
+        private void bindTableActions(JTable targetTable, boolean isFixed) {
+            int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.DELETE, "Clear");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.INSERT_ROW, "Insert");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.ADD_ROW, "Add");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.ADD_ROWP, "Add");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.ADD_ROWX, "Add");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.REMOVE_ROW, "Delete");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.REMOVE_ROWX, "Delete");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.ADD_COL, "Add Column");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.ADD_COLP, "Add Column");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.ADD_COLX, "Add Column");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.REMOVE_COL, "Delete Column");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.REMOVE_COLX, "Delete Column");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.RIGHT, "Move Column Right");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.LEFT, "Move Column Left");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.COPY_ABOVE, "Copy Above");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.REPLICATE_ROW, "Replicate");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.SAVE, "Save");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.F5, "Reload");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.OPEN, "Open");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.FIND, "Search");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.UP, "MoveUp");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.DOWN, "MoveDown");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.UNDO, "Undo");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.REDO, "Redo");
+
+            targetTable
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+            targetTable
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+            targetTable
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.COPY, "Copy");
+            targetTable.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(Keystroke.CUT, "Cut");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.PASTE, "Paste");
+
+            targetTable
+                .getActionMap()
+                .put(
+                    "MoveUp",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            moveRowUp();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "MoveDown",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "MoveDown",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        moveRowDown();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            moveRowDown();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Insert",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Insert",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        insertRow();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            insertRow();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Add",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Add",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        insertRowBelow();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            insertRowBelow();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Delete",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Delete",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        deleteSelectedRows();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            deleteSelectedRows();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Clear",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Clear",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent ae) {
-                        clearValues();
+                        @Override
+                        public void actionPerformed(ActionEvent ae) {
+                            if (isFixed) {
+                                clearValuesFromFixedTable();
+                            } else {
+                                clearValues();
+                            }
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Add Column",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Add Column",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        addColumn();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            addColumn();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Delete Column",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Delete Column",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        deleteSelectedColumns();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            deleteSelectedColumns();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Replicate",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Replicate",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        replicateRow();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            replicateRow();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Save",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Save",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        save();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            save();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Reload",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Reload",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        reload();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            reload();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Open",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Open",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        openWithSystemEditor();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            openWithSystemEditor();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Search",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Search",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        toolBar.focusSearch();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            toolBar.focusSearch();
+                        }
                     }
-                }
-            );
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Copy Above",
+                    new AbstractAction() {
 
-            table.setActionFor(
-                "Copy Above",
-                new AbstractAction() {
-
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        copyAbove();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            copyAbove();
+                        }
                     }
-                }
-            );
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Copy",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            copy();
+                        }
+                    }
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "copy",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            copy();
+                        }
+                    }
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Cut",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            cut();
+                        }
+                    }
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "cut",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            cut();
+                        }
+                    }
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Paste",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            paste();
+                        }
+                    }
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "paste",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            paste();
+                        }
+                    }
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Undo",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            if (std.getUndoManager() != null) {
+                                std.getUndoManager().undo();
+                            }
+                        }
+                    }
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Redo",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            if (std.getUndoManager() != null) {
+                                std.getUndoManager().redo();
+                            }
+                        }
+                    }
+                );
         }
 
         private void copyAbove() {
             stopCellEditing();
-            int row = table.getSelectedRow();
+            int row = getSelectedRowAcrossTables();
             if (row > 0) {
-                for (int col : table.getSelectedColumns()) {
-                    String value = Objects.toString(table.getValueAt(row - 1, col), "");
-                    table.setValueAt(value, row, col);
+                if (table.getSelectedColumnCount() > 0) {
+                    for (int col : table.getSelectedColumns()) {
+                        String value = Objects.toString(table.getValueAt(row - 1, col), "");
+                        table.setValueAt(value, row, col);
+                    }
+                }
+                if (
+                    !isGlobalData &&
+                    frozenScrollPane != null &&
+                    frozenScrollPane.getFixedTable() != null
+                ) {
+                    JTable fixedTable = frozenScrollPane.getFixedTable();
+                    if (fixedTable.getSelectedColumnCount() > 0) {
+                        for (int col : fixedTable.getSelectedColumns()) {
+                            if (fixedTable.isCellEditable(row, col)) {
+                                String value = Objects.toString(
+                                    fixedTable.getValueAt(row - 1, col),
+                                    ""
+                                );
+                                fixedTable.setValueAt(value, row, col);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1853,12 +2462,14 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
         private void goToSelectedTestCase() {
             if (!isGlobalData) {
-                if (table.getSelectedRow() != -1) {
+                int selectedRow = getSelectedRowAcrossTables();
+                if (selectedRow != -1) {
                     Boolean invalid = false;
                     // For test data with FrozenColumnScrollPane, columns 0-4 are in the fixed table
                     // We need to read Scenario (column 0) and TestCase (column 1) from the fixed table
-                    int selectedRow = table.getSelectedRow();
-                    JTable sourceTable = frozenScrollPane.getFixedTable();
+                    JTable sourceTable = frozenScrollPane != null
+                        ? frozenScrollPane.getFixedTable()
+                        : table;
                     String scenVal = Objects.toString(sourceTable.getValueAt(selectedRow, 0), "");
                     String tcVal = Objects.toString(sourceTable.getValueAt(selectedRow, 1), "");
                     if (!scenVal.isEmpty() && !tcVal.isEmpty()) {
@@ -1903,14 +2514,22 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         }
 
         private void assignThePreviouslySelected() {
-            previousRowSelection = table.getSelectedRow();
+            previousRowSelection = getSelectedRowAcrossTables();
             previousColumnSelection = table.getSelectedColumn();
         }
 
         private void selectThePreviouslySelected() {
             if (previousRowSelection != -1 && previousColumnSelection != -1) {
-                table.setRowSelectionInterval(previousRowSelection, previousRowSelection);
-                table.setColumnSelectionInterval(previousColumnSelection, previousColumnSelection);
+                if (
+                    table.getRowCount() > previousRowSelection &&
+                    table.getColumnCount() > previousColumnSelection
+                ) {
+                    table.setRowSelectionInterval(previousRowSelection, previousRowSelection);
+                    table.setColumnSelectionInterval(
+                        previousColumnSelection,
+                        previousColumnSelection
+                    );
+                }
             }
         }
 

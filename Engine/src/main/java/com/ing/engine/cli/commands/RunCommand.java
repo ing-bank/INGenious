@@ -3,7 +3,7 @@ package com.ing.engine.cli.commands;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.engine.cli.INGeniousCLI;
-import java.io.File;
+import com.ing.engine.constants.AppResourcePath;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.*;
@@ -49,8 +49,8 @@ public class RunCommand implements Callable<Integer> {
             "Auto-detected target. Either:",
             "  <Project>/<Scenario>/<TestCase>  - a test case under TestPlan/",
             "  <Project>/<Release>/<TestSet>    - a test set under TestLab/",
-            "<Project> may be a folder under the current directory,",
-            "under ./Projects/, or an absolute path."
+            "<Project> may be an absolute path, a folder under the current directory,",
+            "under ./Projects/, or under the configured Workspace Projects directory."
         }
     )
     private String autoPath;
@@ -87,6 +87,13 @@ public class RunCommand implements Callable<Integer> {
     )
     private boolean rerun;
 
+    @Option(
+        names = { "--record-har" },
+        description = "Record browser network traffic (HAR) during the run and copy it" +
+        " into Performance/recordings/ for k6 export (ingenious perf export <file>.har)."
+    )
+    private boolean recordHar;
+
     @Mixin
     OverrideOptions overrides;
 
@@ -121,27 +128,40 @@ public class RunCommand implements Callable<Integer> {
                 projectName +
                 ", ./Projects/" +
                 projectName +
+                ", " +
+                new File(AppResourcePath.getProjectsPath(), projectName).getPath() +
                 ", and as an absolute path."
             );
             return 1;
         }
 
-        File testCaseCsv = new File(projectDir, "TestPlan/" + group + "/" + name + ".csv");
-        File testSetCsv = new File(projectDir, "TestLab/" + group + "/" + name + ".csv");
-        boolean isTestCase = testCaseCsv.isFile();
-        boolean isTestSet = testSetCsv.isFile();
+        // Test cases (TestPlan/) and test sets (TestLab/) may be persisted as
+        // either YAML (the current default) or the legacy CSV format, so probe
+        // all supported extensions instead of assuming .csv.
+        File testCaseFile = resolveExecutable(projectDir, "TestPlan", group, name);
+        File testSetFile = resolveExecutable(projectDir, "TestLab", group, name);
+        boolean isTestCase = testCaseFile != null;
+        boolean isTestSet = testSetFile != null;
 
         if (isTestCase && isTestSet) {
             cli.printError("Ambiguous: path matches both a test case and a test set.");
-            cli.printInfo("  TestCase: " + testCaseCsv.getPath());
-            cli.printInfo("  TestSet : " + testSetCsv.getPath());
+            cli.printInfo("  TestCase: " + testCaseFile.getPath());
+            cli.printInfo("  TestSet : " + testSetFile.getPath());
             cli.printInfo("Use 'ingenious run testcase' or 'ingenious run testset' explicitly.");
             return 1;
         }
         if (!isTestCase && !isTestSet) {
             cli.printError("Not found as a test case or test set.");
-            cli.printInfo("  Tried: " + testCaseCsv.getPath());
-            cli.printInfo("  Tried: " + testSetCsv.getPath());
+            cli.printInfo(
+                "  Tried: " +
+                new File(projectDir, "TestPlan/" + group + "/" + name).getPath() +
+                ".{yaml,yml,csv}"
+            );
+            cli.printInfo(
+                "  Tried: " +
+                new File(projectDir, "TestLab/" + group + "/" + name).getPath() +
+                ".{yaml,yml,csv}"
+            );
             return 1;
         }
 
@@ -188,14 +208,21 @@ public class RunCommand implements Callable<Integer> {
             }
         }
         args.add("-browser");
-        args.add(browser);
+        args.add(com.ing.engine.cli.lib.BrowserNames.normalize(browser));
         if (headless) {
             args.add("-op_setHeadless");
             args.add("true");
         }
+        if (recordHar) {
+            args.add("-setEnv");
+            args.add("run.enableHAR=true");
+        }
 
         try {
             com.ing.engine.core.Control.main(args.toArray(new String[0]));
+            if (recordHar) {
+                harvestHarRecordings(cli, projectDir, group, name, isTestCase);
+            }
             return 0;
         } catch (Exception e) {
             cli.printError("Execution failed: " + e.getMessage());
@@ -204,10 +231,95 @@ public class RunCommand implements Callable<Integer> {
     }
 
     /**
+     * After a {@code --record-har} run, copy every .har the engine wrote under
+     * the latest results ({@code .../Latest/har/}) into
+     * {@code Performance/recordings/} so the Performance Studio can export
+     * k6 scripts from them.
+     */
+    private static void harvestHarRecordings(
+        INGeniousCLI cli,
+        File projectDir,
+        String group,
+        String name,
+        boolean isTestCase
+    ) {
+        // The engine writes HARs to Results/.../<run timestamp>/har/; "Latest"
+        // may or may not mirror it depending on the reporter, so scan every
+        // run folder and take the most recently modified har directory.
+        File base = new File(
+            projectDir,
+            (isTestCase ? "Results/TestDesign/" : "Results/TestExecution/") + group + "/" + name
+        );
+        File harDir = null;
+        File[] runDirs = base.listFiles(File::isDirectory);
+        if (runDirs != null) {
+            for (File runDir : runDirs) {
+                File candidate = new File(runDir, "har");
+                if (
+                    candidate.isDirectory() &&
+                    (harDir == null || candidate.lastModified() > harDir.lastModified())
+                ) {
+                    harDir = candidate;
+                }
+            }
+        }
+        File[] hars = harDir == null
+            ? null
+            : harDir.listFiles(f -> f.isFile() && f.getName().endsWith(".har"));
+        if (hars == null || hars.length == 0) {
+            cli.printWarning(
+                "--record-har: no HAR files found under " +
+                base +
+                " (browser steps only; API-only runs produce no HAR)."
+            );
+            return;
+        }
+        com.ing.engine.perf.PerfWorkspace ws = new com.ing.engine.perf.PerfWorkspace(projectDir);
+        ws.ensure();
+        for (File har : hars) {
+            File target = new File(ws.recordingsDir(), har.getName());
+            try {
+                Files.copy(
+                    har.toPath(),
+                    target.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                );
+                cli.printSuccess("Recording saved: " + target);
+                cli.printInfo(
+                    "Generate a script: ingenious perf export \"" +
+                    target.getPath() +
+                    "\" -p " +
+                    projectDir.getName()
+                );
+            } catch (Exception e) {
+                cli.printWarning("Could not copy " + har + ": " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Resolve the on-disk file for an executable (test case under
+     * {@code TestPlan/} or test set under {@code TestLab/}), probing every
+     * supported persistence format in preference order (YAML then legacy CSV).
+     * Returns {@code null} when none of the candidates exist.
+     */
+    private static File resolveExecutable(File projectDir, String top, String group, String name) {
+        String base = top + "/" + group + "/" + name;
+        for (String ext : new String[] { ".yaml", ".yml", ".csv" }) {
+            File f = new File(projectDir, base + ext);
+            if (f.isFile()) {
+                return f;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Resolve a project folder by name, trying (in order):
      *   1. as an absolute path
      *   2. as a folder under the current working directory
      *   3. as a folder under {@code ./Projects/}
+     *   4. as a folder under the configured Workspace Projects directory
      * Returns {@code null} if none of those resolve to a directory.
      */
     private static File resolveProjectDir(String name) {
@@ -220,9 +332,13 @@ public class RunCommand implements Callable<Integer> {
         if (rel.isDirectory()) {
             return rel;
         }
-        File underProjects = new File(cwd, "Projects/" + name);
-        if (underProjects.isDirectory()) {
-            return underProjects;
+        File underCurrentProjects = new File(cwd, "Projects/" + name);
+        if (underCurrentProjects.isDirectory()) {
+            return underCurrentProjects;
+        }
+        File underWorkspaceProjects = new File(AppResourcePath.getProjectsPath(), name);
+        if (underWorkspaceProjects.isDirectory()) {
+            return underWorkspaceProjects;
         }
         return null;
     }
@@ -344,7 +460,7 @@ public class RunCommand implements Callable<Integer> {
             args.add("-testcase");
             args.add(tc[1]);
             args.add("-browser");
-            args.add(browser);
+            args.add(com.ing.engine.cli.lib.BrowserNames.normalize(browser));
             if (headless) {
                 args.add("-op_setHeadless");
                 args.add("true");
@@ -579,7 +695,7 @@ public class RunCommand implements Callable<Integer> {
                 args.add("-testset");
                 args.add(testset);
                 args.add("-browser");
-                args.add(browser);
+                args.add(com.ing.engine.cli.lib.BrowserNames.normalize(browser));
                 if (parallel > 1) {
                     args.add("-setEnv");
                     args.add("run.ThreadCount=" + parallel);
@@ -666,7 +782,7 @@ public class RunCommand implements Callable<Integer> {
                 args.add("-project_location");
                 args.add(path);
                 args.add("-browser");
-                args.add(browser);
+                args.add(com.ing.engine.cli.lib.BrowserNames.normalize(browser));
                 args.add("-tags");
                 args.add(String.join(",", tags));
 

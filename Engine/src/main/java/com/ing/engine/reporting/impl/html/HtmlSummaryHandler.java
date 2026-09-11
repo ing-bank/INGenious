@@ -393,7 +393,8 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
         }
         printReport();
         createLatest();
-        launchResultSummary();
+        // launchResultSummary() is deferred to Control.endExecution(), after the
+        // console.txt re-embed, so the auto-opened browser tab isn't stale.
     }
 
     /**
@@ -642,25 +643,17 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
                         );
                         // Prevent </script> from terminating the script tag early
                         jsonContent = jsonContent.replace("</script", "<\\/script");
+                        // Format: {scenario}_{testcase}_Step-{n}_axe-results.json
                         String fileName = axeFile.getName();
-                        String reusablePart = fileName.replace("_axe-results.json", "");
-                        String[] parts = reusablePart.split("_");
-                        if (parts.length >= 2) {
-                            StringBuilder reusableName = new StringBuilder();
-                            for (int i = 1; i < parts.length; i++) {
-                                if (i > 1) reusableName.append("_");
-                                reusableName.append(parts[i]);
-                            }
-                            String sanitizedId = reusableName
-                                .toString()
-                                .replaceAll("[^a-zA-Z0-9]", "-");
-                            axeScriptTags
-                                .append("<script type=\"application/json\" id=\"axe-data-")
-                                .append(sanitizedId)
-                                .append("\">\n")
-                                .append(jsonContent)
-                                .append("\n</script>\n");
-                        }
+                        String sanitizedId = fileName
+                            .replace("_axe-results.json", "")
+                            .replaceAll("[^a-zA-Z0-9]", "-");
+                        axeScriptTags
+                            .append("<script type=\"application/json\" id=\"axe-data-")
+                            .append(sanitizedId)
+                            .append("\">\n")
+                            .append(jsonContent)
+                            .append("\n</script>\n");
                     } catch (Exception ex) {
                         LOGGER.log(
                             Level.WARNING,
@@ -711,7 +704,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
     /**
      * Copies the current results to the latest results location.
      */
-    private synchronized void createLatest() {
+    public synchronized void createLatest() {
         try {
             File latestResult = new File(FilePath.getLatestResultsLocation());
             if (latestResult.exists()) {

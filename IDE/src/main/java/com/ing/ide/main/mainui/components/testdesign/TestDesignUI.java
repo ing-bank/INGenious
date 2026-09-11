@@ -54,27 +54,20 @@ public class TestDesignUI extends JPanel {
         testPlanPanel = getTreeInPanel("Test Plan", testDesign.getProjectTree().getTree());
         projectNReusableTreeSplitPane.setTopComponent(testPlanPanel);
 
-        // Create tabbed pane for Project and Shared Reusables with header
+        // Create tabbed pane for Project and Shared Reusables
         reusableTreeTabbedPane = new JTabbedPane();
-        JPanel projectReusablesPanel = new JPanel(new BorderLayout());
-        projectReusablesPanel.add(
-            TreeSearch.installFor(testDesign.getReusableTree().getTree()),
-            BorderLayout.CENTER
+        JPanel projectReusablesPanel = getRTreeInPanel(
+            "User Intent",
+            testDesign.getReusableTree().getTree()
         );
-
-        JPanel sharedReusablesPanel = new JPanel(new BorderLayout());
-        sharedReusablesPanel.add(
-            TreeSearch.installFor(testDesign.getSharedReusableTree().getTree()),
-            BorderLayout.CENTER
+        JPanel sharedReusablesPanel = getRTreeInPanel(
+            "Shared Reusables",
+            testDesign.getSharedReusableTree().getTree()
         );
+        reusableTreeTabbedPane.addTab("User Intent", projectReusablesPanel);
+        reusableTreeTabbedPane.addTab("Shared Reusables", sharedReusablesPanel);
 
-        reusableTreeTabbedPane.addTab("Project", projectReusablesPanel);
-        reusableTreeTabbedPane.addTab("Shared", sharedReusablesPanel);
-
-        // Wrap reusable tabbed pane with FXPanelHeader style
         appReusablePanel = new JPanel(new BorderLayout());
-        FXPanelHeader reusableHeader = new FXPanelHeader("Reusable Components");
-        appReusablePanel.add(reusableHeader, BorderLayout.NORTH);
         appReusablePanel.add(reusableTreeTabbedPane, BorderLayout.CENTER);
 
         projectNReusableTreeSplitPane.setBottomComponent(appReusablePanel);
@@ -95,7 +88,7 @@ public class TestDesignUI extends JPanel {
 
         oneThree = new JSplitPane();
         oneThree.setOneTouchExpandable(true);
-        oneThree.setResizeWeight(0.8);
+        oneThree.setResizeWeight(0.70);
 
         oneThree.setLeftComponent(oneTwo);
         oneThree.setRightComponent(testDesign.getObjectRepo());
@@ -252,6 +245,16 @@ public class TestDesignUI extends JPanel {
         testCaseNTestDataSplitPane.setDividerLocation(0.5);
     }
 
+    /** Returns the Test Plan panel (top-left) — used by the tour for spotlighting. */
+    public JPanel getTestPlanPanel() {
+        return testPlanPanel;
+    }
+
+    /** Returns the Reusable Components panel (bottom-left) — used by the tour for spotlighting. */
+    public JPanel getReusablesPanel() {
+        return appReusablePanel;
+    }
+
     private JPanel getTreeInPanel(String labelText, JTree tree) {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
@@ -297,22 +300,30 @@ public class TestDesignUI extends JPanel {
         return panel;
     }
 
+    private JPanel getRTreeInPanel(String labelText, JTree tree) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+
+        registerFont();
+
+        // Reusable panel uses a clickable header (like legacy reusableSwitch button)
+        reusableSwitch = new JButton(labelText);
+        reusableSwitch.setFont(new Font("ING Me", Font.BOLD, 12));
+        reusableSwitch.setContentAreaFilled(false);
+
+        FXPanelHeader header = new FXPanelHeader(labelText);
+        panel.add(header, BorderLayout.NORTH);
+        panel.add(TreeSearch.installFor(tree), BorderLayout.CENTER);
+        return panel;
+    }
+
     private void registerFont() {
-        try {
-            Font customFont = Font.createFont(
-                Font.TRUETYPE_FONT,
-                new File("resources/ui/resources/fonts/ingme_regular.ttf")
-            );
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            ge.registerFont(customFont);
-        } catch (IOException | FontFormatException e) {
-            // Font registration is best-effort
-        }
+        com.ing.ide.main.utils.AppFonts.register();
     }
 
     public void adjustUI() {
         oneTwo.setDividerLocation(0.25);
-        oneThree.setDividerLocation(0.8);
+        oneThree.setDividerLocation(0.70);
         oneTwo.setDividerLocation(0.25);
         projectNReusableTreeSplitPane.setDividerLocation(0.5);
         testCaseNTestDataSplitPane.setDividerLocation(0.5);

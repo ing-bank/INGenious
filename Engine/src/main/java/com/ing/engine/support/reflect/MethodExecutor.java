@@ -48,9 +48,28 @@ public class MethodExecutor {
         System.out.println("Executing method: " + mName);
         if (handle != null) {
             Class<?> clazz = CACHE_CLASS.get(handle);
-            Object instance = createInstance(clazz, inst);
-            handle.invoke(instance);
-            return true;
+
+            // Switch thread context classloader to plugin's classloader
+            ClassLoader originalTCCL = Thread.currentThread().getContextClassLoader();
+            ClassLoader targetClassLoader = clazz.getClassLoader();
+            boolean switched = false;
+
+            try {
+                // Only switch if target loader exists and differs from current TCCL
+                if (targetClassLoader != null && targetClassLoader != originalTCCL) {
+                    Thread.currentThread().setContextClassLoader(targetClassLoader);
+                    switched = true;
+                }
+
+                Object instance = createInstance(clazz, inst);
+                handle.invoke(instance);
+                return true;
+            } finally {
+                // Always restore original TCCL
+                if (switched) {
+                    Thread.currentThread().setContextClassLoader(originalTCCL);
+                }
+            }
         }
         return false;
     }

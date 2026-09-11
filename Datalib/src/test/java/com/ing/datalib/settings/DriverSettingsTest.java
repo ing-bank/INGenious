@@ -3,6 +3,8 @@ package com.ing.datalib.settings;
 import static org.testng.Assert.assertEquals;
 
 import com.ing.datalib.settings.DriverSettings;
+import com.ing.datalib.util.RuntimePath;
+import java.io.File;
 import java.lang.reflect.Method;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -31,9 +33,9 @@ public class DriverSettingsTest {
     public void testGetGeckcoDriverPath() {
         String expResult;
         if (isWin) {
-            expResult = "./lib/Drivers/geckodriver.exe";
+            expResult = new File(RuntimePath.getDriversPath(), "geckodriver.exe").getPath();
         } else {
-            expResult = "./lib/Drivers/geckodriver";
+            expResult = new File(RuntimePath.getDriversPath(), "geckodriver").getPath();
         }
         String result = ds.getGeckcoDriverPath();
         assertEquals(result, expResult);
@@ -46,9 +48,9 @@ public class DriverSettingsTest {
     public void testGetChromeDriverPath() {
         String expResult;
         if (isWin) {
-            expResult = "./lib/Drivers/chromedriver.exe";
+            expResult = new File(RuntimePath.getDriversPath(), "chromedriver.exe").getPath();
         } else {
-            expResult = "./lib/Drivers/chromedriver";
+            expResult = new File(RuntimePath.getDriversPath(), "chromedriver").getPath();
         }
         String result = ds.getChromeDriverPath();
         assertEquals(result, expResult);
@@ -59,7 +61,7 @@ public class DriverSettingsTest {
      */
     @Test
     public void testGetIEDriverPath() {
-        String expResult = "./lib/Drivers/IEDriverServer.exe";
+        String expResult = new File(RuntimePath.getDriversPath(), "IEDriverServer.exe").getPath();
         String result = ds.getIEDriverPath();
         assertEquals(result, expResult);
     }
@@ -69,7 +71,8 @@ public class DriverSettingsTest {
      */
     @Test
     public void testGetEdgeDriverPath() {
-        String expResult = "./lib/Drivers/MicrosoftWebDriver.exe";
+        String expResult = new File(RuntimePath.getDriversPath(), "MicrosoftWebDriver.exe")
+        .getPath();
         String result = ds.getEdgeDriverPath();
         assertEquals(result, expResult);
     }

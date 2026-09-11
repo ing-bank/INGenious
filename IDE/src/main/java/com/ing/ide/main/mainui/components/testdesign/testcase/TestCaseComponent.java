@@ -10,6 +10,7 @@ import com.ing.datalib.component.TestStep.HEADERS;
 import com.ing.datalib.component.utils.SaveListener;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebORPage;
+import com.ing.datalib.util.RuntimePath;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.LiveRecordingHook;
 import com.ing.engine.core.LiveRecordingService;
@@ -30,6 +31,7 @@ import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.main.utils.table.TableColumnManager;
 import com.ing.ide.main.utils.table.XTable;
+import com.ing.ide.settings.AppSettings;
 import com.ing.ide.util.Canvas;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Notification;
@@ -169,6 +171,19 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         recorderDialog = new RecorderDialog(testDesign);
         testCaseHistory = new TCHistory();
         validator = new TestCaseValidator(testCaseTable);
+        tableColumnManager.setOnVisibilityChanged(
+            () -> {
+                AppSettings.setVisibleTestCaseColumns(tableColumnManager.getVisibleColumnNames());
+                // Re-apply editors and renderers so a re-shown column regains its
+                // auto-suggest dropdown and colour styling.
+                if (getCurrentTestCase() != null) {
+                    if (tcAutoSuggest != null) {
+                        tcAutoSuggest.installForTestCase();
+                    }
+                    validator.initValidations();
+                }
+            }
+        );
         init();
         LiveRecordingService.setHook(new RecordFromHereHook());
     }
@@ -305,6 +320,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             TestCase tc = (TestCase) obj;
             tc.setSaveListener(saveListener);
             getTestCaseTable().setModel(testDesign.getProject().getTableModelFor(tc));
+            applyPersistedColumnLayout();
             tcAutoSuggest.installForTestCase();
             validator.initValidations();
             changeSave(tc.isSaved());
@@ -877,48 +893,79 @@ public class TestCaseComponent extends JPanel implements ActionListener {
     public Process startPlaywrightProcess(String processArgs) {
         try {
             String osName = System.getProperty("os.name").toLowerCase();
-            String classpath;
-            if (osName.contains("win")) {
-                String userHome = System.getProperty("user.home");
-                String printDepsDir = userHome + "\\AppData\\Local\\ms-playwright\\winldd-1007";
-                String printDepsPath = printDepsDir + "\\PrintDeps.exe";
-                File printDeps = new File(printDepsPath);
-                if (!printDeps.exists()) {
-                    new File(printDepsDir).mkdirs();
+            boolean windows = osName.contains("win");
 
-                    try (
-                        InputStream in = getClass()
-                            .getResourceAsStream("/Engine/winldd-1007/PrintDeps.exe")
-                    ) {
-                        if (in == null) {
-                            throw new FileNotFoundException(
-                                "PrintDeps.exe not found in resources!"
-                            );
-                        }
-                        Files.copy(in, Path.of(printDepsPath), StandardCopyOption.REPLACE_EXISTING);
-                    }
-                }
-                classpath = "lib/*;."; // Windows
-            } else {
-                classpath = "lib/*:."; // Mac
+            if (windows) {
+                ensureWindowsPlaywrightDependency();
             }
 
+            Path javaExecutable = Path.of(
+                System.getProperty("java.home"),
+                "bin",
+                windows ? "java.exe" : "java"
+            );
+
+            if (!Files.isRegularFile(javaExecutable)) {
+                throw new FileNotFoundException(
+                    "Bundled Java executable is missing: " + javaExecutable
+                );
+            }
+
+            String classpath =
+                RuntimePath.getLibPath() + File.separator + "*" + File.pathSeparator + ".";
+
             String javaCommand = String.format(
-                "java -cp \"%s\" com.microsoft.playwright.CLI %s",
+                "\"%s\" -cp \"%s\" com.microsoft.playwright.CLI %s",
+                javaExecutable,
                 classpath,
                 processArgs
             );
 
-            String[] command = osName.contains("windows")
+            String[] command = windows
                 ? new String[] { "cmd", "/c", javaCommand }
-                : new String[] { "bash", "-l", "-c", javaCommand };
+                : new String[] { "/bin/bash", "-c", javaCommand };
 
-            return new ProcessBuilder(command).redirectErrorStream(true).start();
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            processBuilder.directory(new File(RuntimePath.getAppRoot()));
+            processBuilder.redirectErrorStream(true);
+
+            return processBuilder.start();
         } catch (Exception ex) {
             logPlaywrightError("Error starting Playwright process: " + ex.getMessage());
+            Logger
+                .getLogger(TestCaseComponent.class.getName())
+                .log(Level.SEVERE, "Error starting Playwright process", ex);
         }
 
         return null;
+    }
+
+    private void ensureWindowsPlaywrightDependency() throws IOException {
+        String userHome = System.getProperty("user.home");
+        Path printDepsDirectory = Path.of(
+            userHome,
+            "AppData",
+            "Local",
+            "ms-playwright",
+            "winldd-1007"
+        );
+        Path printDepsPath = printDepsDirectory.resolve("PrintDeps.exe");
+
+        if (Files.exists(printDepsPath)) {
+            return;
+        }
+
+        Files.createDirectories(printDepsDirectory);
+
+        try (
+            InputStream input = getClass().getResourceAsStream("/Engine/winldd-1007/PrintDeps.exe")
+        ) {
+            if (input == null) {
+                throw new FileNotFoundException("PrintDeps.exe not found in resources");
+            }
+
+            Files.copy(input, printDepsPath, StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 
     //    public void initialization(PlaywrightSpinner playwrightSpinnerGUI){
@@ -1617,7 +1664,9 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         for (TestStep testStep : getCurrentTestCase().getTestSteps()) {
             if (!testStep.getAction().isEmpty() && testStep.getDescription().isEmpty()) {
                 String desc = MethodInfoManager.getDescriptionFor(testStep.getAction());
-                testCaseTable.setValueAt(desc, i, Description.getIndex());
+                // Write via the model (model coordinates) so it is correct even
+                // when the Description column is hidden or reordered in the view.
+                getCurrentTestCase().setValueAt(desc, i, Description.getIndex());
             }
             i++;
         }
@@ -1626,9 +1675,25 @@ public class TestCaseComponent extends JPanel implements ActionListener {
     public void reload() {
         stopCellEditing();
         getCurrentTestCase().reload();
-        tableColumnManager.reset();
+        applyPersistedColumnLayout();
         tcAutoSuggest.installForTestCase();
         validator.initValidations();
+    }
+
+    /**
+     * Re-apply the user's persisted column selection after a model swap. The
+     * table recreates all columns from the model, so this hides the columns the
+     * user chose to keep out of view. IDE view-only; never touches the model.
+     */
+    private void applyPersistedColumnLayout() {
+        tableColumnManager.reset();
+        tableColumnManager.applyVisible(AppSettings.getVisibleTestCaseColumns());
+    }
+
+    /** Shows the column show/hide menu below the given toolbar button. */
+    public void showColumnMenu(Component invoker) {
+        javax.swing.JPopupMenu menu = tableColumnManager.buildColumnMenu();
+        menu.show(invoker, 0, invoker.getHeight());
     }
 
     private void ccp(String operation) {

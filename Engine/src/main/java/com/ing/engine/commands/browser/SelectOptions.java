@@ -2,8 +2,11 @@ package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.util.logging.Level;
@@ -19,6 +22,13 @@ public class SelectOptions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Select item in [<Object>] which has text: [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Option 1",
+        inputHelp = "visible text/value (e.g. @Option 1) of a single option",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void SelectSingleByText() {
         try {
@@ -44,9 +54,16 @@ public class SelectOptions extends General {
         desc = "Select items [<Data>] of [<Object>] by visible Text",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Option 1|Option 2",
+        inputHelp = "multiple option texts/values (e.g. @Option 1|Option 2) separated by '|'",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void SelectMultipleByText() {
         try {
-            String options[] = Data.split("|");
+            String options[] = Data.split("\\|");
             Locator.selectOption(options);
             Report.updateTestLog(
                 Action,
@@ -69,6 +86,13 @@ public class SelectOptions extends General {
         desc = "Select item in [<Object>] which has text: [<Data>] if it Data exists",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Option 1",
+        inputHelp = "single option text/value; action is skipped when input is empty",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void SelectSingleByTextIfDataExists() {
         Page.waitForLoadState();
         if (!Data.isEmpty()) {
@@ -82,6 +106,13 @@ public class SelectOptions extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Select item in [<Object>] if visible which has text: [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Option 1",
+        inputHelp = "single option text/value; action runs only when locator is visible",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void SelectSingleByTextIfVisible() {
         Page.waitForLoadState();

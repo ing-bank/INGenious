@@ -1,5 +1,7 @@
 package com.ing.engine.constants;
 
+import com.ing.datalib.util.RuntimePath;
+import com.ing.datalib.util.WorkspacePath;
 import com.ing.engine.core.RunManager;
 import com.ing.engine.reporting.util.DateTimeUtils;
 import java.io.File;
@@ -15,6 +17,26 @@ import java.util.logging.Logger;
  *
  */
 public class AppResourcePath {
+    /**
+     * Root containing application-owned files such as lib, Engine,
+     * Tools, Extensions, and web assets.
+     *
+     * In the existing ZIP distribution this defaults to the current working
+     * directory. In a jpackage application it will point to Contents/app.
+     */
+    public static final String APP_HOME_PROPERTY = "ingenious.app.home";
+
+    /**
+     * Root containing user-writable directories such as Projects, Shared,
+     * Configuration, and plugins.
+     */
+    public static final String WORKSPACE_PROPERTY = "ingenious.workspace";
+
+    /**
+     * Environment-variable equivalent of ingenious.workspace.
+     */
+    public static final String WORKSPACE_ENVIRONMENT = "INGENIOUS_WORKSPACE";
+
     private static final String RESULTS_FOLDER = "Results";
     private static final String REPORT_TEMPLATE_FOLDER = "ReportTemplate";
     private static final String CONFIG = "Configuration";
@@ -56,14 +78,55 @@ public class AppResourcePath {
     private static String date;
     private static String time;
 
+    /**
+     * Returns the root containing application-owned, read-only files.
+     *
+     * <p>For the existing ZIP distribution this falls back to user.dir,
+     * preserving the current behavior. A jpackage launcher can supply
+     * -Dingenious.app.home with the location of its Contents/app directory.
+     */
     public static String getAppRoot() {
+        return RuntimePath.getAppRoot();
+    }
+
+    /**
+     * Returns the external, user-writable Workspace root.
+     *
+     * <p>The configured directory directly contains Projects, Shared, and
+     * Configuration.
+     */
+    public static String getWorkspaceRoot() {
+        return WorkspacePath.getWorkspaceRoot();
+    }
+
+    /**
+     * Returns the Workspace/Projects directory.
+     */
+    public static String getProjectsPath() {
+        return getWorkspaceRoot() + File.separator + "Projects";
+    }
+
+    /**
+     * Returns the Workspace/Shared directory.
+     */
+    public static String getSharedPath() {
+        return getWorkspaceRoot() + File.separator + "Shared";
+    }
+
+    public static String getUserDefinedPath() {
+        return WorkspacePath.getUserDefinedPath();
+    }
+
+    private static String canonicalPath(String value) {
         try {
-            // return System.getProperty("user.dir");
-            return new File(System.getProperty("user.dir")).getCanonicalPath();
+            return new File(value).getCanonicalPath();
         } catch (IOException ex) {
-            Logger.getLogger(AppResourcePath.class.getName()).log(Level.SEVERE, null, ex);
+            Logger
+                .getLogger(AppResourcePath.class.getName())
+                .log(Level.WARNING, "Could not resolve path: " + value, ex);
+
+            return new File(value).getAbsolutePath();
         }
-        return null;
     }
 
     public static String getExternalCommandsConfig() {
@@ -71,15 +134,31 @@ public class AppResourcePath {
     }
 
     public static String getPropertiesPath() {
-        return getAppRoot() + File.separator + CONFIG + File.separator + GLOBAL_PROPERTIES;
+        return getConfigurationPath() + File.separator + GLOBAL_PROPERTIES;
     }
 
     public static String getConfigurationPath() {
-        return getAppRoot() + File.separator + CONFIG;
+        return getWorkspaceRoot() + File.separator + CONFIG;
+    }
+
+    public static String getConfigurationResourcePath() {
+        return RuntimePath.getConfigurationPath();
     }
 
     public static String getLibPath() {
         return getAppRoot() + File.separator + "lib";
+    }
+
+    public static String getEnginePath() {
+        return getAppRoot() + File.separator + "Engine";
+    }
+
+    public static String getToolsPath() {
+        return getAppRoot() + File.separator + "Tools";
+    }
+
+    public static String getWebPath() {
+        return getAppRoot() + File.separator + "web";
     }
 
     public static String getExplorerConfig() {
@@ -88,7 +167,7 @@ public class AppResourcePath {
 
     public static String getReportThemePreviewPath() {
         return (
-            getConfigurationPath() +
+            getConfigurationResourcePath() +
             File.separator +
             REPORT_TEMPLATE_FOLDER +
             File.separator +
@@ -102,7 +181,7 @@ public class AppResourcePath {
 
     public static String getReportResourcePath() {
         return (
-            getConfigurationPath() +
+            getConfigurationResourcePath() +
             File.separator +
             REPORT_TEMPLATE_FOLDER +
             File.separator +
@@ -112,7 +191,7 @@ public class AppResourcePath {
 
     public static String getMailReportTemplatePath() {
         return (
-            getConfigurationPath() +
+            getConfigurationResourcePath() +
             File.separator +
             REPORT_TEMPLATE_FOLDER +
             File.separator +
@@ -122,7 +201,7 @@ public class AppResourcePath {
 
     public static String getaXeReportTemplatePath() {
         return (
-            getConfigurationPath() +
+            getConfigurationResourcePath() +
             File.separator +
             REPORT_TEMPLATE_FOLDER +
             File.separator +
@@ -132,7 +211,7 @@ public class AppResourcePath {
 
     public static String getReportTemplatePath() {
         return (
-            getConfigurationPath() +
+            getConfigurationResourcePath() +
             File.separator +
             REPORT_TEMPLATE_FOLDER +
             File.separator +
@@ -141,7 +220,7 @@ public class AppResourcePath {
     }
 
     public static String getPageDumpResourcePath() {
-        return getConfigurationPath() + File.separator + "PageDump";
+        return getConfigurationResourcePath() + File.separator + "PageDump";
     }
 
     public static String getEncFile() {
@@ -337,7 +416,19 @@ public class AppResourcePath {
     }
 
     public static String getStepMapFile() {
-        return getConfigurationPath() + File.separator + STEPMAP_FILE;
+        return getConfigurationResourcePath() + File.separator + STEPMAP_FILE;
+    }
+
+    public static String getSampleScriptPath() {
+        return getConfigurationResourcePath() + File.separator + "SampleScript.java";
+    }
+
+    public static String getPackagePropertiesPath() {
+        return getConfigurationResourcePath() + File.separator + "package.properties";
+    }
+
+    public static String getHarToPageSpeedPath() {
+        return getConfigurationResourcePath() + File.separator + "har_to_pagespeed.exe";
     }
 
     public static String getPropertiesPath(String fileName) {
