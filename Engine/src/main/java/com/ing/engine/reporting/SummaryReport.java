@@ -66,6 +66,35 @@ public final class SummaryReport implements OverviewReport {
     }
 
     /**
+     * Opens the summary report in the desktop browser. Called by
+     * {@link com.ing.engine.core.Control#endExecution()} once console.txt has
+     * been re-embedded with the trailing sync-publish output, so the auto-opened
+     * tab reflects the complete run.
+     */
+    public void launchResultSummary() {
+        for (SummaryHandler handler : REPORT_HANDLERS) {
+            if (handler instanceof HtmlSummaryHandler) {
+                ((HtmlSummaryHandler) handler).launchResultSummary();
+                return;
+            }
+        }
+    }
+
+    /**
+     * Re-copies the run folder into {@code Latest}, the snapshot the Dashboard
+     * renders. Must run after the console re-embed, otherwise the Dashboard
+     * shows a copy taken before the sync publish output existed.
+     */
+    public void refreshLatestResults() {
+        for (SummaryHandler handler : REPORT_HANDLERS) {
+            if (handler instanceof HtmlSummaryHandler) {
+                ((HtmlSummaryHandler) handler).createLatest();
+                return;
+            }
+        }
+    }
+
+    /**
      * initialize the report data file.
      *
      * @param runTime

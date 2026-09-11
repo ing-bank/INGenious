@@ -377,7 +377,7 @@ public class PlaywrightDriverFactory {
             getLambdaTestCap("tunnelName")
         );
         if (!getLambdaTestCap("geoLocation").isEmpty()) ltOptions.addProperty(
-            "tunnel",
+            "geoLocation",
             getLambdaTestCap("geoLocation")
         );
         ltOptions.addProperty("idleTimeout", Integer.valueOf(getLambdaTestCap("idleTimeout")));

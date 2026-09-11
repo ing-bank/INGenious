@@ -393,7 +393,8 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
         }
         printReport();
         createLatest();
-        launchResultSummary();
+        // launchResultSummary() is deferred to Control.endExecution(), after the
+        // console.txt re-embed, so the auto-opened browser tab isn't stale.
     }
 
     /**
@@ -711,7 +712,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
     /**
      * Copies the current results to the latest results location.
      */
-    private synchronized void createLatest() {
+    public synchronized void createLatest() {
         try {
             File latestResult = new File(FilePath.getLatestResultsLocation());
             if (latestResult.exists()) {
