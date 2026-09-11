@@ -99,6 +99,25 @@ final class JacobSapGuiSession implements SapGuiSession {
     }
 
     @Override
+    public SapGuiSession createSibling() {
+        try {
+            Dispatch.call(connection, "CreateSession");
+            // The new session lands at the end of Children after creation completes.
+            Dispatch children = Dispatch.call(connection, "Children").toDispatch();
+            int count = Dispatch.get(children, "Count").getInt();
+            ActiveXComponent newSession = new ActiveXComponent(
+                Dispatch.call(children, "Item", count - 1).toDispatch()
+            );
+            return new JacobSapGuiSession(connection, newSession);
+        } catch (Exception ex) {
+            throw new SapConnectionException(
+                "Could not create a new SAP session: " + ex.getMessage(),
+                ex
+            );
+        }
+    }
+
+    @Override
     public Object raw() {
         return session;
     }

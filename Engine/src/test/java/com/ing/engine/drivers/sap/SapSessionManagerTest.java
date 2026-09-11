@@ -344,4 +344,186 @@ public class SapSessionManagerTest {
         mgr.initConnection("", runner()); // no dialog elements preset -> must not throw
         assertTrue(mgr.hasConnection());
     }
+
+    // ---- Phase 4: concurrent sessions ------------------------------------
+
+    @Test
+    public void openSession_createsANewSessionAndMakesItCurrent() {
+        locator.rotPresent = false;
+        mgr.initConnection("", runner());
+        SapGuiSession primary = mgr.current();
+
+        SapGuiSession stock = mgr.openSession("s1");
+
+        assertNotSame(primary, stock);
+        assertSame(stock, mgr.current());
+        assertEquals("s1", mgr.currentSessionLabel());
+    }
+
+    @Test(expected = SapConnectionException.class)
+    public void openSession_blankLabelThrows() {
+        locator.rotPresent = false;
+        mgr.initConnection("", runner());
+        mgr.openSession("  ");
+    }
+
+    @Test(expected = SapConnectionException.class)
+    public void openSession_noConnectionThrows() {
+        mgr.openSession("s1");
+    }
+
+    @Test(expected = SapConnectionException.class)
+    public void openSession_duplicateLabelThrows() {
+        locator.rotPresent = false;
+        mgr.initConnection("", runner());
+        mgr.openSession("s1");
+        mgr.openSession("s1");
+    }
+
+    @Test
+    public void openSession_capsAtSixSessionsPerConnection() {
+        locator.rotPresent = false;
+        mgr.initConnection("", runner()); // 1 session (primary) already open
+        mgr.openSession("s1");
+        mgr.openSession("s2");
+        mgr.openSession("s3");
+        mgr.openSession("s4");
+        mgr.openSession("s5"); // now at 6
+
+        try {
+            mgr.openSession("s6");
+            fail("expected the 6-session cap to be enforced");
+        } catch (SapConnectionException expected) {
+            assertTrue(expected.getMessage().contains("6"));
+        }
+    }
+
+    @Test
+    public void switchSession_blankGoesBackToThePrimarySession() {
+        locator.rotPresent = false;
+        mgr.initConnection("", runner());
+        SapGuiSession primary = mgr.current();
+        mgr.openSession("s1");
+        assertSame(mgr.current(), mgr.sessionByLabel("s1"));
+
+        mgr.switchSession("");
+
+        assertSame(primary, mgr.current());
+        assertEquals("QA", mgr.currentSessionLabel()); // primary's label = the connection alias
+    }
+
+    @Test
+    public void switchSession_movesBetweenTwoNamedSessions() {
+        locator.rotPresent = false;
+        mgr.initConnection("", runner());
+        SapGuiSession s1 = mgr.openSession("s1");
+        SapGuiSession s2 = mgr.openSession("s2");
+        assertSame(s2, mgr.current());
+
+        mgr.switchSession("s1");
+
+        assertSame(s1, mgr.current());
+        assertEquals("s1", mgr.currentSessionLabel());
+    }
+
+    @Test(expected = SapConnectionException.class)
+    public void switchSession_unknownLabelThrows() {
+        locator.rotPresent = false;
+        mgr.initConnection("", runner());
+        mgr.switchSession("neverOpened");
+    }
+
+    @Test(expected = SapConnectionException.class)
+    public void switchSession_noConnectionThrows() {
+        mgr.switchSession("s1");
+    }
+
+    @Test
+    public void closeSession_blankClosesCurrentAndFallsBackToPreviousSession() {
+        locator.rotPresent = false;
+        mgr.initConnection("", runner());
+        mgr.openSession("s1");
+        mgr.openSession("s2"); // current
+
+        mgr.closeSession("");
+
+        assertEquals("s1", mgr.currentSessionLabel());
+        assertNull("s2 must no longer be resolvable", mgr.sessionByLabel("s2"));
+    }
+
+    @Test(expected = SapConnectionException.class)
+    public void closeSession_refusesToCloseTheOnlyRemainingSession() {
+        locator.rotPresent = false;
+        mgr.initConnection("", runner());
+        mgr.closeSession(""); // only the primary session is open
+    }
+
+    @Test
+    public void closeSession_ownedSessionEndsOnlyThatSessionNotTheConnection() {
+        locator.rotPresent = false;
+        mgr.initConnection("", runner());
+        FakeSap.Session stock = (FakeSap.Session) mgr.openSession("s1");
+
+        mgr.closeSession("s1");
+
+        assertEquals(1, stock.sessionCloseCount.get());
+        assertEquals(0, stock.closeCount.get());
+        assertTrue("the connection itself must still be open", mgr.hasConnection());
+    }
+
+    @Test
+    public void sessionByLabel_resolvesOpenLabelsAndNullsForUnknownOnes() {
+        locator.rotPresent = false;
+        mgr.initConnection("", runner());
+        SapGuiSession s1 = mgr.openSession("s1");
+
+        assertSame(s1, mgr.sessionByLabel("s1"));
+        assertNull(mgr.sessionByLabel("neverOpened"));
+        assertNull(mgr.sessionByLabel(""));
+        assertNull(mgr.sessionByLabel(null));
+    }
+
+    @Test
+    public void closeAll_tearsDownEveryOpenSessionOnAnOwnedConnection() {
+        locator.rotPresent = false;
+        mgr.initConnection("", runner());
+        FakeSap.Session primary = (FakeSap.Session) mgr.current();
+        mgr.openSession("s1");
+
+        mgr.closeAll(null);
+
+        // Closing any one session on an owned connection ends the whole connection (and every
+        // session on it) - exactly like a real GuiConnection.CloseConnection() would.
+        assertEquals(1, primary.closeCount.get());
+        assertFalse(mgr.hasConnection());
+    }
+
+    @Test
+    public void openSession_onAnAdoptedConnection_ownsOnlyTheSessionItCreated() {
+        // shareExisting adopts an existing session (not ours) as the primary; openSession still
+        // creates and owns a session of our own on top of that shared connection.
+        locator.rotPresent = true;
+        store.getSapPropertiesFor("QA").setProperty("connectionName", "QAS");
+        store.getSapPropertiesFor("QA").setProperty("sessionMode", "shareExisting");
+        FakeSap.Connection existing = new FakeSap.Connection("QAS");
+        locator.existing = existing;
+
+        mgr.initConnection("", runner());
+        FakeSap.Session ours = (FakeSap.Session) mgr.openSession("s1");
+
+        mgr.closeAll(null);
+
+        assertEquals(
+            "adopted primary session must never be closed by us",
+            0,
+            existing.sessions.get(0).closeCount.get() +
+            existing.sessions.get(0).sessionCloseCount.get()
+        );
+        assertEquals(
+            "our own session must be ended (not the connection)",
+            1,
+            ours.sessionCloseCount.get()
+        );
+        assertEquals(0, ours.closeCount.get());
+    }
 }

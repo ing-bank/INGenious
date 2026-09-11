@@ -45,17 +45,33 @@ public final class SapSessionManager {
     );
     private final ThreadLocal<String> currentAlias = new ThreadLocal<>();
 
+    /** Hard cap SAP GUI itself enforces per connection - {@code SAP.openSession} fails gracefully past it. */
+    public static final int MAX_SESSIONS_PER_CONNECTION = 6;
+
     private SapSessionManager() {}
 
-    /** One open connection plus its ownership flags and claim stack. */
+    /** One open connection plus its ownership flags, claim stack, and its open sessions by label. */
     private static final class Entry {
-        SapGuiSession session;
         boolean ownsProcess;
         boolean ownsConnection;
-        /** True when we called {@code createSession()} for this session on someone else's connection. */
-        boolean ownsSession;
         Process process;
         final Deque<TestCaseRunner> claims = new ArrayDeque<>();
+        /** Sessions on this connection, keyed by label; insertion order = creation order. */
+        final LinkedHashMap<String, SessionEntry> sessions = new LinkedHashMap<>();
+        /** The label {@code SAP.switchSession} last pointed at (or the default, from {@code initConnection}). */
+        String currentSessionLabel;
+    }
+
+    /** One session on a connection, plus whether this run owns it (and so must close it on teardown). */
+    private static final class SessionEntry {
+        final SapGuiSession session;
+        /** True when we created this session ourselves - via {@code openConnection} or {@code createSession()}/{@code createSibling()}. */
+        final boolean ownsSession;
+
+        SessionEntry(SapGuiSession session, boolean ownsSession) {
+            this.session = session;
+            this.ownsSession = ownsSession;
+        }
     }
 
     // ---- test hooks -------------------------------------------------------
@@ -99,7 +115,10 @@ public final class SapSessionManager {
             e.claims.push(runner);
             currentAlias.set(alias);
             LOG.log(Level.FINE, "SAP connection [{0}] already open — re-claimed", alias);
-            return e.session;
+            // Not reset to the menu / a particular session - whatever this connection's
+            // current session pointer already was (its default, or wherever a prior
+            // switchSession left it) stays current.
+            return e.sessions.get(e.currentSessionLabel).session;
         }
 
         LinkedProperties cfg = reg.get(alias);
@@ -113,7 +132,7 @@ public final class SapSessionManager {
         e.claims.push(runner);
         map.put(alias, e);
         currentAlias.set(alias);
-        return e.session;
+        return e.sessions.get(e.currentSessionLabel).session;
     }
 
     /** Make an already-open connection current. No claim change. */
@@ -125,6 +144,111 @@ public final class SapSessionManager {
             );
         }
         currentAlias.set(alias);
+    }
+
+    // ---- sessions (Phase 4: concurrent sessions on one connection) ------
+
+    /**
+     * Create a new session on the current connection, labeled {@code label}, and make it
+     * current. Unlike a {@code #alias} connection reference, a session label is a plain,
+     * caller-invented string - the caller (an {@code @Action} method) is expected to have
+     * already resolved it through the normal value pipeline (not left as {@code #...}).
+     *
+     * @throws SapConnectionException no current connection, blank label, a label already in
+     *         use on this connection, or the 6-session cap reached.
+     */
+    public SapGuiSession openSession(String label) {
+        Entry e = currentEntry();
+        if (e == null) {
+            throw new SapConnectionException("No SAP connection — add a SAP.initConnection step.");
+        }
+        String resolved = requireLabel(label);
+        if (e.sessions.containsKey(resolved)) {
+            throw new SapConnectionException(
+                "SAP session '" +
+                resolved +
+                "' is already open on this connection — use a different label, or " +
+                "SAP.switchSession to make it current."
+            );
+        }
+        if (e.sessions.size() >= MAX_SESSIONS_PER_CONNECTION) {
+            throw new SapConnectionException(
+                "This SAP connection already has " +
+                MAX_SESSIONS_PER_CONNECTION +
+                " sessions open (SAP's own limit) — close one with SAP.closeSession first."
+            );
+        }
+        SessionEntry current = e.sessions.get(e.currentSessionLabel);
+        SapGuiSession created = current.session.createSibling();
+        e.sessions.put(resolved, new SessionEntry(created, true));
+        e.currentSessionLabel = resolved;
+        return created;
+    }
+
+    /**
+     * Make an already-open session on the current connection current. No session is created.
+     * Blank {@code label} switches back to the connection's PRIMARY session - the one {@code
+     * initConnection} created, labeled with the connection's own alias. That alias often isn't
+     * known up front (e.g. a blank {@code initConnection} resolving to whatever the project
+     * default is), so this is the only way to reliably target it without hardcoding a label.
+     */
+    public void switchSession(String label) {
+        Entry e = currentEntry();
+        if (e == null) {
+            throw new SapConnectionException("No SAP connection — add a SAP.initConnection step.");
+        }
+        String resolved = (label == null || label.trim().isEmpty())
+            ? currentAlias.get()
+            : label.trim();
+        if (!e.sessions.containsKey(resolved)) {
+            throw new SapConnectionException(
+                "SAP session '" + resolved + "' is not open — add a SAP.openSession step."
+            );
+        }
+        e.currentSessionLabel = resolved;
+    }
+
+    /**
+     * Close a session on the current connection (blank {@code label} = the current session)
+     * and, if it was current, fall back to the most recently created remaining session. Refuses
+     * to close a connection's only remaining session — {@code SAP.closeConnection} is for that.
+     * A no-op (logged) when there is no current connection or the label isn't open.
+     */
+    public void closeSession(String label) {
+        Entry e = currentEntry();
+        if (e == null) {
+            LOG.log(Level.WARNING, "closeSession: no SAP connection is open");
+            return;
+        }
+        String resolved = (label == null || label.trim().isEmpty())
+            ? e.currentSessionLabel
+            : label.trim();
+        SessionEntry se = e.sessions.get(resolved);
+        if (se == null) {
+            LOG.log(Level.WARNING, "closeSession: SAP session [{0}] is not open", resolved);
+            return;
+        }
+        if (e.sessions.size() <= 1) {
+            throw new SapConnectionException(
+                "Cannot close the only open SAP session on this connection — use " +
+                "SAP.closeConnection instead."
+            );
+        }
+        teardownSession(e, se);
+        e.sessions.remove(resolved);
+        if (resolved.equals(e.currentSessionLabel)) {
+            e.currentSessionLabel = lastKey(e.sessions);
+        }
+    }
+
+    private static String requireLabel(String label) {
+        if (label == null || label.trim().isEmpty()) {
+            throw new SapConnectionException(
+                "A session label is required, e.g. @stock — blank is only valid for " +
+                "SAP connections (#alias), not SAP sessions."
+            );
+        }
+        return label.trim();
     }
 
     /**
@@ -196,16 +320,36 @@ public final class SapSessionManager {
     // ---- queries ------------------------------------------------------
 
     public SapGuiSession current() {
-        String a = currentAlias.get();
-        if (a == null) {
+        Entry e = currentEntry();
+        if (e == null || e.currentSessionLabel == null) {
             return null;
         }
-        Entry e = byAlias.get().get(a);
-        return e == null ? null : e.session;
+        SessionEntry se = e.sessions.get(e.currentSessionLabel);
+        return se == null ? null : se.session;
     }
 
     public String currentAliasName() {
         return currentAlias.get();
+    }
+
+    /** The label of the current connection's current session, or {@code null} when there is none. */
+    public String currentSessionLabel() {
+        Entry e = currentEntry();
+        return e == null ? null : e.currentSessionLabel;
+    }
+
+    /**
+     * Resolve a specific labeled session on the CURRENT connection - the "OR object pins to a
+     * session" seam ({@code SapORObject}'s {@code session} attribute). {@code null} when there
+     * is no current connection, the label is blank, or nothing is open under it.
+     */
+    public SapGuiSession sessionByLabel(String label) {
+        Entry e = currentEntry();
+        if (e == null || label == null || label.trim().isEmpty()) {
+            return null;
+        }
+        SessionEntry se = e.sessions.get(label.trim());
+        return se == null ? null : se.session;
     }
 
     /**
@@ -214,12 +358,16 @@ public final class SapSessionManager {
      * engine, owns no process of its own.
      */
     public Process currentProcess() {
+        Entry e = currentEntry();
+        return e == null ? null : e.process;
+    }
+
+    private Entry currentEntry() {
         String a = currentAlias.get();
         if (a == null) {
             return null;
         }
-        Entry e = byAlias.get().get(a);
-        return e == null ? null : e.process;
+        return byAlias.get().get(a);
     }
 
     public boolean hasConnection() {
@@ -253,26 +401,36 @@ public final class SapSessionManager {
         }
 
         SapEngineLocator.AdoptedConnection existing = engine.findConnection(connName);
+        SapGuiSession session;
+        boolean ownsSession;
         if (existing == null) {
             // Nothing open with this name yet - open our own, fully owned, connection.
-            e.session = engine.openConnection(connName);
+            session = engine.openConnection(connName);
             e.ownsConnection = true;
-            e.ownsSession = true;
+            ownsSession = true;
         } else {
-            resolveAgainstExistingConnection(alias, connName, existing, sessionMode, e);
+            e.ownsConnection = false;
+            Opened opened = resolveAgainstExistingConnection(connName, existing, sessionMode);
+            session = opened.session;
+            ownsSession = opened.ownsSession;
         }
 
         // No-op when the session is already past the logon screen (SSO/SNC, or a
         // session inherited from an already-authenticated adopted connection).
-        attemptLogon(e.session, cfg);
+        attemptLogon(session, cfg);
         // Checked independently of whether a logon screen appeared: SSO can auto-authenticate
         // and still trigger this popup if the user is already logged on elsewhere.
-        handleMultiLogonDialog(e.session, cfg);
+        handleMultiLogonDialog(session, cfg);
+
+        // initConnection labels its primary session - default: the connection alias itself,
+        // the same identifier #alias / currentAliasName() already surface everywhere else.
+        e.sessions.put(alias, new SessionEntry(session, ownsSession));
+        e.currentSessionLabel = alias;
 
         LOG.log(
             Level.INFO,
             "Opened SAP connection [{0}] -> {1} (ownsConnection={2}, ownsSession={3})",
-            new Object[] { alias, e.session.connectionInfo(), e.ownsConnection, e.ownsSession }
+            new Object[] { alias, session.connectionInfo(), e.ownsConnection, ownsSession }
         );
         return e;
     }
@@ -395,20 +553,30 @@ public final class SapSessionManager {
         }
     }
 
+    /** The session (and whether we own it) resolved for a fresh {@code initConnection}. */
+    private static final class Opened {
+        final SapGuiSession session;
+        final boolean ownsSession;
+
+        Opened(SapGuiSession session, boolean ownsSession) {
+            this.session = session;
+            this.ownsSession = ownsSession;
+        }
+    }
+
     /**
-     * Fills in {@code e.session} (and ownership) for a connection that is already open,
-     * per the {@code sessionMode} policy: {@code newSession} (default) spawns a session of
-     * our own on the shared connection; {@code shareExisting} drives an idle session already
-     * there; {@code requireOwn} refuses to touch a connection this run didn't open.
+     * Resolves the session (and ownership) for a connection that is already open, per the
+     * {@code sessionMode} policy: {@code newSession} (default) spawns a session of our own on
+     * the shared connection; {@code shareExisting} drives an idle session already there;
+     * {@code requireOwn} refuses to touch a connection this run didn't open.
      */
-    private static void resolveAgainstExistingConnection(
-        String alias,
+    private static Opened resolveAgainstExistingConnection(
         String connName,
         SapEngineLocator.AdoptedConnection existing,
-        String sessionMode,
-        Entry e
+        String sessionMode
     ) {
-        e.ownsConnection = false;
+        SapGuiSession session;
+        boolean ownsSession;
         switch (sessionMode) {
             case "requireOwn":
                 throw new SapConnectionException(
@@ -419,28 +587,31 @@ public final class SapSessionManager {
                 );
             case "shareExisting":
                 SapGuiSession idle = existing.firstIdleSession();
-                e.session = idle != null ? idle : existing.firstSession();
-                e.ownsSession = false;
+                session = idle != null ? idle : existing.firstSession();
+                ownsSession = false;
                 break;
             case "newSession":
             default:
-                if (existing.sessionCount() >= 6) {
+                if (existing.sessionCount() >= MAX_SESSIONS_PER_CONNECTION) {
                     throw new SapConnectionException(
                         "SAP connection '" +
                         connName +
-                        "' already has 6 sessions open - close one, or set sessionMode = " +
-                        "shareExisting on this connection."
+                        "' already has " +
+                        MAX_SESSIONS_PER_CONNECTION +
+                        " sessions open - close one, or set sessionMode = shareExisting on " +
+                        "this connection."
                     );
                 }
-                e.session = existing.createSession();
-                e.ownsSession = true;
+                session = existing.createSession();
+                ownsSession = true;
                 break;
         }
-        if (e.session == null) {
+        if (session == null) {
             throw new SapConnectionException(
                 "Could not obtain a SAP session on the already-open connection '" + connName + "'."
             );
         }
+        return new Opened(session, ownsSession);
     }
 
     private static String resolveSessionMode(LinkedProperties cfg) {
@@ -458,26 +629,60 @@ public final class SapSessionManager {
         }
     }
 
+    /** Tears down every session on the connection, then the connection/process itself. */
     private static void teardown(Entry e) {
-        try {
-            if (e.ownsConnection && e.session != null) {
-                // Owned connection: closing it also ends every session on it.
-                e.session.close();
-            } else if (e.ownsSession && e.session != null) {
-                // Someone else's connection, but we created this one session on it -
-                // end only ours; their connection and its other sessions are untouched.
-                e.session.closeSessionOnly();
+        if (e.ownsConnection) {
+            // Owned connection: closing any ONE session on it ends every session on it - so
+            // even if we opened extra sessions ourselves via openSession, one close() suffices.
+            SessionEntry any = e.sessions.isEmpty() ? null : e.sessions.values().iterator().next();
+            if (any != null) {
+                try {
+                    any.session.close();
+                } catch (Exception ex) {
+                    LOG.log(Level.WARNING, "Error closing SAP connection", ex);
+                }
             }
-            // Fully adopted (neither flag set): nothing to close, ever.
-        } catch (Exception ex) {
-            LOG.log(Level.WARNING, "Error closing SAP session/connection", ex);
+        } else {
+            // Adopted connection: end only the sessions we created ourselves (openConnection's
+            // own createSession(), or a later openSession) - every other session, and the
+            // connection itself, is left exactly as we found it.
+            for (SessionEntry se : e.sessions.values()) {
+                if (se.ownsSession) {
+                    try {
+                        se.session.closeSessionOnly();
+                    } catch (Exception ex) {
+                        LOG.log(Level.WARNING, "Error closing SAP session", ex);
+                    }
+                }
+            }
         }
+        e.sessions.clear();
         try {
             if (e.ownsProcess && e.process != null) {
                 e.process.destroy();
             }
         } catch (Exception ex) {
             LOG.log(Level.WARNING, "Error terminating SAP Logon process", ex);
+        }
+    }
+
+    /** Tears down one session on an otherwise-still-open connection ({@code SAP.closeSession}). */
+    private static void teardownSession(Entry e, SessionEntry se) {
+        if (!se.ownsSession) {
+            // Adopted session (shareExisting, or one opened by someone else): never ours to close.
+            return;
+        }
+        try {
+            if (e.ownsConnection && e.sessions.size() <= 1) {
+                // Last session on a connection we own - closing it closes the connection too,
+                // same as teardown(). closeSession's own caller already refuses this case, but
+                // stay correct if that guard is ever relaxed.
+                se.session.close();
+            } else {
+                se.session.closeSessionOnly();
+            }
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, "Error closing SAP session", ex);
         }
     }
 
@@ -500,7 +705,7 @@ public final class SapSessionManager {
         return KeyMap.resolveEnvVars(KeyMap.resolveSystemVars(value));
     }
 
-    private static String lastKey(Map<String, Entry> map) {
+    private static <V> String lastKey(Map<String, V> map) {
         String k = null;
         for (String key : map.keySet()) {
             k = key;

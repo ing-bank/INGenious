@@ -36,6 +36,13 @@ public interface SapGuiSession {
      */
     void closeSessionOnly();
 
+    /**
+     * Create and return a new session ({@code GuiConnection.CreateSession()}) on the SAME
+     * connection this session belongs to. Phase 4: backs {@code SAP.openSession} - the manager
+     * caps at 6 sessions per connection before ever calling this.
+     */
+    SapGuiSession createSibling();
+
     /** The underlying {@code com.jacob.activeX.ActiveXComponent}, or {@code null} for a fake. */
     Object raw();
 }

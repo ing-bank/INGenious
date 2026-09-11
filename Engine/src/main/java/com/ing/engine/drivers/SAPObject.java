@@ -81,13 +81,32 @@ public class SAPObject {
             );
             return null;
         }
-        if (session == null) {
+        // Phase 4: an object pinned to a session (its "session" OR attribute) resolves against
+        // that labeled session on the current connection instead of the one CommandControl
+        // bound at step-bind time - lets one test case drive several sessions concurrently.
+        String sessionLabel = getObjectProperty(pageKey, objectKey, ObjectProperty.Session);
+        ActiveXComponent targetSession = session;
+        if (sessionLabel != null && !sessionLabel.trim().isEmpty()) {
+            com.ing.engine.drivers.sap.SapGuiSession labeled = com.ing.engine.drivers.sap.SapSessionManager.INSTANCE.sessionByLabel(
+                sessionLabel.trim()
+            );
+            if (labeled == null || labeled.raw() == null) {
+                System.out.println(
+                    "Error: SAP session [" +
+                    sessionLabel +
+                    "] is not open - add a SAP.openSession step"
+                );
+                return null;
+            }
+            targetSession = (ActiveXComponent) labeled.raw();
+        }
+        if (targetSession == null) {
             System.out.println(
                 "Error: no live SAP session - run SAP.initConnection before SAP element steps"
             );
             return null;
         }
-        Dispatch parentElement = findByIdWithModalWait(id);
+        Dispatch parentElement = findByIdWithModalWait(targetSession, id);
         if (parentElement == null) {
             return null;
         }
@@ -124,16 +143,16 @@ public class SAPObject {
      * those ids instead of failing on the first miss; wnd[0] (and non-windowed ids) resolve
      * exactly as before - a single attempt, exception propagates as-is.
      */
-    private Dispatch findByIdWithModalWait(String id) {
+    private Dispatch findByIdWithModalWait(ActiveXComponent targetSession, String id) {
         java.util.regex.Matcher m = MODAL_WINDOW.matcher(id);
         if (!m.find() || "0".equals(m.group(1))) {
-            return session.invoke("FindById", id).toDispatch();
+            return targetSession.invoke("FindById", id).toDispatch();
         }
         long deadline = System.currentTimeMillis() + MODAL_WAIT_TIMEOUT_MS;
         Exception last = null;
         while (System.currentTimeMillis() < deadline) {
             try {
-                return session.invoke("FindById", id).toDispatch();
+                return targetSession.invoke("FindById", id).toDispatch();
             } catch (Exception ex) {
                 last = ex;
                 try {

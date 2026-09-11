@@ -9,7 +9,7 @@ later, additive phase.
 | | |
 |---|---|
 | **Branch** | `task/sap-multi-conn-session-win` |
-| **Status** | Phases 1–3 implemented, tested and pushed. Legacy-project-rewrite follow-up and Phase 4 not started. |
+| **Status** | Phases 1–4 implemented, tested and pushed. Only the legacy-project-rewrite follow-up remains unstarted. |
 | **Scope** | Engine · Datalib · IDE |
 
 ---
@@ -33,7 +33,7 @@ later, additive phase.
     - [Phase 2 — delivered](#phase-2--delivered)
     - [Phase 3 — delivered](#phase-3--delivered)
     - [Follow-up — legacy project rewrite (separate request)](#follow-up--legacy-project-rewrite-separate-request)
-    - [Phase 4 — deferred](#phase-4--deferred)
+    - [Phase 4 — delivered](#phase-4--delivered)
 14. [Verification — test list](#verification--test-list)
 15. [Open decisions](#open-decisions)
 
@@ -694,15 +694,15 @@ guard, backup/undo, dry-run report, and CLI (`--migrate-sap`) for headless/bulk 
 
 ## Roadmap — phased plan
 
-Phases 1–3 deliver both original requests; legacy projects keep running on the shim. Two
-separate requests follow: the legacy project rewrite (Option A) and the Phase 4
-multi-session enhancement — both additive, no rework of 1–3.
+Phases 1–3 deliver both original requests; legacy projects keep running on the shim. Phase 4
+(concurrent sessions) is additive on top, no rework of 1–3. The legacy project rewrite
+(Option A) is the one remaining separate request, also additive.
 
-**Where we are:** Phases 1–3 are implemented, unit-tested (against fakes for the COM seam,
-real `sync()` routing for the guardrails), and pushed to `task/sap-multi-conn-session-win`.
-The legacy shim is deliberately still in place (Phase 3 keeps it, per the compatibility
-section above) - only the follow-up legacy-project rewrite that flips `Browser = "SAP"` on
-disk and the deferred Phase 4 multi-session work remain unstarted.
+**Where we are:** Phases 1–4 are implemented, unit-tested (against fakes for the COM seam,
+real `sync()` routing for the guardrails, real parser output for the importer), and pushed to
+`task/sap-multi-conn-session-win`. The legacy shim is deliberately still in place (Phase 3
+keeps it, per the compatibility section above) - only the follow-up legacy-project rewrite
+that flips `Browser = "SAP"` on disk remains unstarted.
 
 ### Phase 1 — delivered
 
@@ -848,12 +848,71 @@ disk and the deferred Phase 4 multi-session work remain unstarted.
   converted.
 - **Risk:** Low — isolated to one migration unit; guarded and reversible.
 
-### Phase 4 — deferred
+### Phase 4 — delivered
 
 - **Delivers:** Concurrent SAP sessions addressed by alias.
-- **Key components:** `openSession` / `switchSession` / `closeSession` · `createSession` +
-  6-session cap · OR-page session binding · multi-session tests & docs.
-- **Risk:** Low against 1–3 — additive; contained in the manager and new actions.
+- **Key components delivered:**
+  - **`SapSessionManager`** — `Entry` now holds a `LinkedHashMap<label, SessionEntry>` (was a
+    single session) plus a per-connection `currentSessionLabel` pointer. `openSession(label)`
+    creates a session on the current connection via the new `SapGuiSession.createSibling()`
+    (`JacobSapGuiSession`: `GuiConnection.CreateSession()` + re-fetch the last `Children()`
+    entry; `FakeSap.Session.createSibling()` for tests), caps at `MAX_SESSIONS_PER_CONNECTION`
+    (6, SAP's own limit), and refuses a duplicate label. `switchSession(label)` just moves the
+    pointer - **blank switches to the connection's PRIMARY session** (labeled with the
+    connection's own alias, set by `initConnection`), which matters because that alias is
+    often not known until run time (a blank `initConnection` resolving to whatever the
+    project default is), so blank is the only way to reliably target it. `closeSession(label)`
+    (blank = current) tears down one session and falls back to the most recently created
+    remaining one if it was current; refuses to close a connection's only remaining session
+    (`SAP.closeConnection` is for that). Teardown (`closeConnection` / `closeAll`) now iterates
+    every open session: closing any one session on an *owned* connection ends the whole
+    connection (real SAP behaviour), so only one `close()` call is needed; on an *adopted*
+    connection only the sessions this run created itself (`ownsSession`) are ended.
+  - **Actions** — `sapOpenSession` / `sapSwitchSession` / `sapCloseSession` (`Engine`,
+    `SAPActions`). Deliberate asymmetry from the four connection actions: connection aliases
+    keep `#alias` and read the raw `Input` (Phase 1 decision, unchanged); session labels are
+    **plain values resolved through the normal pipeline** - `@literal`, `Sheet:Column`,
+    `%var%`, `${env}`, `=`/`>` formula - so they read the already-resolved `Data` field, like
+    an ordinary action. `sapOpenSession` is mandatory input; `sapSwitchSession` and
+    `sapCloseSession` are optional (blank = primary / current, respectively).
+  - **OR-page session binding** — the `session` attribute reserved on `SapORObject` back in
+    Phase 1 is now live: `SAPObject.findSAPElement()` reads it and, when set, resolves the
+    element against that labeled session via `SapSessionManager.sessionByLabel()` instead of
+    the session `CommandControl` bound at step-start - a single test case can drive several
+    sessions by pinning different OR objects to different labels, regardless of which one is
+    "current" when the step runs.
+  - **Scripting Tracker multi-session import** - the parsers no longer assume one `session`
+    variable. The base class (`SapLanguageParser`, used as-is by the VBScript / JavaScript /
+    Python / AutoIt / VBNet parsers) recognises any `session\w*` reference, invents a label the
+    first time a non-primary one appears, and emits `SAP.openSession` / `SAP.switchSession`
+    (blank = back to primary) the moment the recording switches; it also strips a leading
+    `/app/con[x]/ses[y]/` from absolute ids, deriving the label from `ses[y]` instead
+    (`ses[0]` = primary). **Java and PowerShell parsers** override `parse()` completely and
+    don't go through that regex dispatch, so each gained its own equivalent tracking, keyed off
+    which `session`/`$session2` variable a `findById` was captured through (Java) or passed to
+    `Invoke-Method -object` (PowerShell) - the two now also delegate their own duplicate
+    `storeObject` / `addAction` helpers to the base class's, picking up the same session
+    tagging for free. **PowerShell is the only language actually reachable from the IDE's
+    Import SAP Recording menu today** (every other menu entry is commented out in
+    `AppActionListener`), so it was the priority; **C# is not wired** (also menu-disabled,
+    lowest value). The same relative id appearing on two different sessions' screens no longer
+    collapses into one OR object or one generated name - both `SapLanguageParser`'s object map
+    and `SapScriptParser.generateUniqueObjectName()` are now session-scoped (`sess_<label>_`
+    prefix), the same idea Phase 3 used for window scope. *(Opportunistic fix: the Transaction
+    step's action name was hardcoded `"executeTransaction"` instead of the real
+    `sapExecuteTransaction`, so an imported transaction step could never actually run - fixed
+    alongside this work since it's the same code path.)*
+  - **Constraints held** - one COM STA thread means sessions are interleaved, not parallel,
+    exactly as scoped; parallel test cases still need separate connections; the 6-session cap
+    is enforced by the manager's own bookkeeping (not a live query against SAP), matching how
+    the existing adopt-time cap already works.
+  - **Tests** - `SapSessionManagerTest` gained 15 cases (open/switch/close, the cap, blank
+    semantics, ownership on both owned and adopted connections). `SapLanguageParserSessionTest`
+    (VBScript, exercises the base class directly) and
+    `SapParserLangPowerShellSessionTest` cover the importer's session tracking end to end.
+- **Risk:** Low against 1–3, as scoped - additive, contained in the manager, the three new
+  actions, and the importer's session bookkeeping; the ~64 pre-existing SAP actions are
+  untouched. All green: Datalib 590/590, Engine 637/637, IDE 41/41.
 
 ---
 
@@ -899,8 +958,10 @@ architecture these run on.
 
 ## Open decisions
 
-- **Adopt policy** — when a matching connection has several open sessions, adopt session 0,
-  the active one, or always `createSession()`? (Pins down Phase 4 behaviour too.)
+- ~~**Adopt policy** — when a matching connection has several open sessions, adopt session 0,
+  the active one, or always `createSession()`?~~ Resolved in Phase 2 via the `sessionMode`
+  connection setting (`newSession` default / `shareExisting` / `requireOwn`) - Phase 4 builds
+  session labeling on top without revisiting it.
 
 ---
 

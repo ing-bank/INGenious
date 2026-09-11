@@ -184,6 +184,89 @@ public class SAPActions extends General {
     }
 
     /**
+     * Create a new session (one connection, up to 6 sessions) on the current SAP connection,
+     * labeled by the resolved input, and make it current. Unlike {@code #alias} connection
+     * references, a session label is runtime-only and resolved through the ordinary value
+     * pipeline ({@code @literal}, datasheet, {@code %var%}, {@code ${env}}, formula) - so this
+     * reads {@code Data} (already resolved), not the raw {@code Input}.
+     */
+    @Action(
+        object = ObjectType.SAP,
+        desc = "Open a new SAP session labeled [<Data>]",
+        input = InputType.YES
+    )
+    @Args(
+        inputExample = "@stock",
+        help = "A session label, e.g. @stock - a plain value, not a #alias."
+    )
+    public void sapOpenSession() {
+        try {
+            SapSessionManager.INSTANCE.openSession(Data);
+            Report.setSapSession(SapSessionManager.INSTANCE.current());
+            Report.updateTestLog(
+                Action,
+                "SAP session opened [" + SapSessionManager.INSTANCE.currentSessionLabel() + "]",
+                Status.PASSNS
+            );
+        } catch (SapConnectionException ex) {
+            Report.updateTestLog(Action, ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    /**
+     * Make an already-open session on the current SAP connection current (blank = the
+     * connection's primary session - the one {@code initConnection} created). No session is
+     * created.
+     */
+    @Action(
+        object = ObjectType.SAP,
+        desc = "Switch current SAP session to [<Data>] (blank = primary session)",
+        input = InputType.OPTIONAL
+    )
+    @Args(
+        inputExample = "@stock",
+        help = "Blank = the connection's primary session; a label = that session only."
+    )
+    public void sapSwitchSession() {
+        try {
+            SapSessionManager.INSTANCE.switchSession(Data);
+            Report.setSapSession(SapSessionManager.INSTANCE.current());
+            Report.updateTestLog(
+                Action,
+                "Switched to SAP session [" +
+                SapSessionManager.INSTANCE.currentSessionLabel() +
+                "]",
+                Status.PASSNS
+            );
+        } catch (SapConnectionException ex) {
+            Report.updateTestLog(Action, ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    /**
+     * Close a session on the current SAP connection (blank = the current session). Refuses to
+     * close a connection's only remaining session - use {@code SAP.closeConnection} for that.
+     */
+    @Action(
+        object = ObjectType.SAP,
+        desc = "Close SAP session [<Data>] (blank = current session)",
+        input = InputType.OPTIONAL
+    )
+    @Args(inputExample = "@stock", help = "Blank = current session; a label = that session only.")
+    public void sapCloseSession() {
+        try {
+            SapSessionManager.INSTANCE.closeSession(Data);
+            Report.updateTestLog(Action, "SAP session closed", Status.PASSNS);
+        } catch (Exception ex) {
+            Report.updateTestLog(
+                Action,
+                "Error closing SAP session: " + ex.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
      * Safely parses integer input with validation
      * @param value the string value to parse
      * @param fieldName the field name for error reporting

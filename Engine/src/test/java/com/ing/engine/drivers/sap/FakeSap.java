@@ -126,6 +126,11 @@ public final class FakeSap {
         }
 
         @Override
+        public SapGuiSession createSibling() {
+            return new Session();
+        }
+
+        @Override
         public Object raw() {
             return null;
         }
