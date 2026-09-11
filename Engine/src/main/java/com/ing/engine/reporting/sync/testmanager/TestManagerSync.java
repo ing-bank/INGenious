@@ -137,6 +137,9 @@ public class TestManagerSync implements Sync {
             warn("ProjectId is not configured – skipping Test Manager publish.");
             return;
         }
+        if (!Control.exe.getExecSettings().getRunSettings().isGridExecution()) {
+            return;
+        }
 
         // Silence noisy cookie warnings from Apache HttpClient so the report stays clean.
         silenceHttpClientNoise();
