@@ -229,6 +229,10 @@ public class Project {
                     .getLogger(Project.class.getName())
                     .log(Level.WARNING, "Failed to reconcile shared reusable projects items", ex);
             }
+
+            // Run any registered project-shape migrations (e.g. the SAP legacy-project rewrite
+            // follow-up registers its unit here) - no-op today, empty registry.
+            com.ing.datalib.component.migration.ProjectMigrationRegistry.runAll(this);
         }
     }
 

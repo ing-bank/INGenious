@@ -7,6 +7,7 @@ import com.ing.datalib.component.Project;
 import com.ing.datalib.component.ReusableRef;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.sap.SapCompatibility;
 import com.ing.datalib.settings.RunSettings;
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.constants.SystemDefaults;
@@ -69,6 +70,32 @@ public class Task implements Runnable {
         // Clear any SAP connection left on this pooled worker by a previous test case.
         SapSessionManager.INSTANCE.resetForThread();
         report.createReport(runContext, DateTimeUtils.DateTimeNow());
+
+        // Guardrails: the remote grid owns the driver and ProtractorJS runs in its own process -
+        // neither can carry SAP's local COM session. Reject at launch rather than failing mid-run.
+        TestCase currentTestCase = runner.getTestCase();
+        if (
+            currentTestCase != null && SapCompatibility.hasSapStep(currentTestCase.getTestSteps())
+        ) {
+            if (!isLocalExecution()) {
+                report.updateTestLog(
+                    "Grid execution",
+                    "This test case has SAP steps - SAP GUI Scripting is a local COM session and cannot run on a remote grid node. Run it locally instead.",
+                    Status.FAILNS
+                );
+                report.finalizeReport();
+                return;
+            }
+            if ("ProtractorJS".equalsIgnoreCase(runContext.BrowserName)) {
+                report.updateTestLog(
+                    "ProtractorJS execution",
+                    "This test case has SAP steps - ProtractorJS runs in a separate process and cannot carry a SAP session. Pick a different run target.",
+                    Status.FAILNS
+                );
+                report.finalizeReport();
+                return;
+            }
+        }
 
         int iter = 1;
         Date startexecDate = new Date();

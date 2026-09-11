@@ -2,6 +2,7 @@ package com.ing.engine.core;
 
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
+import com.ing.datalib.sap.SapCompatibility;
 import com.ing.datalib.settings.DriverProperties;
 import com.ing.datalib.settings.DriverSettings;
 import com.ing.datalib.util.data.LinkedProperties;
@@ -21,6 +22,7 @@ import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.execution.run.TestCaseRunner;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.support.Step;
+import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
 import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
 import com.ing.ingenious.api.status.Status;
@@ -180,6 +182,23 @@ public abstract class CommandControl {
                 Status.FAILNS
             );
             return;
+        }
+
+        // Guardrail: an archetype needing its own live device/broker/remote driver can't share
+        // a test case with an open SAP connection - fail fast with the fix instead of NPEing.
+        if (isSapMode() && curr.Action != null) {
+            com.ing.ingenious.api.annotation.Action actionMeta = MethodInfoManager.getActionFor(
+                curr.Action
+            );
+            String actionObjectType = actionMeta != null ? actionMeta.object() : null;
+            if (SapCompatibility.isBlockedWithSap(actionObjectType)) {
+                Report.updateTestLog(
+                    curr.Action,
+                    SapCompatibility.blockedReasonMessage(actionObjectType),
+                    Status.FAILNS
+                );
+                return;
+            }
         }
 
         if (curr.Condition != null && curr.Condition.length() > 0) {

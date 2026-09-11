@@ -9,7 +9,7 @@ later, additive phase.
 | | |
 |---|---|
 | **Branch** | `task/sap-multi-conn-session-win` |
-| **Status** | Phases 1–2 implemented, tested and pushed. Phase 3 not started. |
+| **Status** | Phases 1–3 implemented, tested and pushed. Legacy-project-rewrite follow-up and Phase 4 not started. |
 | **Scope** | Engine · Datalib · IDE |
 
 ---
@@ -31,7 +31,7 @@ later, additive phase.
 13. [Roadmap — phased plan](#roadmap--phased-plan)
     - [Phase 1 — delivered](#phase-1--delivered)
     - [Phase 2 — delivered](#phase-2--delivered)
-    - [Phase 3](#phase-3)
+    - [Phase 3 — delivered](#phase-3--delivered)
     - [Follow-up — legacy project rewrite (separate request)](#follow-up--legacy-project-rewrite-separate-request)
     - [Phase 4 — deferred](#phase-4--deferred)
 14. [Verification — test list](#verification--test-list)
@@ -698,9 +698,11 @@ Phases 1–3 deliver both original requests; legacy projects keep running on the
 separate requests follow: the legacy project rewrite (Option A) and the Phase 4
 multi-session enhancement — both additive, no rework of 1–3.
 
-**Where we are:** Phases 1 and 2 are implemented, unit-tested against fakes, and pushed to
-`task/sap-multi-conn-session-win`. Phase 3 (removing the legacy shim, guardrails, the
-`ProjectMigration` SPI, and the Scripting Tracker importer changes) has not been started.
+**Where we are:** Phases 1–3 are implemented, unit-tested (against fakes for the COM seam,
+real `sync()` routing for the guardrails), and pushed to `task/sap-multi-conn-session-win`.
+The legacy shim is deliberately still in place (Phase 3 keeps it, per the compatibility
+section above) - only the follow-up legacy-project rewrite that flips `Browser = "SAP"` on
+disk and the deferred Phase 4 multi-session work remain unstarted.
 
 ### Phase 1 — delivered
 
@@ -769,18 +771,73 @@ multi-session enhancement — both additive, no rework of 1–3.
   unit-tested against fakes (`FakeSap.Connection` / `.Element`) but not yet exercised against
   a real SAP GUI; the field/dialog ids are standard but worth confirming on first live run.
 
-### Phase 3
+### Phase 3 — delivered
 
 - **Delivers:** Browser/Playwright + SAP in one case; guardrails; migration-ready.
-- **Key components:** remove `Task` SAP branch · `CommandControl` routing via `current()` ·
-  compatibility matrix · design-time warnings · runtime fail-fast · Grid guard ·
-  `ProjectMigration` SPI on project load + `sap.model` marker + CSV / test-set rewrite
-  helpers (the `Browser = "SAP"` rewrite unit itself is a separate follow-up) · runtime shim
-  retained · Scripting Tracker importer emits `SAP.initConnection` / `SAP.closeConnection`
-  pair, `"No Browser"` target, **multi-window (`wnd[1..n]`) import fix** — keep every window
-  id, disambiguate names by window scope, runtime modal wait (optional: connection capture
-  from the recording) · routing tests.
-- **Risk:** Medium — touches shared execution path; needs regression coverage.
+- **Key components delivered:**
+  - **`Task` SAP branch / `CommandControl` routing via `current()`** — already done as of
+    Phase 1 (confirmed, not re-touched): `Task` has no `BrowserName`-based SAP branching left,
+    only the flag-gated legacy shim (kept, see below) and the iteration-end backstop;
+    `CommandControl.sync()` already resolves the SAP session through
+    `SapSessionManager.INSTANCE.current()`.
+  - **Compatibility matrix** — new `SapCompatibility` (Datalib, `com.ing.datalib.sap`): the
+    blocked set (`Mobile` / `App` / `Kafka` / `Queue` / `ProtractorJS`), a shared
+    human-readable reason+fix message, and `hasSapStep(List<TestStep>)` used by both the
+    design-time warning and the launch guards below - one source of truth so the IDE and the
+    engine can't drift.
+  - **Design-time warning** — `AbstractRenderer.setWarning()` (new, amber foreground +
+    tooltip, deliberately never sets `errorState`) and `ObjectRenderer.applyGuardrailWarning()`:
+    a step whose object resolves to a blocked type (the literal `Kafka`/`Queue` keyword, or an
+    OR-referenced `Mobile`/`App` element — both resolve through the same Mobile OR) gets a
+    non-blocking amber marker once the test case also has a SAP step. Never flips `hasError()`,
+    never blocks saving, never reddens a tree node - the guardrail table is advisory at design
+    time, enforced at run time.
+  - **Runtime fail-fast** — `CommandControl.sync()` looks up the executing action's declared
+    `ObjectType` via `MethodInfoManager.getActionFor()` (independent of what the step's
+    `ObjectName` literally is) and fails with `Status.FAILNS` + the shared message the instant
+    a blocked-type action runs while a SAP connection is open, instead of NPEing deeper in.
+  - **Grid guard / ProtractorJS guard** — `Task.run()` checks once at launch, before the
+    iteration loop: a test case with any SAP step is rejected up front (`Status.FAILNS`, no
+    iterations attempted) when the run target is Grid/LambdaTest execution or the `ProtractorJS`
+    browser - both are whole-run driver choices, not per-step `ObjectType`s, so they're guarded
+    here rather than in `CommandControl`.
+  - **`ProjectMigration` SPI** — new, generic (not SAP-specific) extension point:
+    `com.ing.datalib.component.migration.ProjectMigration` (`id()` / `order()` /
+    `appliesTo(Project)` / `migrate(Project)`) + `ProjectMigrationRegistry` (register, run all
+    applicable units in order, one throwing unit is logged and skipped rather than aborting
+    load), wired into `Project.loadProject()` right after the existing shared-reusable
+    reconciliation step, gated the same way (`!readOnlyMode`). **Empty by default** - no unit
+    is registered yet; the legacy-project-rewrite follow-up registers its unit here without
+    touching `Project.loadProject()` again.
+  - **CSV / test-set rewrite helpers** — new `SapProjectRewriteHelper` (Datalib):
+    `rewriteBrowserAssignment()` (`"SAP"` → `"No Browser"`, case-insensitive, everything else
+    untouched) and `ensureInitCloseConnectionSteps()` (idempotent - injects a blank-input
+    `SAP.initConnection` as step 1 and `SAP.closeConnection` as the last step only if not
+    already present). Built and unit-tested now so the follow-up's migration unit stays small.
+  - **Runtime shim retained** — unchanged, as designed; still flag-gated
+    (`sap.connectionModel.enabled` + `sapLegacyShim`).
+  - **Scripting Tracker importer** — `SapScriptParser.generateTestCase()` now emits the
+    balanced `SAP.initConnection` (step 1) / `SAP.closeConnection` (last step) pair, both
+    blank-input. The `"No Browser"` target needed no code change - the importer never wrote a
+    `Browser` value at all (browser assignment isn't a persisted `TestCase`/`Scenario` field),
+    so nothing had to change there.
+  - **Multi-window (`wnd[1..n]`) import fix** — `generateObjectName()` now keeps a window-scope
+    prefix (`w1_`, `w2_`, ...) for any id outside `wnd[0]`, so `wnd[0]/usr/txtFOO` and a
+    popup's `wnd[1]/usr/txtFOO` generate distinct names (`txtFOO` / `w1_txtFOO`) instead of
+    colliding. **Runtime modal wait** — `SAPObject.findByIdWithModalWait()` (new): a `wnd[N>0]`
+    lookup now polls (5 s, 250 ms interval) instead of failing on the first miss, since a popup
+    can render after the triggering step returns; `wnd[0]` ids resolve exactly as before, one
+    attempt. *(Not done: connection capture from the recording - marked optional in the
+    original plan.)*
+  - **Routing tests** — `CommandControlSapGuardrailTest` (Engine), real `sync()` cases against
+    the fakes' full action registry (`MethodInfoManager.load()`), replacing the intent of the
+    print-only `SAPActionRoutingTest` deleted in Phase 2: a blocked archetype fails fast with a
+    SAP connection open, a SAP session action still routes, a driverless action still runs
+    unaffected. Uses `Mobile` (`shake`) as the blocked-archetype case rather than `Kafka` -
+    every `Kafka` `@Action` method in this codebase is currently commented out, so there is no
+    live Kafka action to route to today.
+- **Risk:** Medium — touches shared execution path; regression coverage is real `sync()` cases
+  plus the existing fake-backed suites, all green (Datalib 590/590, Engine 622/622, IDE 36/36).
 
 ### Follow-up — legacy project rewrite (separate request)
 
@@ -847,5 +904,5 @@ architecture these run on.
 
 ---
 
-*Proposal for review — INGenious SAP testing. File and class names refer to the current
-`tasks/sap-enhancement-supp-browser-actions` branch.*
+*INGenious SAP testing redesign. File and class names refer to the current
+`task/sap-multi-conn-session-win` branch.*

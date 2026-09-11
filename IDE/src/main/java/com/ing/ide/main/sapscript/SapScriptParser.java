@@ -287,6 +287,22 @@ public class SapScriptParser {
 
             int stepNo = 1;
 
+            // Balanced SAP.initConnection / SAP.closeConnection pair bookending the recording,
+            // both blank-input so they resolve to the project default connection at run time -
+            // no connection prompt at import; the user edits step 1 to #alias afterwards if needed.
+            writer.println(
+                String.format(
+                    "%d,%s,%s,%s,%s,%s,%s",
+                    stepNo++,
+                    "SAP",
+                    "Initialize SAP connection",
+                    "sapInitConnection",
+                    "",
+                    "",
+                    ""
+                )
+            );
+
             for (SapLanguageParser.SapAction action : sapActions) {
                 if (action.actionType.equals("Transaction")) {
                     // Transaction action - no object reference needed
@@ -330,10 +346,23 @@ public class SapScriptParser {
                     );
                 }
             }
+
+            writer.println(
+                String.format(
+                    "%d,%s,%s,%s,%s,%s,%s",
+                    stepNo++,
+                    "SAP",
+                    "Close SAP connection",
+                    "sapCloseConnection",
+                    "",
+                    "",
+                    ""
+                )
+            );
         }
 
         LOGGER.info("Test case generated: " + testCaseFile.getAbsolutePath());
-        System.out.println("Created test case with " + sapActions.size() + " steps");
+        System.out.println("Created test case with " + (sapActions.size() + 2) + " steps");
     }
 
     /**
@@ -493,9 +522,15 @@ public class SapScriptParser {
         }
     }
 
+    /** Matches a leading "wnd[N]" path segment so popup elements (wnd[1], wnd[2], ...) get a distinct name from the main window's. */
+    private static final java.util.regex.Pattern WND_SEGMENT = java.util.regex.Pattern.compile(
+        "(?:^|/)wnd\\[(\\d+)\\]"
+    );
+
     private String generateObjectName(String id) {
         // Extract readable name from SAP ID
         // Example: wnd[0]/usr/txtRSYST-BNAME -> RSYST_BNAME
+        // Example: wnd[1]/usr/txtRSYST-BNAME -> w1_RSYST_BNAME (popup, disambiguated from wnd[0]'s)
         String name = id;
 
         // Get last segment after final /
@@ -505,6 +540,14 @@ public class SapScriptParser {
         }
 
         // Keep prefixes (txt, btn, cbo, etc.) for clarity and SAP convention alignment
+
+        // Non-main-window elements (wnd[1], wnd[2], ...) get a window-scope prefix so a popup's
+        // field never collapses onto the main screen's same-named field - wnd[0] stays unprefixed
+        // since it's overwhelmingly the common case and existing recordings/OR pages expect it.
+        java.util.regex.Matcher wndMatch = WND_SEGMENT.matcher(id);
+        if (wndMatch.find() && !"0".equals(wndMatch.group(1))) {
+            name = "w" + wndMatch.group(1) + "_" + name;
+        }
 
         // Replace - with _
         name = name.replace("-", "_");

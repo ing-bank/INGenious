@@ -87,7 +87,10 @@ public class SAPObject {
             );
             return null;
         }
-        Dispatch parentElement = session.invoke("FindById", id).toDispatch();
+        Dispatch parentElement = findByIdWithModalWait(id);
+        if (parentElement == null) {
+            return null;
+        }
         if (text == null || text.isEmpty()) {
             return parentElement;
         } else {
@@ -106,6 +109,49 @@ public class SAPObject {
                 System.out.println("Warning : Element not exist with text : " + text);
             }
         }
+        return null;
+    }
+
+    private static final java.util.regex.Pattern MODAL_WINDOW = java.util.regex.Pattern.compile(
+        "^wnd\\[(\\d+)\\]"
+    );
+    private static final long MODAL_WAIT_TIMEOUT_MS = 5000;
+    private static final long MODAL_WAIT_POLL_MS = 250;
+
+    /**
+     * Popups (wnd[1], wnd[2], ...) render asynchronously after the step that triggers them, so a
+     * FindById issued immediately after can miss a modal still on its way up. Poll briefly for
+     * those ids instead of failing on the first miss; wnd[0] (and non-windowed ids) resolve
+     * exactly as before - a single attempt, exception propagates as-is.
+     */
+    private Dispatch findByIdWithModalWait(String id) {
+        java.util.regex.Matcher m = MODAL_WINDOW.matcher(id);
+        if (!m.find() || "0".equals(m.group(1))) {
+            return session.invoke("FindById", id).toDispatch();
+        }
+        long deadline = System.currentTimeMillis() + MODAL_WAIT_TIMEOUT_MS;
+        Exception last = null;
+        while (System.currentTimeMillis() < deadline) {
+            try {
+                return session.invoke("FindById", id).toDispatch();
+            } catch (Exception ex) {
+                last = ex;
+                try {
+                    Thread.sleep(MODAL_WAIT_POLL_MS);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }
+        System.out.println(
+            "Error: modal window for [" +
+            id +
+            "] did not appear within " +
+            MODAL_WAIT_TIMEOUT_MS +
+            "ms" +
+            (last != null ? " (" + last.getMessage() + ")" : "")
+        );
         return null;
     }
 
