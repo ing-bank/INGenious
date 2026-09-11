@@ -37,6 +37,7 @@ public final class UILogger {
     private static final String LOG_FILE;
     private static double maxFileSize = 4.5d;
     private static final String LOG_BKP_LOC;
+    private OutputStream logFileOutput;
     private JDialog logDialog;
     private JTextArea logArea;
 
@@ -81,9 +82,9 @@ public final class UILogger {
             if (parent != null && !parent.exists() && !parent.mkdirs()) {
                 throw new IOException("Could not create log directory: " + parent);
             }
-            OutputStream logf = new FileOutputStream(logFile, true);
-            MultiOutputStream multiErr = new MultiOutputStream(System.err, logf);
-            MultiOutputStream multiOut = new MultiOutputStream(System.out, logf);
+            logFileOutput = new FileOutputStream(logFile, true);
+            MultiOutputStream multiErr = new MultiOutputStream(System.err, logFileOutput);
+            MultiOutputStream multiOut = new MultiOutputStream(System.out, logFileOutput);
             log_err = new PrintStream(multiErr);
             log_out = new PrintStreamOut(multiOut);
             init();
@@ -124,6 +125,23 @@ public final class UILogger {
         System.setOut(SYS_OUT);
         System.setErr(SYS_ERR);
         resetLogger();
+    }
+
+    public static synchronized void closeWorkspaceLog() throws IOException {
+        reset();
+
+        if (log_out != null) {
+            log_out.flush();
+        }
+
+        if (log_err != null) {
+            log_err.flush();
+        }
+
+        if (logger != null && logger.logFileOutput != null) {
+            logger.logFileOutput.close();
+            logger.logFileOutput = null;
+        }
     }
 
     private void checkFileBackup() {

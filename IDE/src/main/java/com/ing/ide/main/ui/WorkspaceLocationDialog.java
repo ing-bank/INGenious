@@ -4,6 +4,7 @@ import com.ing.datalib.util.WorkspacePath;
 import com.ing.datalib.util.WorkspacePreference;
 import com.ing.datalib.util.WorkspaceRelocator;
 import com.ing.ide.main.mainui.AppMainFrame;
+import com.ing.ide.util.logging.UILogger;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -270,6 +271,7 @@ public final class WorkspaceLocationDialog extends JDialog {
         }
 
         try {
+            UILogger.closeWorkspaceLog();
             WorkspaceRelocator.deleteVerifiedSource(currentWorkspace, workspace);
         } catch (IOException | RuntimeException ex) {
             JOptionPane.showMessageDialog(
