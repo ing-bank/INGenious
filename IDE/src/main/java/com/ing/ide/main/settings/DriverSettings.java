@@ -992,13 +992,15 @@ public class DriverSettings extends javax.swing.JFrame {
     }
 
     private Boolean isDatasheetOrVariable(String value) {
-        String pattern1 = "\\{[^:]+:[^}]+\\}";
+        String pattern1 = "\\{[^:]+:[^}]+\\}"; // {Sheet:Column} (incl. {[Project]/[Shared] ...})
         String pattern2 = "%[^%]+%";
-        Pattern regex1 = Pattern.compile(pattern1);
-        Pattern regex2 = Pattern.compile(pattern2);
-        Matcher matcher1 = regex1.matcher(value);
-        Matcher matcher2 = regex2.matcher(value);
-        return matcher1.matches() || matcher2.matches();
+        // Bare, explicitly scope-tagged data reference: [Project] Sheet:Column / [Shared] ...
+        String pattern3 = "(\\[Shared\\]|\\[Project\\])\\s*[^:{}]+:[^:{}]+";
+        return (
+            Pattern.compile(pattern1).matcher(value).matches() ||
+            Pattern.compile(pattern2).matcher(value).matches() ||
+            Pattern.compile(pattern3).matcher(value).matches()
+        );
     }
 
     private void resFilter() {

@@ -304,12 +304,74 @@ public class TestStep {
         return getObject().equals("Execute") && getAction().matches(".+:.+");
     }
 
+    /**
+     * True when this step's <b>whole Input</b> is a Test Data reference - used for IDE
+     * validation / colouring / the "TestData/Column not available" check. Braces are optional
+     * for a whole-input reference: bare {@code Sheet:Column} and {@code [Project]/[Shared]
+     * Sheet:Column} (bare or braced) all count.
+     *
+     * <p>This is <em>not</em> about embedded {@code {Sheet:Column}} tokens inside a larger Input
+     * (a webservice / MQ payload, SQL text, a file template, a connection string). Those are a
+     * literal/payload Input as far as the IDE is concerned; the command resolves the tokens at
+     * execution time via {@code TestDataToken.resolveEmbeddedTokens} where the {@code {...}}
+     * braces are the required delimiter.</p>
+     */
     public Boolean isTestDataStep() {
+        if (isScopedTestDataRef(getInput())) {
+            return true;
+        }
         if (
             getInput().startsWith("<") || getInput().startsWith("{") || getInput().startsWith("[")
         ) return false; else if (
             getInput().matches("(?!(@|=|%)).+:.+")
         ) return true; else return false; // return getInput().matches("(?!(@|=|%)).+:.+");
+    }
+
+    /**
+     * "[Shared] Sheet:Column" / "[Project] Sheet:Column" - bare or braced - an explicit Test
+     * Data scope tag, mirroring ReusableRef.Scope's [Project]/[Shared] convention. Checked
+     * ahead of the generic "starts with [/{ " rule above (which would otherwise reject it),
+     * mirroring DataProcessor.isInputPatternDataSheet on the execution side.
+     */
+    private boolean isScopedTestDataRef(String inp) {
+        // \s* (not \s+) to stay in step with the engine's DataProcessor.SCOPED_DATASHEET_PATTERN.
+        return unwrapBraces(inp)
+            .matches("(\\[Shared\\]|\\[Project\\])\\s*[^:{}\\[\\]]+:[^:{}\\[\\]]+");
+    }
+
+    private String unwrapBraces(String inp) {
+        String t = Objects.toString(inp, "").trim();
+        if (t.startsWith("{") && t.endsWith("}")) {
+            t = t.substring(1, t.length() - 1).trim();
+        }
+        return t;
+    }
+
+    /**
+     * A {@code [Shared] Sheet:Column} Test Data reference anywhere in {@code s} - whole-input
+     * or an embedded {@code {[Shared] Sheet:Column}} token inside a larger string (payload,
+     * SQL, template, condition). Used to decide whether a project consumes Shared Test Data.
+     */
+    private static final java.util.regex.Pattern SHARED_TD_TOKEN = java.util.regex.Pattern.compile(
+        "\\[Shared\\]\\s*[^:{}\\[\\]]+:[^:{}\\[\\]]+"
+    );
+
+    public static boolean containsSharedTestDataToken(String s) {
+        return s != null && SHARED_TD_TOKEN.matcher(s).find();
+    }
+
+    /**
+     * Returns the "[Shared]"/"[Project]" scope tag this step's Input carries, or "" if unscoped.
+     */
+    public String getTestDataScopeTag() {
+        String t = unwrapBraces(getInput());
+        if (t.startsWith("[Shared]")) {
+            return "[Shared]";
+        }
+        if (t.startsWith("[Project]")) {
+            return "[Project]";
+        }
+        return "";
     }
 
     public Boolean isEmpty() {
@@ -450,7 +512,12 @@ public class TestStep {
 
     public String[] getTestDataFromInput() {
         if (isTestDataStep()) {
-            return getInput().split(":");
+            String inp = unwrapBraces(getInput());
+            String tag = getTestDataScopeTag();
+            if (!tag.isEmpty()) {
+                inp = inp.substring(tag.length()).trim();
+            }
+            return inp.split(":");
         }
         return null;
     }

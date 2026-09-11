@@ -52,7 +52,7 @@ public class DataAccess extends DataAccessInternal {
         Object val;
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
-        if (validEnv(context)) {
+        if (validEnvFor(context, sheet)) {
             env = getModel(context, sheet);
             val = getData(context, env, def, field, iter, subIter);
         } else {
@@ -61,7 +61,7 @@ public class DataAccess extends DataAccessInternal {
         if (val == null) {
             throwErrorWithCause(context, sheet, field, subIter);
         }
-        return DataProcessor.resolve(val, context, field);
+        return DataProcessor.resolve(inheritSheetScopeForGlobalDataRef(val, sheet), context, field);
     }
 
     /**
@@ -102,7 +102,7 @@ public class DataAccess extends DataAccessInternal {
 
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
-        if (validEnv(context)) {
+        if (validEnvFor(context, sheet)) {
             env = getModel(context, sheet);
             val =
                 getDataFromModelWithScope(env, field, scn, tc, iter, nextSubIteration, scopeFilter);
@@ -142,7 +142,7 @@ public class DataAccess extends DataAccessInternal {
         Boolean updated;
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
-        if (validEnv(context)) {
+        if (validEnvFor(context, sheet)) {
             env = getModel(context, sheet);
             updated = putData(context, env, def, field, newVal, iter, subIter);
         } else {
@@ -186,7 +186,7 @@ public class DataAccess extends DataAccessInternal {
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
         String scope = getScopeFilter(context, scn, tc);
-        if (validEnv(context)) {
+        if (validEnvFor(context, sheet)) {
             env = getModel(context, sheet);
             val = getDataFromModelWithScope(env, field, scn, tc, iter, subIter, scope);
         }
@@ -196,7 +196,7 @@ public class DataAccess extends DataAccessInternal {
         if (val == null) {
             throwErrorWithCause(context, sheet, field, subIter);
         }
-        return DataProcessor.resolve(val, context, field);
+        return DataProcessor.resolve(inheritSheetScopeForGlobalDataRef(val, sheet), context, field);
     }
 
     /**
@@ -232,7 +232,7 @@ public class DataAccess extends DataAccessInternal {
         boolean updated = false;
         TestDataModel def = getDefModel(context, sheet);
         String scope = getScopeFilter(context, scn, tc);
-        if (validEnv(context)) {
+        if (validEnvFor(context, sheet)) {
             updated =
                 putDataToModel(
                     getModel(context, sheet),
@@ -271,21 +271,46 @@ public class DataAccess extends DataAccessInternal {
     public static String getGlobalData(TestCaseRunner context, String gid, String field)
         throws DataNotFoundException {
         Object val;
-        GlobalDataModel env;
-        GlobalDataModel def = context.executor().dataProvider().defData().getGlobalData();
-        if (validEnv(context)) {
-            env =
-                context
+        boolean shared = isSharedScopeRef(gid);
+        String bareGid = shared ? stripSharedScopeTag(gid) : stripProjectScopeTag(gid);
+
+        if (shared) {
+            com.ing.datalib.component.EnvTestData sharedProvider = context
+                .project()
+                .getSharedTestData();
+            if (sharedProvider == null) {
+                val = null;
+            } else {
+                GlobalDataModel sharedDef = sharedProvider.defData().getGlobalData();
+                if (validSharedEnv(context)) {
+                    com.ing.datalib.component.TestData sharedEnvTd = sharedProvider.getTestDataFor(
+                        context.executor().sharedRunEnv()
+                    );
+                    GlobalDataModel sharedEnv = sharedEnvTd == null
+                        ? null
+                        : sharedEnvTd.getGlobalData();
+                    val = getGlobal(sharedEnv, sharedDef, bareGid, field);
+                } else {
+                    val = getGlobal(sharedDef, bareGid, field);
+                }
+            }
+        } else {
+            GlobalDataModel def = context.executor().dataProvider().defData().getGlobalData();
+            if (validEnv(context)) {
+                GlobalDataModel env = context
                     .executor()
                     .dataProvider()
                     .getTestDataFor(context.executor().runEnv())
                     .getGlobalData();
-            val = getGlobal(env, def, gid, field);
-        } else {
-            val = getGlobal(def, gid, field);
+                val = getGlobal(env, def, bareGid, field);
+            } else {
+                val = getGlobal(def, bareGid, field);
+            }
         }
+
         if (val == null) {
-            throw new GlobalDataNotFoundException(context, gid, field);
+            String scopedField = field + " (" + (shared ? "Shared" : "Project") + " GlobalData)";
+            throw new GlobalDataNotFoundException(context, gid, scopedField);
         }
         return DataProcessor.resolve(val, context, field);
     }
@@ -312,19 +337,27 @@ public class DataAccess extends DataAccessInternal {
         String value
     )
         throws DataNotFoundException {
-        GlobalDataModel env = context.executor().dataProvider().defData().getGlobalData();
-        if (validEnv(context)) {
-            env =
-                context
-                    .executor()
-                    .dataProvider()
-                    .getTestDataFor(context.executor().runEnv())
-                    .getGlobalData();
-        } else if (isNull(env)) {
-            throw new GlobalDataNotFoundException(context, gid, field);
+        boolean shared = isSharedScopeRef(gid);
+        String bareGid = shared ? stripSharedScopeTag(gid) : stripProjectScopeTag(gid);
+        com.ing.datalib.component.EnvTestData provider = shared
+            ? context.project().getSharedTestData()
+            : context.executor().dataProvider();
+
+        GlobalDataModel env = provider == null ? null : provider.defData().getGlobalData();
+        boolean useEnv = shared ? validSharedEnv(context) : validEnv(context);
+        if (provider != null && useEnv) {
+            String targetEnv = shared
+                ? context.executor().sharedRunEnv()
+                : context.executor().runEnv();
+            com.ing.datalib.component.TestData envTd = provider.getTestDataFor(targetEnv);
+            env = envTd == null ? null : envTd.getGlobalData();
+        }
+        if (isNull(env)) {
+            String scopedField = field + " (" + (shared ? "Shared" : "Project") + " GlobalData)";
+            throw new GlobalDataNotFoundException(context, gid, scopedField);
         }
         env.load();
-        env.setValueAt(value, env.getRecordIndexByKey(gid), env.findColumn(field));
+        env.setValueAt(value, env.getRecordIndexByKey(bareGid), env.findColumn(field));
         env.saveChanges();
     }
 
@@ -667,7 +700,7 @@ public class DataAccess extends DataAccessInternal {
     public static TestDataView getTestData(TestCaseRunner context, String sheet) {
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
-        if (validEnv(context)) {
+        if (validEnvFor(context, sheet)) {
             env = getModel(context, sheet);
         } else {
             env = def;

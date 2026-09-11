@@ -8,6 +8,7 @@ import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
+import com.ing.engine.execution.data.TestDataToken;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -3707,23 +3708,20 @@ final class MCPTools {
                     if (refPage != null && !orPageExists(p, refPage)) {
                         errors.add(where + ": referenced OR page '" + refPage + "' not found [E2]");
                     }
-                    // E4 – data references must resolve.
+                    // E4 – data references must resolve. TestDataToken.parse keeps any
+                    // [Project]/[Shared] tag on the sheet name so dataRefExists can route.
                     if (ConventionCatalog.isDataRef(input)) {
-                        String[] sc = input.split(":", 2);
-                        if (!dataRefExists(p, sc[0], sc[1])) {
+                        String[] sc = TestDataToken.parse(input);
+                        if (sc != null && !dataRefExists(p, sc[0], sc[1])) {
                             errors.add(where + ": data reference '" + input + "' not found [E4]");
                         }
                     } else {
                         java.util.regex.Matcher m = ConventionCatalog.PAYLOAD_TOKEN.matcher(input);
                         while (m.find()) {
-                            if (!dataRefExists(p, m.group(1), m.group(2))) {
+                            String[] sc = TestDataToken.parse(m.group());
+                            if (sc != null && !dataRefExists(p, sc[0], sc[1])) {
                                 errors.add(
-                                    where +
-                                    ": payload token '{" +
-                                    m.group(1) +
-                                    ":" +
-                                    m.group(2) +
-                                    "}' not found [E4]"
+                                    where + ": payload token '" + m.group() + "' not found [E4]"
                                 );
                             }
                         }
@@ -3916,7 +3914,19 @@ final class MCPTools {
     /** True when {@code sheet}/{@code column} exists in any environment's test data. */
     private boolean dataRefExists(Project p, String sheet, String column) {
         try {
-            com.ing.datalib.component.EnvTestData env = p.getTestData();
+            // An explicit [Shared] tag routes to the app-root Shared Test Data; an untagged or
+            // [Project]-tagged reference resolves against the project's own Test Data.
+            com.ing.datalib.component.EnvTestData env;
+            if (sheet != null && sheet.startsWith("[Shared]")) {
+                env = p.getSharedTestData();
+                sheet = sheet.substring("[Shared]".length()).trim();
+            } else {
+                env = p.getTestData();
+                if (sheet != null && sheet.startsWith("[Project]")) {
+                    sheet = sheet.substring("[Project]".length()).trim();
+                }
+            }
+            if (env == null) return false;
             for (String e : env.getEnvironments()) {
                 com.ing.datalib.component.TestData td = env.getTestDataFor(e);
                 if (td == null) continue;

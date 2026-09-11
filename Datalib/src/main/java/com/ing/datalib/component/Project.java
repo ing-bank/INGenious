@@ -20,13 +20,21 @@ import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import com.ing.datalib.settings.ProjectSettings;
+import com.ing.datalib.testdata.model.AbstractDataModel;
+import com.ing.datalib.testdata.model.GlobalDataModel;
+import com.ing.datalib.testdata.model.Record;
+import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.datalib.util.data.FileScanner;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
@@ -61,6 +69,8 @@ public class Project {
 
     public static final String SHARED_REUSABLE_COMPONENTS_DIR = "SharedReusableComponents";
 
+    public static final String SHARED_TEST_DATA_DIR = "SharedTestData";
+
     private List<Scenario> scenarios = new ArrayList<>();
 
     private final List<Scenario> reusableScenarios = new ArrayList<>();
@@ -72,6 +82,8 @@ public class Project {
     private String testdataType;
 
     private EnvTestData testData;
+
+    private EnvTestData sharedTestData;
 
     private String location;
 
@@ -229,6 +241,16 @@ public class Project {
                     .getLogger(Project.class.getName())
                     .log(Level.WARNING, "Failed to reconcile shared reusable projects items", ex);
             }
+
+            // Reconcile shared test data project tracking to clean stale entries
+            try {
+                reconcileSharedTestDataProjectsItems();
+            } catch (Exception ex) {
+                Logger
+                    .getLogger(Project.class.getName())
+                    .log(Level.WARNING, "Failed to reconcile shared test data projects items", ex);
+            }
+            registerSharedTestDataUsage();
         }
     }
 
@@ -432,6 +454,266 @@ public class Project {
                 .getLogger(Project.class.getName())
                 .log(Level.WARNING, "Error reconciling shared reusable projects.items", ex);
         }
+    }
+
+    /**
+     * Reconciles the shared test data projects.items file by removing stale project entries.
+     * Validates that all projects in the file still exist at their recorded paths.
+     */
+    private void reconcileSharedTestDataProjectsItems() {
+        try {
+            File sharedRoot = new File(getSharedTestDataPath());
+            File projectsFile = new File(sharedRoot, "projects.items");
+
+            if (!projectsFile.exists()) {
+                return; // No projects.items file to reconcile
+            }
+
+            try {
+                String content = FileScanner.readFile(projectsFile);
+                if (content == null || content.isEmpty()) {
+                    return; // Empty file, nothing to reconcile
+                }
+
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                java.util.List<java.util.Map<String, String>> projects = mapper.readValue(
+                    content,
+                    mapper
+                        .getTypeFactory()
+                        .constructCollectionType(java.util.List.class, java.util.Map.class)
+                );
+
+                // Filter out stale entries - keep only projects that still exist on disk
+                java.util.List<java.util.Map<String, String>> validProjects = new java.util.ArrayList<>();
+                for (java.util.Map<String, String> proj : projects) {
+                    String projectPath = proj.get("path");
+                    if (projectPath != null && !projectPath.isEmpty()) {
+                        File projectDir = new File(projectPath);
+                        // Keep entry if the project directory exists
+                        if (projectDir.exists() && projectDir.isDirectory()) {
+                            validProjects.add(proj);
+                        }
+                    }
+                }
+
+                // Write reconciled list back only if changes were made
+                if (validProjects.size() != projects.size()) {
+                    String jsonOutput = mapper
+                        .writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(validProjects);
+
+                    // Atomic write: write to temp and rename
+                    File tmp = new File(projectsFile.getPath() + ".tmp");
+                    FileScanner.writeFile(tmp, jsonOutput);
+                    if (tmp.exists()) {
+                        if (!tmp.renameTo(projectsFile)) {
+                            // Fallback if rename fails
+                            FileScanner.writeFile(projectsFile, jsonOutput);
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                Logger
+                    .getLogger(Project.class.getName())
+                    .log(Level.WARNING, "Failed to read projects.items during reconciliation", ex);
+            }
+        } catch (Exception ex) {
+            Logger
+                .getLogger(Project.class.getName())
+                .log(Level.WARNING, "Error reconciling shared test data projects.items", ex);
+        }
+    }
+
+    /**
+     * True when any test step in this project (Test Plan, Project Reusables or Shared
+     * Reusables) carries a {@code [Shared]}-scoped Test Data reference - i.e. the project
+     * consumes the app-root Shared Test Data store.
+     *
+     * @return whether this project references Shared Test Data
+     */
+    public boolean usesSharedTestData() {
+        for (Scenario scenario : getAllScenarios()) {
+            for (TestCase testCase : scenario.getTestCases()) {
+                testCase.loadTableModel();
+                for (TestStep step : testCase.getTestSteps()) {
+                    if (
+                        (step.isTestDataStep() && "[Shared]".equals(step.getTestDataScopeTag())) ||
+                        TestStep.containsSharedTestDataToken(step.getInput()) ||
+                        TestStep.containsSharedTestDataToken(step.getCondition())
+                    ) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Adds {@code project} to {@code Shared/SharedTestData/projects.items} if not already
+     * present (never removes). The lightweight per-save counterpart to
+     * {@link #registerSharedTestDataUsage()} - called from {@link TestCase#save()} whenever a
+     * saved test case carries a {@code [Shared]} Test Data reference, mirroring how Shared
+     * Reusable consumers are tracked.
+     *
+     * @param project the project to record as a Shared Test Data consumer
+     */
+    public static void addSharedTestDataProjectEntry(Project project) {
+        if (project == null || project.getName() == null) {
+            return;
+        }
+        try {
+            File sharedRoot = new File(getSharedTestDataPath());
+            if (!sharedRoot.exists()) {
+                sharedRoot.mkdirs();
+            }
+            File projectsFile = new File(sharedRoot, "projects.items");
+
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            java.util.List<java.util.Map<String, String>> projects = new java.util.ArrayList<>();
+            if (projectsFile.exists()) {
+                String content = FileScanner.readFile(projectsFile);
+                if (content != null && !content.isEmpty()) {
+                    projects =
+                        mapper.readValue(
+                            content,
+                            mapper
+                                .getTypeFactory()
+                                .constructCollectionType(java.util.List.class, java.util.Map.class)
+                        );
+                }
+            }
+
+            String path = project.getLocation();
+            if (projects.stream().anyMatch(p -> path.equals(p.get("path")))) {
+                return;
+            }
+            java.util.Map<String, String> entry = new java.util.LinkedHashMap<>();
+            entry.put("name", project.getName());
+            entry.put("path", path);
+            projects.add(entry);
+
+            String jsonOutput = mapper
+                .writerWithDefaultPrettyPrinter()
+                .writeValueAsString(projects);
+            File tmp = new File(projectsFile.getPath() + ".tmp");
+            FileScanner.writeFile(tmp, jsonOutput);
+            if (!tmp.exists() || !tmp.renameTo(projectsFile)) {
+                FileScanner.writeFile(projectsFile, jsonOutput);
+            }
+        } catch (Exception ex) {
+            Logger
+                .getLogger(Project.class.getName())
+                .log(Level.WARNING, "Failed to add shared test data project entry", ex);
+        }
+    }
+
+    /**
+     * Keeps this project's entry in {@code Shared/SharedTestData/projects.items} in step with
+     * whether it currently {@link #usesSharedTestData() references Shared Test Data} - adding
+     * the entry when it does, removing it when it no longer does. Mirrors the Shared Reusable
+     * Components / Shared Object Repository {@code projects.items} convention so the Shared
+     * Test Data panel can warn which projects a rename/delete would impact.
+     */
+    public void registerSharedTestDataUsage() {
+        try {
+            boolean uses = usesSharedTestData();
+            File sharedRoot = new File(getSharedTestDataPath());
+            File projectsFile = new File(sharedRoot, "projects.items");
+            if (!uses && !projectsFile.exists()) {
+                return;
+            }
+            if (!sharedRoot.exists()) {
+                if (!uses) {
+                    return;
+                }
+                sharedRoot.mkdirs();
+            }
+
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            java.util.List<java.util.Map<String, String>> projects = new java.util.ArrayList<>();
+            if (projectsFile.exists()) {
+                String content = FileScanner.readFile(projectsFile);
+                if (content != null && !content.isEmpty()) {
+                    projects =
+                        mapper.readValue(
+                            content,
+                            mapper
+                                .getTypeFactory()
+                                .constructCollectionType(java.util.List.class, java.util.Map.class)
+                        );
+                }
+            }
+
+            boolean present = projects.stream().anyMatch(p -> location.equals(p.get("path")));
+            boolean changed = false;
+            if (uses && !present) {
+                java.util.Map<String, String> entry = new java.util.LinkedHashMap<>();
+                entry.put("name", name);
+                entry.put("path", location);
+                projects.add(entry);
+                changed = true;
+            } else if (!uses && present) {
+                projects.removeIf(p -> location.equals(p.get("path")));
+                changed = true;
+            }
+            if (!changed) {
+                return;
+            }
+
+            String jsonOutput = mapper
+                .writerWithDefaultPrettyPrinter()
+                .writeValueAsString(projects);
+            FileScanner.writeFile(projectsFile, jsonOutput);
+        } catch (Exception ex) {
+            Logger
+                .getLogger(Project.class.getName())
+                .log(Level.WARNING, "Failed to register shared test data usage", ex);
+        }
+    }
+
+    /**
+     * Projects other than this one recorded in {@code Shared/SharedTestData/projects.items} as
+     * consumers of Shared Test Data. Each item is {@code "name | path"} (or just the name when
+     * no path was recorded). Used to warn before a Shared Test Data rename / delete.
+     *
+     * @return referencing project labels, empty when none / file missing
+     */
+    public List<String> getOtherProjectsUsingSharedTestData() {
+        List<String> result = new ArrayList<>();
+        try {
+            File projectsFile = new File(getSharedTestDataPath(), "projects.items");
+            if (!projectsFile.exists()) {
+                return result;
+            }
+            String content = FileScanner.readFile(projectsFile);
+            if (content == null || content.trim().isEmpty()) {
+                return result;
+            }
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            List<Map<String, String>> projects = mapper.readValue(
+                content,
+                mapper.getTypeFactory().constructCollectionType(List.class, Map.class)
+            );
+            for (Map<String, String> proj : projects) {
+                String projName = proj.get("name");
+                String projPath = proj.get("path");
+                if (projName == null || projName.isEmpty()) {
+                    continue;
+                }
+                if (projName.equals(name) && projPath != null && projPath.equals(location)) {
+                    continue; // exclude the current project
+                }
+                result.add(
+                    projPath == null || projPath.isEmpty() ? projName : projName + " | " + projPath
+                );
+            }
+        } catch (Exception ex) {
+            Logger
+                .getLogger(Project.class.getName())
+                .log(Level.WARNING, "Failed to read shared test data projects.items", ex);
+        }
+        return result;
     }
 
     /**
@@ -646,6 +928,27 @@ public class Project {
                 "Shared" +
                 File.separator +
                 SHARED_REUSABLE_COMPONENTS_DIR
+            );
+        }
+    }
+
+    /**
+     * Returns the absolute path to the Shared Test Data directory at app root level.
+     * This directory is global across all projects and shared at the application level.
+     * @return Shared Test Data directory path
+     */
+    public static String getSharedTestDataPath() {
+        try {
+            String appRoot = new File(System.getProperty("user.dir")).getCanonicalPath();
+            return appRoot + File.separator + "Shared" + File.separator + SHARED_TEST_DATA_DIR;
+        } catch (java.io.IOException ex) {
+            // Fallback to non-canonical path
+            return (
+                System.getProperty("user.dir") +
+                File.separator +
+                "Shared" +
+                File.separator +
+                SHARED_TEST_DATA_DIR
             );
         }
     }
@@ -1475,10 +1778,469 @@ public class Project {
     }
 
     /**
+     * Returns the Shared Test Data, loaded from the app-root Shared/SharedTestData location.
+     * @return shared environment test data
+     */
+    public EnvTestData getSharedTestData() {
+        return sharedTestData;
+    }
+
+    /**
      * Loads test data from disk.
      */
     private void loadTestDatas() {
         testData = new EnvTestData(this);
+        sharedTestData = new EnvTestData(this, true);
+    }
+
+    /**
+     * Copies a project test data sheet to Shared Test Data.
+     * If a sheet with the same file name already exists in the shared location, it is overwritten.
+     * @param sheet the sheet to copy
+     * @param environment the environment the sheet belongs to
+     * @throws IOException if the file could not be copied
+     */
+    public void copyTestDataSheetToShared(TestDataModel sheet, String environment)
+        throws IOException {
+        transferTestDataSheet(sheet, environment, getSharedTestDataPath(), false);
+    }
+
+    /**
+     * Moves a project test data sheet to Shared Test Data.
+     * @param sheet the sheet to move
+     * @param environment the environment the sheet belongs to
+     * @throws IOException if the file could not be moved
+     */
+    public void moveTestDataSheetToShared(TestDataModel sheet, String environment)
+        throws IOException {
+        transferTestDataSheet(sheet, environment, getSharedTestDataPath(), true);
+    }
+
+    /**
+     * Copies a Shared Test Data sheet into this project.
+     * @param sheet the sheet to copy
+     * @param environment the environment the sheet belongs to
+     * @throws IOException if the file could not be copied
+     */
+    public void copyTestDataSheetToProject(TestDataModel sheet, String environment)
+        throws IOException {
+        transferTestDataSheet(
+            sheet,
+            environment,
+            getLocation() + File.separator + "TestData",
+            false
+        );
+    }
+
+    /**
+     * Moves a Shared Test Data sheet into this project.
+     * @param sheet the sheet to move
+     * @param environment the environment the sheet belongs to
+     * @throws IOException if the file could not be moved
+     */
+    public void moveTestDataSheetToProject(TestDataModel sheet, String environment)
+        throws IOException {
+        transferTestDataSheet(
+            sheet,
+            environment,
+            getLocation() + File.separator + "TestData",
+            true
+        );
+    }
+
+    private void transferTestDataSheet(
+        TestDataModel sheet,
+        String environment,
+        String targetRoot,
+        boolean move
+    )
+        throws IOException {
+        File sourceFile = new File(sheet.getLocation());
+        if (!sourceFile.exists()) {
+            throw new FileNotFoundException("Test data sheet file does not exist: " + sourceFile);
+        }
+
+        String envSuffix = "Default".equals(environment) ? "" : File.separator + environment;
+        File targetDir = new File(targetRoot + envSuffix);
+        targetDir.mkdirs();
+        File targetFile = new File(targetDir, sourceFile.getName());
+
+        if (move) {
+            Files.move(
+                sourceFile.toPath(),
+                targetFile.toPath(),
+                StandardCopyOption.REPLACE_EXISTING
+            );
+        } else {
+            Files.copy(
+                sourceFile.toPath(),
+                targetFile.toPath(),
+                StandardCopyOption.REPLACE_EXISTING
+            );
+        }
+
+        // Reload so both the project and shared TestData reflect the transferred sheet
+        loadTestDatas();
+    }
+
+    // ─── "Make As Shared TestData" ────────────────────────────────────────────
+
+    /**
+     * Outcome of a "Make As Shared TestData" operation, for user feedback.
+     */
+    public static final class MakeSharedTestDataResult {
+        /** original sheet name -&gt; final name in the Shared store (suffixed on collision). */
+        public final Map<String, String> movedSheets = new LinkedHashMap<>();
+
+        /** whole-input Test Data references rewritten to {@code [Shared] ...}. */
+        public int referenceUpdates = 0;
+
+        /**
+         * Moved sheet name -&gt; the project environments that still contain a sheet of that
+         * name, so references were <em>not</em> retagged (doing so would break those
+         * environments). Populated only for the environment-scoped move.
+         */
+        public final Map<String, List<String>> partiallyMovedSheets = new LinkedHashMap<>();
+
+        /**
+         * The Shared Reusable test cases created by promoting referencing Test Plan /
+         * Project-Reusable cases (the moved copies, not the originals). Empty when the user
+         * declined promotion. The IDE feeds these to the "move referenced project objects to
+         * Shared OR too?" prompt.
+         */
+        public final List<TestCase> promoted = new ArrayList<>();
+
+        /** reusable-reference (Execute step) updates caused by those promotions. */
+        public int promotedReferenceUpdates = 0;
+    }
+
+    /**
+     * Test cases across <em>every</em> scope (Test Plan, Project Reusables, Shared Reusables)
+     * whose whole-input Test Data reference points at {@code testDataName}. Unlike
+     * {@link #getImpactedTestDataTestCases(String)} (Test Plan only) this is scope-wide, so it
+     * can drive the "also convert to Shared Reusable" prompt.
+     *
+     * @param testDataName datasheet name
+     * @return impacted test cases, in scenario iteration order
+     */
+    public List<TestCase> getImpactedTestDataTestCasesAllScopes(String testDataName) {
+        List<TestCase> impacted = new ArrayList<>();
+        for (Scenario scenario : getAllScenarios()) {
+            impacted.addAll(scenario.getImpactedTestDataTestCases(testDataName));
+        }
+        return impacted;
+    }
+
+    /**
+     * Test cases a datasheet holds data rows for - the distinct (Scenario, Flow) pairs in its
+     * rows - that live in the Test Plan or Project Reusables (per each row's {@code Scope}
+     * column, falling back to a name lookup). These are the cases another user of the Shared
+     * data could not run if the sheet moves to Shared Test Data without them.
+     *
+     * @param sheetName datasheet name
+     * @return the served Test Plan / Project-Reusable test cases, de-duplicated
+     */
+    public List<TestCase> getTestCasesServedByDataSheet(String sheetName) {
+        java.util.LinkedHashMap<String, TestCase> found = new LinkedHashMap<>();
+        for (TestData env : testData.getAllEnvironments()) {
+            TestDataModel model = env.getByNameIgnoreCase(sheetName);
+            if (model == null) {
+                continue;
+            }
+            model.loadTableModel();
+            for (Record record : model.getRecords()) {
+                String scen = Objects.toString(record.getScenario(), "").trim();
+                String tc = Objects.toString(record.getTestcase(), "").trim();
+                String scope = Objects.toString(record.getScope(), "").trim();
+                if (scen.isEmpty() || tc.isEmpty() || "[Shared]".equals(scope)) {
+                    continue;
+                }
+                Scenario scenario = "[Project]".equals(scope)
+                    ? getReusableScenarioByName(scen)
+                    : getTestPlanScenarioByName(scen);
+                if (scenario == null) {
+                    scenario = getTestPlanScenarioByName(scen);
+                }
+                if (scenario == null) {
+                    scenario = getReusableScenarioByName(scen);
+                }
+                if (scenario == null || scenario.isSharedReusableScenario()) {
+                    continue;
+                }
+                TestCase testCase = scenario.getTestCaseByName(tc);
+                if (testCase != null) {
+                    found.putIfAbsent(scenario.getName() + " " + tc, testCase);
+                }
+            }
+        }
+        return new ArrayList<>(found.values());
+    }
+
+    /**
+     * Every Test Plan / Project-Reusable test case that would be "left behind" if
+     * {@code sheetName} moves to Shared Test Data: the union of the cases the sheet holds data
+     * for ({@link #getTestCasesServedByDataSheet(String)}) and the cases whose steps reference
+     * it ({@link #getImpactedTestDataTestCasesAllScopes(String)}). Drives the "also convert
+     * these test cases to Shared Reusables?" prompt.
+     *
+     * @param sheetName datasheet name
+     * @return de-duplicated promotable test cases
+     */
+    public List<TestCase> getPromotableTestCasesForSheet(String sheetName) {
+        java.util.LinkedHashMap<String, TestCase> byId = new LinkedHashMap<>();
+        for (TestCase tc : getTestCasesServedByDataSheet(sheetName)) {
+            byId.putIfAbsent(promotableId(tc), tc);
+        }
+        for (TestCase tc : getImpactedTestDataTestCasesAllScopes(sheetName)) {
+            if (tc.getScenario() != null && !tc.getScenario().isSharedReusableScenario()) {
+                byId.putIfAbsent(promotableId(tc), tc);
+            }
+        }
+        return new ArrayList<>(byId.values());
+    }
+
+    private static String promotableId(TestCase tc) {
+        return (tc.getScenario() == null ? "" : tc.getScenario().getName()) + " " + tc.getName();
+    }
+
+    /**
+     * Rewrites every whole-input Test Data reference to {@code originalName} (untagged,
+     * {@code [Project]} or {@code [Shared]}) across all scenarios to
+     * {@code [Shared] finalName:Column}, saving each changed test case.
+     *
+     * @param originalName the datasheet name references currently point at
+     * @param finalName the datasheet name in the Shared store (may differ on collision)
+     * @return number of test steps changed
+     */
+    public int retagTestDataReferencesToShared(String originalName, String finalName) {
+        int count = 0;
+        for (Scenario scenario : getAllScenarios()) {
+            count += scenario.retagTestDataReferencesToShared(originalName, finalName);
+        }
+        return count;
+    }
+
+    /**
+     * Moves one project datasheet from environment {@code env} into Shared Test Data and, when
+     * that was the only project environment holding a sheet of that name, rewrites every
+     * reference to it (Test Plan, Project Reusables, Shared Reusables) to {@code [Shared] ...}.
+     * If the same sheet name still exists in another project environment, the references are
+     * left untouched and the sheet is recorded in
+     * {@link MakeSharedTestDataResult#partiallyMovedSheets}.
+     *
+     * @param env environment the datasheet belongs to
+     * @param sheetName datasheet to move
+     * @param testCasesToPromote referencing Test Plan / Project-Reusable test cases the user
+     *     opted to also convert to Shared Reusables (may be {@code null} / empty)
+     * @return summary of what changed
+     */
+    public MakeSharedTestDataResult makeTestDataSheetShared(
+        String env,
+        String sheetName,
+        List<TestCase> testCasesToPromote
+    )
+        throws IOException {
+        save();
+        MakeSharedTestDataResult result = new MakeSharedTestDataResult();
+        promoteReferencingTestCases(testCasesToPromote, result);
+        moveSheetToSharedInEnv(env, sheetName, result);
+        save();
+        registerSharedTestDataUsage();
+        return result;
+    }
+
+    /**
+     * Moves a whole project Test Data environment into Shared Test Data: <em>only that
+     * environment's</em> datasheets and Global Data (merged by {@code GlobalDataID} into the
+     * Shared environment's single Global Data). The project environment is then removed
+     * entirely - folder, {@code GlobalData.csv} and all - except {@code Default}, which cannot
+     * be removed and is instead left empty. Other environments are untouched.
+     *
+     * @param env environment to move
+     * @param testCasesToPromote see {@link #makeTestDataSheetShared(String, String, List)}
+     * @return summary of what changed
+     */
+    public MakeSharedTestDataResult makeEnvironmentTestDataShared(
+        String env,
+        List<TestCase> testCasesToPromote
+    )
+        throws IOException {
+        save();
+        MakeSharedTestDataResult result = new MakeSharedTestDataResult();
+        promoteReferencingTestCases(testCasesToPromote, result);
+
+        TestData projEnv = testData.getTestDataFor(env);
+        if (projEnv != null) {
+            String envFolder = projEnv.getLocation();
+
+            List<String> sheetNames = new ArrayList<>();
+            for (TestDataModel model : projEnv.getTestDataList()) {
+                sheetNames.add(model.getName());
+            }
+            for (String name : sheetNames) {
+                moveSheetToSharedInEnv(env, name, result);
+            }
+
+            if (sharedTestData.getTestDataFor(env) == null) {
+                sharedTestData.createNewEnvironment(env);
+            }
+            mergeGlobalData(
+                projEnv.getGlobalData(),
+                sharedTestData.getTestDataFor(env).getGlobalData()
+            );
+
+            if ("Default".equals(env)) {
+                // Default cannot be removed; clear its Global Data and drop the stale file.
+                clearAllRecords(projEnv.getGlobalData());
+                new File(projEnv.getGlobalData().getLocation()).delete();
+                projEnv.getGlobalData().setSaved(true);
+            } else {
+                testData.deleteEnvironment(env);
+                // deleteEnvironment leaves the folder and GlobalData.csv on disk - remove them.
+                FileUtils.deleteFile(envFolder);
+            }
+        }
+
+        save();
+        registerSharedTestDataUsage();
+        return result;
+    }
+
+    private void promoteReferencingTestCases(
+        List<TestCase> testCases,
+        MakeSharedTestDataResult result
+    ) {
+        if (testCases == null) {
+            return;
+        }
+        for (TestCase testCase : testCases) {
+            if (
+                testCase.getScenario() == null || testCase.getScenario().isSharedReusableScenario()
+            ) {
+                continue;
+            }
+            try {
+                TestCase moved = moveTestCaseToSharedReusable(testCase);
+                if (moved != null) {
+                    result.promoted.add(moved);
+                }
+                result.promotedReferenceUpdates +=
+                    getAndResetLastImpactedReusableReferenceUpdates();
+            } catch (TestCaseConversionException ex) {
+                LOGGER.log(
+                    Level.WARNING,
+                    "Could not promote test case '" + testCase.getName() + "' to Shared Reusable",
+                    ex
+                );
+            }
+        }
+    }
+
+    /**
+     * Moves {@code env}'s copy of {@code sheetName} into {@code Shared/<env>} (suffixing the
+     * name on collision <em>within that Shared environment</em>). References are retagged to
+     * {@code [Shared] finalName} only when no project environment still holds a sheet of that
+     * name; otherwise the sheet is recorded in {@code partiallyMovedSheets} and references are
+     * left as-is so the other environments keep working.
+     */
+    private void moveSheetToSharedInEnv(
+        String env,
+        String sheetName,
+        MakeSharedTestDataResult result
+    ) {
+        TestData projEnv = testData.getTestDataFor(env);
+        TestDataModel source = projEnv == null ? null : projEnv.getByName(sheetName);
+        if (source == null) {
+            return;
+        }
+        if (sharedTestData.getTestDataFor(env) == null) {
+            sharedTestData.createNewEnvironment(env);
+        }
+        TestData sharedEnv = sharedTestData.getTestDataFor(env);
+        if (sharedEnv == null) {
+            return;
+        }
+        String finalName = uniqueSharedSheetNameInEnv(env, sheetName);
+        TestDataModel target = sharedEnv.addTestData(sharedEnv.getNewTestData(finalName));
+        source.cloneAs(target);
+        target.save();
+        projEnv.deleteTestData(sheetName);
+
+        result.movedSheets.put(sheetName, finalName);
+
+        List<String> stillInProject = testData.findEnvironmentsWithDatasheet(sheetName);
+        if (stillInProject.isEmpty()) {
+            result.referenceUpdates += retagTestDataReferencesToShared(sheetName, finalName);
+        } else {
+            result.partiallyMovedSheets.put(sheetName, stillInProject);
+        }
+    }
+
+    private String uniqueSharedSheetNameInEnv(String env, String base) {
+        TestData sharedEnv = sharedTestData.getTestDataFor(env);
+        if (sharedEnv == null || sharedEnv.getByNameIgnoreCase(base) == null) {
+            return base;
+        }
+        int i = 1;
+        while (sharedEnv.getByNameIgnoreCase(base + "_" + i) != null) {
+            i++;
+        }
+        return base + "_" + i;
+    }
+
+    /**
+     * Upserts every {@code GlobalDataID}-keyed row of {@code src} into {@code dst}, adding any
+     * missing columns and overwriting a {@code dst} cell only with a non-empty {@code src}
+     * value. There is a single Global Data per environment, so this merges rather than
+     * replaces.
+     */
+    private static void mergeGlobalData(GlobalDataModel src, GlobalDataModel dst) {
+        if (src == null || dst == null) {
+            return;
+        }
+        src.loadTableModel();
+        dst.loadTableModel();
+        for (String col : src.getColumns()) {
+            if (!dst.hasColumn(col)) {
+                dst.addColumn(col);
+            }
+        }
+        int srcKey = src.getColumnIndex("GlobalDataID");
+        int dstKey = dst.getColumnIndex("GlobalDataID");
+        for (int r = 0; r < src.getRowCount(); r++) {
+            String key = srcKey < 0 ? "" : Objects.toString(src.getValueAt(r, srcKey), "").trim();
+            if (key.isEmpty()) {
+                continue;
+            }
+            int dstRow = dst.getRecordIndexByKey(key);
+            if (dstRow < 0) {
+                dst.addRecord();
+                dstRow = dst.getRowCount() - 1;
+                dst.setValueAt(key, dstRow, dstKey);
+            }
+            for (String col : src.getColumns()) {
+                if ("GlobalDataID".equals(col)) {
+                    continue;
+                }
+                int dc = dst.getColumnIndex(col);
+                String val = Objects.toString(src.getValueAt(r, src.getColumnIndex(col)), "");
+                if (dc >= 0 && !val.isEmpty()) {
+                    dst.setValueAt(val, dstRow, dc);
+                }
+            }
+        }
+        dst.setSaved(false);
+    }
+
+    private static void clearAllRecords(AbstractDataModel<?> model) {
+        if (model == null) {
+            return;
+        }
+        model.loadTableModel();
+        for (int r = model.getRowCount() - 1; r >= 0; r--) {
+            model.removeRecord(r);
+        }
+        model.setSaved(false);
     }
 
     /**
@@ -1512,6 +2274,12 @@ public class Project {
             scenario.save();
         }
         testData.save();
+        if (sharedTestData != null) {
+            // Persists the app-root Shared Test Data, including its environment.properties, so
+            // environments added/renamed/deleted in the Shared Test Data tab survive a reload -
+            // mirroring how testData.save() persists the project's own environments.
+            sharedTestData.save();
+        }
         for (Release release : releases) {
             release.save();
         }
@@ -1843,8 +2611,20 @@ public class Project {
      * @param newTDName new test data name
      */
     public void refactorTestData(String oldTDName, String newTDName) {
+        refactorTestData(oldTDName, newTDName, null);
+    }
+
+    /**
+     * Refactors (renames) a test data reference across all scenarios in the project, limited to
+     * references in the given scope.
+     * @param oldTDName old test data name
+     * @param newTDName new test data name
+     * @param scopeToken "[Shared]" to rewrite only Shared-tagged references, "[Project]" to
+     *     rewrite only untagged / Project-tagged references, or {@code null} to rewrite any
+     */
+    public void refactorTestData(String oldTDName, String newTDName, String scopeToken) {
         for (Scenario scenario : getAllScenarios()) {
-            scenario.refactorTestData(oldTDName, newTDName);
+            scenario.refactorTestData(oldTDName, newTDName, scopeToken);
         }
     }
 
@@ -1859,8 +2639,26 @@ public class Project {
         String oldColumnName,
         String newColumnName
     ) {
+        refactorTestDataColumn(testDataName, oldColumnName, newColumnName, null);
+    }
+
+    /**
+     * Refactors (renames) a test data column reference across all scenarios in the project,
+     * limited to references in the given scope.
+     * @param testDataName test data name
+     * @param oldColumnName old column name
+     * @param newColumnName new column name
+     * @param scopeToken "[Shared]" / "[Project]" / {@code null} - see
+     *     {@link #refactorTestData(String, String, String)}
+     */
+    public void refactorTestDataColumn(
+        String testDataName,
+        String oldColumnName,
+        String newColumnName,
+        String scopeToken
+    ) {
         for (Scenario scenario : getAllScenarios()) {
-            scenario.refactorTestDataColumn(testDataName, oldColumnName, newColumnName);
+            scenario.refactorTestDataColumn(testDataName, oldColumnName, newColumnName, scopeToken);
         }
     }
 

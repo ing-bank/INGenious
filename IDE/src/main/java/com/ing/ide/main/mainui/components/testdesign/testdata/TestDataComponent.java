@@ -1,5 +1,7 @@
 package com.ing.ide.main.mainui.components.testdesign.testdata;
 
+import com.ing.datalib.component.EnvTestData;
+import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestData;
@@ -72,8 +74,12 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private static final String TAB_ORDER_SEPARATOR = "\u001F";
     private static final String ENV_TAB_ORDER_KEY = "ui.testdata.env.order";
     private static final String TESTDATA_TAB_ORDER_PREFIX = "ui.testdata.env.tabs.";
+    private static final String SHARED_ENV_TAB_ORDER_KEY = "ui.sharedtestdata.env.order";
+    private static final String SHARED_TESTDATA_TAB_ORDER_PREFIX = "ui.sharedtestdata.env.tabs.";
 
     private final TestDesign testDesign;
+
+    private final boolean shared;
 
     private final XJTabbedPane envTab;
 
@@ -90,7 +96,17 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private final StylizedEnvironment environmentPanel;
 
     public TestDataComponent(TestDesign sProxy) {
+        this(sProxy, false);
+    }
+
+    /**
+     * @param sProxy owning test design
+     * @param shared when true, this component browses/edits Shared Test Data
+     *     (Project.getSharedTestData()) instead of the project's own test data
+     */
+    public TestDataComponent(TestDesign sProxy, boolean shared) {
         this.testDesign = sProxy;
+        this.shared = shared;
         envTab = new XJTabbedPane();
         toolBar = new TestDataToolBar(this);
         popupMenu = new TestDataPopupMenu(this);
@@ -181,6 +197,16 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         loadTestData();
     }
 
+    /**
+     * Returns the environment test data this component browses/edits - the project's own
+     * test data, or, when this is the Shared Test Data tab, the app-root shared test data.
+     */
+    private EnvTestData envTestData() {
+        return shared
+            ? testDesign.getProject().getSharedTestData()
+            : testDesign.getProject().getTestData();
+    }
+
     private void loadTestData() {
         if (testDesign.getProject() != null) {
             for (TestData sTestData : getEnvironmentsInSavedOrder()) {
@@ -199,10 +225,8 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
      * @return ordered environment test data list
      */
     private List<TestData> getEnvironmentsInSavedOrder() {
-        List<TestData> allEnvironments = new ArrayList<>(
-            testDesign.getProject().getTestData().getAllEnvironments()
-        );
-        List<String> savedOrder = getSavedOrder(ENV_TAB_ORDER_KEY);
+        List<TestData> allEnvironments = new ArrayList<>(envTestData().getAllEnvironments());
+        List<String> savedOrder = getSavedOrder(envTabOrderKey());
         if (savedOrder.isEmpty()) {
             return allEnvironments;
         }
@@ -301,7 +325,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         for (int i = 0; i < envTab.getTabCount() - 1; i++) {
             order.add(envTab.getTitleAt(i));
         }
-        saveOrder(ENV_TAB_ORDER_KEY, order);
+        saveOrder(envTabOrderKey(), order);
     }
 
     private void persistTestDataTabOrder(String envName, JTabbedPane testdataTab) {
@@ -320,7 +344,15 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     private String getTestDataTabOrderKey(String envName) {
-        return TESTDATA_TAB_ORDER_PREFIX + envName;
+        return (shared ? SHARED_TESTDATA_TAB_ORDER_PREFIX : TESTDATA_TAB_ORDER_PREFIX) + envName;
+    }
+
+    /**
+     * Settings key for the environment tab order. The Project and Shared Test Data tabs each
+     * keep their own order so reordering one does not disturb the other.
+     */
+    private String envTabOrderKey() {
+        return shared ? SHARED_ENV_TAB_ORDER_KEY : ENV_TAB_ORDER_KEY;
     }
 
     /**
@@ -424,15 +456,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             panel.load();
             toolBar.switchOptionsForGlobalData(!panel.isGlobalData);
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            toolBar.setSearchText(panel.std.getName(), envName);
+            toolBar.setSearchText(panel.std.getName(), envName, shared);
         }
     }
 
     private void addNewTestData(Object source) {
         JTabbedPane tab = (JTabbedPane) source;
-        TestDataModel model = testDesign
-            .getProject()
-            .getTestData()
+        TestDataModel model = envTestData()
             .getTestDataFor(envTab.getTitleAt(envTab.getSelectedIndex()))
             .addTestData();
         TestCase testcase = testDesign.getTestCaseComp().getCurrentTestCase();
@@ -490,16 +520,17 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         if (!panel.isGlobalData) {
             int index = tab.getSelectedIndex();
             String name = tab.getTitleAt(index);
-            int option = JOptionPane.showConfirmDialog(
-                null,
-                "Are you sure want to delete the TestData [" + name + "]",
-                "Delete TestData",
-                JOptionPane.YES_NO_OPTION
-            );
-            if (option == JOptionPane.YES_OPTION) {
-                Boolean flag = testDesign
-                    .getProject()
-                    .getTestData()
+            boolean proceed = shared
+                ? confirmSharedTestDataChange("Delete", "datasheet '" + name + "'")
+                : JOptionPane.showConfirmDialog(
+                    null,
+                    "Are you sure want to delete the TestData [" + name + "]",
+                    "Delete TestData",
+                    JOptionPane.YES_NO_OPTION
+                ) ==
+                JOptionPane.YES_OPTION;
+            if (proceed) {
+                Boolean flag = envTestData()
                     .getTestDataFor(envTab.getTitleAt(envTab.getSelectedIndex()))
                     .deleteTestData(name);
                 if (flag) {
@@ -536,7 +567,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         int index = envTab.getSelectedIndex();
         String envName = envTab.getTitleAt(index);
         envTab.removeTabAt(index);
-        TestData sTestData = testDesign.getProject().getTestData().getTestDataFor(envName);
+        TestData sTestData = envTestData().getTestDataFor(envName);
         envTab.insertTab(
             sTestData.getEnviroment(),
             null,
@@ -564,7 +595,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private TestData getCurrentEnviromentData() {
         if (envTab.getSelectedComponent() instanceof JTabbedPane) {
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            return testDesign.getProject().getTestData().getTestDataFor(envName);
+            return envTestData().getTestDataFor(envName);
         }
         return null;
     }
@@ -654,6 +685,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 case "Go To TestCase":
                     tdPanel.goToSelectedTestCase();
                     break;
+                case "Make As Shared TestData":
+                    makeSelectedSheetShared(tdPanel);
+                    break;
             }
         }
     }
@@ -717,16 +751,12 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     Set<String> getListOfEnvironements() {
-        return testDesign.getProject().getTestData().getEnvironments();
+        return envTestData().getEnvironments();
     }
 
     List<String> getListOfTestDatas(String env) {
         List<String> tdL = new ArrayList<>();
-        for (AbstractDataModel std : testDesign
-            .getProject()
-            .getTestData()
-            .getTestDataFor(env)
-            .getTestDataList()) {
+        for (AbstractDataModel std : envTestData().getTestDataFor(env).getTestDataList()) {
             tdL.add(std.getName());
         }
         return tdL;
@@ -746,10 +776,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         TestDataTablePanel panel = getSelectedData();
         if (!panel.isGlobalData) {
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            testDesign
-                .getProject()
-                .getTestData()
-                .duplicateSheetsInOtherEnv(envName, (TestDataModel) panel.std);
+            envTestData().duplicateSheetsInOtherEnv(envName, (TestDataModel) panel.std);
             reloadAllExcept(envTab.getSelectedIndex());
         }
     }
@@ -769,7 +796,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             envTab.insertTab(
                 envName,
                 null,
-                createNewTestDataTab(testDesign.getProject().getTestData().getTestDataFor(envName)),
+                createNewTestDataTab(envTestData().getTestDataFor(envName)),
                 null,
                 index
             );
@@ -791,13 +818,11 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         List<String> duplicateSheets,
         Boolean globalDataAsWell
     ) {
-        if (testDesign.getProject().getTestData().getTestDataFor(envName) == null) {
+        if (envTestData().getTestDataFor(envName) == null) {
             if (duplicateDataFromEnv == null) {
-                testDesign.getProject().getTestData().createNewEnvironment(envName);
+                envTestData().createNewEnvironment(envName);
             } else {
-                testDesign
-                    .getProject()
-                    .getTestData()
+                envTestData()
                     .createNewEnvironment(
                         envName,
                         duplicateDataFromEnv,
@@ -805,7 +830,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                         globalDataAsWell
                     );
             }
-            addNewEnvironment(testDesign.getProject().getTestData().getTestDataFor(envName));
+            addNewEnvironment(envTestData().getTestDataFor(envName));
             return true;
         } else {
             Notification.show("An Environment with name '" + envName + "' is already present");
@@ -817,10 +842,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         if (!tdPanel.isGlobalData) {
             List<String> colList = tdPanel.getSelectedColumns();
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            testDesign
-                .getProject()
-                .getTestData()
-                .duplicateColumnInOtherEnv(envName, (TestDataModel) tdPanel.std, colList);
+            envTestData().duplicateColumnInOtherEnv(envName, (TestDataModel) tdPanel.std, colList);
         }
     }
 
@@ -828,10 +850,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         if (!tdPanel.isGlobalData) {
             int[] rows = tdPanel.table.getSelectedRows();
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            testDesign
-                .getProject()
-                .getTestData()
-                .duplicateRowsInOtherEnv(envName, (TestDataModel) tdPanel.std, rows);
+            envTestData().duplicateRowsInOtherEnv(envName, (TestDataModel) tdPanel.std, rows);
         }
     }
 
@@ -892,10 +911,10 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private Boolean renameEnvironment(String newName) {
         String envName = envTab.getTitleAt(envTab.getSelectedIndex());
         if (!envName.equals("Default") && !envName.equals(newName.trim())) {
-            boolean renamed = testDesign
-                .getProject()
-                .getTestData()
-                .renameEnvironment(envName, newName);
+            if (!confirmSharedTestDataChange("Rename", "environment '" + envName + "'")) {
+                return false;
+            }
+            boolean renamed = envTestData().renameEnvironment(envName, newName);
             if (renamed) {
                 String oldKey = getTestDataTabOrderKey(envName);
                 String newKey = getTestDataTabOrderKey(newName);
@@ -927,16 +946,19 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private void deleteEnvironment() {
         String envName = envTab.getTitleAt(envTab.getSelectedIndex());
         if (!envName.equals("Default")) {
-            int option = JOptionPane.showConfirmDialog(
-                null,
-                "Are you sure want to delete Environment [" + envName + "]",
-                "Delete Environent",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE
-            );
-            if (option == JOptionPane.YES_OPTION) {
+            boolean proceed = shared
+                ? confirmSharedTestDataChange("Delete", "environment '" + envName + "'")
+                : JOptionPane.showConfirmDialog(
+                    null,
+                    "Are you sure want to delete Environment [" + envName + "]",
+                    "Delete Environent",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+                ) ==
+                JOptionPane.YES_OPTION;
+            if (proceed) {
                 envTab.removeTabAt(envTab.getSelectedIndex());
-                testDesign.getProject().getTestData().deleteEnvironment(envName);
+                envTestData().deleteEnvironment(envName);
                 testDesign
                     .getProject()
                     .getProjectSettings()
@@ -955,6 +977,45 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 testDesign.getProject().getImpactedTestDataTestCases(tdPanel.std.getName()),
                 tdPanel.std.getName()
             );
+    }
+
+    /**
+     * On the Shared Test Data panel, confirms a rename / delete that other projects may
+     * depend on, listing them from {@code Shared/SharedTestData/projects.items} (the same
+     * cross-project reference check Shared Reusables and the Shared Object Repository use).
+     * Always returns {@code true} for the project's own Test Data (no prompt).
+     *
+     * @param verb "Rename" / "Delete"
+     * @param what e.g. {@code "datasheet 'Login'"} / {@code "environment 'QA'"}
+     * @return {@code true} to proceed
+     */
+    private boolean confirmSharedTestDataChange(String verb, String what) {
+        if (!shared || testDesign.getProject() == null) {
+            return true;
+        }
+        List<String> projects = testDesign.getProject().getOtherProjectsUsingSharedTestData();
+        String message;
+        if (projects.isEmpty()) {
+            message = verb + " shared Test Data " + what + "?";
+        } else {
+            message =
+                verb +
+                " shared Test Data " +
+                what +
+                ".\n\nIt is referenced by these project(s):\n\n  " +
+                String.join("\n  ", projects) +
+                "\n\nThey may break. Continue?";
+        }
+        return (
+            JOptionPane.showConfirmDialog(
+                this,
+                message,
+                "Shared Test Data",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+            ) ==
+            JOptionPane.YES_OPTION
+        );
     }
 
     public Boolean navigateToTestData(String sheetName, String columnName) {
@@ -988,6 +1049,358 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         } else {
             model = getCurrentEnviromentData().importTestData(file);
             addToLastTab((JTabbedPane) envTab.getSelectedComponent(), model);
+        }
+    }
+
+    /**
+     * Imports {@code file} as a new datasheet into each of {@code targetEnvironments}, then
+     * refreshes the affected environment tabs. Environments that already contain a datasheet
+     * with the same name are skipped, and the outcome is reported via a notification.
+     *
+     * <p>Unlike {@link #importTestData(File)}, this works regardless of which environment tab is
+     * currently selected and can target the Shared Test Data component too.</p>
+     *
+     * @param file source datasheet file
+     * @param targetEnvironments environment names to import into
+     */
+    public void importTestData(File file, List<String> targetEnvironments) {
+        if (file == null || targetEnvironments == null || targetEnvironments.isEmpty()) {
+            return;
+        }
+        Map<String, TestDataModel> imported = envTestData()
+            .importTestData(file, targetEnvironments);
+        for (String env : imported.keySet()) {
+            reloadEnvironment(env);
+        }
+
+        String sheet = file.getName();
+        List<String> skipped = new ArrayList<>(targetEnvironments);
+        skipped.removeAll(imported.keySet());
+        if (imported.isEmpty()) {
+            Notification.show(
+                "'" +
+                sheet +
+                "' not imported - a datasheet with that name already exists in: " +
+                String.join(", ", skipped)
+            );
+        } else if (skipped.isEmpty()) {
+            Notification.show(
+                "Imported '" + sheet + "' into: " + String.join(", ", imported.keySet())
+            );
+        } else {
+            Notification.show(
+                "Imported '" +
+                sheet +
+                "' into: " +
+                String.join(", ", imported.keySet()) +
+                "  |  skipped (already present): " +
+                String.join(", ", skipped)
+            );
+        }
+    }
+
+    // ─── "Make As Shared TestData" ────────────────────────────────────────────
+
+    /** Outcome of the "also move the test cases?" prompt. */
+    private static final class PromoteChoice {
+        /** true when the user dismissed the prompt - the whole operation is aborted. */
+        boolean cancelled;
+        /** test cases the user chose to convert to Shared Reusables (empty when declined). */
+        final List<TestCase> toPromote = new ArrayList<>();
+        /** test cases left behind because the user said No (empty when there were none / Yes). */
+        final List<TestCase> leftBehind = new ArrayList<>();
+    }
+
+    /**
+     * Moves the selected project datasheet into Shared Test Data and rewrites every reference
+     * to it (Test Plan, Project Reusables, Shared Reusables) to a {@code [Shared]} reference.
+     * Offered only on the project's own Test Data panel, never the Shared one.
+     */
+    private void makeSelectedSheetShared(TestDataTablePanel tdPanel) {
+        if (shared || tdPanel == null || testDesign.getProject() == null) {
+            return;
+        }
+        if (tdPanel.isGlobalData) {
+            Notification.showWarning(
+                "Global Data cannot be moved on its own - use the environment's " +
+                "\"Make As Shared TestData\"."
+            );
+            return;
+        }
+        String sheetName = tdPanel.std.getName();
+        String envName = envTab.getTitleAt(envTab.getSelectedIndex());
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Move Test Data '" +
+            sheetName +
+            "' from environment '" +
+            envName +
+            "' to Shared Test Data?\n" +
+            "References to it will be updated to [Shared] (unless the same sheet still exists " +
+            "in another environment).",
+            "Make As Shared TestData",
+            JOptionPane.YES_NO_OPTION
+        );
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        PromoteChoice choice = askMoveTestCasesToShared(
+            testDesign.getProject().getPromotableTestCasesForSheet(sheetName)
+        );
+        if (choice.cancelled) {
+            return;
+        }
+
+        try {
+            Project.MakeSharedTestDataResult result = testDesign
+                .getProject()
+                .makeTestDataSheetShared(envName, sheetName, choice.toPromote);
+            offerToMovePromotedTestCaseObjectsToShared(result.promoted);
+            notifyResult(result, choice.leftBehind);
+        } catch (IOException ex) {
+            Logger.getLogger(TestDataComponent.class.getName()).log(Level.SEVERE, null, ex);
+            Notification.showError(
+                "Could not move '" + sheetName + "' to Shared Test Data: " + ex.getMessage()
+            );
+        }
+        refreshAfterMakeShared();
+    }
+
+    /**
+     * Re-reads the project from disk and rebuilds every Test Design view so the scenario /
+     * test case / Test Data auto-suggests pick up test cases that were also promoted to
+     * Shared Reusables - mirroring what the tree "Make As Shared Reusable" flow does
+     * ({@code getProject().reload(); load();}).
+     */
+    private void refreshAfterMakeShared() {
+        if (testDesign.getProject() != null) {
+            testDesign.getProject().reload();
+        }
+        testDesign.load();
+    }
+
+    /**
+     * Moves the selected project Test Data environment - all its datasheets and its Global
+     * Data - into Shared Test Data, then removes the environment from the project ({@code
+     * Default} is kept but emptied).
+     */
+    private void makeSelectedEnvironmentShared() {
+        if (shared || testDesign.getProject() == null) {
+            return;
+        }
+        int index = envTab.getSelectedIndex();
+        if (index < 0 || index == envTab.getTabCount() - 1) {
+            return;
+        }
+        String envName = envTab.getTitleAt(index);
+        TestData envData = envTestData().getTestDataFor(envName);
+        if (envData == null) {
+            return;
+        }
+        boolean hasSheets = !envData.getTestDataList().isEmpty();
+        if (envData.getGlobalData() != null) {
+            envData.getGlobalData().loadTableModel();
+        }
+        boolean hasGlobal =
+            envData.getGlobalData() != null && envData.getGlobalData().getRowCount() > 0;
+        if (!hasSheets && !hasGlobal) {
+            Notification.showWarning("Environment '" + envName + "' has no Test Data to move.");
+            return;
+        }
+        String fate = "Default".equals(envName)
+            ? "The Default environment stays but is emptied."
+            : "The environment is then removed from the project.";
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Move ALL Test Data and Global Data of environment '" +
+            envName +
+            "' to Shared Test Data?\n" +
+            fate +
+            "\nAll references to the moved sheets will be updated to [Shared].",
+            "Make As Shared TestData",
+            JOptionPane.YES_NO_OPTION
+        );
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        List<TestCase> promotable = new ArrayList<>();
+        for (TestDataModel model : envData.getTestDataList()) {
+            promotable.addAll(
+                testDesign.getProject().getPromotableTestCasesForSheet(model.getName())
+            );
+        }
+        PromoteChoice choice = askMoveTestCasesToShared(promotable);
+        if (choice.cancelled) {
+            return;
+        }
+
+        try {
+            Project.MakeSharedTestDataResult result = testDesign
+                .getProject()
+                .makeEnvironmentTestDataShared(envName, choice.toPromote);
+            offerToMovePromotedTestCaseObjectsToShared(result.promoted);
+            notifyResult(result, choice.leftBehind);
+        } catch (IOException ex) {
+            Logger.getLogger(TestDataComponent.class.getName()).log(Level.SEVERE, null, ex);
+            Notification.showError(
+                "Could not move environment '" +
+                envName +
+                "' to Shared Test Data: " +
+                ex.getMessage()
+            );
+        }
+        refreshAfterMakeShared();
+    }
+
+    /**
+     * After referencing test cases have been promoted to Shared Reusables, reuse the Project
+     * tree's helper to detect the project-scoped Object Repository items those test cases use
+     * and prompt to move them to the Shared OR as well - the same second step the normal
+     * "Make As Shared Reusable" flow runs.
+     */
+    private void offerToMovePromotedTestCaseObjectsToShared(List<TestCase> promoted) {
+        if (promoted == null || promoted.isEmpty()) {
+            return;
+        }
+        try {
+            testDesign.getProjectTree().confirmAndMoveProjectObjectsForTestCases(promoted);
+        } catch (Exception ex) {
+            Logger
+                .getLogger(TestDataComponent.class.getName())
+                .log(Level.WARNING, "Optional object move after test case promotion failed", ex);
+        }
+    }
+
+    /**
+     * Asks whether the Test Plan / Project-Reusable test cases tied to the datasheet(s) being
+     * moved (they use it, or hold its data rows) should also be converted to Shared Reusables
+     * so other consumers of the shared data can run them.
+     *
+     * <p>Yes converts them and rewrites their references to {@code [Shared]}; No moves only the
+     * Test Data and records the left-behind cases so the caller can warn about them; dismissing
+     * the dialog aborts the whole operation.</p>
+     *
+     * @param promotable candidate test cases (any order, may contain duplicates)
+     * @return the user's choice
+     */
+    private PromoteChoice askMoveTestCasesToShared(List<TestCase> promotable) {
+        PromoteChoice choice = new PromoteChoice();
+        List<TestCase> distinct = new ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (TestCase tc : promotable) {
+            if (tc.getScenario() == null || tc.getScenario().isSharedReusableScenario()) {
+                continue;
+            }
+            if (seen.add(tc.getScenario().getName() + " / " + tc.getName())) {
+                distinct.add(tc);
+            }
+        }
+        if (distinct.isEmpty()) {
+            return choice;
+        }
+
+        StringBuilder list = new StringBuilder();
+        for (TestCase tc : distinct) {
+            list
+                .append(tc.getScenario().getScopeLabel())
+                .append(":  ")
+                .append(tc.getScenario().getName())
+                .append("  /  ")
+                .append(tc.getName())
+                .append('\n');
+        }
+        javax.swing.JTextArea area = new javax.swing.JTextArea(list.toString().trim());
+        area.setEditable(false);
+        area.setOpaque(false);
+        JScrollPane scroll = new JScrollPane(area);
+        scroll.setPreferredSize(
+            new java.awt.Dimension(460, Math.min(220, 24 + distinct.size() * 18))
+        );
+
+        JPanel panel = new JPanel(new BorderLayout(0, 6));
+        panel.add(
+            new JLabel(
+                "<html>" +
+                distinct.size() +
+                " impacted Test Plan / Project Reusable test case(s) use the Test Data being " +
+                "moved:</html>"
+            ),
+            BorderLayout.NORTH
+        );
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(
+            new JLabel(
+                "<html><br>Also move these test case(s) to <b>Shared Reusables</b> (their " +
+                "references updated to [Shared])?<br>" +
+                "Choosing <b>No</b> moves only the Test Data &mdash; other users of the shared " +
+                "data may not be able to run the test case(s) above.<br>" +
+                "Closing this dialog cancels the whole operation.</html>"
+            ),
+            BorderLayout.SOUTH
+        );
+
+        int option = JOptionPane.showConfirmDialog(
+            this,
+            panel,
+            "Make As Shared TestData",
+            JOptionPane.YES_NO_OPTION
+        );
+        if (option == JOptionPane.YES_OPTION) {
+            choice.toPromote.addAll(distinct);
+        } else if (option == JOptionPane.NO_OPTION) {
+            choice.leftBehind.addAll(distinct);
+        } else {
+            // Dialog dismissed (Esc / window close) - abort everything.
+            choice.cancelled = true;
+        }
+        return choice;
+    }
+
+    private void notifyResult(Project.MakeSharedTestDataResult result, List<TestCase> leftBehind) {
+        List<String> parts = new ArrayList<>();
+        for (java.util.Map.Entry<String, String> e : result.movedSheets.entrySet()) {
+            parts.add(
+                e.getKey().equals(e.getValue()) ? e.getKey() : e.getKey() + " → " + e.getValue()
+            );
+        }
+        StringBuilder m = new StringBuilder("Moved to Shared Test Data: ");
+        m.append(parts.isEmpty() ? "(none)" : String.join(", ", parts));
+        m.append(".  ").append(result.referenceUpdates).append(" reference(s) updated");
+        if (!result.promoted.isEmpty()) {
+            m
+                .append("; ")
+                .append(result.promoted.size())
+                .append(" test case(s) converted to Shared Reusables");
+        }
+        m.append('.');
+        Notification.showSuccess(m.toString());
+
+        if (leftBehind != null && !leftBehind.isEmpty()) {
+            List<String> names = new ArrayList<>();
+            for (TestCase tc : leftBehind) {
+                names.add(tc.getScenario().getName() + " / " + tc.getName());
+            }
+            Notification.showWarning(
+                leftBehind.size() +
+                " test case(s) were NOT moved to Shared Reusables - other users of the shared " +
+                "Test Data may not be able to run them: " +
+                String.join(", ", names)
+            );
+        }
+
+        if (!result.partiallyMovedSheets.isEmpty()) {
+            List<String> notes = new ArrayList<>();
+            for (java.util.Map.Entry<String, List<String>> e : result.partiallyMovedSheets.entrySet()) {
+                notes.add(e.getKey() + " (still in: " + String.join(", ", e.getValue()) + ")");
+            }
+            Notification.showWarning(
+                "References were NOT updated to [Shared] for: " +
+                String.join("; ", notes) +
+                " - the same sheet still exists in those project environment(s). Move those " +
+                "environments too to finish the migration."
+            );
         }
     }
 
@@ -1074,7 +1487,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             }
             tDAutoSuggest = new TestDataAutoSuggest(testDesign.getProject(), table);
             table.setDragEnabled(true);
-            table.setTransferHandler(new TestDataDnD());
+            table.setTransferHandler(new TestDataDnD(shared));
             table.setComponentPopupMenu(popupMenu);
 
             table.addMouseListener(
@@ -1214,9 +1627,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 @Override
                 public void actionPerformed(ActionEvent ae) {
                     assignThePreviouslySelected();
-                    Boolean flag = testDesign
-                        .getProject()
-                        .getTestData()
+                    Boolean flag = envTestData()
                         .renameTestDataColumn(
                             std.getName(),
                             getValue("oldvalue").toString(),
@@ -1563,10 +1974,12 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             String oldName = std.getName();
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
 
+            if (!confirmSharedTestDataChange("Rename", "datasheet '" + oldName + "'")) {
+                return false;
+            }
+
             // Check for duplicates in other environments
-            List<String> otherEnvsWithSameName = testDesign
-                .getProject()
-                .getTestData()
+            List<String> otherEnvsWithSameName = envTestData()
                 .findOtherEnvironmentsWithDatasheet(oldName, envName);
 
             if (!otherEnvsWithSameName.isEmpty()) {
@@ -1587,12 +2000,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
                 if (selectedEnvs == null) {
                     // User chose to rename current environment only
-                    if (
-                        testDesign
-                            .getProject()
-                            .getTestData()
-                            .renameTestData(oldName, newName, envName)
-                    ) {
+                    if (envTestData().renameTestData(oldName, newName, envName)) {
                         renameTestDataTabs(oldName, newName);
                         return true;
                     } else {
@@ -1607,12 +2015,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     List<String> allEnvs = new ArrayList<>(selectedEnvs);
                     allEnvs.add(envName);
 
-                    if (
-                        testDesign
-                            .getProject()
-                            .getTestData()
-                            .renameTestDataAcrossEnvironments(oldName, newName, allEnvs)
-                    ) {
+                    if (envTestData().renameTestDataAcrossEnvironments(oldName, newName, allEnvs)) {
                         // Update tabs in all affected environments
                         renameTestDataTabsInEnvironments(oldName, newName, allEnvs);
                         return true;
@@ -1627,9 +2030,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 }
             } else {
                 // No duplicates in other environments, proceed with normal rename
-                if (
-                    testDesign.getProject().getTestData().renameTestData(oldName, newName, envName)
-                ) {
+                if (envTestData().renameTestData(oldName, newName, envName)) {
                     renameTestDataTabs(oldName, newName);
                     return true;
                 } else {
@@ -1647,6 +2048,12 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         private void reload() {
             stopCellEditing();
             std.load();
+            // Re-sync the toolbar's saved indicator and the frozen-column view with the
+            // reloaded model, mirroring load(); std.load() alone only fires a structure event.
+            changeSave(std.isSaved());
+            if (!isGlobalData && frozenScrollPane != null) {
+                frozenScrollPane.updateModel();
+            }
         }
 
         private void addLastRow() {
@@ -2619,6 +3026,15 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
             add(addNew);
             add(addInAll);
+            // Promoting a sheet to Shared Test Data only makes sense from the project's own
+            // Test Data panel, not the Shared one.
+            if (!shared) {
+                JMenuItem makeShared = new JMenuItem("Make As Shared TestData");
+                makeShared.setActionCommand("Make As Shared TestData");
+                makeShared.addActionListener(TestDataComponent.this);
+                addSeparator();
+                add(makeShared);
+            }
             addSeparator();
             add(search);
             addSeparator();
@@ -2663,6 +3079,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             reopen.addActionListener(this);
 
             add(addNew);
+            if (!shared) {
+                JMenuItem makeShared = new JMenuItem("Make As Shared TestData");
+                makeShared.setActionCommand("Make Env As Shared TestData");
+                makeShared.addActionListener(this);
+                addSeparator();
+                add(makeShared);
+            }
             addSeparator();
             add(close);
             add(delete);
@@ -2677,6 +3100,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 case "Add New Enivronment":
                     envTab.setSelectedIndex(envTab.getTabCount() - 1);
                     environmentPanel.selectTextBox();
+                    break;
+                case "Make Env As Shared TestData":
+                    makeSelectedEnvironmentShared();
                     break;
                 case "Close Enivronment":
                     if (envTab.getSelectedIndex() != envTab.getTabCount() - 1) {

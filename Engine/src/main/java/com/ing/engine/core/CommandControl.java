@@ -15,6 +15,7 @@ import com.ing.engine.drivers.StructuredDataObject;
 //Added For Mobile
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.execution.data.DataProcessor;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.execution.run.TestCaseRunner;
@@ -346,27 +347,55 @@ public abstract class CommandControl {
 
     public String getDataSheetValue(String key) {
         String val = null;
-        key = key.matches("\\{(\\S)+\\}") ? key.substring(1, key.length() - 1) : key;
+        // A reference carrying an explicit [Shared]/[Project] Test Data scope tag is resolved
+        // through the scope-aware DataAccess pipeline: the project sheet-name scan below can't
+        // see Shared sheets and never forwards the tag. UserDataAccess#getData ->
+        // DataAccess#getModel strips/honours the tag (untagged == [Project]).
+        if (TestDataToken.hasScopeTag(key)) {
+            String[] scoped = TestDataToken.parse(key);
+            if (scoped == null) {
+                return null;
+            }
+            try {
+                return userData.getData(scoped[0], scoped[1]);
+            } catch (RuntimeException ex) {
+                // Quiet: getDatasheet(key) is the single place that reports the failure.
+                return null;
+            }
+        }
+        // Untagged {Sheet:Column} / Sheet:Column - resolve against the project's own Test Data.
+        String ref = TestDataToken.unwrapBraces(key);
         List<String> sheetlist = Control
             .getCurrentProject()
             .getTestData()
             .getTestDataFor(Control.exe.runEnv())
             .getTestDataNames();
         for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
-            if (key.contains(sheetlist.get(sheet) + ":")) {
+            if (ref.contains(sheetlist.get(sheet) + ":")) {
                 com.ing.datalib.testdata.model.TestDataModel tdModel = Control
                     .getCurrentProject()
                     .getTestData()
                     .getTestDataByName(sheetlist.get(sheet));
                 List<String> columns = tdModel.getColumns();
                 for (int col = 0; col < columns.size(); col++) {
-                    if (key.contains(sheetlist.get(sheet) + ":" + columns.get(col))) {
+                    if (ref.contains(sheetlist.get(sheet) + ":" + columns.get(col))) {
                         val = userData.getData(sheetlist.get(sheet), columns.get(col));
                     }
                 }
             }
         }
         return val;
+    }
+
+    /**
+     * Splits a Test Data reference that carries an explicit {@code [Shared]} / {@code [Project]}
+     * scope tag - bare or wrapped in the {@code {...}} pattern, e.g. {@code "{[Shared] Sheet:Column}"}
+     * - into {@code [ "[Shared] Sheet", "Column" ]}, or {@code null} for an untagged/malformed ref.
+     * Thin wrapper over {@link TestDataToken}; untagged refs return {@code null} so
+     * {@link #getDataSheetValue(String)} keeps them on the legacy project-sheet path.
+     */
+    static String[] parseScopedDataSheetRef(String key) {
+        return TestDataToken.hasScopeTag(key) ? TestDataToken.parse(key) : null;
     }
 
     public String getUserDefinedData(String key) {

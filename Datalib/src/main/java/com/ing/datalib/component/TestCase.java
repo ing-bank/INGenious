@@ -772,6 +772,16 @@ public class TestCase extends DataModel {
                         .getLogger(TestCase.class.getName())
                         .log(Level.FINE, "Failed to update shared reusable projects.items", ex);
                 }
+                // ...and any Shared Test Data references, mirroring the same convention.
+                try {
+                    if (referencesSharedTestData()) {
+                        Project.addSharedTestDataProjectEntry(getProject());
+                    }
+                } catch (Exception ex) {
+                    Logger
+                        .getLogger(TestCase.class.getName())
+                        .log(Level.FINE, "Failed to update shared test data projects.items", ex);
+                }
             } catch (Exception ex) {
                 Logger
                     .getLogger(TestCase.class.getName())
@@ -804,6 +814,26 @@ public class TestCase extends DataModel {
         if (!sharedReusableNames.isEmpty()) {
             updateSharedReusableProjectsItems(getProject(), sharedReusableNames);
         }
+    }
+
+    /**
+     * Whether any step in this test case carries a {@code [Shared]} Test Data reference -
+     * whole-input ({@code [Shared] Sheet:Col}) or an embedded {@code {[Shared] Sheet:Col}}
+     * token in the Input / Condition.
+     */
+    private boolean referencesSharedTestData() {
+        for (TestStep step : testSteps) {
+            if (step.isTestDataStep() && "[Shared]".equals(step.getTestDataScopeTag())) {
+                return true;
+            }
+            if (
+                TestStep.containsSharedTestDataToken(step.getInput()) ||
+                TestStep.containsSharedTestDataToken(step.getCondition())
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1350,13 +1380,21 @@ public class TestCase extends DataModel {
     }
 
     public void refactorTestData(String oldTDName, String newTDName) {
+        refactorTestData(oldTDName, newTDName, null);
+    }
+
+    /**
+     * @param scopeToken "[Shared]" to rewrite only Shared-tagged references, "[Project]" to
+     *     rewrite only untagged / Project-tagged references, or {@code null} to rewrite any
+     */
+    public void refactorTestData(String oldTDName, String newTDName, String scopeToken) {
         Boolean clearOnExit = getTestSteps().isEmpty();
         loadTableModel();
         for (TestStep testStep : testSteps) {
             String[] values = testStep.getTestDataFromInput();
             if (values != null) {
-                if (values[0].equals(oldTDName)) {
-                    testStep.setInput(newTDName + ":" + values[1]);
+                if (values[0].equals(oldTDName) && scopeMatches(testStep, scopeToken)) {
+                    testStep.setInput(withScopeTag(testStep, newTDName + ":" + values[1]));
                 }
             }
         }
@@ -1366,18 +1404,98 @@ public class TestCase extends DataModel {
         }
     }
 
+    /**
+     * Rewrites every whole-input Test Data reference to {@code originalName} (whatever scope tag
+     * it currently carries, or none) to {@code [Shared] finalName:Column...}, then persists the
+     * test case. Used by "Make As Shared TestData" when a project datasheet moves to the Shared
+     * store; {@code finalName} differs from {@code originalName} only when the name collided in
+     * the Shared store and was suffixed.
+     *
+     * @return number of test steps changed
+     */
+    public int retagTestDataReferencesToShared(String originalName, String finalName) {
+        Boolean clearOnExit = getTestSteps().isEmpty();
+        loadTableModel();
+        int count = 0;
+        for (TestStep testStep : testSteps) {
+            String[] values = testStep.getTestDataFromInput();
+            if (values != null && values[0].equals(originalName)) {
+                StringBuilder ref = new StringBuilder(finalName);
+                for (int i = 1; i < values.length; i++) {
+                    ref.append(":").append(values[i]);
+                }
+                String newInput = "[Shared] " + ref;
+                if (!newInput.equals(testStep.getInput())) {
+                    testStep.setInput(newInput);
+                    count++;
+                }
+            }
+        }
+        if (count > 0 || clearOnExit) {
+            save();
+        }
+        if (clearOnExit) {
+            getTestSteps().clear();
+        }
+        return count;
+    }
+
+    /**
+     * Re-applies the "[Shared]"/"[Project]" scope tag a test data reference carried, since
+     * refactorTestData/refactorTestDataColumn rebuild the Input from bare sheet/column names.
+     */
+    private String withScopeTag(TestStep testStep, String bareInput) {
+        String tag = testStep.getTestDataScopeTag();
+        return tag.isEmpty() ? bareInput : tag + " " + bareInput;
+    }
+
+    /**
+     * Whether a test step's test data reference belongs to the scope a refactor targets. A
+     * {@code null} scopeToken matches any step (legacy behavior). "[Shared]" matches only
+     * steps whose Input carries the "[Shared]" tag; "[Project]" matches steps that are
+     * untagged or carry the "[Project]" tag - since an untagged reference resolves against the
+     * project's own test data.
+     */
+    private boolean scopeMatches(TestStep testStep, String scopeToken) {
+        if (scopeToken == null) {
+            return true;
+        }
+        String tag = testStep.getTestDataScopeTag();
+        if ("[Shared]".equals(scopeToken)) {
+            return "[Shared]".equals(tag);
+        }
+        return tag.isEmpty() || "[Project]".equals(tag);
+    }
+
     public void refactorTestDataColumn(
         String testDataName,
         String oldColumnName,
         String newColumnName
+    ) {
+        refactorTestDataColumn(testDataName, oldColumnName, newColumnName, null);
+    }
+
+    /**
+     * @param scopeToken "[Shared]" / "[Project]" / {@code null} - see
+     *     {@link #refactorTestData(String, String, String)}
+     */
+    public void refactorTestDataColumn(
+        String testDataName,
+        String oldColumnName,
+        String newColumnName,
+        String scopeToken
     ) {
         Boolean clearOnExit = getTestSteps().isEmpty();
         loadTableModel();
         for (TestStep testStep : testSteps) {
             String[] values = testStep.getTestDataFromInput();
             if (values != null) {
-                if (values[0].equals(testDataName) && values[1].equals(oldColumnName)) {
-                    testStep.setInput(testDataName + ":" + newColumnName);
+                if (
+                    values[0].equals(testDataName) &&
+                    values[1].equals(oldColumnName) &&
+                    scopeMatches(testStep, scopeToken)
+                ) {
+                    testStep.setInput(withScopeTag(testStep, testDataName + ":" + newColumnName));
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.ing.engine.commands.database;
 
 import com.ing.datalib.testdata.view.TestDataView;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.dto.DMLResult;
@@ -246,7 +247,16 @@ public class Database extends General {
             if (Condition != null && Input != null) {
                 int rowIndex = 1;
                 result.first();
-                String[] sheetDetail = Input.split(":");
+                // Accepts Sheet:Column, [Project] Sheet:Column and [Shared] Sheet:Column.
+                String[] sheetDetail = TestDataToken.parse(Input);
+                if (sheetDetail == null) {
+                    Report.updateTestLog(
+                        Action,
+                        "Incorrect input format; expected Sheet:Column",
+                        Status.FAILNS
+                    );
+                    return;
+                }
                 String sheetName = sheetDetail[0];
                 String columnName = sheetDetail[1];
                 String value;
