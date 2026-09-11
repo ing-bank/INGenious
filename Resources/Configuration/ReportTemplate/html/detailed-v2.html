@@ -1469,6 +1469,31 @@
           return action.includes('accessibility') || action.includes('testaccessibility');
         },
         
+        getAxeStepKey(stepNo) {
+          // Key used by both the embedded <script> id and the on-disk aXe file name.
+          // Must stay in sync with Accessibility.saveAccessibilityResults on the engine side.
+          const scenario = (this.params.SC || this.currentDetails.scenarioName || '').trim();
+          const testcase = (this.params.TC || this.currentDetails.testcaseName || '').trim();
+          if (!scenario || !testcase || stepNo === undefined || stepNo === null || stepNo === '') return '';
+          return `${scenario}_${testcase}_Step-${stepNo}`;
+        },
+
+        getAxeReportIdForStep(stepNo) {
+          const key = this.getAxeStepKey(stepNo);
+          return key ? 'axe-data-' + key.replace(/[^a-zA-Z0-9]/g, '-') : '';
+        },
+
+        getAxeReportPathForStep(stepNo) {
+          const key = this.getAxeStepKey(stepNo);
+          return key ? `aXe/${key}_axe-results.json` : '';
+        },
+
+        hasAxeReportForStep(stepNo) {
+          const id = this.getAxeReportIdForStep(stepNo);
+          if (!id) return false;
+          return !!document.getElementById(id);
+        },
+
         getReusableAxeReportPath(reusableName) {
           // Build path to axe report for a specific reusable
           if (!reusableName) return '';
@@ -1507,66 +1532,27 @@
           error: ''
         },
         
-        openAxeReportModal(reusableName, jsonPath) {
+        openAxeReportModal(title, stepNo) {
           this.axeModal.isOpen = true;
-          this.axeModal.title = reusableName;
+          this.axeModal.title = title ? `${title} (Step ${stepNo})` : `Step ${stepNo}`;
           this.axeModal.error = '';
           this.axeModal.data = { violations: [], passes: [], incomplete: [], inapplicable: [] };
-          
-          console.log('[aXe Modal] openAxeReportModal called with reusableName:', reusableName);
-          
-          // Extract clean reusable name (remove "Workflow:" prefix if present)
-          const cleanReusableName = reusableName.includes(':') 
-            ? reusableName.split(':')[1].trim() 
-            : reusableName;
-          
-          console.log('[aXe Modal] Clean reusable name:', cleanReusableName);
-          
-          // First, try to check if data is embedded in the page
-          const embeddedDataId = 'axe-data-' + cleanReusableName.replace(/[^a-zA-Z0-9]/g, '-');
-          console.log('[aXe Modal] Looking for embedded data ID:', embeddedDataId);
-          
-          // Log all script IDs with axe-data-
-          const allAxeScripts = document.querySelectorAll('script[id^="axe-data-"]');
-          console.log('[aXe Modal] Found', allAxeScripts.length, 'embedded aXe data scripts via querySelectorAll');
-          
-          // Try alternative method: geElementsByTagName
-          const allScripts = document.getElementsByTagName('script');
-          console.log('[aXe Modal] Total <script> tags in document:', allScripts.length);
-          for (let i = 0; i < allScripts.length; i++) {
-            if (allScripts[i].id && allScripts[i].id.startsWith('axe-data-')) {
-              console.log('[aXe Modal]   Found via getElementsByTagName:', allScripts[i].id);
-            }
-          }
-          
-          allAxeScripts.forEach((script, idx) => {
-            console.log('[aXe Modal] Available script', idx + 1, ':', script.id);
-          });
-          
-          const embeddedElement = document.getElementById(embeddedDataId);
-          console.log('[aXe Modal] Direct getElementById result:', embeddedElement ? 'FOUND' : 'NOT FOUND');
-          
-          if (embeddedElement) {
-            console.log('[aXe Modal] Element type:', embeddedElement.tagName);
-            console.log('[aXe Modal] Element id:', embeddedElement.id);
-            console.log('[aXe Modal] Content length:', embeddedElement.textContent?.length || 0);
-          }
-          
+
+          const embeddedDataId = this.getAxeReportIdForStep(stepNo);
+          const embeddedElement = embeddedDataId ? document.getElementById(embeddedDataId) : null;
+
           if (embeddedElement && embeddedElement.textContent) {
-            console.log('[aXe Modal] Found embedded data for:', cleanReusableName, '(ID:', embeddedDataId + ')');
-            console.log('[aXe Modal] Embedded data size:', embeddedElement.textContent.length, 'bytes');
             try {
               this.axeModal.data = JSON.parse(embeddedElement.textContent);
-              console.log('[aXe Modal] Successfully parsed embedded data, violations:', this.axeModal.data.violations?.length || 0);
               this.processAxeResults();
               return;
             } catch (e) {
-              console.error('[aXe Modal] Failed to parse embedded data:', e);
+              console.error('[aXe Modal] Failed to parse embedded data for', embeddedDataId, e);
             }
           }
-          
+
           // Otherwise, try to load from file
-          this.loadAxeReportData(jsonPath);
+          this.loadAxeReportData(this.getAxeReportPathForStep(stepNo));
         },
         
         closeAxeModal() {
