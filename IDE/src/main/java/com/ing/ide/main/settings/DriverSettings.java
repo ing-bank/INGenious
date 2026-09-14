@@ -3160,6 +3160,7 @@ public class DriverSettings extends javax.swing.JFrame {
 
     private javax.swing.JPanel sapConnectionsPanel;
     private javax.swing.JComboBox<String> sapCombo;
+    private javax.swing.JButton addSap;
     private javax.swing.JButton renameSap;
     private javax.swing.JButton deleteSap;
     private javax.swing.JButton setDefaultSap;
@@ -3179,7 +3180,7 @@ public class DriverSettings extends javax.swing.JFrame {
         sapToolBar.setPreferredSize(new java.awt.Dimension(100, 50));
 
         sapToolBar.add(javax.swing.Box.createHorizontalStrut(10));
-        sapToolBar.add(new javax.swing.JLabel("SAP Connection"));
+        sapToolBar.add(new javax.swing.JLabel("SAP Configuration"));
         sapToolBar.add(javax.swing.Box.createHorizontalStrut(10));
 
         sapCombo = new javax.swing.JComboBox<>();
@@ -3194,16 +3195,23 @@ public class DriverSettings extends javax.swing.JFrame {
 
         sapToolBar.add(javax.swing.Box.createHorizontalStrut(6));
 
+        addSap = new javax.swing.JButton();
+        addSap.setIcon(INGIcons.swingColored("icon.addIcon", 16));
+        addSap.setToolTipText("Add New SAP");
+        addSap.setContentAreaFilled(false);
+        addSap.setFocusable(false);
+        sapToolBar.add(addSap);
+
         renameSap = new javax.swing.JButton();
         renameSap.setIcon(INGIcons.swingColored("icon.edit", 16));
-        renameSap.setToolTipText("Rename Connection");
+        renameSap.setToolTipText("Rename Configuration");
         renameSap.setContentAreaFilled(false);
         renameSap.setFocusable(false);
         sapToolBar.add(renameSap);
 
         deleteSap = new javax.swing.JButton();
         deleteSap.setIcon(INGIcons.swingColored("icon.deleteIcon", 16));
-        deleteSap.setToolTipText("Delete Connection");
+        deleteSap.setToolTipText("Delete Configuration");
         deleteSap.setContentAreaFilled(false);
         deleteSap.setFocusable(false);
         sapToolBar.add(deleteSap);
@@ -3251,7 +3259,7 @@ public class DriverSettings extends javax.swing.JFrame {
         centerPanel.add(new javax.swing.JScrollPane(sapPropTable), java.awt.BorderLayout.CENTER);
         sapConnectionsPanel.add(centerPanel, java.awt.BorderLayout.CENTER);
 
-        mainTab.addTab("SAP Connections", sapConnectionsPanel);
+        mainTab.addTab("SAP Configurations", sapConnectionsPanel);
 
         // --- Listeners ---
         sapCombo.addItemListener(
@@ -3272,6 +3280,13 @@ public class DriverSettings extends javax.swing.JFrame {
                     markDirty();
                 }
             );
+
+        addSap.addActionListener(
+            ae -> {
+                addNewSap();
+                markDirty();
+            }
+        );
 
         renameSap.addActionListener(ae -> renameSap());
         deleteSap.addActionListener(ae -> deleteSap());
@@ -3334,7 +3349,7 @@ public class DriverSettings extends javax.swing.JFrame {
             return;
         }
         if (settings.getSapConnections().getSapList().contains(newAlias)) {
-            Notification.show("SAP connection [" + newAlias + "] already Present");
+            Notification.show("SAP configuration [" + newAlias + "] already Present");
             return;
         }
         settings.getSapConnections().addSap(newAlias);
@@ -3358,8 +3373,8 @@ public class DriverSettings extends javax.swing.JFrame {
         String oldName = sapCombo.getSelectedItem().toString();
         String input = (String) javax.swing.JOptionPane.showInputDialog(
             sapConnectionsPanel,
-            "Enter the new name for this SAP connection:",
-            "Rename SAP Connection",
+            "Enter the new name for this SAP configuration:",
+            "Rename SAP Configuration",
             javax.swing.JOptionPane.PLAIN_MESSAGE,
             null,
             null,
@@ -3375,8 +3390,8 @@ public class DriverSettings extends javax.swing.JFrame {
         if (settings.getSapConnections().getSapList().contains(newName)) {
             javax.swing.JOptionPane.showMessageDialog(
                 sapConnectionsPanel,
-                "A SAP connection named \"" + newName + "\" already exists.",
-                "Rename SAP Connection",
+                "A SAP configuration named \"" + newName + "\" already exists.",
+                "Rename SAP Configuration",
                 javax.swing.JOptionPane.WARNING_MESSAGE
             );
             return;
