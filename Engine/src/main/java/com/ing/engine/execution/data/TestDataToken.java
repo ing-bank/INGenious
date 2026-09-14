@@ -2,6 +2,8 @@ package com.ing.engine.execution.data;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * One canonical parser for a Test Data reference.
@@ -41,6 +43,8 @@ import java.util.regex.Pattern;
 public final class TestDataToken {
 
     private TestDataToken() {}
+
+    private static final Logger LOG = LoggerFactory.getLogger(TestDataToken.class);
 
     public static final String SHARED_TAG = "[Shared]";
     public static final String PROJECT_TAG = "[Project]";
@@ -142,16 +146,36 @@ public final class TestDataToken {
         Matcher m = EMBEDDED_TOKEN.matcher(text);
         StringBuffer sb = new StringBuffer();
         while (m.find()) {
-            String[] sc = parse(m.group());
+            String token = m.group();
+            String[] sc = parse(token);
             String value = null;
-            if (sc != null) {
+            if (sc == null) {
+                LOG.warn(
+                    "Test Data token {} is not a valid Sheet:Column reference. Leaving it as literal text.",
+                    token
+                );
+            } else {
                 try {
                     value = userData.getData(sc[0], sc[1]);
-                } catch (RuntimeException ignore) {
-                    value = null; // not a resolvable data reference - leave the token as-is
+                    if (value == null) {
+                        LOG.warn(
+                            "Test Data token {} (sheet '{}', column '{}') resolved to no value. Leaving it as literal text.",
+                            token,
+                            sc[0],
+                            sc[1]
+                        );
+                    }
+                } catch (RuntimeException e) {
+                    LOG.warn(
+                        "Test Data token {} (sheet '{}', column '{}') could not be resolved: {}. Leaving it as literal text.",
+                        token,
+                        sc[0],
+                        sc[1],
+                        e.getMessage()
+                    );
                 }
             }
-            m.appendReplacement(sb, Matcher.quoteReplacement(value != null ? value : m.group()));
+            m.appendReplacement(sb, Matcher.quoteReplacement(value != null ? value : token));
         }
         m.appendTail(sb);
         return sb.toString();
