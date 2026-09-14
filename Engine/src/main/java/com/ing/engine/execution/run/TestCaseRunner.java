@@ -615,10 +615,18 @@ public class TestCaseRunner {
                             // step whose data sheet simply has no matching row), the same cause
                             // means the data genuinely wasn't found and must be reported as a
                             // real failure, not swallowed as if a loop had just ended.
+                            //
+                            // The owning loop is not always `this`: a dynamic Start Param/End
+                            // Param block with no locally-visible {Sheet:Column} step (e.g. its
+                            // only data access happens inside a called reusable, with no filler
+                            // exposing that reference) can never detect end-of-data via
+                            // checkIfLastData's peek - it only finds out by actually attempting
+                            // one iteration too many, and that attempt's real getData() call
+                            // throws from *inside* the reusable's own TestCaseRunner, whose own
+                            // stepStack is empty. Walk the caller chain (`context`) so the check
+                            // still finds the ancestor that actually owns the open dynamic loop.
                             boolean isDynamicLoopTermination =
-                                ex.cause.isEndData() &&
-                                !this.stepStack.isEmpty() &&
-                                this.stepStack.peek().isSubIterDynamic;
+                                ex.cause.isEndData() && isInsideOpenDynamicParamLoop();
                             if (isDynamicLoopTermination) {
                                 // Rethrow the original exception rather than constructing a new
                                 // one - a fresh DataNotFoundException(String) here would leave
@@ -658,6 +666,24 @@ public class TestCaseRunner {
                 this.getRoot().getTestCase().setDynamicMaxIter(null);
             }
         }
+    }
+
+    /**
+     * Whether `this` or any ancestor caller (walking {@link #context}, the live parent
+     * {@code TestCaseRunner} link set up for reusable/nested execution) currently has an open
+     * dynamic (index-less) Start Param/End Param loop. Used to tell a genuine "data not found"
+     * apart from a dynamic loop simply running out of sub-iterations, since that discovery can
+     * surface several call levels below the TestCaseRunner that actually owns the loop.
+     *
+     * @return true if some runner in the caller chain owns an open dynamic Param loop
+     */
+    private boolean isInsideOpenDynamicParamLoop() {
+        for (TestCaseRunner runner = this; runner != null; runner = runner.context) {
+            if (!runner.stepStack.isEmpty() && runner.stepStack.peek().isSubIterDynamic) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
