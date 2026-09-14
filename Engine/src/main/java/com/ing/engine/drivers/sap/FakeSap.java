@@ -10,7 +10,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * In-memory fakes for the SAP seam, so {@code SapSessionManager} / routing can be
- * tested without SAP GUI or COM.
+ * tested without SAP GUI or COM. Lives in {@code src/main} (not {@code src/test}) so it
+ * doubles as the runtime locator for {@code -Dsap.fakeMode=true} builds - see
+ * {@code SapSessionManager#defaultLocatorFactory()} and
+ * {@code SAP-Enhancement/SAP-Fake-Mode.md}. It is otherwise inert: nothing selects it
+ * unless that build-time flag was set.
  */
 public final class FakeSap {
 

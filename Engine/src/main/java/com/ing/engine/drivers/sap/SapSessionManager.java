@@ -6,11 +6,14 @@ import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.engine.core.Control;
 import com.ing.engine.execution.run.TestCaseRunner;
 import com.ing.engine.util.data.KeyMap;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,12 +33,25 @@ import java.util.logging.Logger;
 public final class SapSessionManager {
     private static final Logger LOG = Logger.getLogger(SapSessionManager.class.getName());
 
+    /**
+     * Baked in at build time - {@code true} only when built with {@code -Dsap.fakeMode=true}
+     * (see {@code sap/sap-build.properties}, filtered from the {@code sap.fakeMode} Maven
+     * property). A plain build always resolves this to {@code false}. See
+     * {@code SAP-Enhancement/SAP-Fake-Mode.md}.
+     *
+     * <p>Declared (and thus initialized) before {@link #INSTANCE} - {@code INSTANCE}'s
+     * construction reads this via {@link #defaultLocatorFactory()}, and static fields
+     * initialize in textual order, so this would silently read as {@code false} if it were
+     * declared any later.
+     */
+    private static final boolean FAKE_MODE = loadFakeModeFlag();
+
     public static final SapSessionManager INSTANCE = new SapSessionManager();
 
     /** Bounded wait for a freshly launched SAP GUI to register its scripting engine. */
     private volatile long engineTimeoutMillis = 30_000L;
 
-    private volatile Supplier<SapEngineLocator> locatorFactory = JacobSapEngineLocator::new;
+    private volatile Supplier<SapEngineLocator> locatorFactory = defaultLocatorFactory();
 
     private volatile Supplier<SapConfigRegistry> registrySupplier = () ->
         Control.getCurrentProject().getProjectSettings().getSapConfigRegistry();
@@ -77,7 +93,40 @@ public final class SapSessionManager {
     // ---- test hooks -------------------------------------------------------
 
     public void setLocatorFactory(Supplier<SapEngineLocator> factory) {
-        this.locatorFactory = factory == null ? JacobSapEngineLocator::new : factory;
+        this.locatorFactory = factory == null ? defaultLocatorFactory() : factory;
+    }
+
+    /** Real SAP GUI/COM, unless this build was made with {@code -Dsap.fakeMode=true}. */
+    private static Supplier<SapEngineLocator> defaultLocatorFactory() {
+        return FAKE_MODE ? FakeSap.Locator::new : JacobSapEngineLocator::new;
+    }
+
+    private static boolean loadFakeModeFlag() {
+        Properties props = new Properties();
+        try (
+            InputStream in = SapSessionManager.class.getResourceAsStream(
+                    "/sap/sap-build.properties"
+                )
+        ) {
+            if (in != null) {
+                props.load(in);
+            }
+        } catch (IOException ex) {
+            LOG.log(
+                Level.WARNING,
+                "Could not read sap/sap-build.properties - defaulting sap.fakeMode=false",
+                ex
+            );
+        }
+        boolean fake = Boolean.parseBoolean(props.getProperty("sap.fakeMode", "false"));
+        if (fake) {
+            LOG.log(
+                Level.WARNING,
+                "⚠ SAP FAKE MODE ACTIVE - this build was made with -Dsap.fakeMode=true. " +
+                "SAP actions will run against an in-memory fake, not a real SAP GUI connection."
+            );
+        }
+        return fake;
     }
 
     public void setEngineTimeoutMillis(long millis) {

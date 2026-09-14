@@ -9,10 +9,14 @@
     </parent>
     <artifactId>ingenious-engine</artifactId>
     <packaging>jar</packaging>
-    <properties>  
+    <properties>
         <timestamp>${maven.build.timestamp} UTC</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
         <app.root>../</app.root>
+        <!-- Baked into sap/sap-build.properties (filtered, see <resources> below) and read
+             once by SapSessionManager at class-init. Only "mvn ... -Dsap.fakeMode=true" turns
+             it on; a plain build always ships false. See SAP-Enhancement/SAP-Fake-Mode.md. -->
+        <sap.fakeMode>false</sap.fakeMode>
     </properties>
     <dependencies> 
         <!-- <dependency>
