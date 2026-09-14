@@ -70,7 +70,7 @@ public class Assertions extends General {
                 ObjectName +
                 "] does not contain text '" +
                 Data +
-                "'. Actual text is '" +
+                "'. Ac is tual text is '" +
                 text +
                 "'"
             );
