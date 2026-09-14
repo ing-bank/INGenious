@@ -14,7 +14,27 @@ REM   ingenious --help                           # CLI: top-level help
 set "INSTALL_DIR=%~dp0"
 set "RUNTIME_DIR=%INSTALL_DIR%Runtime"
 set "WORKSPACE_DIR=%INSTALL_DIR%Workspace"
-set "APP_CLASSPATH=%RUNTIME_DIR%\lib\*;%RUNTIME_DIR%\lib\clib\*"
+
+REM The release bundle ships JavaFX natives for every OS/arch. Loading more
+REM than one platform's javafx-* jars on the same classpath causes
+REM "No toolkit found" at startup, so keep only the win jars for this platform.
+setlocal enabledelayedexpansion
+set "APP_CLASSPATH="
+for %%F in ("%RUNTIME_DIR%\lib\*.jar") do (
+    set "SKIP=0"
+    echo %%~nxF| findstr /i /c:"javafx-" >nul
+    if !errorlevel! equ 0 (
+        echo %%~nxF| findstr /i /c:"-win.jar" >nul
+        if !errorlevel! neq 0 set "SKIP=1"
+    )
+    if "!SKIP!"=="0" (
+        if defined APP_CLASSPATH (set "APP_CLASSPATH=!APP_CLASSPATH!;%%F") else (set "APP_CLASSPATH=%%F")
+    )
+)
+for %%F in ("%RUNTIME_DIR%\lib\clib\*.jar") do (
+    if defined APP_CLASSPATH (set "APP_CLASSPATH=!APP_CLASSPATH!;%%F") else (set "APP_CLASSPATH=%%F")
+)
+endlocal & set "APP_CLASSPATH=%APP_CLASSPATH%"
 
 if "%~1" == "" (
     REM No args -> IDE (windowed, detached)

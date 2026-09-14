@@ -13,7 +13,25 @@
 INSTALL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)" || exit 1
 RUNTIME_DIR="$INSTALL_DIR/Runtime"
 WORKSPACE_DIR="$INSTALL_DIR/Workspace"
-APP_CLASSPATH="$RUNTIME_DIR/lib/*:$RUNTIME_DIR/lib/clib/*"
+
+# The release bundle ships JavaFX natives for every OS/arch. Loading more
+# than one platform's javafx-* jars on the same classpath causes
+# "No toolkit found" at startup, so keep only the jars for this platform.
+case "$(uname -s)" in
+  Darwin)
+    if [[ "$(uname -m)" == "arm64" ]]; then
+      JFX_CLASSIFIER="mac-aarch64"
+    else
+      JFX_CLASSIFIER="mac"
+    fi
+    ;;
+  *)
+    JFX_CLASSIFIER="linux"
+    ;;
+esac
+JFX_JARS="$(find "$RUNTIME_DIR/lib" -maxdepth 1 -name "javafx-*-${JFX_CLASSIFIER}.jar" 2>/dev/null | paste -sd: -)"
+OTHER_JARS="$(find "$RUNTIME_DIR/lib" "$RUNTIME_DIR/lib/clib" -maxdepth 1 -name '*.jar' ! -name 'javafx-*' 2>/dev/null | paste -sd: -)"
+APP_CLASSPATH="${JFX_JARS:+$JFX_JARS:}${OTHER_JARS}"
 
 
 JVM_OPTIONS=(
