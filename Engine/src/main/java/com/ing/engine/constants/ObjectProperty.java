@@ -16,4 +16,6 @@ public final class ObjectProperty {
     public static final String UiAutomator = "UiAutomator";
     public static final String Accessibility = "Accessibility";
     public static final String Text = "Text";
+    /** Phase 4: pins a SAP OR element to a specific session label, overriding the current pointer. */
+    public static final String Session = "session";
 }

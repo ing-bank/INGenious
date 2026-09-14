@@ -183,7 +183,6 @@ public class TestCaseRunner {
             getRoot().getControl().Page,
             getRoot().getControl().BrowserContext,
             getRoot().getControl().webDriver,
-            getRoot().getControl().SAPsession,
             getRoot().getControl().Report
         ) {
 

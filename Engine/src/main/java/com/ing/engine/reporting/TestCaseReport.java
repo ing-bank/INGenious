@@ -7,8 +7,8 @@ import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.core.RunManager;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
-import com.ing.engine.drivers.SAPSessionCreation;
 import com.ing.engine.drivers.WebDriverCreation;
+import com.ing.engine.drivers.sap.SapGuiSession;
 import com.ing.engine.reporting.impl.azure.AzureTestCaseHandler;
 import com.ing.engine.reporting.impl.extent.ExtentTestCaseHandler;
 import com.ing.engine.reporting.impl.handlers.PrimaryHandler;
@@ -49,7 +49,7 @@ public final class TestCaseReport implements Report, TestCaseReportApi {
     public final DateTimeUtils startTime;
     PlaywrightDriverCreation playwrightdriver;
     WebDriverCreation webDriver;
-    SAPSessionCreation session;
+    SapGuiSession sapSession;
 
     Step curr;
     Status currentStatus;
@@ -137,10 +137,10 @@ public final class TestCaseReport implements Report, TestCaseReportApi {
         }
     }
 
-    public void setSapSession(SAPSessionCreation sapSession) {
-        session = sapSession;
+    public void setSapSession(SapGuiSession sapSession) {
+        this.sapSession = sapSession;
         for (TestCaseHandler handler : handlers) {
-            handler.setSapSession(session);
+            handler.setSapSession(sapSession);
         }
     }
 

@@ -26,11 +26,13 @@ import java.util.Objects;
  * </pre>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "id", "name", "Text" })
+@JsonPropertyOrder({ "id", "name", "Text", "session" })
 public class YamlSapElementDefinition {
     private String id;
     private String name;
     private String Text;
+    /** Reserved for Phase 4 multi-session: label pinning this element to a session. */
+    private String session;
 
     public YamlSapElementDefinition() {}
 
@@ -60,6 +62,14 @@ public class YamlSapElementDefinition {
         this.Text = text;
     }
 
+    public String getSession() {
+        return session;
+    }
+
+    public void setSession(String session) {
+        this.session = session;
+    }
+
     // ==================== Conversion Methods ====================
 
     /**
@@ -84,6 +94,9 @@ public class YamlSapElementDefinition {
                         break;
                     case "Text":
                         def.setText(value);
+                        break;
+                    case "session":
+                        def.setSession(value);
                         break;
                 }
             }
@@ -119,6 +132,11 @@ public class YamlSapElementDefinition {
                         attr.setValue(Text);
                     }
                     break;
+                case "session":
+                    if (session != null && !session.isEmpty()) {
+                        attr.setValue(session);
+                    }
+                    break;
             }
         }
 
@@ -134,7 +152,8 @@ public class YamlSapElementDefinition {
         return (
             (id == null || id.isEmpty()) &&
             (name == null || name.isEmpty()) &&
-            (Text == null || Text.isEmpty())
+            (Text == null || Text.isEmpty()) &&
+            (session == null || session.isEmpty())
         );
     }
 
@@ -146,12 +165,13 @@ public class YamlSapElementDefinition {
         return (
             Objects.equals(id, that.id) &&
             Objects.equals(name, that.name) &&
-            Objects.equals(Text, that.Text)
+            Objects.equals(Text, that.Text) &&
+            Objects.equals(session, that.session)
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, Text);
+        return Objects.hash(id, name, Text, session);
     }
 }

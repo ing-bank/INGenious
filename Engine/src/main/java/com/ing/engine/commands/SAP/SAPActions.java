@@ -3,10 +3,15 @@ package com.ing.engine.commands.SAP;
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.AutomationObject;
+import com.ing.engine.drivers.sap.SapConnectionException;
+import com.ing.engine.drivers.sap.SapSessionManager;
+import com.ing.engine.execution.run.TestCaseRunner;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.mobile.ElementException;
 import com.ing.ingenious.api.exception.mobile.ElementException.ExceptionType;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.jacob.com.Dispatch;
@@ -59,12 +64,205 @@ public class SAPActions extends General {
     }
 
     /**
-     * Validates that SAPsession exists before attempting operations
-     * @throws ElementException if SAPsession is null
+     * Validates that a SAP connection is open before attempting operations
+     * @throws ElementException if no SAP connection is open
      */
     private void validateSAPSession() {
-        if (SAPsession == null) {
+        if (!SapSessionManager.INSTANCE.hasConnection()) {
+            Report.updateTestLog(
+                Action,
+                "No SAP connection - add a SAP.initConnection step.",
+                Status.FAILNS
+            );
             throw new ElementException(ExceptionType.Element_Not_Found, "SAP Session");
+        }
+    }
+
+    private TestCaseRunner currentRunner() {
+        return userData.context();
+    }
+
+    // ============================================================================
+    // SECTION 0: CONNECTION MANAGEMENT (driverless SAP)
+    // ============================================================================
+
+    /**
+     * Open (or adopt), or re-claim if already open, a SAP connection and make it
+     * current. Mirrors {@code Database.initDBConnection}. Blank input = the project
+     * default connection; {@code #alias} = {@code Settings/SAP/<alias>.properties}.
+     */
+    @Action(
+        object = ObjectType.SAP,
+        desc = "Initialise SAP connection [<Input>] (blank = project default)",
+        input = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.ALIAS_SAP,
+        inputExample = "#SAP_QA",
+        help = "Blank = project default; #alias = Settings/SAP/<alias>.properties"
+    )
+    public void sapInitConnection() {
+        try {
+            SapSessionManager.INSTANCE.initConnection(Input, currentRunner());
+            Report.setSapSession(SapSessionManager.INSTANCE.current());
+            Report.updateTestLog(
+                Action,
+                "SAP connection ready [" + SapSessionManager.INSTANCE.currentAliasName() + "]",
+                Status.PASSNS
+            );
+        } catch (SapConnectionException ex) {
+            Report.updateTestLog(Action, ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    /** Make an already-open SAP connection current (no claim change). */
+    @Action(
+        object = ObjectType.SAP,
+        desc = "Switch current SAP connection to [<Input>]",
+        input = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.ALIAS_SAP,
+        inputExample = "#SAP_QA",
+        help = "An already-open connection alias."
+    )
+    public void sapSwitchConnection() {
+        try {
+            SapSessionManager.INSTANCE.switchConnection(Input);
+            Report.updateTestLog(
+                Action,
+                "Switched to SAP connection [" +
+                SapSessionManager.INSTANCE.currentAliasName() +
+                "]",
+                Status.PASSNS
+            );
+        } catch (SapConnectionException ex) {
+            Report.updateTestLog(Action, ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    /**
+     * Release this runner's claim on a SAP connection (blank = project default).
+     * Physically closes only when the claim stack empties and the run owns it.
+     */
+    @Action(
+        object = ObjectType.SAP,
+        desc = "Close SAP connection [<Input>] (blank = project default)",
+        input = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.ALIAS_SAP,
+        inputExample = "#SAP_QA",
+        help = "Blank = project default; #alias = that connection only."
+    )
+    public void sapCloseConnection() {
+        try {
+            SapSessionManager.INSTANCE.closeConnection(Input, currentRunner());
+            Report.updateTestLog(Action, "SAP connection released", Status.PASSNS);
+        } catch (Exception ex) {
+            Report.updateTestLog(
+                Action,
+                "Error releasing SAP connection: " + ex.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /** Force-close every SAP connection this run owns (last-resort teardown). */
+    @Action(object = ObjectType.SAP, desc = "Force-close every SAP connection this run owns")
+    public void sapCloseAllConnection() {
+        try {
+            SapSessionManager.INSTANCE.closeAll(currentRunner().getRoot());
+            Report.updateTestLog(Action, "All SAP connections closed", Status.PASSNS);
+        } catch (Exception ex) {
+            Report.updateTestLog(
+                Action,
+                "Error closing SAP connections: " + ex.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * Create a new session (one connection, up to 6 sessions) on the current SAP connection,
+     * labeled by the resolved input, and make it current. Unlike {@code #alias} connection
+     * references, a session label is runtime-only and resolved through the ordinary value
+     * pipeline ({@code @literal}, datasheet, {@code %var%}, {@code ${env}}, formula) - so this
+     * reads {@code Data} (already resolved), not the raw {@code Input}.
+     */
+    @Action(
+        object = ObjectType.SAP,
+        desc = "Open a new SAP session labeled [<Data>]",
+        input = InputType.YES
+    )
+    @Args(
+        inputExample = "@stock",
+        help = "A session label, e.g. @stock - a plain value, not a #alias."
+    )
+    public void sapOpenSession() {
+        try {
+            SapSessionManager.INSTANCE.openSession(Data);
+            Report.setSapSession(SapSessionManager.INSTANCE.current());
+            Report.updateTestLog(
+                Action,
+                "SAP session opened [" + SapSessionManager.INSTANCE.currentSessionLabel() + "]",
+                Status.PASSNS
+            );
+        } catch (SapConnectionException ex) {
+            Report.updateTestLog(Action, ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    /**
+     * Make an already-open session on the current SAP connection current (blank = the
+     * connection's primary session - the one {@code initConnection} created). No session is
+     * created.
+     */
+    @Action(
+        object = ObjectType.SAP,
+        desc = "Switch current SAP session to [<Data>] (blank = primary session)",
+        input = InputType.OPTIONAL
+    )
+    @Args(
+        inputExample = "@stock",
+        help = "Blank = the connection's primary session; a label = that session only."
+    )
+    public void sapSwitchSession() {
+        try {
+            SapSessionManager.INSTANCE.switchSession(Data);
+            Report.setSapSession(SapSessionManager.INSTANCE.current());
+            Report.updateTestLog(
+                Action,
+                "Switched to SAP session [" +
+                SapSessionManager.INSTANCE.currentSessionLabel() +
+                "]",
+                Status.PASSNS
+            );
+        } catch (SapConnectionException ex) {
+            Report.updateTestLog(Action, ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    /**
+     * Close a session on the current SAP connection (blank = the current session). Refuses to
+     * close a connection's only remaining session - use {@code SAP.closeConnection} for that.
+     */
+    @Action(
+        object = ObjectType.SAP,
+        desc = "Close SAP session [<Data>] (blank = current session)",
+        input = InputType.OPTIONAL
+    )
+    @Args(inputExample = "@stock", help = "Blank = current session; a label = that session only.")
+    public void sapCloseSession() {
+        try {
+            SapSessionManager.INSTANCE.closeSession(Data);
+            Report.updateTestLog(Action, "SAP session closed", Status.PASSNS);
+        } catch (Exception ex) {
+            Report.updateTestLog(
+                Action,
+                "Error closing SAP session: " + ex.getMessage(),
+                Status.FAILNS
+            );
         }
     }
 
@@ -97,7 +295,7 @@ public class SAPActions extends General {
      * SAP API: session.startTransaction(tcode)
      */
     @Action(
-        object = ObjectType.BROWSER,
+        object = ObjectType.SAP,
         desc = "Execute SAP transaction [<Data>]",
         input = InputType.YES
     )
@@ -118,7 +316,7 @@ public class SAPActions extends General {
      * NEW: End current SAP transaction
      * SAP API: session.endTransaction()
      */
-    @Action(object = ObjectType.BROWSER, desc = "End current SAP transaction", input = InputType.NO)
+    @Action(object = ObjectType.SAP, desc = "End current SAP transaction", input = InputType.NO)
     public void sapEndTransaction() {
         try {
             Dispatch.call(SAPsession, "endTransaction");
@@ -136,7 +334,7 @@ public class SAPActions extends General {
      * NEW: Refresh SAP session
      * SAP API: session.Refresh()
      */
-    @Action(object = ObjectType.BROWSER, desc = "Refresh SAP session", input = InputType.NO)
+    @Action(object = ObjectType.SAP, desc = "Refresh SAP session", input = InputType.NO)
     public void sapRefreshSession() {
         try {
             Dispatch.call(SAPsession, "Refresh");
@@ -155,7 +353,7 @@ public class SAPActions extends General {
      * Process-level operation
      */
     @Action(
-        object = ObjectType.BROWSER,
+        object = ObjectType.SAP,
         desc = "Close SAP logon landscape screen",
         input = InputType.NO
     )
@@ -177,7 +375,7 @@ public class SAPActions extends General {
      * Format: property=value or multiple properties separated by comma
      */
     @Action(
-        object = ObjectType.BROWSER,
+        object = ObjectType.SAP,
         desc = "Set all objects property to [<Data>] at runtime",
         input = InputType.YES,
         condition = InputType.YES
@@ -212,7 +410,11 @@ public class SAPActions extends General {
      * NEW: Maximize SAP window
      * SAP API: window.Maximize()
      */
-    @Action(object = ObjectType.SAP, desc = "Maximize SAP window [<Object>]", input = InputType.NO)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Maximize SAP window [<Object>]",
+        input = InputType.NO
+    )
     public void sapMaximizeWindow() {
         try {
             Dispatch.call(SAPElement, "Maximize");
@@ -234,7 +436,11 @@ public class SAPActions extends General {
      * NEW: Minimize SAP window
      * SAP API: window.Minimize()
      */
-    @Action(object = ObjectType.SAP, desc = "Minimize SAP window [<Object>]", input = InputType.NO)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Minimize SAP window [<Object>]",
+        input = InputType.NO
+    )
     public void sapMinimizeWindow() {
         try {
             Dispatch.call(SAPElement, "Minimize");
@@ -257,7 +463,7 @@ public class SAPActions extends General {
      * SAP API: window.Restore()
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Restore SAP window [<Object>] to normal size",
         input = InputType.NO
     )
@@ -283,7 +489,7 @@ public class SAPActions extends General {
      * SAP API: window.Close()
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Close SAP window or popup [<Object>]",
         input = InputType.NO
     )
@@ -308,7 +514,11 @@ public class SAPActions extends General {
      * NEW: Iconify SAP window
      * SAP API: window.Iconify()
      */
-    @Action(object = ObjectType.SAP, desc = "Iconify SAP window [<Object>]", input = InputType.NO)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Iconify SAP window [<Object>]",
+        input = InputType.NO
+    )
     public void sapIconifyWindow() {
         try {
             Dispatch.call(SAPElement, "Iconify");
@@ -332,7 +542,7 @@ public class SAPActions extends General {
      * Data format: width,height[,fullScreen]
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Resize working pane with parameters [<Data>]",
         input = InputType.YES
     )
@@ -382,7 +592,7 @@ public class SAPActions extends General {
      * SAP API: element.Text = value
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Enter the value [<Data>] in the field [<Object>]",
         input = InputType.YES
     )
@@ -411,7 +621,7 @@ public class SAPActions extends General {
      * EXISTING: Press Enter key
      * SAP API: element.sendVKey(0)
      */
-    @Action(object = ObjectType.SAP, desc = "Press [<Enter>] key", input = InputType.NO)
+    @Action(object = ObjectType.SAP_OBJECT, desc = "Press [<Enter>] key", input = InputType.NO)
     public void sapEnter() {
         try {
             validateSAPElement();
@@ -435,7 +645,7 @@ public class SAPActions extends General {
      * VKey codes: 0=Enter, 3=Back, 4=F4, 8=F8/Execute, 11=Save, etc.
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Simulate key press with VCode [<Data>]",
         input = InputType.YES
     )
@@ -476,7 +686,7 @@ public class SAPActions extends General {
      * SAP API: element.SelectAll()
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Select all text in field [<Object>]",
         input = InputType.NO
     )
@@ -501,7 +711,11 @@ public class SAPActions extends General {
      * NEW: Set caret position in text field
      * SAP API: element.caretPosition = position
      */
-    @Action(object = ObjectType.SAP, desc = "Set caret position to [<Data>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Set caret position to [<Data>]",
+        input = InputType.YES
+    )
     public void sapSetCaretPosition() {
         try {
             validateSAPElement();
@@ -532,7 +746,7 @@ public class SAPActions extends General {
      * SAP API: element.modified = boolean
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Set modified property to [<Data>]",
         input = InputType.YES
     )
@@ -576,7 +790,7 @@ public class SAPActions extends General {
      * EXISTING: Click/Press button
      * SAP API: button.press()
      */
-    @Action(object = ObjectType.SAP, desc = "Click the [<Object>]")
+    @Action(object = ObjectType.SAP_OBJECT, desc = "Click the [<Object>]")
     public void sapClick() {
         try {
             validateSAPElement();
@@ -598,7 +812,11 @@ public class SAPActions extends General {
      * NEW: Press button by ID or function code
      * SAP API: toolbar.pressButton(buttonId)
      */
-    @Action(object = ObjectType.SAP, desc = "Press button with ID [<Data>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Press button with ID [<Data>]",
+        input = InputType.YES
+    )
     public void sapPressButton() {
         try {
             validateSAPElement();
@@ -625,7 +843,7 @@ public class SAPActions extends General {
      * SAP API: checkbox.Selected = boolean
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Set checkbox [<Object>] to [<Data>] (true/false)",
         input = InputType.YES
     )
@@ -652,7 +870,7 @@ public class SAPActions extends General {
      * SAP API: table.GetAbsoluteRow(row).Selected = true
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Select Radio Button in row [<Data>]",
         input = InputType.YES
     )
@@ -679,7 +897,7 @@ public class SAPActions extends General {
      * SAP API: comboBox.Text = value
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Select dropdown value by visible text [<Data>]",
         input = InputType.YES
     )
@@ -701,7 +919,7 @@ public class SAPActions extends General {
      * SAP API: comboBox.Key = value
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Select Dropdown value by Key [<Data>]",
         input = InputType.YES
     )
@@ -723,7 +941,7 @@ public class SAPActions extends General {
      * SAP API: comboBox.Select(index)
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Select dropdown value by index [<Data>]",
         input = InputType.YES
     )
@@ -744,7 +962,7 @@ public class SAPActions extends General {
      * NEW: Open dropdown list
      * SAP API: comboBox.Open()
      */
-    @Action(object = ObjectType.SAP, desc = "Open dropdown [<Object>]", input = InputType.NO)
+    @Action(object = ObjectType.SAP_OBJECT, desc = "Open dropdown [<Object>]", input = InputType.NO)
     public void sapOpenComboBox() {
         try {
             Dispatch.call(SAPElement, "Open");
@@ -762,7 +980,11 @@ public class SAPActions extends General {
      * NEW: Close dropdown list
      * SAP API: comboBox.Close()
      */
-    @Action(object = ObjectType.SAP, desc = "Close dropdown [<Object>]", input = InputType.NO)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Close dropdown [<Object>]",
+        input = InputType.NO
+    )
     public void sapCloseComboBox() {
         try {
             Dispatch.call(SAPElement, "Close");
@@ -784,7 +1006,7 @@ public class SAPActions extends General {
      * EXISTING: Select tab
      * SAP API: tab.select()
      */
-    @Action(object = ObjectType.SAP, desc = "Select the [<Object>]")
+    @Action(object = ObjectType.SAP_OBJECT, desc = "Select the [<Object>]")
     public void sapSelect() {
         try {
             Dispatch.call(SAPElement, "select");
@@ -806,7 +1028,11 @@ public class SAPActions extends General {
      * NEW: Select table row
      * SAP API: table.SelectRow(row)
      */
-    @Action(object = ObjectType.SAP, desc = "Select table row [<Data>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Select table row [<Data>]",
+        input = InputType.YES
+    )
     public void sapSelectTableRow() {
         try {
             Dispatch.call(SAPElement, "SelectRow", Integer.parseInt(Data));
@@ -826,7 +1052,7 @@ public class SAPActions extends General {
      * Data format: row,column
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Set current table cell [<Data>] (format: row,column)",
         input = InputType.YES
     )
@@ -864,7 +1090,7 @@ public class SAPActions extends General {
      * SAP API: table.currentCellRow = row
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Set current table cell row to [<Data>]",
         input = InputType.YES
     )
@@ -887,7 +1113,7 @@ public class SAPActions extends General {
      * Data format: row,column
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Get cell value [<Data>] (format: row,column)",
         input = InputType.YES
     )
@@ -927,7 +1153,7 @@ public class SAPActions extends General {
      * Data format: row,column,value
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Modify table cell with data [<Data>] in format row,column,value",
         input = InputType.YES
     )
@@ -965,7 +1191,7 @@ public class SAPActions extends General {
      * NEW: Click current table cell
      * SAP API: table.ClickCurrentCell()
      */
-    @Action(object = ObjectType.SAP, desc = "Click current table cell", input = InputType.NO)
+    @Action(object = ObjectType.SAP_OBJECT, desc = "Click current table cell", input = InputType.NO)
     public void sapClickCurrentCell() {
         try {
             Dispatch.call(SAPElement, "ClickCurrentCell");
@@ -987,7 +1213,7 @@ public class SAPActions extends General {
      * EXISTING: Double-click current table cell
      * SAP API: table.doubleClickCurrentCell()
      */
-    @Action(object = ObjectType.SAP, desc = "Double click the current Cell")
+    @Action(object = ObjectType.SAP_OBJECT, desc = "Double click the current Cell")
     public void sapDoubleClickCell() {
         try {
             Dispatch.call(SAPElement, "doubleClickCurrentCell");
@@ -1010,7 +1236,7 @@ public class SAPActions extends General {
      * SAP API: table.VerticalScrollbar.Position = position
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Set vertical scroll position to [<Data>]",
         input = InputType.YES
     )
@@ -1035,7 +1261,11 @@ public class SAPActions extends General {
      * NEW: Select grid row
      * SAP API: grid.SelectRow(row)
      */
-    @Action(object = ObjectType.SAP, desc = "Select ALV grid row [<Data>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Select ALV grid row [<Data>]",
+        input = InputType.YES
+    )
     public void sapSelectGridRow() {
         try {
             Dispatch.call(SAPElement, "SelectRow", Integer.parseInt(Data));
@@ -1054,7 +1284,7 @@ public class SAPActions extends General {
      * SAP API: grid.SelectColumn(columnName)
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Select ALV grid column [<Data>]",
         input = InputType.YES
     )
@@ -1077,7 +1307,7 @@ public class SAPActions extends General {
      * Data format: row,column
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Set current grid cell [<Data>] (format: row,column)",
         input = InputType.YES
     )
@@ -1116,7 +1346,7 @@ public class SAPActions extends General {
      * Data format: row,column
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Get grid cell value [<Data>] (format: row,column)",
         input = InputType.YES
     )
@@ -1154,7 +1384,7 @@ public class SAPActions extends General {
      * NEW: Click current grid cell
      * SAP API: grid.ClickCurrentCell()
      */
-    @Action(object = ObjectType.SAP, desc = "Click current grid cell", input = InputType.NO)
+    @Action(object = ObjectType.SAP_OBJECT, desc = "Click current grid cell", input = InputType.NO)
     public void sapClickGridCurrentCell() {
         try {
             Dispatch.call(SAPElement, "ClickCurrentCell");
@@ -1177,7 +1407,7 @@ public class SAPActions extends General {
      * SAP API: grid.PressToolbarButton(buttonId)
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Press grid toolbar button [<Data>]",
         input = InputType.YES
     )
@@ -1199,7 +1429,7 @@ public class SAPActions extends General {
      * SAP API: grid.PressToolbarContextButton(buttonId)
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Press grid toolbar context button [<Data>]",
         input = InputType.YES
     )
@@ -1225,7 +1455,7 @@ public class SAPActions extends General {
      * SAP API: grid.SelectAll()
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Select all rows in grid [<Object>]",
         input = InputType.NO
     )
@@ -1250,7 +1480,11 @@ public class SAPActions extends General {
      * NEW: Deselect grid row
      * SAP API: grid.DeselectRow(row)
      */
-    @Action(object = ObjectType.SAP, desc = "Deselect grid row [<Data>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Deselect grid row [<Data>]",
+        input = InputType.YES
+    )
     public void sapDeselectRow() {
         try {
             Dispatch.call(SAPElement, "DeselectRow", Integer.parseInt(Data));
@@ -1268,7 +1502,7 @@ public class SAPActions extends General {
      * NEW: Clear grid selection
      * SAP API: grid.clearSelection()
      */
-    @Action(object = ObjectType.SAP, desc = "Clear selection on [<Object>]")
+    @Action(object = ObjectType.SAP_OBJECT, desc = "Clear selection on [<Object>]")
     public void sapClearSelection() {
         try {
             Dispatch.call(SAPElement, "clearSelection");
@@ -1288,7 +1522,7 @@ public class SAPActions extends General {
      * Data format: column,filterValue
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Set grid filter [<Data>] (format: column,filterValue)",
         input = InputType.YES
     )
@@ -1325,7 +1559,11 @@ public class SAPActions extends General {
      * NEW: Clear grid filter
      * SAP API: grid.ClearFilter()
      */
-    @Action(object = ObjectType.SAP, desc = "Clear grid filter on [<Object>]", input = InputType.NO)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Clear grid filter on [<Object>]",
+        input = InputType.NO
+    )
     public void sapClearGridFilter() {
         try {
             Dispatch.call(SAPElement, "ClearFilter");
@@ -1347,7 +1585,11 @@ public class SAPActions extends General {
      * NEW: Set selected rows
      * SAP API: grid.selectedRows = value
      */
-    @Action(object = ObjectType.SAP, desc = "Set selected rows to [<Data>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Set selected rows to [<Data>]",
+        input = InputType.YES
+    )
     public void sapSetSelectedRows() {
         try {
             Dispatch.put(SAPElement, "selectedRows", Data);
@@ -1366,7 +1608,7 @@ public class SAPActions extends General {
      * SAP API: grid.CurrentCellColumn = column
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Set current cell column to [<Data>]",
         input = InputType.YES
     )
@@ -1388,7 +1630,7 @@ public class SAPActions extends General {
      * SAP API: grid.firstVisibleColumn = column
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Set first visible column to [<Data>]",
         input = InputType.YES
     )
@@ -1410,7 +1652,7 @@ public class SAPActions extends General {
      * SAP API: grid.FirstVisibleRow = row
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Set first visible row to [<Data>]",
         input = InputType.YES
     )
@@ -1435,7 +1677,11 @@ public class SAPActions extends General {
      * NEW: Select menu item
      * SAP API: menu.Select()
      */
-    @Action(object = ObjectType.SAP, desc = "Select menu item [<Object>]", input = InputType.NO)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Select menu item [<Object>]",
+        input = InputType.NO
+    )
     public void sapSelectMenuItem() {
         try {
             Dispatch.call(SAPElement, "Select");
@@ -1458,7 +1704,7 @@ public class SAPActions extends General {
      * SAP API: element.pressContextButton(buttonId)
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Press context button with parameter [<Data>]",
         input = InputType.YES
     )
@@ -1493,7 +1739,7 @@ public class SAPActions extends General {
      * SAP API: element.selectContextMenuItem(menuId)
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Select context menu item [<Data>]",
         input = InputType.YES
     )
@@ -1518,7 +1764,11 @@ public class SAPActions extends General {
      * NEW: Expand tree node
      * SAP API: tree.ExpandNode(nodeKey)
      */
-    @Action(object = ObjectType.SAP, desc = "Expand tree node [<Data>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Expand tree node [<Data>]",
+        input = InputType.YES
+    )
     public void sapExpandTreeNode() {
         try {
             Dispatch.call(SAPElement, "ExpandNode", Data);
@@ -1536,7 +1786,11 @@ public class SAPActions extends General {
      * NEW: Collapse tree node
      * SAP API: tree.CollapseNode(nodeKey)
      */
-    @Action(object = ObjectType.SAP, desc = "Collapse tree node [<Data>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Collapse tree node [<Data>]",
+        input = InputType.YES
+    )
     public void sapCollapseTreeNode() {
         try {
             Dispatch.call(SAPElement, "CollapseNode", Data);
@@ -1554,7 +1808,11 @@ public class SAPActions extends General {
      * NEW: Select tree node
      * SAP API: tree.SelectNode(nodeKey)
      */
-    @Action(object = ObjectType.SAP, desc = "Select tree node [<Data>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Select tree node [<Data>]",
+        input = InputType.YES
+    )
     public void sapSelectTreeNode() {
         try {
             Dispatch.call(SAPElement, "SelectNode", Data);
@@ -1573,7 +1831,7 @@ public class SAPActions extends General {
      * SAP API: tree.DoubleClickNode(nodeKey)
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Double-click tree node [<Data>]",
         input = InputType.YES
     )
@@ -1594,7 +1852,11 @@ public class SAPActions extends General {
      * NEW: Set top node in tree
      * SAP API: tree.topNode = nodeKey
      */
-    @Action(object = ObjectType.SAP, desc = "Set top node to [<Data>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Set top node to [<Data>]",
+        input = InputType.YES
+    )
     public void sapSetTopNode() {
         try {
             Dispatch.put(SAPElement, "topNode", Data);
@@ -1617,7 +1879,7 @@ public class SAPActions extends General {
      * SAP API: statusBar.Text
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Get status bar text from [<Object>]",
         input = InputType.NO
     )
@@ -1643,7 +1905,7 @@ public class SAPActions extends General {
      * EXISTING: Set focus on element
      * SAP API: element.setFocus()
      */
-    @Action(object = ObjectType.SAP, desc = "Set focus on [<Object>]", input = InputType.NO)
+    @Action(object = ObjectType.SAP_OBJECT, desc = "Set focus on [<Object>]", input = InputType.NO)
     public void sapSetFocus() {
         try {
             Dispatch.call(SAPElement, "setFocus");
@@ -1661,7 +1923,7 @@ public class SAPActions extends General {
      * EXISTING: Double-click on element
      * SAP API: element.doubleClick()
      */
-    @Action(object = ObjectType.SAP, desc = "Double click on [<Object>]")
+    @Action(object = ObjectType.SAP_OBJECT, desc = "Double click on [<Object>]")
     public void sapDoubleClick() {
         try {
             Dispatch.call(SAPElement, "doubleClick");
@@ -1680,7 +1942,7 @@ public class SAPActions extends General {
      * SAP API: element.Text (with assertion logic)
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Assert that [<Object>] contains Text [<Data>]",
         input = InputType.YES
     )
@@ -1726,7 +1988,7 @@ public class SAPActions extends General {
      * Dynamic property setting for specific SAP object
      */
     @Action(
-        object = ObjectType.SAP,
+        object = ObjectType.SAP_OBJECT,
         desc = "Set object [<Object>] property as [<Data>] at runtime",
         input = InputType.YES,
         condition = InputType.YES

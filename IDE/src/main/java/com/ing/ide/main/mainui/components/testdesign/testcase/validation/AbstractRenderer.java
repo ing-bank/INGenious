@@ -116,6 +116,20 @@ public abstract class AbstractRenderer extends DefaultTableCellRenderer {
         comp.setToolTipText(notPresent);
     }
 
+    /**
+     * Non-blocking warning decoration - amber foreground + tooltip, deliberately never sets
+     * {@link #errorState}. Unlike {@link #setEmpty}/{@link #setNotPresent} this never trips
+     * {@code hasError()}, never blocks saving and never turns a tree node red; it only flags a
+     * step the user should look at (e.g. a SAP guardrail warning).
+     */
+    protected void setWarning(JComponent comp, String tooltip) {
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
+        Color c = UIManager.getColor("ing.errorForeground");
+        comp.setForeground(c != null ? c : new Color(200, 120, 0));
+        comp.setToolTipText(tooltip);
+    }
+
     protected void setWebserviceRequest(JComponent comp) {
         comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
         comp.setBorder(null);

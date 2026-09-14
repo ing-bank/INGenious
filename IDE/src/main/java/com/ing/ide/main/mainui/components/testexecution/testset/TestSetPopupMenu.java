@@ -87,14 +87,9 @@ public class TestSetPopupMenu extends JPopupMenu {
         // Add Playwright browsers first
         loadBrowsersToMenu(PlaywrightDriverFactory.Browser.getValuesAsList());
 
-        // Extract SAP and add it with separator
+        // SAP is a driverless connection now, not a browser.
         List<String> emulatorsCopy = new ArrayList<>(emulators);
-        boolean hasSAP = emulatorsCopy.remove("SAP");
-
-        if (hasSAP) {
-            changeBrowser.addSeparator();
-            loadBrowsersToMenu(List.of("SAP"));
-        }
+        emulatorsCopy.remove("SAP");
 
         // Add remaining emulators
         if (!emulatorsCopy.isEmpty()) {

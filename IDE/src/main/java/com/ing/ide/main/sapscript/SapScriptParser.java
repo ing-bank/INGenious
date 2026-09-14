@@ -229,7 +229,7 @@ public class SapScriptParser {
 
         // Convert parsed objects to SapORObject instances and add to page
         for (SapLanguageParser.SapObject sapObj : sapObjects.values()) {
-            String objectName = generateUniqueObjectName(sapObj.id);
+            String objectName = generateUniqueObjectName(sapObj.id, sapObj.sessionLabel);
 
             // Create ObjectGroup with single object (same pattern as WebOR)
             ObjectGroup<SapORObject> group = new ObjectGroup<>(objectName, page);
@@ -239,6 +239,13 @@ public class SapScriptParser {
             // Text values are only used in test case Input column
             setObjectProperty(orObject, "id", sapObj.id);
             setObjectProperty(orObject, "name", sapObj.name != null ? sapObj.name : "");
+            // Phase 4: pin this element to the session it was recorded under - blank for the
+            // primary/single-session case, so single-session imports are unaffected.
+            setObjectProperty(
+                orObject,
+                "session",
+                sapObj.sessionLabel != null ? sapObj.sessionLabel : ""
+            );
 
             group.getObjects().add(orObject);
             page.getObjectGroups().add(group);
@@ -287,8 +294,45 @@ public class SapScriptParser {
 
             int stepNo = 1;
 
+            // Balanced SAP.initConnection / SAP.closeConnection pair bookending the recording,
+            // both blank-input so they resolve to the project default connection at run time -
+            // no connection prompt at import; the user edits step 1 to #alias afterwards if needed.
+            writer.println(
+                String.format(
+                    "%d,%s,%s,%s,%s,%s,%s",
+                    stepNo++,
+                    "SAP",
+                    "Initialize SAP connection",
+                    "sapInitConnection",
+                    "",
+                    "",
+                    ""
+                )
+            );
+
             for (SapLanguageParser.SapAction action : sapActions) {
-                if (action.actionType.equals("Transaction")) {
+                if (
+                    action.actionType.equals("OpenSession") ||
+                    action.actionType.equals("SwitchSession")
+                ) {
+                    // Phase 4: the recording switched to a different SAP session - objectId is
+                    // the invented label ("" for a SwitchSession back to the primary session,
+                    // which SAP.switchSession's blank input already means).
+                    boolean isOpen = action.actionType.equals("OpenSession");
+                    String label = action.objectId;
+                    writer.println(
+                        String.format(
+                            "%d,%s,%s,%s,%s,%s,%s",
+                            stepNo++,
+                            "SAP",
+                            isOpen ? "Open SAP session [" + label + "]" : "Switch SAP session",
+                            isOpen ? "sapOpenSession" : "sapSwitchSession",
+                            (label == null || label.isEmpty()) ? "" : "@" + label,
+                            "",
+                            ""
+                        )
+                    );
+                } else if (action.actionType.equals("Transaction")) {
                     // Transaction action - no object reference needed
                     String stepName = "Execute Transaction " + action.value;
                     writer.println(
@@ -297,14 +341,17 @@ public class SapScriptParser {
                             stepNo++,
                             "SAP_SYSTEM",
                             stepName,
-                            "executeTransaction",
+                            "sapExecuteTransaction",
                             action.value,
                             "",
                             ""
                         )
                     );
                 } else {
-                    String objectName = generateUniqueObjectName(action.objectId);
+                    String objectName = generateUniqueObjectName(
+                        action.objectId,
+                        action.sessionLabel
+                    );
                     String stepName = action.actionType + " [<Object>]";
                     String sapAction = mapToINGeniousAction(action.actionType);
                     String reference = "[Project] " + testCase.get("pageName");
@@ -330,10 +377,23 @@ public class SapScriptParser {
                     );
                 }
             }
+
+            writer.println(
+                String.format(
+                    "%d,%s,%s,%s,%s,%s,%s",
+                    stepNo++,
+                    "SAP",
+                    "Close SAP connection",
+                    "sapCloseConnection",
+                    "",
+                    "",
+                    ""
+                )
+            );
         }
 
         LOGGER.info("Test case generated: " + testCaseFile.getAbsolutePath());
-        System.out.println("Created test case with " + sapActions.size() + " steps");
+        System.out.println("Created test case with " + (sapActions.size() + 2) + " steps");
     }
 
     /**
@@ -493,9 +553,15 @@ public class SapScriptParser {
         }
     }
 
+    /** Matches a leading "wnd[N]" path segment so popup elements (wnd[1], wnd[2], ...) get a distinct name from the main window's. */
+    private static final java.util.regex.Pattern WND_SEGMENT = java.util.regex.Pattern.compile(
+        "(?:^|/)wnd\\[(\\d+)\\]"
+    );
+
     private String generateObjectName(String id) {
         // Extract readable name from SAP ID
         // Example: wnd[0]/usr/txtRSYST-BNAME -> RSYST_BNAME
+        // Example: wnd[1]/usr/txtRSYST-BNAME -> w1_RSYST_BNAME (popup, disambiguated from wnd[0]'s)
         String name = id;
 
         // Get last segment after final /
@@ -505,6 +571,14 @@ public class SapScriptParser {
         }
 
         // Keep prefixes (txt, btn, cbo, etc.) for clarity and SAP convention alignment
+
+        // Non-main-window elements (wnd[1], wnd[2], ...) get a window-scope prefix so a popup's
+        // field never collapses onto the main screen's same-named field - wnd[0] stays unprefixed
+        // since it's overwhelmingly the common case and existing recordings/OR pages expect it.
+        java.util.regex.Matcher wndMatch = WND_SEGMENT.matcher(id);
+        if (wndMatch.find() && !"0".equals(wndMatch.group(1))) {
+            name = "w" + wndMatch.group(1) + "_" + name;
+        }
 
         // Replace - with _
         name = name.replace("-", "_");
@@ -534,12 +608,28 @@ public class SapScriptParser {
      * Uses caching to ensure the same ID always returns the same unique name.
      */
     private String generateUniqueObjectName(String id) {
+        return generateUniqueObjectName(id, null);
+    }
+
+    /**
+     * Session-aware overload: the same relative id can legitimately appear in more than one
+     * session's screen, so both the cache key and the generated name are qualified by session
+     * (never for the primary/single-session case, which is unaffected) - mirrors how {@link
+     * #generateObjectName} already disambiguates by window scope.
+     */
+    private String generateUniqueObjectName(String id, String sessionLabel) {
+        boolean sessionScoped = sessionLabel != null && !sessionLabel.isEmpty();
+        String cacheKey = sessionScoped ? sessionLabel + "::" + id : id;
+
         // Check cache first - return cached name if already generated
-        if (objectIdToNameCache.containsKey(id)) {
-            return objectIdToNameCache.get(id);
+        if (objectIdToNameCache.containsKey(cacheKey)) {
+            return objectIdToNameCache.get(cacheKey);
         }
 
         String baseName = generateObjectName(id);
+        if (sessionScoped) {
+            baseName = "sess_" + sessionLabel + "_" + baseName;
+        }
         String uniqueName = baseName;
         int counter = 1;
 
@@ -549,7 +639,7 @@ public class SapScriptParser {
         }
 
         usedObjectNames.add(uniqueName);
-        objectIdToNameCache.put(id, uniqueName);
+        objectIdToNameCache.put(cacheKey, uniqueName);
         LOGGER.fine("Generated unique object name: " + uniqueName + " from " + id);
         return uniqueName;
     }
