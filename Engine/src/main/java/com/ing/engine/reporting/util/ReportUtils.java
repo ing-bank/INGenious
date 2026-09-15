@@ -75,10 +75,13 @@ public class ReportUtils {
             if (playwrightdriver != null) {
                 File scrFile = playwrightdriver.createScreenShot();
                 if (scrFile != null) {
-                    File imgFile = new File(FilePath.getCurrentResultsPath() + imgSrc);
-                    FileUtils.copyFile(scrFile, imgFile, true);
-                    scrFile.delete();
-                    return true;
+                    try {
+                        File imgFile = new File(FilePath.getCurrentResultsPath() + imgSrc);
+                        FileUtils.copyFile(scrFile, imgFile, true);
+                        return true;
+                    } finally {
+                        scrFile.delete();
+                    }
                 }
             } else if (mobileDriver != null) {
                 File scrFile = mobileDriver.createScreenShot();

@@ -198,12 +198,12 @@ public class PlaywrightDriverCreation implements PlaywrightDriverCreationApi {
             .exe.getExecSettings()
             .getRunSettings()
             .getTakeFullPageScreenShot();
+        // Absolute temp path: a relative "screenshot.png" resolves against the process cwd,
+        // which can be a read-only location (e.g. "/" for a packaged macOS app).
+        File file = File.createTempFile("screenshot", ".png");
         this.page.screenshot(
-                new Page.ScreenshotOptions()
-                    .setPath(Paths.get("screenshot.png"))
-                    .setFullPage(fullpageScreenshot)
+                new Page.ScreenshotOptions().setPath(file.toPath()).setFullPage(fullpageScreenshot)
             );
-        File file = new File("screenshot.png");
         return file;
     }
 
