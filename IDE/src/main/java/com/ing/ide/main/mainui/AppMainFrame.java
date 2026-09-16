@@ -14,6 +14,7 @@ import com.ing.datalib.testdata.model.AbstractDataModel;
 import com.ing.datalib.testdata.model.GlobalDataModel;
 import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.datalib.util.data.FileScanner;
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.engine.core.TMIntegration;
 import com.ing.ide.main.Main;
 import com.ing.ide.main.dashboard.server.DashBoardManager;
@@ -130,7 +131,8 @@ public class AppMainFrame extends JFrame {
     private enum QUIT_TYPE {
         NORMAL,
         FORCE,
-        RESTART
+        RESTART,
+        WORKSPACE_MOVE_RESTART
     }
 
     private Consumer<Integer> onProgress;
@@ -213,7 +215,10 @@ public class AppMainFrame extends JFrame {
                             sActionListener.closeBddEditorIfOpen();
                         }
                         setDefaultCloseOperation(AppMainFrame.EXIT_ON_CLOSE);
-                        if (quitType == QUIT_TYPE.RESTART) {
+                        if (
+                            quitType == QUIT_TYPE.RESTART ||
+                            quitType == QUIT_TYPE.WORKSPACE_MOVE_RESTART
+                        ) {
                             doRestart();
                         }
                         dispose();
@@ -1191,6 +1196,13 @@ public class AppMainFrame extends JFrame {
     }
 
     private Boolean iCanQuit() {
+        if (quitType == QUIT_TYPE.WORKSPACE_MOVE_RESTART) {
+            recentItems.save();
+            dashBoardManager.stopServer();
+            Main.finish();
+            return true;
+        }
+
         return iCanQuit(
             quitType == QUIT_TYPE.FORCE
                 ? JOptionPane.YES_NO_OPTION
@@ -1224,33 +1236,112 @@ public class AppMainFrame extends JFrame {
         quit();
     }
 
+    /**
+     * Restarts after a completed Workspace move without saving the project
+     * again. The project was saved before relocation, and the previous
+     * Workspace may already have been deleted.
+     */
+    public void restartAfterWorkspaceMove() {
+        quitType = QUIT_TYPE.WORKSPACE_MOVE_RESTART;
+        quit();
+    }
+
     private void doRestart() {
         try {
-            File workingDir = new File(System.getProperty("user.dir"));
-            ProcessBuilder pb;
-            if (SystemInfo.isWindows()) {
-                // Launch the batch file in a new console window, detached from this JVM
-                pb = new ProcessBuilder("cmd", "/c", "start", "\"INGenious\"", "ingenious.bat");
-            } else if (SystemInfo.osx()) {
-                // 'open' launches the .command file via Terminal.app as an independent process
-                pb = new ProcessBuilder("/usr/bin/open", "ingenious.command");
+            File appRoot = new File(AppResourcePath.getAppRoot()).getCanonicalFile();
+            File appBundle = getContainingAppBundle(appRoot);
+
+            ProcessBuilder processBuilder;
+
+            if (appBundle != null) {
+                processBuilder =
+                    new ProcessBuilder("/usr/bin/open", "-n", appBundle.getAbsolutePath());
+                processBuilder.directory(appBundle.getParentFile());
             } else {
-                // Linux / other Unix: run the shell script directly
-                File script = new File(workingDir, "ingenious.command");
-                if (!script.canExecute()) {
-                    script.setExecutable(true);
+                File releaseRoot = appRoot.getParentFile();
+
+                if (releaseRoot == null) {
+                    throw new IOException("Could not resolve the release root from " + appRoot);
                 }
-                pb = new ProcessBuilder("/bin/sh", script.getAbsolutePath());
+
+                if (SystemInfo.isWindows()) {
+                    processBuilder = createWindowsRestartProcess(appRoot, releaseRoot);
+                } else if (SystemInfo.osx()) {
+                    File launcher = new File(releaseRoot, "ingenious.command");
+                    processBuilder =
+                        new ProcessBuilder("/usr/bin/open", launcher.getAbsolutePath());
+                } else {
+                    File launcher = new File(releaseRoot, "ingenious");
+
+                    if (!launcher.canExecute()) {
+                        launcher.setExecutable(true);
+                    }
+
+                    processBuilder = new ProcessBuilder("/bin/sh", launcher.getAbsolutePath());
+                }
+
+                processBuilder.directory(releaseRoot);
             }
-            pb.directory(workingDir);
-            pb.redirectErrorStream(true);
-            pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
-            pb.start();
+
+            processBuilder.redirectErrorStream(true);
+            processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+            processBuilder.start();
         } catch (Exception ex) {
             Logger
                 .getLogger(AppMainFrame.class.getName())
                 .log(Level.WARNING, "Failed to restart INGenious", ex);
         }
+    }
+
+    static ProcessBuilder createWindowsRestartProcess(File appRoot, File releaseRoot)
+        throws IOException {
+        if ("app".equals(appRoot.getName())) {
+            File launcher = new File(releaseRoot, "INGenious.exe");
+
+            if (!launcher.isFile()) {
+                throw new IOException("Installed Windows launcher is missing: " + launcher);
+            }
+
+            ProcessBuilder processBuilder = new ProcessBuilder(launcher.getAbsolutePath());
+            processBuilder.directory(releaseRoot);
+            return processBuilder;
+        }
+
+        File launcher = new File(releaseRoot, "ingenious.bat");
+
+        if (!launcher.isFile()) {
+            throw new IOException("Portable Windows launcher is missing: " + launcher);
+        }
+
+        ProcessBuilder processBuilder = new ProcessBuilder(
+            "cmd",
+            "/c",
+            "start",
+            "",
+            launcher.getAbsolutePath()
+        );
+        processBuilder.directory(releaseRoot);
+        return processBuilder;
+    }
+
+    private static File getContainingAppBundle(File appRoot) {
+        File contentsDirectory = appRoot.getParentFile();
+
+        if (
+            !"app".equals(appRoot.getName()) ||
+            contentsDirectory == null ||
+            !"Contents".equals(contentsDirectory.getName())
+        ) {
+            return null;
+        }
+
+        File appBundle = contentsDirectory.getParentFile();
+
+        if (appBundle == null || !appBundle.getName().endsWith(".app")) {
+            return null;
+        }
+
+        return appBundle;
     }
 
     public AppActionListener getsActionListener() {

@@ -1,6 +1,7 @@
 package com.ing.engine.cli.commands;
 
 import com.ing.engine.cli.INGeniousCLI;
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.engine.mcp.MCPServer;
 import java.io.BufferedReader;
 import java.io.File;
@@ -251,10 +252,9 @@ public class ServerCommand implements Callable<Integer> {
         }
 
         private String listProjects() {
-            String base = projectPath != null
-                ? projectPath
-                : System.getProperty("user.dir") + File.separator + "Projects";
-            File dir = new File(base);
+            File dir = projectPath != null
+                ? new File(projectPath)
+                : new File(AppResourcePath.getProjectsPath());
             if (!dir.exists()) return "[]";
             StringBuilder sb = new StringBuilder("[");
             File[] projects = dir.listFiles(File::isDirectory);

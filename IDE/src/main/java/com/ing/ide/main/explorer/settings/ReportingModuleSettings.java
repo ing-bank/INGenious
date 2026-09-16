@@ -1,5 +1,6 @@
 package com.ing.ide.main.explorer.settings;
 
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.ide.util.data.FileScanner;
 import com.ing.ide.util.logging.UILogger;
 import java.io.File;
@@ -117,14 +118,7 @@ public class ReportingModuleSettings {
      * @return the _jsonFile
      */
     public String getFile() throws IOException {
-        return new File(
-            System.getProperty("user.dir") +
-            File.separator +
-            "Configuration" +
-            File.separator +
-            DBNAME +
-            ".json"
-        )
+        return new File(AppResourcePath.getConfigurationPath(), DBNAME + ".json")
         .getCanonicalPath();
     }
 

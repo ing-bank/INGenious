@@ -27,6 +27,7 @@ import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
 import com.ing.datalib.or.yaml.YamlORReader;
 import com.ing.datalib.or.yaml.YamlORWriter;
+import com.ing.datalib.util.WorkspacePath;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -202,19 +203,27 @@ public class ObjectRepository {
     }
 
     public String getSharedORLocation() {
-        return "Shared" + File.separator + "SharedWebObjects" + File.separator + "SharedOR.object";
+        return new File(
+            new File(WorkspacePath.getSharedPath(), "SharedWebObjects"),
+            "SharedOR.object"
+        )
+        .getPath();
     }
 
     public String getSharedMORLocation() {
-        return (
-            "Shared" + File.separator + "SharedMobileObjects" + File.separator + "SharedMOR.object"
-        );
+        return new File(
+            new File(WorkspacePath.getSharedPath(), "SharedMobileObjects"),
+            "SharedMOR.object"
+        )
+        .getPath();
     }
 
     public String getSharedSapORLocation() {
-        return (
-            "Shared" + File.separator + "SharedSapObjects" + File.separator + "SharedSapOR.object"
-        );
+        return new File(
+            new File(WorkspacePath.getSharedPath(), "SharedSapObjects"),
+            "SharedSapOR.object"
+        )
+        .getPath();
     }
 
     public String getORRepLocation() {
@@ -230,23 +239,7 @@ public class ObjectRepository {
     }
 
     public String getSharedORRepLocation() {
-        // Use the application root (where Run.command/Run.bat is located) for Shared OR
-        // This ensures Shared OR is always at <AppRoot>/Shared/SharedObjectRepository
-        // regardless of where individual projects are located
-        try {
-            String appRoot = new File(System.getProperty("user.dir")).getCanonicalPath();
-            return appRoot + File.separator + "Shared" + File.separator + "SharedObjectRepository";
-        } catch (IOException ex) {
-            LOG.log(Level.WARNING, "Failed to get canonical path for Shared OR location", ex);
-            // Fallback to non-canonical path
-            return (
-                System.getProperty("user.dir") +
-                File.separator +
-                "Shared" +
-                File.separator +
-                "SharedObjectRepository"
-            );
-        }
+        return new File(WorkspacePath.getSharedPath(), "SharedObjectRepository").getPath();
     }
 
     public Project getsProject() {
@@ -531,7 +524,7 @@ public class ObjectRepository {
     }
 
     private void archiveSharedXmlORs() {
-        File archiveDir = new File("Shared" + File.separator + "SharedXMLOR");
+        File archiveDir = new File(WorkspacePath.getSharedPath(), "SharedXMLOR");
         archiveDir.mkdirs();
         moveXmlToBak(getSharedORLocation(), archiveDir);
         moveXmlToBak(getSharedMORLocation(), archiveDir);
@@ -573,8 +566,8 @@ public class ObjectRepository {
     }
 
     private void cleanupLegacySharedXmlFolders() {
-        File sharedWebXmlDir = new File("Shared" + File.separator + "SharedWebObjects");
-        File sharedMobileXmlDir = new File("Shared" + File.separator + "SharedMobileObjects");
+        File sharedWebXmlDir = new File(WorkspacePath.getSharedPath(), "SharedWebObjects");
+        File sharedMobileXmlDir = new File(WorkspacePath.getSharedPath(), "SharedMobileObjects");
         deleteDirectoryRecursively(sharedWebXmlDir);
         deleteDirectoryRecursively(sharedMobileXmlDir);
     }

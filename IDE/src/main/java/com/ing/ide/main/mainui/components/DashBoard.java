@@ -21,13 +21,12 @@ import javax.swing.tree.TreePath;
  *
  */
 public class DashBoard extends javax.swing.JPanel {
-    private static final String ERR_HTML =
-        "file:///" +
-        System.getProperty("user.dir") +
-        File.separator +
-        "Configuration" +
-        File.separator +
-        "err.html";
+    private static final String ERR_HTML = new File(
+        AppResourcePath.getConfigurationPath(),
+        "err.html"
+    )
+        .toURI()
+        .toString();
 
     private Browser browser;
     private String release = "";

@@ -1,0 +1,13 @@
+#!/bin/zsh
+
+set -euo pipefail
+
+[[ "$(uname -s)" == "Darwin" ]] || {
+  print -u2 -- "ERROR: The INGenious package can only be installed on macOS."
+  exit 1
+}
+
+print -- "INGenious installation completed."
+print -- "Workspace will be initialized for the user at first launch."
+
+exit 0

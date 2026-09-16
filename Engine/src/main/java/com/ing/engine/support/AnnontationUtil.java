@@ -33,7 +33,13 @@ public class AnnontationUtil {
             } else {
                 ANNOTATION_DETECTOR.detect(packageNames);
             }
-            ANNOTATION_DETECTOR.detect(new File(FilePath.getAppRoot(), "userdefined"));
+            String userDefinedPath = FilePath.getUserDefinedPath();
+            if (userDefinedPath != null) {
+                File userDefinedDirectory = new File(userDefinedPath);
+                if (userDefinedDirectory.isDirectory()) {
+                    ANNOTATION_DETECTOR.detect(userDefinedDirectory);
+                }
+            }
         } catch (IOException ex) {
             Logger.getLogger(AnnontationUtil.class.getName()).log(Level.SEVERE, null, ex);
         }
