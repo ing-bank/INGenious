@@ -1,12 +1,16 @@
 package com.ing.engine.execution.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 import com.ing.datalib.component.EnvTestData;
+import com.ing.datalib.component.Project;
 import com.ing.datalib.component.TestData;
+import com.ing.datalib.testdata.model.GlobalDataModel;
 import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.datalib.testdata.view.TestDataView;
+import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
 import com.ing.engine.execution.run.ProjectRunner;
 import com.ing.engine.execution.run.TestCaseRunner;
 import org.mockito.Mock;
@@ -35,6 +39,9 @@ public class DataAccessTest {
 
     @Mock
     private TestData defData;
+
+    @Mock
+    private Project project;
 
     private AutoCloseable mocks;
 
@@ -103,5 +110,38 @@ public class DataAccessTest {
 
         TestDataView result = DataAccess.getTestData(context, "Sheet1");
         assertThat(result).isNull();
+    }
+
+    // ---- getGlobalData: [Shared]/[Project] scope tag ----
+    //
+    // Only the not-found path is covered here: the success path's final
+    // DataProcessor.resolve(val, ...) call reaches KeyMap/Control.getCurrentProject() global
+    // static state that no test in this suite currently mocks, so a success-path unit test
+    // would require test infrastructure disproportionate to what's being verified. The
+    // not-found path below already exercises the new tag-detection and shared-vs-project
+    // routing decision, which is the actual new logic.
+
+    @Test
+    public void testGetGlobalDataUntaggedNotFoundThrowsWithProjectIndicator() {
+        when(dataProvider.defEnv()).thenReturn("Default");
+        when(executor.runEnv()).thenReturn("Default");
+
+        assertThatThrownBy(() -> DataAccess.getGlobalData(context, "#url", "URL"))
+            .isInstanceOf(GlobalDataNotFoundException.class)
+            .hasFieldOrPropertyWithValue("field", "URL (Project GlobalData)");
+        // Untagged GID must never consult Shared Test Data.
+        verifyNoInteractions(project);
+    }
+
+    @Test
+    public void testGetGlobalDataSharedTagNotFoundThrowsWithScopeIndicator() {
+        when(dataProvider.defEnv()).thenReturn("Default");
+        when(executor.runEnv()).thenReturn("Default");
+        when(context.project()).thenReturn(project);
+        when(project.getSharedTestData()).thenReturn(null);
+
+        assertThatThrownBy(() -> DataAccess.getGlobalData(context, "[Shared] #url", "URL"))
+            .isInstanceOf(GlobalDataNotFoundException.class)
+            .hasFieldOrPropertyWithValue("field", "URL (Shared GlobalData)");
     }
 }

@@ -12,6 +12,7 @@ import com.ing.engine.execution.data.DataIterator;
 import com.ing.engine.execution.data.DataProcessor;
 import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.data.StepSet;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.engine.execution.exception.AppiumDriverException;
 import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.TestFailedException;
@@ -334,17 +335,17 @@ public class TestCaseRunner {
             String data = "";
             String testInput = testStep.getInput();
             TestCase parentTestCase = this.testCase.getParentTestCase();
-            if (!testInput.startsWith("@") && DataProcessor.isInputPatternDataSheet(testInput)) {
-                String sheet = testStep.getInput().split(":")[0];
-                String dataCol = testStep.getInput().split(":")[1];
-
+            // Split via TestDataToken so a braced and/or [Project]/[Shared]-tagged reference
+            // ("{[Shared] Sheet:Col}") yields a usable sheet name instead of "{[Shared] Sheet".
+            String[] ref = testInput.startsWith("@") ? null : TestDataToken.parse(testInput);
+            if (ref != null && DataProcessor.isInputPatternDataSheet(testInput)) {
                 data =
                     DataAccess.getNextData(
                         this,
                         getRoot().getTestCase().getScenario().getName(),
                         getRoot().getTestCase().getName(),
-                        sheet,
-                        dataCol,
+                        ref[0],
+                        ref[1],
                         parameter.getIteration() + "",
                         (this.currentSubIteration) + ""
                     );
@@ -503,9 +504,18 @@ public class TestCaseRunner {
     }
 
     private void reportOnError(String err, String desc, Status status) {
-        Optional
-            .ofNullable(getReport())
-            .ifPresent(report -> report.updateTestLog(err, desc, status));
+        TestCaseReport report = getReport();
+        if (report == null) {
+            // A failure that can't be logged must not vanish silently - it would otherwise
+            // read back as a passing test case with no trace of why.
+            LOG.log(
+                Level.SEVERE,
+                "No report available to log failure: {0} - {1}",
+                new Object[] { err, desc }
+            );
+            return;
+        }
+        report.updateTestLog(err, desc, status);
     }
 
     //</editor-fold>
@@ -599,9 +609,34 @@ public class TestCaseRunner {
                             /**
                              * error while breaking the execution
                              */
-                            if (ex.cause.isEndData()) {
-                                throw new DataNotFoundException("End SubIteration");
+                            // "End of data sheet" is only a legitimate, silent termination
+                            // signal when it comes from an actual dynamic Param Loop counting
+                            // down its own sub-iterations. Outside of that (e.g. a standalone
+                            // step whose data sheet simply has no matching row), the same cause
+                            // means the data genuinely wasn't found and must be reported as a
+                            // real failure, not swallowed as if a loop had just ended.
+                            //
+                            // The owning loop is not always `this`: a dynamic Start Param/End
+                            // Param block with no locally-visible {Sheet:Column} step (e.g. its
+                            // only data access happens inside a called reusable, with no filler
+                            // exposing that reference) can never detect end-of-data via
+                            // checkIfLastData's peek - it only finds out by actually attempting
+                            // one iteration too many, and that attempt's real getData() call
+                            // throws from *inside* the reusable's own TestCaseRunner, whose own
+                            // stepStack is empty. Walk the caller chain (`context`) so the check
+                            // still finds the ancestor that actually owns the open dynamic loop.
+                            boolean isDynamicLoopTermination =
+                                ex.cause.isEndData() && isInsideOpenDynamicParamLoop();
+                            if (isDynamicLoopTermination) {
+                                // Rethrow the original exception rather than constructing a new
+                                // one - a fresh DataNotFoundException(String) here would leave
+                                // cause null (only the 2-arg CauseInfo-carrying constructors set
+                                // it), and Task.runIteration() unconditionally dereferences
+                                // ex.cause.isEndData(), NPE-ing and silently aborting the whole
+                                // test case with no failure recorded.
+                                throw ex;
                             } else {
+                                reportOnError("DataNotFound", ex.toString(), Status.DEBUG);
                                 throw new TestFailedException(scenario(), testcase(), ex);
                             }
                         }
@@ -631,6 +666,24 @@ public class TestCaseRunner {
                 this.getRoot().getTestCase().setDynamicMaxIter(null);
             }
         }
+    }
+
+    /**
+     * Whether `this` or any ancestor caller (walking {@link #context}, the live parent
+     * {@code TestCaseRunner} link set up for reusable/nested execution) currently has an open
+     * dynamic (index-less) Start Param/End Param loop. Used to tell a genuine "data not found"
+     * apart from a dynamic loop simply running out of sub-iterations, since that discovery can
+     * surface several call levels below the TestCaseRunner that actually owns the loop.
+     *
+     * @return true if some runner in the caller chain owns an open dynamic Param loop
+     */
+    private boolean isInsideOpenDynamicParamLoop() {
+        for (TestCaseRunner runner = this; runner != null; runner = runner.context) {
+            if (!runner.stepStack.isEmpty() && runner.stepStack.peek().isSubIterDynamic) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

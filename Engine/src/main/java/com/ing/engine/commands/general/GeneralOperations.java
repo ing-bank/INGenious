@@ -3,6 +3,7 @@ package com.ing.engine.commands.general;
 import com.ing.engine.commands.browser.CommonMethods;
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ForcedException;
@@ -224,7 +225,17 @@ public class GeneralOperations extends General {
         if (Input != null && Condition != null) {
             if (!getVar(Condition).isEmpty()) {
                 System.out.println(Condition);
-                String[] sheetDetail = Input.split(":");
+                // Accepts Sheet:Column, [Project] Sheet:Column and [Shared] Sheet:Column;
+                // the tag (if any) stays on the sheet so putData routes to the right store.
+                String[] sheetDetail = TestDataToken.parse(Input);
+                if (sheetDetail == null) {
+                    Report.updateTestLog(
+                        Action,
+                        "Incorrect input format; expected Sheet:Column",
+                        Status.DEBUG
+                    );
+                    return;
+                }
                 String sheetName = sheetDetail[0];
                 String columnName = sheetDetail[1];
                 userData.putData(sheetName, columnName, getVar(Condition));
@@ -619,9 +630,22 @@ public class GeneralOperations extends General {
     )
     public void storeInGlobalDataSheet() {
         if (Condition != null) {
-            String globalDataID = Condition.split(":")[0];
-            String globalcolumnName = Condition.split(":")[1];
-            userData.putGlobalData("#" + globalDataID, globalcolumnName, Data);
+            String[] parsed = TestDataToken.parse(Condition);
+            if (parsed == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected GlobalDataID:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            // Keep any [Shared]/[Project] tag, inserting the '#' after it, so an explicitly
+            // scoped Global Data write routes to the matching store.
+            String tag = TestDataToken.scopeTag(parsed[0]);
+            String bareId = tag.isEmpty() ? parsed[0] : parsed[0].substring(tag.length()).trim();
+            String globalDataID = tag.isEmpty() ? "#" + bareId : tag + " #" + bareId;
+            String globalcolumnName = parsed[1];
+            userData.putGlobalData(globalDataID, globalcolumnName, Data);
             Report.updateTestLog(
                 Action,
                 "Global Value: " + Data + " has been stored into " + "the Global data sheet",

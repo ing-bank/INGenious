@@ -3,6 +3,7 @@ package com.ing.engine.commands.webservice;
 import com.ing.datalib.settings.DriverProperties;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.status.Status;
@@ -1312,31 +1313,9 @@ public class Webservice extends GeneralWebservice {
     )
     public void addHeader() {
         try {
-            List<String> sheetlist = Control
-                .getCurrentProject()
-                .getTestData()
-                .getTestDataFor(Control.exe.runEnv())
-                .getTestDataNames();
-            for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
-                if (Data.contains("{" + sheetlist.get(sheet) + ":")) {
-                    com.ing.datalib.testdata.model.TestDataModel tdModel = Control
-                        .getCurrentProject()
-                        .getTestData()
-                        .getTestDataByName(sheetlist.get(sheet));
-                    List<String> columns = tdModel.getColumns();
-                    for (int col = 0; col < columns.size(); col++) {
-                        if (
-                            Data.contains("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}")
-                        ) {
-                            Data =
-                                Data.replace(
-                                    "{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
-                                    userData.getData(sheetlist.get(sheet), columns.get(col))
-                                );
-                        }
-                    }
-                }
-            }
+            // Resolves {Sheet:Column} / {[Project] Sheet:Column} / {[Shared] Sheet:Column} tokens
+            // in the header value; unknown tokens are left literal.
+            Data = TestDataToken.resolveEmbeddedTokens(Data, userData);
 
             Collection<Object> valuelist = Control
                 .getCurrentProject()
