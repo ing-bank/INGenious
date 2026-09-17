@@ -603,12 +603,12 @@
         Additional archetypes are activated with -P:
 
             mvn clean package                 (browser + database - default)
-            mvn clean package -P kafka        (browser + database + Kafka/Avro)
+            mvn clean package -P database     (browser + JDBC drivers)
             mvn clean package -P full         (everything)
 
-        Only the kafka (source currently disabled; deps optional) archetype can be
-        fully gated today, so that profile strips real dependencies from the default
-        build.
+        Only the kafka (source currently disabled; deps optional) archetype can
+        be fully gated today, so that profile strips real dependencies from the
+        default build.
 
         The mobile (Appium), api (Apache HttpClient), sap (JACOB) and axe (axe-core)
         archetypes currently ship inside the core <dependencies> block because engine
@@ -661,6 +661,43 @@
                     <artifactId>ojdbc11</artifactId>
                     <version>23.26.1.0.0</version>
                 </dependency>
+                <!-- Additional Database Drivers -->
+                <!-- <dependency>
+                    <groupId>org.postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                    <version>42.7.4</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.mariadb.jdbc</groupId>
+                    <artifactId>mariadb-java-client</artifactId>
+                    <version>3.5.10</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.oracle.database.jdbc</groupId>
+                    <artifactId>ojdbc11</artifactId>
+                    <version>23.4.0.24.05</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.xerial</groupId>
+                    <artifactId>sqlite-jdbc</artifactId>
+                    <version>3.53.4.0</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                    <version>2.3.232</version>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.ibm.db2</groupId>
+                    <artifactId>jcc</artifactId>
+                    <version>11.5.0.0</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.ing.data</groupId>
+                    <artifactId>cassandra-jdbc-wrapper</artifactId>
+                    <version>4.9.0</version>
+                </dependency> -->
             </dependencies>
         </profile>
 
@@ -684,31 +721,6 @@
                     <version>${kafka-avro-serializer.version}</version>
                 </dependency>
             </dependencies>
-            <build>
-                <plugins>
-                    <!-- Kafka command sources live in src/kafka/java and are only
-                         compiled when this profile is active (kafka-clients present). -->
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>3.4.0</version>
-                        <executions>
-                            <execution>
-                                <id>add-kafka-source</id>
-                                <phase>generate-sources</phase>
-                                <goals>
-                                    <goal>add-source</goal>
-                                </goals>
-                                <configuration>
-                                    <sources>
-                                        <source>${project.basedir}/src/kafka/java</source>
-                                    </sources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
 
         <profile>
@@ -767,29 +779,6 @@
                     <version>${kafka-avro-serializer.version}</version>
                 </dependency>
             </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>3.4.0</version>
-                        <executions>
-                            <execution>
-                                <id>add-kafka-source</id>
-                                <phase>generate-sources</phase>
-                                <goals>
-                                    <goal>add-source</goal>
-                                </goals>
-                                <configuration>
-                                    <sources>
-                                        <source>${project.basedir}/src/kafka/java</source>
-                                    </sources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
     </profiles>
 </project>
