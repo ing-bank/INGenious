@@ -543,13 +543,14 @@ public class Webservice extends GeneralWebservice {
     public void storeJSONelementInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            if (WebserviceActionsHelper.isValidDataSheetReference(strObj)) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
+                    String[] sheetAndColumn = WebserviceActionsHelper.splitSheetAndColumn(strObj);
+                    String sheetName = sheetAndColumn[0];
+                    String columnName = sheetAndColumn[1];
                     String response = responsebodies.get(key);
                     String jsonpath = Condition;
                     String value = JsonPath.read(response, jsonpath).toString();
@@ -614,28 +615,17 @@ public class Webservice extends GeneralWebservice {
     public void storeXMLelementInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            if (WebserviceActionsHelper.isValidDataSheetReference(strObj)) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
+                    String[] sheetAndColumn = WebserviceActionsHelper.splitSheetAndColumn(strObj);
+                    String sheetName = sheetAndColumn[0];
+                    String columnName = sheetAndColumn[1];
                     String xmlText = responsebodies.get(key);
-                    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder dBuilder;
-                    InputSource inputSource = new InputSource();
-                    inputSource.setCharacterStream(new StringReader(xmlText));
-                    dBuilder = dbFactory.newDocumentBuilder();
-                    Document doc = dBuilder.parse(inputSource);
-                    doc.getDocumentElement().normalize();
-                    XPath xPath = XPathFactory.newInstance().newXPath();
                     String expression = Condition;
-                    NodeList nodeList = (NodeList) xPath
-                        .compile(expression)
-                        .evaluate(doc, XPathConstants.NODESET);
-                    Node nNode = nodeList.item(0);
-                    String value = nNode.getNodeValue();
+                    String value = WebserviceActionsHelper.evaluateXPathValue(xmlText, expression);
                     userData.putData(sheetName, columnName, value);
                     Report.updateTestLog(
                         Action,
@@ -703,7 +693,7 @@ public class Webservice extends GeneralWebservice {
         try {
             String variableName = Condition;
             String jsonpath = Data;
-            if (variableName.matches("%.*%")) {
+            if (WebserviceActionsHelper.isValidVariableFormat(variableName)) {
                 addVar(variableName, JsonPath.read(responsebodies.get(key), jsonpath).toString());
                 Report.updateTestLog(Action, "JSON element value stored", Status.DONE);
             } else {
@@ -747,20 +737,11 @@ public class Webservice extends GeneralWebservice {
         try {
             String variableName = Condition;
             String expression = Data;
-            if (variableName.matches("%.*%")) {
-                DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder dBuilder;
-                InputSource inputSource = new InputSource();
-                inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-                dBuilder = dbFactory.newDocumentBuilder();
-                Document doc = dBuilder.parse(inputSource);
-                doc.getDocumentElement().normalize();
-                XPath xPath = XPathFactory.newInstance().newXPath();
-                NodeList nodeList = (NodeList) xPath
-                    .compile(expression)
-                    .evaluate(doc, XPathConstants.NODESET);
-                Node nNode = nodeList.item(0);
-                String value = nNode.getNodeValue();
+            if (WebserviceActionsHelper.isValidVariableFormat(variableName)) {
+                String value = WebserviceActionsHelper.evaluateXPathValue(
+                    responsebodies.get(key),
+                    expression
+                );
                 addVar(variableName, value);
                 Report.updateTestLog(Action, "XML element value stored", Status.DONE);
             } else {
@@ -806,13 +787,14 @@ public class Webservice extends GeneralWebservice {
     public void storeResponseBodyInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            if (WebserviceActionsHelper.isValidDataSheetReference(strObj)) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
+                    String[] sheetAndColumn = WebserviceActionsHelper.splitSheetAndColumn(strObj);
+                    String sheetName = sheetAndColumn[0];
+                    String columnName = sheetAndColumn[1];
                     userData.putData(sheetName, columnName, responsebodies.get(key));
                     Report.updateTestLog(
                         Action,
@@ -873,20 +855,11 @@ public class Webservice extends GeneralWebservice {
     )
     public void assertXMLelementEquals() {
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder;
-            InputSource inputSource = new InputSource();
-            inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-            dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(inputSource);
-            doc.getDocumentElement().normalize();
-            XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = Condition;
-            NodeList nodeList = (NodeList) xPath
-                .compile(expression)
-                .evaluate(doc, XPathConstants.NODESET);
-            Node nNode = nodeList.item(0);
-            String value = nNode.getNodeValue();
+            String value = WebserviceActionsHelper.evaluateXPathValue(
+                responsebodies.get(key),
+                expression
+            );
             if (value.equals(Data)) {
                 Report.updateTestLog(
                     Action,
@@ -943,20 +916,11 @@ public class Webservice extends GeneralWebservice {
     )
     public void assertXMLelementContains() {
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder;
-            InputSource inputSource = new InputSource();
-            inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-            dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(inputSource);
-            doc.getDocumentElement().normalize();
-            XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = Condition;
-            NodeList nodeList = (NodeList) xPath
-                .compile(expression)
-                .evaluate(doc, XPathConstants.NODESET);
-            Node nNode = nodeList.item(0);
-            String value = nNode.getNodeValue();
+            String value = WebserviceActionsHelper.evaluateXPathValue(
+                responsebodies.get(key),
+                expression
+            );
             if (value.contains(Data)) {
                 Report.updateTestLog(
                     Action,
@@ -1071,26 +1035,10 @@ public class Webservice extends GeneralWebservice {
     public void assertJSONelementCount() {
         try {
             String response = responsebodies.get(key);
-            int actualObjectCount = 0;
-            JSONParser parser = new JSONParser();
-            JSONObject json = (JSONObject) parser.parse(response);
-            try {
-                Map<String, String> objectMap = JsonPath.read(json, Condition);
-                actualObjectCount = objectMap.keySet().size();
-            } catch (Exception ex) {
-                try {
-                    JSONArray objectMap = JsonPath.read(json, Condition);
-                    actualObjectCount = objectMap.size();
-                } catch (Exception ex1) {
-                    try {
-                        net.minidev.json.JSONArray objectMap = JsonPath.read(json, Condition);
-                        actualObjectCount = objectMap.size();
-                    } catch (Exception ex2) {
-                        String objectMap = JsonPath.read(json, Condition);
-                        actualObjectCount = 1;
-                    }
-                }
-            }
+            int actualObjectCount = WebserviceActionsHelper.getJsonElementCount(
+                response,
+                Condition
+            );
 
             int expectedObjectCount = Integer.parseInt(Data);
             if (actualObjectCount == expectedObjectCount) {
@@ -1149,7 +1097,7 @@ public class Webservice extends GeneralWebservice {
             String variableName = Condition;
             Condition = Data;
 
-            if (variableName.matches("%.*%")) {
+            if (WebserviceActionsHelper.isValidVariableFormat(variableName)) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
@@ -1197,30 +1145,7 @@ public class Webservice extends GeneralWebservice {
      * @throws org.json.simple.parser.ParseException if JSON parsing fails
      */
     public int getJsonElementCount() throws org.json.simple.parser.ParseException {
-        int actualObjectCount = 0;
-
-        JSONParser parser = new JSONParser();
-
-        JSONObject json = (JSONObject) parser.parse(responsebodies.get(key));
-
-        try {
-            Map<String, String> objectMap = JsonPath.read(json, Condition);
-            actualObjectCount = objectMap.keySet().size();
-        } catch (Exception ex) {
-            try {
-                JSONArray objectMap = JsonPath.read(json, Condition);
-                actualObjectCount = objectMap.size();
-            } catch (Exception ex1) {
-                try {
-                    net.minidev.json.JSONArray objectMap = JsonPath.read(json, Condition);
-                    actualObjectCount = objectMap.size();
-                } catch (Exception ex2) {
-                    String objectMap = JsonPath.read(json, Condition);
-                    actualObjectCount = 1;
-                }
-            }
-        }
-        return actualObjectCount;
+        return WebserviceActionsHelper.getJsonElementCount(responsebodies.get(key), Condition);
     }
 
     /**
@@ -1251,13 +1176,14 @@ public class Webservice extends GeneralWebservice {
     public void storeJsonElementCountInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            if (WebserviceActionsHelper.isValidDataSheetReference(strObj)) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
+                    String[] sheetAndColumn = WebserviceActionsHelper.splitSheetAndColumn(strObj);
+                    String sheetName = sheetAndColumn[0];
+                    String columnName = sheetAndColumn[1];
                     int actualObjectCountInteger = getJsonElementCount();
                     String actualObjectCount = Integer.toString(actualObjectCountInteger);
                     userData.putData(sheetName, columnName, actualObjectCount);
@@ -1494,7 +1420,7 @@ public class Webservice extends GeneralWebservice {
             }
 
             // Validate variable format
-            if (variableName.matches("%.*%")) {
+            if (WebserviceActionsHelper.isValidVariableFormat(variableName)) {
                 String headerValue = currentHeaders.get(headerName);
                 addVar(variableName, headerValue);
                 Report.updateTestLog(
@@ -1585,7 +1511,7 @@ public class Webservice extends GeneralWebservice {
             }
 
             // Early return if input format is invalid
-            if (!Input.matches(".*:.*")) {
+            if (!WebserviceActionsHelper.isValidDataSheetReference(Input)) {
                 Report.updateTestLog(
                     Action,
                     "Invalid input format [" + Input + "]. Expected format: sheetName:ColumnName",
@@ -1595,8 +1521,9 @@ public class Webservice extends GeneralWebservice {
             }
 
             try {
-                String sheetName = Input.split(":", 2)[0];
-                String columnName = Input.split(":", 2)[1];
+                String[] sheetAndColumn = WebserviceActionsHelper.splitSheetAndColumn(Input);
+                String sheetName = sheetAndColumn[0];
+                String columnName = sheetAndColumn[1];
                 String headerValue = currentHeaders.get(headerName);
 
                 // Store header value in datasheet
@@ -1905,7 +1832,7 @@ public class Webservice extends GeneralWebservice {
             String cookieKey = Data;
             String variableName = Condition;
 
-            if (!variableName.matches("%.*%")) {
+            if (!WebserviceActionsHelper.isValidVariableFormat(variableName)) {
                 Report.updateTestLog(
                     Action,
                     "Variable format is not correct. Should be %variableName%",
@@ -2115,20 +2042,11 @@ public class Webservice extends GeneralWebservice {
     )
     public void assertXMLelementNotEquals() {
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder;
-            InputSource inputSource = new InputSource();
-            inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-            dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(inputSource);
-            doc.getDocumentElement().normalize();
-            XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = Condition;
-            NodeList nodeList = (NodeList) xPath
-                .compile(expression)
-                .evaluate(doc, XPathConstants.NODESET);
-            Node nNode = nodeList.item(0);
-            String value = nNode.getNodeValue();
+            String value = WebserviceActionsHelper.evaluateXPathValue(
+                responsebodies.get(key),
+                expression
+            );
             if (!value.equals(Data)) {
                 Report.updateTestLog(
                     Action,
@@ -2186,20 +2104,11 @@ public class Webservice extends GeneralWebservice {
     )
     public void assertXMLelementNotContains() {
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder;
-            InputSource inputSource = new InputSource();
-            inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-            dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(inputSource);
-            doc.getDocumentElement().normalize();
-            XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = Condition;
-            NodeList nodeList = (NodeList) xPath
-                .compile(expression)
-                .evaluate(doc, XPathConstants.NODESET);
-            Node nNode = nodeList.item(0);
-            String value = nNode.getNodeValue();
+            String value = WebserviceActionsHelper.evaluateXPathValue(
+                responsebodies.get(key),
+                expression
+            );
             if (!value.contains(Data)) {
                 Report.updateTestLog(
                     Action,
