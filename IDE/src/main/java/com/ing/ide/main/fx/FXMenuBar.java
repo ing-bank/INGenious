@@ -317,7 +317,8 @@ public class FXMenuBar extends JFXPanel {
             .getItems()
             .addAll(
                 createImportCollectionItem("Postman", "recorder", "Postman"),
-                createImportCollectionItem("Bruno", "recorder", "Bruno")
+                createImportCollectionItem("Bruno", "recorder", "Bruno"),
+                createImportCollectionItem("Reports", "importReports", "Reports")
             );
         tools.getItems().add(importCollection);
 
