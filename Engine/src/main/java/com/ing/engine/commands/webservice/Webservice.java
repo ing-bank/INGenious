@@ -1154,7 +1154,7 @@ public class Webservice extends GeneralWebservice {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    int actualObjectCountInteger = 1; //getJsonElementCount();
+                    int actualObjectCountInteger = getJsonElementCount();
                     String actualObjectCount = Integer.toString(actualObjectCountInteger);
                     addVar(variableName, actualObjectCount);
                     Report.updateTestLog(
