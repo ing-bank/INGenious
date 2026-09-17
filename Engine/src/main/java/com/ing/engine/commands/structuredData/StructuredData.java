@@ -1,6 +1,7 @@
 package com.ing.engine.commands.structuredData;
 
 import com.ing.engine.commands.browser.General;
+import com.ing.engine.commands.webservice.WebserviceActionsHelper;
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.annotation.Args;
@@ -11,25 +12,13 @@ import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.jayway.jsonpath.*;
 import java.io.IOException;
-import java.io.StringReader;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
@@ -290,29 +279,10 @@ public class StructuredData extends General {
     public void assertJsonPathResultCount() {
         try {
             String response = responsebodies.get(key);
-            int actualObjectCount = 0;
-            JSONParser parser = new JSONParser();
-            JSONObject json = (JSONObject) parser.parse(response);
             String strObj = getInputValue(Input);
             String jsonpath = resolveStructuredDataPath();
             logJsonPathContext("assertJsonPathResultCount", response, jsonpath);
-            try {
-                Map<String, String> objectMap = JsonPath.read(json, jsonpath);
-                actualObjectCount = objectMap.keySet().size();
-            } catch (Exception ex) {
-                try {
-                    JSONArray objectMap = JsonPath.read(json, jsonpath);
-                    actualObjectCount = objectMap.size();
-                } catch (Exception ex1) {
-                    try {
-                        net.minidev.json.JSONArray objectMap = JsonPath.read(json, jsonpath);
-                        actualObjectCount = objectMap.size();
-                    } catch (Exception ex2) {
-                        String objectMap = JsonPath.read(json, jsonpath);
-                        actualObjectCount = 1;
-                    }
-                }
-            }
+            int actualObjectCount = WebserviceActionsHelper.getJsonElementCount(response, jsonpath);
 
             int expectedObjectCount = Integer.parseInt(strObj);
             if (actualObjectCount == expectedObjectCount) {
@@ -783,13 +753,16 @@ public class StructuredData extends General {
     public void storeJsonPathResultCountInDataSheet() {
         try {
             String dataSheetReference = Input;
-            if (dataSheetReference.matches(".*:.*")) {
+            if (WebserviceActionsHelper.isValidDataSheetReference(dataSheetReference)) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = dataSheetReference.split(":", 2)[0];
-                    String columnName = dataSheetReference.split(":", 2)[1];
+                    String[] sheetAndColumn = WebserviceActionsHelper.splitSheetAndColumn(
+                        dataSheetReference
+                    );
+                    String sheetName = sheetAndColumn[0];
+                    String columnName = sheetAndColumn[1];
                     String actualObjectCount = Integer.toString(getJsonElementCount());
                     userData.putData(sheetName, columnName, actualObjectCount);
                     Report.updateTestLog(
@@ -850,7 +823,7 @@ public class StructuredData extends General {
     public void storeJsonPathResultCountInVariable() {
         try {
             String varName = Input;
-            if (varName.matches("%.*%")) {
+            if (WebserviceActionsHelper.isValidVariableFormat(varName)) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
@@ -911,13 +884,16 @@ public class StructuredData extends General {
     public void storeJsonPathResultInDataSheet() {
         try {
             String dataSheetReference = Input;
-            if (dataSheetReference.matches(".*:.*")) {
+            if (WebserviceActionsHelper.isValidDataSheetReference(dataSheetReference)) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = dataSheetReference.split(":", 2)[0];
-                    String columnName = dataSheetReference.split(":", 2)[1];
+                    String[] sheetAndColumn = WebserviceActionsHelper.splitSheetAndColumn(
+                        dataSheetReference
+                    );
+                    String sheetName = sheetAndColumn[0];
+                    String columnName = sheetAndColumn[1];
                     String response = responsebodies.get(key);
                     String jsonpath = resolveStructuredDataPath();
                     String value = JsonPath.read(response, jsonpath).toString();
@@ -978,7 +954,7 @@ public class StructuredData extends General {
         try {
             String variableName = Input;
             String jsonpath = resolveStructuredDataPath();
-            if (variableName.matches("%.*%")) {
+            if (WebserviceActionsHelper.isValidVariableFormat(variableName)) {
                 addVar(variableName, JsonPath.read(responsebodies.get(key), jsonpath).toString());
                 Report.updateTestLog(Action, "JSON element value stored", Status.DONE);
             } else {
@@ -1019,18 +995,8 @@ public class StructuredData extends General {
     )
     public void assertXmlPathResultContains() {
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder;
-            InputSource inputSource = new InputSource();
-            inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-            dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(inputSource);
-            doc.getDocumentElement().normalize();
-            XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = resolveStructuredDataPath();
-            NodeList nodeList = (NodeList) xPath
-                .compile(expression)
-                .evaluate(doc, XPathConstants.NODESET);
+            NodeList nodeList = readXmlPathNodes(expression);
             Node nNode = nodeList.item(0);
             String value = extractXmlNodeText(nNode);
             String inputValue = getInputValue(Input);
@@ -1087,18 +1053,8 @@ public class StructuredData extends General {
     )
     public void assertXmlPathResultNotContains() {
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder;
-            InputSource inputSource = new InputSource();
-            inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-            dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(inputSource);
-            doc.getDocumentElement().normalize();
-            XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = resolveStructuredDataPath();
-            NodeList nodeList = (NodeList) xPath
-                .compile(expression)
-                .evaluate(doc, XPathConstants.NODESET);
+            NodeList nodeList = readXmlPathNodes(expression);
             Node nNode = nodeList.item(0);
             String value = extractXmlNodeText(nNode);
             String inputValue = getInputValue(Input);
@@ -1158,18 +1114,8 @@ public class StructuredData extends General {
     )
     public void assertXmlPathResultEquals() {
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder;
-            InputSource inputSource = new InputSource();
-            inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-            dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(inputSource);
-            doc.getDocumentElement().normalize();
-            XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = resolveStructuredDataPath();
-            NodeList nodeList = (NodeList) xPath
-                .compile(expression)
-                .evaluate(doc, XPathConstants.NODESET);
+            NodeList nodeList = readXmlPathNodes(expression);
             Node nNode = nodeList.item(0);
             String value = extractXmlNodeText(nNode);
             String inputValue = getInputValue(Input);
@@ -1226,18 +1172,8 @@ public class StructuredData extends General {
     )
     public void assertXmlPathResultNotEquals() {
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder;
-            InputSource inputSource = new InputSource();
-            inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-            dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(inputSource);
-            doc.getDocumentElement().normalize();
-            XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = resolveStructuredDataPath();
-            NodeList nodeList = (NodeList) xPath
-                .compile(expression)
-                .evaluate(doc, XPathConstants.NODESET);
+            NodeList nodeList = readXmlPathNodes(expression);
             Node nNode = nodeList.item(0);
             String value = extractXmlNodeText(nNode);
             String inputValue = getInputValue(Input);
@@ -1680,16 +1616,7 @@ public class StructuredData extends General {
      */
     private String readXmlPathValue(String expression)
         throws IOException, ParserConfigurationException, XPathExpressionException, SAXException {
-        NodeList nodeList = readXmlPathNodes(expression);
-        if (nodeList == null || nodeList.getLength() == 0) {
-            return "";
-        }
-        Node node = nodeList.item(0);
-        String value = node.getNodeValue();
-        if (value == null) {
-            value = node.getTextContent();
-        }
-        return value == null ? "" : value;
+        return WebserviceActionsHelper.evaluateXPathValue(responsebodies.get(key), expression);
     }
 
     /**
@@ -1698,14 +1625,7 @@ public class StructuredData extends General {
      */
     private NodeList readXmlPathNodes(String expression)
         throws IOException, ParserConfigurationException, XPathExpressionException, SAXException {
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        InputSource inputSource = new InputSource();
-        inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-        Document doc = dBuilder.parse(inputSource);
-        doc.getDocumentElement().normalize();
-        XPath xPath = XPathFactory.newInstance().newXPath();
-        return (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+        return WebserviceActionsHelper.evaluateXPathNodeList(responsebodies.get(key), expression);
     }
 
     /**
@@ -1732,26 +1652,16 @@ public class StructuredData extends General {
     public void storeXmlPathResultInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            if (WebserviceActionsHelper.isValidDataSheetReference(strObj)) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
-                    String xmlText = responsebodies.get(key);
-                    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder dBuilder;
-                    InputSource inputSource = new InputSource();
-                    inputSource.setCharacterStream(new StringReader(xmlText));
-                    dBuilder = dbFactory.newDocumentBuilder();
-                    Document doc = dBuilder.parse(inputSource);
-                    doc.getDocumentElement().normalize();
-                    XPath xPath = XPathFactory.newInstance().newXPath();
+                    String[] sheetAndColumn = WebserviceActionsHelper.splitSheetAndColumn(strObj);
+                    String sheetName = sheetAndColumn[0];
+                    String columnName = sheetAndColumn[1];
                     String expression = resolveStructuredDataPath();
-                    NodeList nodeList = (NodeList) xPath
-                        .compile(expression)
-                        .evaluate(doc, XPathConstants.NODESET);
+                    NodeList nodeList = readXmlPathNodes(expression);
                     Node nNode = nodeList.item(0);
                     String value = extractXmlNodeText(nNode);
                     userData.putData(sheetName, columnName, value);
@@ -1817,18 +1727,8 @@ public class StructuredData extends General {
         try {
             String variableName = Input;
             String expression = resolveStructuredDataPath();
-            if (variableName.matches("%.*%")) {
-                DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder dBuilder;
-                InputSource inputSource = new InputSource();
-                inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-                dBuilder = dbFactory.newDocumentBuilder();
-                Document doc = dBuilder.parse(inputSource);
-                doc.getDocumentElement().normalize();
-                XPath xPath = XPathFactory.newInstance().newXPath();
-                NodeList nodeList = (NodeList) xPath
-                    .compile(expression)
-                    .evaluate(doc, XPathConstants.NODESET);
+            if (WebserviceActionsHelper.isValidVariableFormat(variableName)) {
+                NodeList nodeList = readXmlPathNodes(expression);
                 Node nNode = nodeList.item(0);
                 String value = extractXmlNodeText(nNode);
                 addVar(variableName, value);
@@ -1864,29 +1764,8 @@ public class StructuredData extends General {
      * @throws org.json.simple.parser.ParseException if JSON parsing fails
      */
     public int getJsonElementCount() throws org.json.simple.parser.ParseException {
-        int actualObjectCount = 0;
-        JSONParser parser = new JSONParser();
-        JSONObject json = (JSONObject) parser.parse(responsebodies.get(key));
         String jsonpath = resolveStructuredDataPath();
-
-        try {
-            Map<String, String> objectMap = JsonPath.read(json, jsonpath);
-            actualObjectCount = objectMap.keySet().size();
-        } catch (Exception ex) {
-            try {
-                JSONArray objectMap = JsonPath.read(json, jsonpath);
-                actualObjectCount = objectMap.size();
-            } catch (Exception ex1) {
-                try {
-                    net.minidev.json.JSONArray objectMap = JsonPath.read(json, jsonpath);
-                    actualObjectCount = objectMap.size();
-                } catch (Exception ex2) {
-                    String objectMap = JsonPath.read(json, jsonpath);
-                    actualObjectCount = 1;
-                }
-            }
-        }
-        return actualObjectCount;
+        return WebserviceActionsHelper.getJsonElementCount(responsebodies.get(key), jsonpath);
     }
 
     public String getInputValue(String strObj) {
@@ -2003,13 +1882,6 @@ public class StructuredData extends General {
      * @return the node's text content, never {@code null}
      */
     private String extractXmlNodeText(Node node) {
-        if (node == null) {
-            return "";
-        }
-        String value = node.getNodeValue();
-        if (value == null) {
-            value = node.getTextContent();
-        }
-        return value == null ? "" : value;
+        return WebserviceActionsHelper.extractXmlNodeText(node);
     }
 }
