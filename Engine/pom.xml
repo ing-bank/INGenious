@@ -183,12 +183,6 @@
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
             <version>${json-simple.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
@@ -621,14 +615,13 @@
     <!--
         Lightweight archetype-based distribution (RELEASE_STRATEGY.md §9.3).
 
-        The default build produces the Browser archetype. Optional archetypes whose
-        dependencies are cleanly separable are activated with -P:
+        The default build produces everything except Kafka/Avro (the 'database'
+        profile is activeByDefault). Use -P to change the archetype selection:
 
-            mvn clean package                 (browser - default)
-            mvn clean package -P database     (browser + JDBC drivers)
-            mvn clean package -P kafka        (browser + Kafka/Avro)
+            mvn clean package                 (browser + database - default)
+            mvn clean package -P kafka        (browser + Kafka/Avro, no database)
             mvn clean package -P database,kafka
-            mvn clean package -P full         (everything)
+            mvn clean package -P full         (everything, including kafka)
 
         Only the database (JDBC drivers, loaded reflectively at runtime) and kafka
         (source currently disabled; deps optional) archetypes can be fully gated
@@ -645,9 +638,9 @@
     <profiles>
         <profile>
             <id>browser</id>
-            <activation>
+            <!-- <activation>
                 <activeByDefault>true</activeByDefault>
-            </activation>
+            </activation> -->
             <!-- Browser (Playwright) is the primary archetype. Its dependency
                  (com.microsoft.playwright:playwright) ships in the core
                  <dependencies> block because the engine core references it
@@ -663,6 +656,9 @@
 
         <profile>
             <id>database</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <dependencies>
                 <dependency>
                     <groupId>com.microsoft.sqlserver</groupId>
