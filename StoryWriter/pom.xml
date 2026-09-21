@@ -54,6 +54,11 @@
             <groupId>com.fifesoft</groupId>
             <artifactId>autocomplete</artifactId>
             <version>${autocomplete.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
         </dependency>   
     </dependencies>
     <build>
