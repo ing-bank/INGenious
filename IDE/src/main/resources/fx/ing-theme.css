@@ -135,10 +135,9 @@
     -fx-background-color: -ing-elevated;
     -fx-border-color: -ing-border;
     -fx-border-width: 1;
-    -fx-border-radius: 12;
-    -fx-background-radius: 12;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
     -fx-padding: 6;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.10), 16, 0, 0, 4);
 }
 
 .menu-item {
@@ -281,7 +280,7 @@
 }
 
 .tool-bar .button:hover .ikonli-font-icon {
-    -fx-effect: dropshadow(gaussian, rgba(119, 36, 255, 0.25), 4, 0, 0, 0);
+    -fx-icon-color: -ing-accent;
 }
 
 
@@ -318,31 +317,30 @@
     -fx-background-color: linear-gradient(to right, #FF6200, #FFAA00);
     -fx-background-radius: 20;
     -fx-border-radius: 20;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
+    -fx-border-color: rgba(255, 98, 0, 0.40);
+    -fx-border-width: 1;
     -fx-padding: 6 14 6 10;
     -fx-font-size: 11px;
     -fx-text-fill: white;
     -fx-font-weight: 700;
     -fx-cursor: hand;
     -fx-graphic-text-gap: 6;
-    -fx-effect: dropshadow(gaussian, rgba(255, 98, 0, 0.3), 8, 0, 0, 2);
 }
 
 .dark-mode-pill:hover {
     -fx-background-color: linear-gradient(to right, #FF7722, #FFBB22);
-    -fx-effect: dropshadow(gaussian, rgba(255, 98, 0, 0.5), 12, 0, 0, 3);
+    -fx-border-color: rgba(255, 98, 0, 0.65);
 }
 
 .dark-mode-pill:selected {
     -fx-background-color: linear-gradient(to right, #5212C0, #7724FF);
     -fx-text-fill: white;
-    -fx-effect: dropshadow(gaussian, rgba(119, 36, 255, 0.4), 10, 0, 0, 2);
+    -fx-border-color: rgba(119, 36, 255, 0.65);
 }
 
 .dark-mode-pill:selected:hover {
     -fx-background-color: linear-gradient(to right, #6318E0, #8833FF);
-    -fx-effect: dropshadow(gaussian, rgba(119, 36, 255, 0.6), 14, 0, 0, 3);
+    -fx-border-color: rgba(119, 36, 255, 0.85);
 }
 
 /* API Tester Button - Vibrant Teal/Cyan Gradient */
@@ -350,24 +348,23 @@
     -fx-background-color: linear-gradient(to right, #0077B6, #00B4D8);
     -fx-background-radius: 20;
     -fx-border-radius: 20;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
+    -fx-border-color: rgba(0, 119, 182, 0.45);
+    -fx-border-width: 1;
     -fx-padding: 6 16 6 12;
     -fx-font-size: 11px;
     -fx-font-weight: 700;
     -fx-cursor: hand;
     -fx-graphic-text-gap: 6;
-    -fx-effect: dropshadow(gaussian, rgba(0, 180, 216, 0.4), 10, 0, 0, 2);
 }
 
 .api-tester-btn:hover {
     -fx-background-color: linear-gradient(to right, #0096C7, #48CAE4);
-    -fx-effect: dropshadow(gaussian, rgba(0, 180, 216, 0.6), 14, 0, 0, 3);
+    -fx-border-color: rgba(0, 119, 182, 0.70);
 }
 
 .api-tester-btn:pressed {
     -fx-background-color: linear-gradient(to right, #005F8C, #0096C7);
-    -fx-effect: dropshadow(gaussian, rgba(0, 119, 182, 0.5), 8, 0, 0, 1);
+    -fx-border-color: rgba(0, 119, 182, 0.85);
 }
 
 .api-tester-btn .ikonli-font-icon {
@@ -384,20 +381,18 @@
     -fx-font-weight: 700;
     -fx-text-fill: #111111;
     -fx-graphic-text-gap: 6;
-    -fx-translate-y: 0;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.26), 9, 0, 0, 2);
+    -fx-border-color: #DDD7D1;
+    -fx-border-width: 1;
 }
 
 .tool-bar .button.workbench-btn:hover {
-    -fx-background-color: #F7F4F1;
-    -fx-translate-y: -1;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.34), 14, 0, 0, 4);
+    -fx-background-color: #FFFDFB;
+    -fx-border-color: #CFC7BF;
 }
 
 .tool-bar .button.workbench-btn:pressed {
     -fx-background-color: #EFEAE5;
-    -fx-translate-y: 0;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.20), 6, 0, 0, 1);
+    -fx-border-color: #BEB6AE;
 }
 
 .tool-bar .button.workbench-btn > .text {

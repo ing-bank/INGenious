@@ -22,7 +22,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 /**
@@ -41,9 +45,10 @@ import java.util.function.Supplier;
  * and authenticated ({@code copilot auth login}). This is a proof of concept.
  */
 public final class CopilotSdkProvider implements AiProvider {
-    private final String model;
+    private final String requestedModel;
     private final Supplier<String> projectDir;
     private final Usage usage = new Usage();
+    private volatile String activeModel;
 
     private CopilotClient client;
     private CopilotSession session;
@@ -59,8 +64,14 @@ public final class CopilotSdkProvider implements AiProvider {
     private volatile String turnModel;
     private volatile TurnStats lastTurnStats;
 
+    // Activity-based turn watchdog: keep a long-but-progressing turn alive and
+    // fail only on a genuine stall (no tool/token events while nothing runs).
+    private volatile long lastActivityAt;
+    private final AtomicInteger activeTools = new AtomicInteger();
+
     public CopilotSdkProvider(String model, Supplier<String> projectDir) {
-        this.model = model == null || model.isBlank() ? "claude-sonnet-4.5" : model;
+        this.requestedModel = model == null || model.isBlank() ? null : model;
+        this.activeModel = requestedModel != null ? requestedModel : "Copilot default";
         this.projectDir = projectDir != null ? projectDir : () -> null;
     }
 
@@ -71,12 +82,16 @@ public final class CopilotSdkProvider implements AiProvider {
 
     @Override
     public String model() {
-        return model;
+        return activeModel;
+    }
+
+    public String configuredModel() {
+        return requestedModel == null ? "" : requestedModel;
     }
 
     @Override
     public String describe() {
-        return "GitHub Copilot SDK (drives the Copilot CLI, model " + model + ")";
+        return "GitHub Copilot SDK (drives the Copilot CLI, model " + activeModel + ")";
     }
 
     @Override
@@ -117,10 +132,13 @@ public final class CopilotSdkProvider implements AiProvider {
         turnOutputTokens.reset();
         turnModel = null;
         long start = System.nanoTime();
+        markActivity();
         try {
-            AssistantMessageEvent reply = session
-                .sendAndWait(new MessageOptions().setPrompt(prompt), 300_000L)
-                .get();
+            CompletableFuture<AssistantMessageEvent> future = session.sendAndWait(
+                new MessageOptions().setPrompt(prompt),
+                absoluteCeilingMs()
+            );
+            AssistantMessageEvent reply = awaitWithHeartbeat(future, inactivityTimeoutMs());
             usage.requests++;
             usage.totalTokens = lastContextTokens;
             long elapsedMillis = (System.nanoTime() - start) / 1_000_000L;
@@ -128,7 +146,7 @@ public final class CopilotSdkProvider implements AiProvider {
                 new TurnStats(
                     elapsedMillis,
                     turnCredits.sum(),
-                    turnModel != null ? turnModel : model,
+                    turnModel != null ? turnModel : activeModel,
                     turnInputTokens.sum(),
                     turnOutputTokens.sum()
                 );
@@ -137,12 +155,87 @@ public final class CopilotSdkProvider implements AiProvider {
             }
             String content = reply.getData().content();
             return content == null ? "" : content;
+        } catch (AiException e) {
+            throw e;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new AiException("Interrupted while waiting for Copilot.", e);
         } catch (Exception e) {
             throw new AiException("Copilot SDK request failed: " + rootMessage(e), e);
         }
+    }
+
+    private void markActivity() {
+        lastActivityAt = System.currentTimeMillis();
+    }
+
+    /**
+     * Wait for the turn to finish, keeping it alive while it makes progress.
+     * Aborts only on a genuine stall: no tool/token activity for
+     * {@code inactivityMs} while no tool call is in flight. A long-but-active
+     * turn (many tool calls, a live test run) is bounded only by the absolute
+     * ceiling passed to {@code sendAndWait}.
+     */
+    private AssistantMessageEvent awaitWithHeartbeat(
+        CompletableFuture<AssistantMessageEvent> future,
+        long inactivityMs
+    )
+        throws InterruptedException, java.util.concurrent.ExecutionException, AiException {
+        while (true) {
+            try {
+                return future.get(5, TimeUnit.SECONDS);
+            } catch (TimeoutException te) {
+                long idle = System.currentTimeMillis() - lastActivityAt;
+                if (activeTools.get() == 0 && idle >= inactivityMs) {
+                    future.cancel(true);
+                    throw new AiException(
+                        "Copilot turn stalled: no tool or token activity for " +
+                        (idle / 1000) +
+                        "s (limit " +
+                        (inactivityMs / 1000) +
+                        "s) with no tool call in flight - the Copilot CLI likely hung, so the " +
+                        "turn was aborted. Tune with -Dingenious.copilot.inactivityTimeoutMs " +
+                        "and -Dingenious.copilot.maxTurnMs (or the INGENIOUS_COPILOT_* env vars)."
+                    );
+                }
+                // else: a tool is running, or the model is still within the
+                // inactivity window - keep waiting; the turn is progressing.
+            }
+        }
+    }
+
+    /** Inactivity limit (ms) before a stalled turn is aborted. Default 5 min. */
+    private static long inactivityTimeoutMs() {
+        return longConfig(
+            "ingenious.copilot.inactivityTimeoutMs",
+            "INGENIOUS_COPILOT_INACTIVITY_MS",
+            300_000L
+        );
+    }
+
+    /** Absolute ceiling (ms) for a single turn regardless of activity. Default 30 min. */
+    private static long absoluteCeilingMs() {
+        return longConfig(
+            "ingenious.copilot.maxTurnMs",
+            "INGENIOUS_COPILOT_MAX_TURN_MS",
+            1_800_000L
+        );
+    }
+
+    private static long longConfig(String sysProp, String envVar, long def) {
+        String v = System.getProperty(sysProp);
+        if (v == null || v.isBlank()) {
+            v = System.getenv(envVar);
+        }
+        if (v != null && !v.isBlank()) {
+            try {
+                long n = Long.parseLong(v.trim());
+                if (n > 0) return n;
+            } catch (NumberFormatException ignored) {
+                // fall through to default
+            }
+        }
+        return def;
     }
 
     /**
@@ -195,7 +288,6 @@ public final class CopilotSdkProvider implements AiProvider {
             client = new CopilotClient(new CopilotClientOptions().setCwd(runtimeRoot()));
             client.start().get();
             SessionConfig config = new SessionConfig()
-                .setModel(model)
                 .setOnPermissionRequest(PermissionHandler.APPROVE_ALL)
                 .setSystemMessage(
                     new SystemMessageConfig()
@@ -203,6 +295,13 @@ public final class CopilotSdkProvider implements AiProvider {
                         .setContent(buildSystemPrompt())
                 )
                 .setMcpServers(ingeniousMcpServer());
+            String sessionModel = selectSessionModel(requestedModel, availableModelIds(client));
+            if (sessionModel != null) {
+                config.setModel(sessionModel);
+                activeModel = sessionModel;
+            } else {
+                activeModel = "Copilot default";
+            }
             String dir = projectDir.get();
             if (dir != null && !dir.isBlank()) {
                 config.setWorkingDirectory(dir);
@@ -211,6 +310,7 @@ public final class CopilotSdkProvider implements AiProvider {
             session.on(
                 SessionUsageInfoEvent.class,
                 ev -> {
+                    markActivity();
                     if (ev.getData() != null && ev.getData().currentTokens() != null) {
                         lastContextTokens = ev.getData().currentTokens().intValue();
                     }
@@ -219,6 +319,7 @@ public final class CopilotSdkProvider implements AiProvider {
             session.on(
                 AssistantUsageEvent.class,
                 ev -> {
+                    markActivity();
                     AssistantUsageEvent.AssistantUsageEventData d = ev.getData();
                     if (d == null) {
                         return;
@@ -241,6 +342,8 @@ public final class CopilotSdkProvider implements AiProvider {
             session.on(
                 ToolExecutionStartEvent.class,
                 ev -> {
+                    activeTools.incrementAndGet();
+                    markActivity();
                     ToolExecutionStartEvent.ToolExecutionStartEventData d = ev.getData();
                     if (d == null) {
                         return;
@@ -259,6 +362,10 @@ public final class CopilotSdkProvider implements AiProvider {
             session.on(
                 ToolExecutionCompleteEvent.class,
                 ev -> {
+                    if (activeTools.get() > 0) {
+                        activeTools.decrementAndGet();
+                    }
+                    markActivity();
                     ToolExecutionCompleteEvent.ToolExecutionCompleteEventData d = ev.getData();
                     if (d == null) {
                         return;
@@ -286,6 +393,29 @@ public final class CopilotSdkProvider implements AiProvider {
                 e
             );
         }
+    }
+
+    private static List<String> availableModelIds(CopilotClient client) throws Exception {
+        List<ModelInfo> infos = client.listModels().get();
+        List<String> ids = new ArrayList<>();
+        if (infos != null) {
+            for (ModelInfo info : infos) {
+                if (info != null && info.getId() != null && !info.getId().isBlank()) {
+                    ids.add(info.getId());
+                }
+            }
+        }
+        return ids;
+    }
+
+    static String selectSessionModel(String requested, List<String> available) {
+        if (requested == null || requested.isBlank()) {
+            return null;
+        }
+        if (available == null || available.isEmpty()) {
+            return requested;
+        }
+        return available.contains(requested) ? requested : null;
     }
 
     /** Launches this same JVM's engine as an INGenious stdio MCP server for the CLI. */

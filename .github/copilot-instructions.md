@@ -68,5 +68,14 @@ round-trips the full context through the model. To keep runs cheap and determini
   differ from any test-case scenario name.
 - **Composition**: test cases call reusables with `object: Execute`,
   `action: <ReusableScenario>:<ReusableName>`.
+- **Running tests**: leave `headless` unset on `ingenious_run`/`ingenious_run_async` for
+  browser-based tests — it defaults to `false` (headed/visible browser). Only pass
+  `headless:true` if explicitly requested. `'No Browser'` (API/AI) tests are unaffected.
+  Also leave `breakOnError` unset — it defaults to `true`, stopping the run at the first
+  failed step so a bad locator early on doesn't pay the default per-step wait for every
+  remaining step.
+- **Browser discovery**: leave `headed` unset on `ingenious_browser_discover`/
+  `ingenious_browser_session_start` — it defaults to `true` (visible browser) so live
+  Playwright-cli discovery stays transparent. Only pass `headed:false` if requested.
 - **Quality**: no fixed sleeps (use `waitFor*`); end every test case with an assertion;
   never store plaintext passwords — use `PLACEHOLDER_<ENV>_DO_NOT_COMMIT`.

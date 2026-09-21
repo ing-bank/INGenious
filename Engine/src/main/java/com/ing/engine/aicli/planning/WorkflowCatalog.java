@@ -385,7 +385,9 @@ public final class WorkflowCatalog {
                     null
                 ),
                 new Param("tags", "Tag filter (comma-separated)", false, null),
-                new Param("headless", "Run headless? (true/false)", false, "true")
+                // Browser-based tests default to headed (visible) execution; "No Browser"
+                // (API/AI) tests aren't affected by this flag either way.
+                new Param("headless", "Run headless? (true/false)", false, "false")
             );
         }
 
@@ -393,7 +395,7 @@ public final class WorkflowCatalog {
         public Plan build(Map<String, String> v) {
             ObjectNode a = args("target", v.get("target"));
             if (v.get("tags") != null) a.put("tags", v.get("tags"));
-            a.put("headless", Boolean.parseBoolean(v.getOrDefault("headless", "true")));
+            a.put("headless", Boolean.parseBoolean(v.getOrDefault("headless", "false")));
             return new Plan(
                 "Run tests: " + v.get("target"),
                 List.of(new PlanStep("s1", "run", a, List.of()))
@@ -576,7 +578,8 @@ public final class WorkflowCatalog {
             );
             ObjectNode runArgs = args("target", runTarget);
             runArgs.put("rerun", true);
-            runArgs.put("headless", true);
+            // Headed by default for browser tests; "No Browser" (AI/API) tests are unaffected.
+            runArgs.put("headless", false);
             steps.add(new PlanStep("s2", "run", runArgs, List.of("s1")));
             return new Plan("Re-run failed tests of " + runTarget, steps);
         }

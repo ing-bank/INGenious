@@ -7,6 +7,7 @@ import com.ing.engine.aicli.ai.AgentMessage;
 import com.ing.engine.aicli.ai.AgentReply;
 import com.ing.engine.aicli.ai.AgentToolCall;
 import com.ing.engine.aicli.ai.AiProvider;
+import com.ing.engine.aicli.ai.OperatingMode;
 import com.ing.engine.aicli.ai.ToolSpec;
 import com.ing.engine.aicli.execution.ExecutionEngine;
 import com.ing.engine.aicli.execution.FileChange;
@@ -37,6 +38,21 @@ public final class AgentLoop {
     private static final int MAX_ITERATIONS = 25;
     private static final int MAX_RESULT_CHARS = 6000;
 
+    /**
+     * Tool ids that mark a natural pause point in ATTENDED mode: either the end of a
+     * phase (import/create, on success) or a step whose failure should not be retried
+     * blindly (run/validate). Bare ids as returned by {@link Tool#id()}.
+     */
+    private static final java.util.Set<String> CHECKPOINT_ON_SUCCESS = java.util.Set.of(
+        "import_playwright",
+        "testcase_create"
+    );
+    private static final java.util.Set<String> CHECKPOINT_ON_FAILURE = java.util.Set.of(
+        "run",
+        "run_async",
+        "testcase_validate"
+    );
+
     /** Approval decision for a mutating tool call. */
     public enum Approval {
         YES,
@@ -53,6 +69,17 @@ public final class AgentLoop {
         void onToolResult(String tool, boolean error, String summary);
 
         void thinking(boolean on);
+
+        /**
+         * Called in ATTENDED mode when a tool call reaches a checkpoint (see
+         * {@link #CHECKPOINT_ON_SUCCESS}/{@link #CHECKPOINT_ON_FAILURE}). {@code resultJson} is the
+         * tool's full result so the UI can show the user enough to help (test case, OR, data, …).
+         * Return free-text guidance to inject as the next user turn, or {@code null}/blank to let
+         * the agent continue on its own.
+         */
+        default String checkpoint(String tool, boolean success, String resultJson) {
+            return null;
+        }
     }
 
     /** Result of an agent turn. */
@@ -88,6 +115,35 @@ public final class AgentLoop {
         UndoJournal journal,
         String goal,
         Ui ui
+    )
+        throws AiProvider.AiException {
+        return run(
+            provider,
+            messages,
+            projectArg,
+            projectRoot,
+            journal,
+            goal,
+            ui,
+            OperatingMode.UNATTENDED
+        );
+    }
+
+    /**
+     * Runs the loop. {@code messages} is extended in place with the assistant
+     * and tool turns. In {@link OperatingMode#ATTENDED}, checkpoint tool results
+     * (see {@link #CHECKPOINT_ON_SUCCESS}/{@link #CHECKPOINT_ON_FAILURE}) pause via
+     * {@link Ui#checkpoint(String, boolean, String)} before the loop continues.
+     */
+    public Outcome run(
+        AiProvider provider,
+        List<AgentMessage> messages,
+        String projectArg,
+        Path projectRoot,
+        UndoJournal journal,
+        String goal,
+        Ui ui,
+        OperatingMode mode
     )
         throws AiProvider.AiException {
         Map<String, byte[]> snapshot = null;
@@ -172,8 +228,11 @@ public final class AgentLoop {
                     ui.onToolResult(call.name, true, String.valueOf(e.getMessage()));
                 }
                 messages.add(AgentMessage.toolResult(call.id, call.name, result));
-                if (error) {
-                    // keep going: the model can read the error and self-correct
+                if (mode == OperatingMode.ATTENDED && isCheckpoint(tool.id(), error)) {
+                    String guidance = ui.checkpoint(call.name, !error, result);
+                    if (guidance != null && !guidance.isBlank()) {
+                        messages.add(AgentMessage.user(guidance));
+                    }
                 }
             }
         }
@@ -190,6 +249,13 @@ public final class AgentLoop {
             }
         }
         return new Outcome(finalText, changes, hitLimit);
+    }
+
+    /** True when {@code toolId}'s outcome (success or failure) should pause the loop in ATTENDED mode. */
+    private boolean isCheckpoint(String toolId, boolean error) {
+        return error
+            ? CHECKPOINT_ON_FAILURE.contains(toolId)
+            : CHECKPOINT_ON_SUCCESS.contains(toolId);
     }
 
     private List<ToolSpec> buildSpecs() {

@@ -42,6 +42,7 @@ public class AICopilotUI extends JPanel {
 
     private final JComboBox<ModelInfo> modelSelector = new JComboBox<>();
     private final JCheckBox agentModeToggle = new JCheckBox("Agent");
+    private final JCheckBox attendedModeToggle = new JCheckBox("Attended");
     private final JToggleButton promptsToggle = new JToggleButton("Prompts");
     private final JButton historyButton = new JButton("History");
     private final JButton connectButton = new JButton("Connect to VS Code");
@@ -98,6 +99,7 @@ public class AICopilotUI extends JPanel {
         stopButton.setEnabled(false);
         // Default to Agent (tool-calling) mode so the assistant can actually act.
         agentModeToggle.setSelected(true);
+        attendedModeToggle.setSelected(controller.isAttendedMode());
         startContextTimer();
     }
 
@@ -149,6 +151,11 @@ public class AICopilotUI extends JPanel {
             "Agent mode: let the AI create/edit scenarios, test cases, steps and OR entries (with approval)."
         );
         left.add(agentModeToggle);
+        attendedModeToggle.setToolTipText(
+            "Attended mode: pause at logical checkpoints (and on the first run failure) to ask you for " +
+            "input, instead of retrying fully on its own."
+        );
+        left.add(attendedModeToggle);
         promptsToggle.setToolTipText("Show the prompt library — click a chip to fill the input.");
         left.add(promptsToggle);
         historyButton.setToolTipText("Browse and reload past conversations, or start a new chat.");
@@ -280,6 +287,9 @@ public class AICopilotUI extends JPanel {
         clearButton.addActionListener(e -> controller.clearConversation());
         connectButton.addActionListener(e -> controller.connectToVsCode());
         historyButton.addActionListener(e -> showHistoryMenu());
+        attendedModeToggle.addActionListener(
+            e -> controller.setAttendedMode(attendedModeToggle.isSelected())
+        );
         promptsToggle.addActionListener(
             e -> {
                 promptScroll.setVisible(promptsToggle.isSelected());
@@ -373,6 +383,11 @@ public class AICopilotUI extends JPanel {
     /** Whether the agent (tool-calling) mode is enabled. */
     public boolean isAgentMode() {
         return agentModeToggle.isSelected();
+    }
+
+    /** Whether attended mode (pause at checkpoints) is enabled. */
+    public boolean isAttendedMode() {
+        return attendedModeToggle.isSelected();
     }
 
     public void setModels(List<ModelInfo> models, String selectedId) {

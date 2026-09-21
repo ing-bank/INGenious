@@ -65,6 +65,8 @@ public class FXToolBar extends JFXPanel {
                 createButton("Settings", "RunSettings"),
                 createButton("Archetype Configurations", "BrowserConfiguration"),
                 new Separator(),
+                createMobileRecorderButton(),
+                new Separator(),
                 createAPITesterButton(),
                 createDBWorkbenchButton(),
                 createPerfStudioButton(),
@@ -94,6 +96,18 @@ public class FXToolBar extends JFXPanel {
         }
 
         btn.setOnAction(e -> fireSwingAction(action));
+        return btn;
+    }
+
+    private Button createMobileRecorderButton() {
+        Button btn = new Button("Mobile Recorder");
+        btn.getStyleClass().add("workbench-btn");
+        btn.setTooltip(new Tooltip("Record a mobile test from a live Appium session"));
+        org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored("recorder", 16);
+        if (icon != null) {
+            btn.setGraphic(icon);
+        }
+        btn.setOnAction(e -> fireSwingAction("Mobile Recorder"));
         return btn;
     }
 

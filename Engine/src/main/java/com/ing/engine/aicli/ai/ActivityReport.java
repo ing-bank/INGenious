@@ -13,6 +13,13 @@ import java.util.Locale;
  * single minor-call count so the report highlights what actually happened rather
  * than every tool invocation.
  *
+ * <p>An agent often iterates on the same artifact — e.g. validate, fix a step,
+ * validate again — before it converges. Those repeats are collapsed per
+ * (action-kind, subject) into a single activity reflecting the <em>final</em>
+ * state, with a "resolved after N attempts" note, so the OK/WARN/FAIL tallies
+ * describe the actual outcome of the user's ask rather than every intermediate
+ * self-correction.</p>
+ *
  * <p>Render-agnostic: the AI CLI renders the result with ANSI badges/pills and
  * the IDE assistant renders it as coloured HTML cards, both from this model.</p>
  */
@@ -62,6 +69,8 @@ public final class ActivityReport {
         public final int failCount;
         public final int minorCount;
         public final int totalCalls;
+        /** Number of activities that took more than one attempt to reach their final state. */
+        public final int retryCount;
 
         Result(
             List<Activity> activities,
@@ -70,7 +79,8 @@ public final class ActivityReport {
             int warnCount,
             int failCount,
             int minorCount,
-            int totalCalls
+            int totalCalls,
+            int retryCount
         ) {
             this.activities = activities;
             this.okCount = okCount;
@@ -79,6 +89,7 @@ public final class ActivityReport {
             this.failCount = failCount;
             this.minorCount = minorCount;
             this.totalCalls = totalCalls;
+            this.retryCount = retryCount;
         }
 
         public boolean isEmpty() {
@@ -90,49 +101,177 @@ public final class ActivityReport {
 
     /** Summarizes the given tool calls into a user-facing activity report. */
     public static Result summarize(List<Call> calls) {
-        List<Activity> acts = new ArrayList<>();
-        int ok = 0;
-        int info = 0;
-        int warn = 0;
-        int fail = 0;
+        List<Activity> raw = new ArrayList<>();
+        List<String> groupKeys = new ArrayList<>();
         int minor = 0;
         int total = calls == null ? 0 : calls.size();
         if (calls != null) {
             for (Call c : calls) {
                 String bare = bareName(c.name);
+                boolean domain = isIngeniousTool(c.name);
                 JsonNode json = ToolReportUtil.parseJsonQuiet(c.result);
-                Activity a = describe(bare, c.success, json, c.result);
+                Activity a = describe(bare, c.success, json, c.result, domain);
                 if (a == null) {
                     minor++;
                     continue;
                 }
-                acts.add(a);
-                switch (a.status) {
-                    case OK:
-                        ok++;
-                        break;
-                    case INFO:
-                        info++;
-                        break;
-                    case WARN:
-                        warn++;
-                        break;
-                    case FAIL:
-                        fail++;
-                        break;
-                    default:
-                        break;
-                }
+                raw.add(a);
+                String subject = subjectOf(bare, json);
+                groupKeys.add(subject == null ? null : groupCategory(bare) + '\u0000' + subject);
             }
         }
-        return new Result(acts, ok, info, warn, fail, minor, total);
+        int[] retries = new int[1];
+        List<Activity> acts = collapseRetries(raw, groupKeys, retries);
+        int ok = 0;
+        int info = 0;
+        int warn = 0;
+        int fail = 0;
+        for (Activity a : acts) {
+            switch (a.status) {
+                case OK:
+                    ok++;
+                    break;
+                case INFO:
+                    info++;
+                    break;
+                case WARN:
+                    warn++;
+                    break;
+                case FAIL:
+                    fail++;
+                    break;
+                default:
+                    break;
+            }
+        }
+        return new Result(acts, ok, info, warn, fail, minor, total, retries[0]);
+    }
+
+    /**
+     * Collapses repeated activities that share a group key (same action-kind on
+     * the same subject, e.g. repeated validation of the same test case) down to
+     * one entry reflecting the last (final) attempt, annotated with how many
+     * attempts it took. Activities without a resolvable subject are kept as-is.
+     */
+    private static List<Activity> collapseRetries(
+        List<Activity> raw,
+        List<String> groupKeys,
+        int[] retriesOut
+    ) {
+        List<Activity> result = new ArrayList<>();
+        java.util.Map<String, Integer> firstPos = new java.util.LinkedHashMap<>();
+        java.util.Map<String, Integer> attempts = new java.util.HashMap<>();
+        for (int i = 0; i < raw.size(); i++) {
+            String key = groupKeys.get(i);
+            Activity a = raw.get(i);
+            if (key == null) {
+                result.add(a);
+                continue;
+            }
+            Integer pos = firstPos.get(key);
+            if (pos == null) {
+                firstPos.put(key, result.size());
+                attempts.put(key, 1);
+                result.add(a);
+            } else {
+                attempts.put(key, attempts.get(key) + 1);
+                result.set(pos, a);
+            }
+        }
+        int retried = 0;
+        for (java.util.Map.Entry<String, Integer> e : firstPos.entrySet()) {
+            int n = attempts.get(e.getKey());
+            if (n <= 1) {
+                continue;
+            }
+            retried++;
+            int pos = e.getValue();
+            Activity a = result.get(pos);
+            String note = (a.status == Status.OK || a.status == Status.INFO)
+                ? "Resolved after " + n + " attempts"
+                : n + " attempts";
+            result.set(pos, withNote(a, note));
+        }
+        retriesOut[0] = retried;
+        return result;
+    }
+
+    private static Activity withNote(Activity a, String note) {
+        List<String> d = new ArrayList<>(a.details);
+        d.add(note);
+        return new Activity(a.title, a.status, d, a.tool);
+    }
+
+    /** Normalizes bare tool-name variants that represent the same kind of action on a subject. */
+    private static String groupCategory(String bare) {
+        if (
+            bare.endsWith("_add_step") ||
+            bare.endsWith("_insert_step") ||
+            bare.endsWith("_edit_step") ||
+            bare.endsWith("_remove_step") ||
+            bare.endsWith("_move_step")
+        ) {
+            return "steps";
+        }
+        if (bare.equals("run") || bare.equals("run_async") || bare.equals("run_dry")) {
+            return "run";
+        }
+        return bare;
+    }
+
+    /**
+     * Extracts a stable identifier for the artifact a call acted on (test case,
+     * scenario, object, sheet/column, …), or {@code null} when none can be
+     * determined — such calls are never collapsed with others.
+     */
+    private static String subjectOf(String bare, JsonNode j) {
+        String tc = str(j, "testcase");
+        if (tc != null) {
+            return "testcase:" + tc;
+        }
+        String name = str(j, "name");
+        if (name != null) {
+            return "name:" + name;
+        }
+        String target = str(j, "target");
+        if (target != null) {
+            return "target:" + target;
+        }
+        String sheet = str(j, "sheet");
+        if (sheet != null) {
+            String col = str(j, "column");
+            return col != null ? "sheet:" + sheet + ":" + col : "sheet:" + sheet;
+        }
+        String page = str(j, "page");
+        if (page != null) {
+            return "page:" + page;
+        }
+        String scenario = str(j, "scenario");
+        if (scenario != null) {
+            return "scenario:" + scenario;
+        }
+        // A whole-project validate (no scenario/testcase filter) carries no
+        // identifying field at all; give it a fixed subject so repeated broad
+        // validation passes still collapse into one final entry.
+        if ("testcase_validate".equals(bare)) {
+            return "validate:__all__";
+        }
+        return null;
     }
 
     /**
      * Maps one tool call to an {@link Activity}, or {@code null} when it is a
-     * successful read-only lookup that should be collapsed into the minor count.
+     * successful read-only lookup (or a non-INGenious housekeeping tool call,
+     * e.g. the agent's own file/shell/skill-doc tools) that should be collapsed
+     * into the minor count.
      */
-    private static Activity describe(String bare, boolean success, JsonNode j, String raw) {
+    private static Activity describe(
+        String bare,
+        boolean success,
+        JsonNode j,
+        String raw,
+        boolean domain
+    ) {
         // Test-case authoring
         if (
             bare.equals("testcase_create") ||
@@ -243,7 +382,7 @@ public final class ActivityReport {
         if (!success) {
             return new Activity(friendly(bare) + " failed", Status.FAIL, failDetails(j, raw), bare);
         }
-        if (isReadOnly(bare)) {
+        if (!domain || isReadOnly(bare)) {
             return null;
         }
         return new Activity(friendly(bare), Status.OK, genericDetails(j), bare);
@@ -298,7 +437,7 @@ public final class ActivityReport {
         }
         List<String> d = new ArrayList<>();
         addField(d, "Test case", j, "testcase");
-        Integer steps = intOrNull(j, "steps");
+        Integer steps = firstInt(j, "totalSteps", "steps");
         if (steps != null) {
             d.add(steps + (steps == 1 ? " step" : " steps"));
         }
@@ -332,7 +471,15 @@ public final class ActivityReport {
         int errs = countArray(j, "errors");
         int warns = countArray(j, "warnings");
         List<String> d = new ArrayList<>();
-        addField(d, "Test case", j, "testcase");
+        String tcName = str(j, "testcase");
+        if (tcName != null) {
+            d.add("Test case: " + tcName);
+        } else {
+            Integer checked = intOrNull(j, "checked");
+            if (checked != null && checked > 1) {
+                d.add("Checked " + checked + " test cases");
+            }
+        }
         d.add(valid && errs == 0 ? "Valid" : "Invalid");
         if (errs > 0) {
             d.add(errs + (errs == 1 ? " error" : " errors"));
@@ -348,7 +495,8 @@ public final class ActivityReport {
         } else {
             st = Status.OK;
         }
-        return new Activity("Test case validated", st, d, bare);
+        String title = tcName != null ? "Test case validated" : "Test suite validated";
+        return new Activity(title, st, d, bare);
     }
 
     private static Activity scenarioCreated(String bare, boolean ok, JsonNode j, String raw) {
@@ -489,7 +637,7 @@ public final class ActivityReport {
         }
         List<String> d = new ArrayList<>();
         addField(d, "Project", j, "name");
-        addField(d, "Location", j, "location");
+        addPathField(d, "Location", j, "location");
         return new Activity("Project created", Status.OK, d, bare);
     }
 
@@ -586,6 +734,7 @@ public final class ActivityReport {
         return (
             bare.startsWith("action_") ||
             bare.startsWith("browser_") ||
+            bare.equals("skill_read") ||
             bare.endsWith("_list") ||
             bare.endsWith("_show") ||
             bare.endsWith("_search") ||
@@ -612,6 +761,11 @@ public final class ActivityReport {
         return n;
     }
 
+    /** Whether {@code name} is one of our own {@code ingenious_*} MCP tools, vs. an agent-internal one (file/shell/skill docs, …). */
+    private static boolean isIngeniousTool(String name) {
+        return name != null && name.trim().toLowerCase(Locale.ROOT).contains("ingenious_");
+    }
+
     private static String friendly(String bare) {
         if (bare == null || bare.isEmpty()) {
             return "Action";
@@ -625,6 +779,49 @@ public final class ActivityReport {
         if (v != null) {
             d.add(label + ": " + v);
         }
+    }
+
+    /** Like {@link #addField}, but renders a filesystem path relative and short. */
+    private static void addPathField(List<String> d, String label, JsonNode j, String key) {
+        String v = str(j, key);
+        if (v != null) {
+            d.add(label + ": " + shortenPath(v));
+        }
+    }
+
+    /** Working directory used to render absolute paths as relative (AI CLI and IDE both run from the project root). */
+    private static final String CWD = System.getProperty("user.dir");
+    /** Max visible length of a shortened path before its leading segments are elided. */
+    private static final int MAX_PATH = 60;
+
+    /** Strips the CWD prefix off an absolute path, then elides leading segments if still long. */
+    private static String shortenPath(String s) {
+        if (s == null || s.isEmpty()) {
+            return s;
+        }
+        String rel = relativize(s);
+        if (rel.length() <= MAX_PATH) {
+            return rel;
+        }
+        String[] parts = rel.replace('\\', '/').split("/");
+        String kept = "";
+        for (int i = parts.length - 1; i >= 0; i--) {
+            String candidate = kept.isEmpty() ? parts[i] : parts[i] + "/" + kept;
+            if (!kept.isEmpty() && ("\u2026/" + candidate).length() > MAX_PATH) {
+                break;
+            }
+            kept = candidate;
+        }
+        return "\u2026/" + kept;
+    }
+
+    /** Renders an absolute path under the working directory as a relative one. */
+    private static String relativize(String s) {
+        if (CWD == null || s.equals(CWD)) {
+            return CWD == null ? s : ".";
+        }
+        String prefix = CWD + java.io.File.separator;
+        return s.startsWith(prefix) ? s.substring(prefix.length()) : s;
     }
 
     private static String str(JsonNode j, String key) {
@@ -690,7 +887,7 @@ public final class ActivityReport {
         for (String k : keys) {
             String v = str(j, k);
             if (v != null) {
-                d.add(cap(k) + ": " + v);
+                d.add(cap(k) + ": " + (k.equals("path") ? shortenPath(v) : v));
             }
             if (d.size() >= 3) {
                 break;

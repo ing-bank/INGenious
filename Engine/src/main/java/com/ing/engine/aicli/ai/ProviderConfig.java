@@ -21,6 +21,8 @@ public final class ProviderConfig {
     public String model = "gpt-4o";
     public String baseUrl = "https://api.openai.com/v1";
     public String apiKeyEnv = "OPENAI_API_KEY";
+    /** "attended" or "unattended"; see {@link OperatingMode}. Remembered as the next session's default. */
+    public String mode = OperatingMode.UNATTENDED.label();
 
     private ProviderConfig(Path file) {
         this.file = file;
@@ -39,6 +41,7 @@ public final class ProviderConfig {
                 c.model = n.path("model").asText(c.model);
                 c.baseUrl = n.path("baseUrl").asText(c.baseUrl);
                 c.apiKeyEnv = n.path("apiKeyEnv").asText(c.apiKeyEnv);
+                c.mode = n.path("mode").asText(c.mode);
             }
         } catch (IOException ignored) {
             // defaults apply
@@ -52,8 +55,14 @@ public final class ProviderConfig {
         n.put("model", model);
         n.put("baseUrl", baseUrl);
         n.put("apiKeyEnv", apiKeyEnv);
+        n.put("mode", mode);
         Files.createDirectories(file.getParent());
         Files.writeString(file, n.toPrettyString());
+    }
+
+    /** Typed accessor over {@link #mode}. */
+    public OperatingMode operatingMode() {
+        return OperatingMode.fromString(mode);
     }
 
     /** Build the configured provider; never returns null (copilot is the default). */

@@ -230,13 +230,11 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         new Thread(
             () -> {
                 try {
-                    ensureCopilotSdkProvider().warmUp();
+                    com.ing.engine.aicli.ai.CopilotSdkProvider provider = ensureCopilotSdkProvider();
+                    provider.warmUp();
                     SwingUtilities.invokeLater(
                         () -> {
-                            ui.setConnected(
-                                true,
-                                "Copilot CLI (SDK) \u00b7 " + credentials.getCopilotSdkModel()
-                            );
+                            ui.setConnected(true, "Copilot CLI (SDK) \u00b7 " + provider.model());
                             ui.showTemporaryMessage("\u2713 Copilot CLI ready");
                             ui.setFooter(creditSummary());
                         }
@@ -378,6 +376,15 @@ public class AICopilot implements SlideShow.SlideChangeListener {
 
     private boolean copilotSdkEnabled() {
         return credentials.isCopilotSdkEnabled();
+    }
+
+    /** Whether the assistant should pause at checkpoints (and on the first failure) for input. */
+    public boolean isAttendedMode() {
+        return credentials.isAttendedMode();
+    }
+
+    public void setAttendedMode(boolean attended) {
+        credentials.setAttendedMode(attended);
     }
 
     public void toggleSignIn() {
@@ -539,6 +546,15 @@ public class AICopilot implements SlideShow.SlideChangeListener {
             "\nWhen the user refers to \"this\"/\"current\" project, scenario, or " +
             "test case, use the values above. Pass the project path to tools."
         );
+        sb
+            .append("\n\n")
+            .append(
+                com
+                    .ing.engine.aicli.ai.OperatingMode.fromString(
+                        isAttendedMode() ? "attended" : "unattended"
+                    )
+                    .policyText()
+            );
         return sb.toString();
     }
 
@@ -648,7 +664,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         String wanted = credentials.getCopilotSdkModel();
         if (
             copilotSdkProvider == null ||
-            !java.util.Objects.equals(copilotSdkProvider.model(), wanted)
+            !java.util.Objects.equals(copilotSdkProvider.configuredModel(), wanted)
         ) {
             copilotSdkProvider =
                 new com.ing.engine.aicli.ai.CopilotSdkProvider(

@@ -32,6 +32,7 @@ final class SlashCommands {
         "/clear",
         "/context",
         "/model",
+        "/mode",
         "/login",
         "/undo",
         "/redo",
@@ -87,6 +88,9 @@ final class SlashCommands {
             case "/model":
                 model(rest);
                 return true;
+            case "/mode":
+                mode(rest);
+                return true;
             case "/login":
                 login();
                 return true;
@@ -134,6 +138,10 @@ final class SlashCommands {
             "        show/set AI model; " +
             t.dim("/model list") +
             " to pick from available"
+        );
+        lines.add(
+            t.bold("/mode [...]") +
+            "         show/set attended|unattended (pause at checkpoints vs. fully autonomous)"
         );
         lines.add(t.bold("/login") + "              sign in with GitHub Copilot (device flow)");
         lines.add(t.bold("/config [get|set]") + "   project configuration");
@@ -299,6 +307,27 @@ final class SlashCommands {
             System.out.println(
                 t.ok("AI config updated: " + repl.currentProviderUnchecked().describe())
             );
+        } catch (Exception e) {
+            System.out.println(t.fail("Could not save AI config: " + e.getMessage()));
+        }
+    }
+
+    private void mode(String rest) {
+        com.ing.engine.aicli.ai.OperatingMode current = repl.aiConfig.operatingMode();
+        if (rest.isBlank()) {
+            System.out.println("  Mode: " + t.bold(current.label()));
+            System.out.println(t.dim("Change with /mode attended or /mode unattended."));
+            return;
+        }
+        String selector = rest.trim().toLowerCase();
+        if (!selector.equals("attended") && !selector.equals("unattended")) {
+            System.out.println(t.fail("Usage: /mode attended|unattended"));
+            return;
+        }
+        repl.aiConfig.mode = selector;
+        try {
+            repl.aiConfig.save();
+            System.out.println(t.ok("Mode set to " + selector + "."));
         } catch (Exception e) {
             System.out.println(t.fail("Could not save AI config: " + e.getMessage()));
         }

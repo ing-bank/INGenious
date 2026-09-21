@@ -8,6 +8,8 @@ import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
+import com.ing.datalib.model.Meta;
+import com.ing.datalib.model.Tag;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,6 +34,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,9 +52,113 @@ final class MCPTools {
     private final Map<String, RunHandle> runs = new ConcurrentHashMap<>();
     /** Live Playwright Agent CLI authoring sessions keyed by session name. */
     private final Map<String, PwSession> pwSessions = new ConcurrentHashMap<>();
+    /** The most recently closed session, so a late export/save survives a close race. */
+    private volatile PwSession lastClosedSession;
+
+    /** Short-lived project cache so a burst of tool calls doesn't reload the whole project each time. */
+    private static final long PROJECT_CACHE_TTL_MS = 3000;
+    private Project cachedProject;
+    private String cachedProjectKey;
+    private long cachedProjectAt;
+
+    /** Timestamp of the most recent tools/call, used by the idle reaper below. */
+    private volatile long lastActivityAt = System.currentTimeMillis();
+    private final ScheduledExecutorService idleReaper;
 
     MCPTools(String defaultProject) {
         this.defaultProject = defaultProject;
+        this.idleReaper =
+            Executors.newSingleThreadScheduledExecutor(
+                r -> {
+                    Thread t = new Thread(r, "ingenious-mcp-idle-reaper");
+                    t.setDaemon(true);
+                    return t;
+                }
+            );
+        long reapMs = idleReapMs();
+        if (reapMs > 0) {
+            long checkMs = Math.min(60_000L, reapMs);
+            idleReaper.scheduleAtFixedRate(
+                this::reapIfIdle,
+                checkMs,
+                checkMs,
+                TimeUnit.MILLISECONDS
+            );
+        }
+    }
+
+    /** How long (ms) with no tool call before live runs/browser sessions are reaped. 0 disables. Default 15 min. */
+    private static long idleReapMs() {
+        return longConfig("ingenious.mcp.idleReapMs", "INGENIOUS_MCP_IDLE_REAP_MS", 900_000L);
+    }
+
+    private static long longConfig(String sysProp, String envVar, long def) {
+        String v = System.getProperty(sysProp);
+        if (v == null || v.isBlank()) {
+            v = System.getenv(envVar);
+        }
+        if (v != null && !v.isBlank()) {
+            try {
+                return Long.parseLong(v.trim());
+            } catch (NumberFormatException ignored) {
+                // fall through to default
+            }
+        }
+        return def;
+    }
+
+    /**
+     * Runs on a background daemon thread. If no MCP tool call has arrived for
+     * {@link #idleReapMs()}, the client is presumed gone (e.g. it gave up after a
+     * -32001 timeout) — kill any still-alive run subprocess and close any open
+     * Playwright sessions so they don't linger as zombie java/chromium processes.
+     */
+    private void reapIfIdle() {
+        long reapMs = idleReapMs();
+        if (reapMs <= 0) return;
+        long idleFor = System.currentTimeMillis() - lastActivityAt;
+        if (idleFor < reapMs) return;
+
+        int reapedRuns = 0;
+        for (RunHandle h : runs.values()) {
+            if (h.process.isAlive()) {
+                h.process.destroy();
+                try {
+                    if (!h.process.waitFor(5, TimeUnit.SECONDS)) {
+                        h.process.destroyForcibly();
+                    }
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    h.process.destroyForcibly();
+                }
+                h.status = "REAPED_IDLE";
+                h.endedAt = System.currentTimeMillis();
+                reapedRuns++;
+            }
+        }
+        int reapedSessions = 0;
+        for (String name : new ArrayList<>(pwSessions.keySet())) {
+            PwSession s = pwSessions.remove(name);
+            if (s == null) continue;
+            lastClosedSession = s;
+            try {
+                runPlaywright(name, Arrays.asList("close"), 20);
+            } catch (RuntimeException ignored) {
+                // best-effort; the daemon may already be gone
+            }
+            reapedSessions++;
+        }
+        if (reapedRuns > 0 || reapedSessions > 0) {
+            System.err.println(
+                "[ingenious-mcp] idle for " +
+                (idleFor / 1000) +
+                "s -> reaped " +
+                reapedRuns +
+                " run process(es), " +
+                reapedSessions +
+                " browser session(s)"
+            );
+        }
     }
 
     // ==================================================================
@@ -106,6 +214,21 @@ final class MCPTools {
 
         addTool(
             arr,
+            "ingenious_scenario_tags_add",
+            "Add one or more tags to an existing scenario. Existing tags are preserved.",
+            schema(json)
+                .optional("project", "string", "Project name or absolute path.")
+                .required("scenario", "string", "Scenario name.")
+                .requiredArray(
+                    "tags",
+                    "One or more tag values to add.",
+                    json.createObjectNode().put("type", "string")
+                )
+                .build()
+        );
+
+        addTool(
+            arr,
             "ingenious_testcase_list",
             "List test cases in a project, optionally filtered by scenario.",
             schema(json)
@@ -151,6 +274,22 @@ final class MCPTools {
                     "steps",
                     "Optional list of step objects to insert immediately.",
                     stepItemSchema(json)
+                )
+                .build()
+        );
+
+        addTool(
+            arr,
+            "ingenious_testcase_tags_add",
+            "Add one or more tags to an existing test case. Existing tags are preserved.",
+            schema(json)
+                .optional("project", "string", "Project name or absolute path.")
+                .required("scenario", "string", "Scenario name.")
+                .required("testcase", "string", "Test case name.")
+                .requiredArray(
+                    "tags",
+                    "One or more tag values to add.",
+                    json.createObjectNode().put("type", "string")
                 )
                 .build()
         );
@@ -223,9 +362,12 @@ final class MCPTools {
             arr,
             "ingenious_action_search",
             "Free-text, synonym-aware search across action names, descriptions and " +
-            "object types, ranked best-match first. Optionally filter by category " +
-            "(Browser, API, Mobile, Database, Kafka, General) to disambiguate " +
-            "actions that exist for several object types.",
+            "object types, ranked best-match first. Returns COMPACT hits (name, " +
+            "category, description, inputRequired, conditionSupported); call " +
+            "ingenious_action_info on the chosen name for the full Input/Condition " +
+            "format spec. Optionally filter by category (Browser, API, Mobile, " +
+            "Database, Kafka, General) to disambiguate actions that exist for " +
+            "several object types. Prefer a specific query to keep results small.",
             schema(json)
                 .required("query", "string", "Search term.")
                 .optional(
@@ -271,13 +413,27 @@ final class MCPTools {
                     "string",
                     "Chromium | Firefox | WebKit | 'No Browser' (aliases: NoBrowser, no-browser). Default Chromium."
                 )
-                .optional("headless", "boolean", "Run headless. Default false.")
+                .optional(
+                    "headless",
+                    "boolean",
+                    "Run headless (no visible window). Default false, i.e. browser tests run " +
+                    "headed; leave unset for browser-based runs unless the caller explicitly " +
+                    "asks for headless. No effect on 'No Browser' (API/AI) tests."
+                )
                 .optional("parallel", "integer", "Thread count for test sets. Default 1.")
                 .optional("tags", "string", "Comma-separated tag filter (test sets only).")
                 .optional(
                     "rerun",
                     "boolean",
                     "Re-execute only the test cases that failed in the last run of the target. Default false."
+                )
+                .optional(
+                    "breakOnError",
+                    "boolean",
+                    "Stop a test case at its first failed step instead of continuing through " +
+                    "the rest of the script. Default true — keeps a failing run cheap (a failed " +
+                    "locator early on would otherwise still pay the default per-step wait for " +
+                    "every remaining step). Pass false to use the project's own IterationMode."
                 )
                 .optional(
                     "timeoutSeconds",
@@ -303,9 +459,19 @@ final class MCPTools {
                     "string",
                     "Chromium | Firefox | WebKit | 'No Browser' (aliases: NoBrowser, no-browser)."
                 )
-                .optional("headless", "boolean", "Run headless.")
+                .optional(
+                    "headless",
+                    "boolean",
+                    "Run headless (no visible window). Default false — browser tests run " +
+                    "headed; no effect on 'No Browser' (API/AI) tests."
+                )
                 .optional("parallel", "integer", "Thread count for test sets.")
                 .optional("tags", "string", "Comma-separated tag filter.")
+                .optional(
+                    "breakOnError",
+                    "boolean",
+                    "Stop a test case at its first failed step. Default true."
+                )
                 .build()
         );
 
@@ -585,7 +751,13 @@ final class MCPTools {
         addTool(
             arr,
             "ingenious_import_playwright",
-            "Import a Playwright recording (Java source from codegen) as a test case. Uses the same parser as the IDE's Tools \u2192 Import Playwright Recording.",
+            "PREFERRED, deterministic way to author a browser test: import a Playwright Java " +
+            "recording (source emitted by 'playwright codegen --target java', or by " +
+            "ingenious_browser_session_export). The engine parses it into a Page-Object-Model " +
+            "page, test steps, and standard locators automatically - no hand-authored steps or " +
+            "locators. After importing, refine with the other tools (split into reusables, " +
+            "distribute objects across pages, parameterize data). Same parser as the IDE's " +
+            "Tools \u2192 Import Playwright Recording.",
             schema(json)
                 .optional("project", "string", "Project name or absolute path.")
                 .required("file", "string", "Path to the recording file (.txt or .java).")
@@ -844,18 +1016,31 @@ final class MCPTools {
         addTool(
             arr,
             "ingenious_testcase_edit_step",
-            "Replace fields of a single step (1-based index). Only supplied fields change.",
+            "Replace fields of a single step (1-based index), or many steps in one call " +
+            "via 'edits'. Only supplied fields change.",
             schema(json)
                 .optional("project", "string", "Project name or absolute path.")
                 .required("scenario", "string", "Scenario name.")
                 .required("testcase", "string", "Test case name.")
-                .required("index", "integer", "1-based step index to edit.")
+                .optional(
+                    "index",
+                    "integer",
+                    "1-based step index to edit. Required unless 'edits' (batch mode) is supplied."
+                )
                 .optional("action", "string", "New action.")
                 .optional("object", "string", "New object reference.")
                 .optional("input", "string", "New input value.")
                 .optional("condition", "string", "New condition.")
                 .optional("description", "string", "New description.")
                 .optional("reference", "string", "New reference.")
+                .optionalArray(
+                    "edits",
+                    "Batch mode: edit multiple steps of this test case in one call, e.g. " +
+                    "[{index, action, object, input, condition, description, reference}, ...]. " +
+                    "When supplied, the top-level index/action/... fields are ignored. Prefer " +
+                    "this over calling the tool once per step.",
+                    editStepItemSchema(json)
+                )
                 .build()
         );
 
@@ -873,6 +1058,12 @@ final class MCPTools {
                 .optional("input", "string", "Input value.")
                 .optional("condition", "string", "Condition.")
                 .optional("description", "string", "Description.")
+                .optional(
+                    "reference",
+                    "string",
+                    "Object Repository scope, e.g. '[Project] <page>'. Required for any " +
+                    "step whose object is a page element (not Execute/Webservice/Browser)."
+                )
                 .build()
         );
 
@@ -907,12 +1098,18 @@ final class MCPTools {
         addTool(
             arr,
             "ingenious_object_add",
-            "Add a web object (locator) to an Object Repository page as YAML " +
-            "(ObjectRepository/Web/<page>.yaml); creates the page if missing.",
+            "Add one or more web objects (locators) to an Object Repository page as YAML " +
+            "(ObjectRepository/Web/<page>.yaml); creates the page if missing. Pass 'objects' " +
+            "with every discovered object for a page to write them ALL in a single call " +
+            "instead of one call per object.",
             schema(json)
                 .optional("project", "string", "Project name or absolute path.")
                 .required("page", "string", "Object Repository page name.")
-                .required("name", "string", "Object name.")
+                .optional(
+                    "name",
+                    "string",
+                    "Object name. Required unless 'objects' (batch mode) is supplied."
+                )
                 .optional("type", "string", "Ignored (web objects only); kept for compatibility.")
                 .optional(
                     "locator",
@@ -929,7 +1126,14 @@ final class MCPTools {
                 .optional(
                     "dryRun",
                     "boolean",
-                    "Preview only \u2013 report whether the object would be added (default false)."
+                    "Preview only \u2013 report whether the object(s) would be added (default false)."
+                )
+                .optionalArray(
+                    "objects",
+                    "Batch mode: add every object here to 'page' in one call, e.g. " +
+                    "[{name, locator, value}, ...]. When supplied, the top-level name/locator/" +
+                    "value are ignored. Prefer this over calling the tool once per object.",
+                    objectAddItemSchema(json)
                 )
                 .build()
         );
@@ -1267,7 +1471,13 @@ final class MCPTools {
                     "string",
                     "chromium | firefox | webkit | chrome (default chromium)."
                 )
-                .optional("headed", "boolean", "Run headed (default false = headless).")
+                .optional(
+                    "headed",
+                    "boolean",
+                    "Run headed (visible window). Default true, so discovery stays a " +
+                    "transparent, watchable process; pass false only if the user asks for a " +
+                    "headless session."
+                )
                 .optional("reusable", "boolean", "Save as a reusable component (default false).")
                 .optional("session", "string", "Session name (default derived from testcase).")
                 .build()
@@ -1286,7 +1496,13 @@ final class MCPTools {
                     "string",
                     "chromium | firefox | webkit | chrome (default chromium)."
                 )
-                .optional("headed", "boolean", "Run headed (default false = headless).")
+                .optional(
+                    "headed",
+                    "boolean",
+                    "Run headed (visible window). Default true, so discovery stays a " +
+                    "transparent, watchable process; pass false only if the user asks for a " +
+                    "headless session."
+                )
                 .build()
         );
 
@@ -1312,8 +1528,10 @@ final class MCPTools {
             arr,
             "ingenious_browser_session_save",
             "Flush the recorded steps of a session into an INGenious test case " +
-            "(wrapped with OpenBrowser / CloseBrowser). Discovered locators are translated into " +
-            "Object-Repository objects on 'page' and the steps are linked to them.",
+            "(wrapped with Open / ClosePage). Discovered locators are translated into " +
+            "Object-Repository objects on 'page' and the steps are linked to them. " +
+            "For maximum determinism prefer ingenious_browser_session_export + " +
+            "ingenious_import_playwright instead.",
             schema(json)
                 .optional("project", "string", "Project name or absolute path.")
                 .required("name", "string", "Session name.")
@@ -1333,6 +1551,31 @@ final class MCPTools {
                     "Object Repository page for discovered locators (default derived from testcase)."
                 )
                 .optional("reusable", "boolean", "Create as a reusable component (default false).")
+                .optional(
+                    "ifExists",
+                    "string",
+                    "error (default) | skip | overwrite - what to do if the test case already " +
+                    "exists (e.g. a prior ingenious_import_playwright already created it)."
+                )
+                .build()
+        );
+
+        addTool(
+            arr,
+            "ingenious_browser_session_export",
+            "Export a discovery session's recorded actions as a Playwright Java recording file " +
+            "(the format 'playwright codegen --target java' emits). Feed the returned 'file' to " +
+            "ingenious_import_playwright for a deterministic Page-Object-Model + steps + locators. " +
+            "This is the PREFERRED finish for a browser-discovery flow (more deterministic than " +
+            "ingenious_browser_session_save).",
+            schema(json)
+                .optional("project", "string", "Project name or absolute path.")
+                .required("name", "string", "Session name.")
+                .optional(
+                    "file",
+                    "string",
+                    "Output path for the .java recording (default: <project>/Recording/<session>.java)."
+                )
                 .build()
         );
 
@@ -1470,8 +1713,96 @@ final class MCPTools {
         );
 
         // -----------------------------------------------------------
+        // Database workbench
+        // -----------------------------------------------------------
+        addTool(
+            arr,
+            "ingenious_db_connection_add",
+            "Add a database workbench connection using the Settings/Databases store consumed " +
+            "by INGenious database actions. Passwords must be a runtime %variable% reference " +
+            "or PLACEHOLDER_<ENV>_DO_NOT_COMMIT, never plaintext.",
+            schema(json)
+                .optional("project", "string", "Project name or absolute path.")
+                .required("alias", "string", "Unique connection alias used by database actions.")
+                .required("driver", "string", "JDBC driver class, e.g. org.postgresql.Driver.")
+                .required("connectionString", "string", "JDBC connection URL.")
+                .optional(
+                    "user",
+                    "string",
+                    "Optional database user or runtime %variable% reference."
+                )
+                .optional(
+                    "passwordRef",
+                    "string",
+                    "Optional runtime %variable% reference or PLACEHOLDER_<ENV>_DO_NOT_COMMIT."
+                )
+                .optional("timeout", "integer", "Query timeout in seconds (default 30).")
+                .optional("commit", "boolean", "Enable auto-commit (default false).")
+                .optional(
+                    "readOnly",
+                    "boolean",
+                    "Mark connection read-only in the workbench (default false)."
+                )
+                .optional("ifExists", "string", "error (default) | skip | overwrite.")
+                .build()
+        );
+
+        // -----------------------------------------------------------
         // API collection-first workflow
         // -----------------------------------------------------------
+        addTool(
+            arr,
+            "ingenious_apicollection_create",
+            "Create an empty persisted API workbench collection under api/collections.",
+            schema(json)
+                .optional("project", "string", "Project name or absolute path.")
+                .required("name", "string", "New collection name.")
+                .optional("description", "string", "Optional collection description.")
+                .optional("ifExists", "string", "error (default) | skip.")
+                .build()
+        );
+        addTool(
+            arr,
+            "ingenious_apicollection_requests_add",
+            "Append requests to an existing API collection from one cURL command or an inline " +
+            "OpenAPI 3 YAML/JSON document. Saves requests, then can promote them to test cases " +
+            "or reusable user intents. Existing requests are preserved.",
+            schema(json)
+                .optional("project", "string", "Project name or absolute path.")
+                .required("name", "string", "Existing collection name.")
+                .optional("curl", "string", "One complete cURL command to parse into a request.")
+                .optional(
+                    "openapi",
+                    "string",
+                    "Inline OpenAPI 3 YAML or JSON document; every supported operation is added."
+                )
+                .optional(
+                    "baseUrl",
+                    "string",
+                    "Base URL to prepend to OpenAPI paths (defaults to the first spec server)."
+                )
+                .optional(
+                    "promoteTo",
+                    "string",
+                    "Optional post-save conversion: testcase | user_intent."
+                )
+                .optional(
+                    "scenario",
+                    "string",
+                    "Target scenario for promotion (defaults to the collection name)."
+                )
+                .optional(
+                    "testcase",
+                    "string",
+                    "Target test-case or user-intent name. Allowed only when one request is added."
+                )
+                .optional(
+                    "ifExists",
+                    "string",
+                    "Promotion collision behavior: error (default) | skip | overwrite."
+                )
+                .build()
+        );
         addTool(
             arr,
             "ingenious_apicollection_import",
@@ -1567,6 +1898,30 @@ final class MCPTools {
                 .optional("dryRun", "boolean", "Report what would be created without writing.")
                 .build()
         );
+        addTool(
+            arr,
+            "ingenious_skill_list",
+            "List the available INGenious authoring skills (name + description). Call this " +
+            "first when the user asks to author/migrate a test, create a plugin, or detect " +
+            "customizations, then load the matching one with ingenious_skill_read.",
+            schema(json).build()
+        );
+        addTool(
+            arr,
+            "ingenious_skill_read",
+            "Read a named skill's full SKILL.md playbook. ALWAYS load and follow the matching " +
+            "skill before authoring: 'ingenious-browser-test-from-specification' (browser/UI " +
+            "test from a flow), 'ingenious-api-test-from-specification' (API test), " +
+            "'ingenious-ui-migrator' (Selenium/Gherkin migration), 'ingenious-plugin-creation', " +
+            "'ingenious-customization-detection'.",
+            schema(json)
+                .required(
+                    "name",
+                    "string",
+                    "Skill folder name, e.g. ingenious-browser-test-from-specification."
+                )
+                .build()
+        );
 
         return result;
     }
@@ -1583,6 +1938,7 @@ final class MCPTools {
     // ==================================================================
 
     JsonNode call(ObjectMapper json, JsonNode params) {
+        lastActivityAt = System.currentTimeMillis();
         String name = MCPServer.requiredParam(params, "name");
         JsonNode args = params.path("arguments");
 
@@ -1595,12 +1951,16 @@ final class MCPTools {
                 return MCPServer.jsonContent(json, scenarioList(json, args));
             case "ingenious_scenario_create":
                 return MCPServer.jsonContent(json, scenarioCreate(json, args));
+            case "ingenious_scenario_tags_add":
+                return MCPServer.jsonContent(json, scenarioTagsAdd(json, args));
             case "ingenious_testcase_list":
                 return MCPServer.jsonContent(json, testCaseList(json, args));
             case "ingenious_testcase_show":
                 return MCPServer.jsonContent(json, testCaseShow(json, args));
             case "ingenious_testcase_create":
                 return MCPServer.jsonContent(json, testCaseCreate(json, args));
+            case "ingenious_testcase_tags_add":
+                return MCPServer.jsonContent(json, testCaseTagsAdd(json, args));
             case "ingenious_testcase_add_step":
                 return MCPServer.jsonContent(json, testCaseAddStep(json, args));
             case "ingenious_testcase_delete":
@@ -1749,6 +2109,8 @@ final class MCPTools {
                 return MCPServer.jsonContent(json, browserSessionSnapshot(json, args));
             case "ingenious_browser_session_save":
                 return MCPServer.jsonContent(json, browserSessionSave(json, args));
+            case "ingenious_browser_session_export":
+                return MCPServer.jsonContent(json, browserSessionExport(json, args));
             case "ingenious_browser_session_close":
                 return MCPServer.jsonContent(json, browserSessionClose(json, args));
             case "ingenious_browser_inspect":
@@ -1765,6 +2127,12 @@ final class MCPTools {
                 return MCPServer.jsonContent(json, genFromOpenApi(json, args));
             case "ingenious_gen_from_har":
                 return MCPServer.jsonContent(json, genFromHar(json, args));
+            case "ingenious_db_connection_add":
+                return MCPServer.jsonContent(json, dbConnectionAdd(json, args));
+            case "ingenious_apicollection_create":
+                return MCPServer.jsonContent(json, apiCollectionCreate(json, args));
+            case "ingenious_apicollection_requests_add":
+                return MCPServer.jsonContent(json, apiCollectionRequestsAdd(json, args));
             case "ingenious_apicollection_import":
                 return MCPServer.jsonContent(json, apiCollectionImport(json, args));
             case "ingenious_apicollection_list":
@@ -1779,9 +2147,127 @@ final class MCPTools {
                 return MCPServer.jsonContent(json, apiCollectionRequestRun(json, args));
             case "ingenious_apicollection_to_testcase":
                 return MCPServer.jsonContent(json, apiCollectionToTestcase(json, args));
+            case "ingenious_skill_list":
+                return MCPServer.jsonContent(json, skillList(json, args));
+            case "ingenious_skill_read":
+                return MCPServer.jsonContent(json, skillRead(json, args));
             default:
                 throw new MCPServer.MCPException(-32601, "Unknown tool: " + name);
         }
+    }
+
+    // ==================================================================
+    // skill tools
+    // ==================================================================
+
+    /** Candidate roots (relative to the server CWD) where AI skills ship. */
+    private List<File> skillRoots() {
+        File cwd = new File(System.getProperty("user.dir"));
+        List<File> roots = new ArrayList<>();
+        roots.add(new File(cwd, "ai" + File.separator + "skills"));
+        roots.add(new File(cwd, "Resources" + File.separator + "ai" + File.separator + "skills"));
+        File parent = cwd.getParentFile();
+        if (parent != null) {
+            roots.add(new File(parent, "ai" + File.separator + "skills"));
+        }
+        return roots;
+    }
+
+    /** Locate a skill's SKILL.md by skill folder name across the known roots. */
+    private File findSkillFile(String name) {
+        if (name == null || name.isEmpty()) return null;
+        for (File root : skillRoots()) {
+            File f = new File(new File(root, name), "SKILL.md");
+            if (f.isFile()) return f;
+        }
+        return null;
+    }
+
+    /** Distinct skill folder names that carry a SKILL.md, across all roots. */
+    private List<String> availableSkills() {
+        List<String> names = new ArrayList<>();
+        for (File root : skillRoots()) {
+            if (!root.isDirectory()) continue;
+            File[] dirs = root.listFiles(File::isDirectory);
+            if (dirs == null) continue;
+            Arrays.sort(dirs, Comparator.comparing(File::getName));
+            for (File dir : dirs) {
+                if (new File(dir, "SKILL.md").isFile() && !names.contains(dir.getName())) {
+                    names.add(dir.getName());
+                }
+            }
+        }
+        return names;
+    }
+
+    /** List every available skill with its name and frontmatter description. */
+    private JsonNode skillList(ObjectMapper json, JsonNode args) {
+        ArrayNode out = json.createArrayNode();
+        Set<String> seen = new HashSet<>();
+        for (File root : skillRoots()) {
+            if (!root.isDirectory()) continue;
+            File[] dirs = root.listFiles(File::isDirectory);
+            if (dirs == null) continue;
+            Arrays.sort(dirs, Comparator.comparing(File::getName));
+            for (File dir : dirs) {
+                File skill = new File(dir, "SKILL.md");
+                if (!skill.isFile() || !seen.add(dir.getName())) continue;
+                ObjectNode n = out.addObject();
+                n.put("name", dir.getName());
+                n.put("description", skillDescription(skill));
+                n.put("path", skill.getAbsolutePath());
+            }
+        }
+        return out;
+    }
+
+    /** Read a named skill's full SKILL.md so the model can follow its playbook. */
+    private JsonNode skillRead(ObjectMapper json, JsonNode args) {
+        String name = MCPServer.requiredParam(args, "name");
+        File skill = findSkillFile(name);
+        if (skill == null) {
+            throw notFound(-32602, "Skill not found: " + name, availableSkills(), name);
+        }
+        try {
+            String content = new String(Files.readAllBytes(skill.toPath()), StandardCharsets.UTF_8);
+            ObjectNode out = json.createObjectNode();
+            out.put("name", name);
+            out.put("path", skill.getAbsolutePath());
+            out.put("content", content);
+            return out;
+        } catch (IOException e) {
+            throw new MCPServer.MCPException(-32603, "Failed to read skill: " + e.getMessage());
+        }
+    }
+
+    /** Extract the frontmatter {@code description:} value from a SKILL.md file. */
+    private String skillDescription(File skill) {
+        try {
+            List<String> lines = Files.readAllLines(skill.toPath(), StandardCharsets.UTF_8);
+            boolean inFront = false;
+            for (int i = 0; i < lines.size(); i++) {
+                String t = lines.get(i).trim();
+                if (i == 0 && t.equals("---")) {
+                    inFront = true;
+                    continue;
+                }
+                if (inFront && t.equals("---")) break;
+                if (inFront && t.toLowerCase(Locale.ROOT).startsWith("description:")) {
+                    String d = t.substring("description:".length()).trim();
+                    if (
+                        d.length() >= 2 &&
+                        (d.startsWith("'") || d.startsWith("\"")) &&
+                        (d.endsWith("'") || d.endsWith("\""))
+                    ) {
+                        d = d.substring(1, d.length() - 1);
+                    }
+                    return d;
+                }
+            }
+        } catch (IOException ignored) {
+            // fall through to empty description
+        }
+        return "";
     }
 
     // ==================================================================
@@ -1869,6 +2355,25 @@ final class MCPTools {
             .put("reusable", reusable);
     }
 
+    private JsonNode scenarioTagsAdd(ObjectMapper json, JsonNode args) {
+        Project p = loadProject(resolveProject(projectArg(args)));
+        String scenarioName = MCPServer.requiredParam(args, "scenario");
+        Scenario scenario = p.getScenarioByName(scenarioName);
+        if (scenario == null) {
+            throw notFound(
+                -32602,
+                "Scenario not found: " + scenarioName,
+                scenarioNames(p),
+                scenarioName
+            );
+        }
+
+        Meta metadata = p.getInfo().findScenarioOrCreate(scenario.getName());
+        addTags(metadata.getTags(), args.path("tags"), "tags");
+        p.save();
+        return tagResult(json, scenario.getName(), null, metadata.getTags());
+    }
+
     // ==================================================================
     // test case tools
     // ==================================================================
@@ -1927,6 +2432,69 @@ final class MCPTools {
             step.put("reference", st.getReference());
         }
         return out;
+    }
+
+    private JsonNode testCaseTagsAdd(ObjectMapper json, JsonNode args) {
+        Project p = loadProject(resolveProject(projectArg(args)));
+        String scenarioName = MCPServer.requiredParam(args, "scenario");
+        String testCaseName = MCPServer.requiredParam(args, "testcase");
+        Scenario scenario = p.getScenarioByName(scenarioName);
+        if (scenario == null) {
+            throw notFound(
+                -32602,
+                "Scenario not found: " + scenarioName,
+                scenarioNames(p),
+                scenarioName
+            );
+        }
+        TestCase testCase = scenario.getTestCaseByName(testCaseName);
+        if (testCase == null) {
+            throw notFound(
+                -32602,
+                "Test case not found: " + testCaseName,
+                testCaseNames(scenario),
+                testCaseName
+            );
+        }
+
+        com.ing.datalib.model.Tags tags = p
+            .getInfo()
+            .getData()
+            .findOrCreate(testCase.getName(), scenario.getName())
+            .getTags();
+        addTags(tags, args.path("tags"), "tags");
+        testCase.saveMetadata();
+        p.save();
+        return tagResult(json, scenario.getName(), testCase.getName(), tags);
+    }
+
+    private static void addTags(com.ing.datalib.model.Tags current, JsonNode values, String key) {
+        if (!values.isArray() || values.isEmpty()) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "Parameter '" + key + "' must be a non-empty array."
+            );
+        }
+        for (JsonNode value : values) {
+            String tag = value.asText().trim();
+            if (tag.isEmpty()) {
+                throw new MCPServer.MCPException(-32602, "Tag values must be non-empty strings.");
+            }
+            current.add(Tag.create(tag));
+        }
+    }
+
+    private static ObjectNode tagResult(
+        ObjectMapper json,
+        String scenario,
+        String testCase,
+        com.ing.datalib.model.Tags tags
+    ) {
+        ObjectNode result = json.createObjectNode().put("scenario", scenario);
+        if (testCase != null) result.put("testcase", testCase);
+        ArrayNode values = result.putArray("tags");
+        for (Tag tag : tags) values.add(tag.getValue());
+        return result;
     }
 
     private JsonNode testCaseCreate(ObjectMapper json, JsonNode args) {
@@ -2128,6 +2696,8 @@ final class MCPTools {
         ObjectNode out = json
             .createObjectNode()
             .put("added", true)
+            .put("scenario", scenName)
+            .put("testcase", tcName)
             .put("totalSteps", tc.getTestSteps().size());
         if (!stepWarnings.isEmpty()) {
             ArrayNode wa = out.putArray("warnings");
@@ -2315,7 +2885,14 @@ final class MCPTools {
                     continue;
                 }
             }
-            out.add(actionToJson(json, a));
+            // Compact hit: enough to pick the action; call ingenious_action_info
+            // for the full Input/Condition format spec of the chosen one.
+            ObjectNode n = out.addObject();
+            n.put("name", a.name);
+            n.put("category", a.category);
+            n.put("description", a.description);
+            n.put("inputRequired", a.inputRequired);
+            n.put("conditionSupported", a.conditionSupported);
         }
         return out;
     }
@@ -2517,6 +3094,12 @@ final class MCPTools {
         if (spec.rerun) {
             cmd.add("--rerun");
         }
+        if (spec.breakOnError) {
+            // Stop at the first failed step so a bad locator near the start of a
+            // long script doesn't pay the default per-step wait for every step after it.
+            cmd.add("--set-env");
+            cmd.add("run.IterationMode=BreakOnError");
+        }
 
         ProcessBuilder pb = new ProcessBuilder(cmd).redirectErrorStream(true);
         pb.directory(new File(System.getProperty("user.dir")));
@@ -2576,6 +3159,7 @@ final class MCPTools {
         s.headless = false;
         s.parallel = 1;
         s.rerun = boolArg(args, "rerun", false);
+        s.breakOnError = boolArg(args, "breakOnError", true);
         if (args != null) {
             JsonNode h = args.get("headless");
             if (h != null && h.isBoolean()) s.headless = h.asBoolean();
@@ -2646,10 +3230,16 @@ final class MCPTools {
         File project = resolveProject(projectArg(args));
         String target = MCPServer.requiredParam(args, "target");
         String[] parts = target.split("/");
+        // Accept an optional leading <Project>/ so the same target string used by
+        // ingenious_run (<Project>/<Scenario>/<TestCase>) also works here.
+        if (parts.length == 3) {
+            parts = new String[] { parts[1], parts[2] };
+        }
         if (parts.length != 2) {
             throw new MCPServer.MCPException(
                 -32602,
-                "target must be '<Scenario>/<TestCase>' or '<Release>/<TestSet>'"
+                "target must be '<Scenario>/<TestCase>' or '<Release>/<TestSet>' " +
+                "(an optional leading '<Project>/' is also accepted)"
             );
         }
         File design = new File(project, "Results/TestDesign/" + parts[0] + "/" + parts[1]);
@@ -3165,6 +3755,306 @@ final class MCPTools {
     // API collection-first workflow
     // ==================================================================
 
+    private JsonNode dbConnectionAdd(ObjectMapper json, JsonNode args) {
+        Project project = loadProject(resolveProject(projectArg(args)));
+        String alias = MCPServer.requiredParam(args, "alias");
+        String ifExists = MCPServer
+            .paramOrDefault(args, "ifExists", "error")
+            .toLowerCase(Locale.ROOT);
+        com.ing.datalib.settings.DBProperties connections = project
+            .getProjectSettings()
+            .getDatabaseSettings();
+        if (connections.getDBPropertiesFor(alias) != null) {
+            if ("skip".equals(ifExists)) {
+                return json
+                    .createObjectNode()
+                    .put("created", false)
+                    .put("existing", true)
+                    .put("alias", alias);
+            }
+            if (!"overwrite".equals(ifExists)) {
+                throw new MCPServer.MCPException(
+                    -32602,
+                    "Database connection already exists: " + alias
+                );
+            }
+        }
+
+        String passwordRef = MCPServer.paramOrDefault(args, "passwordRef", "");
+        if (!passwordRef.isEmpty() && !isSafePasswordReference(passwordRef)) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "'passwordRef' must be a runtime %variable% reference or PLACEHOLDER_<ENV>_DO_NOT_COMMIT."
+            );
+        }
+        int timeout = args.path("timeout").isInt() ? args.path("timeout").asInt() : 30;
+        if (timeout < 0) throw new MCPServer.MCPException(
+            -32602,
+            "'timeout' must be zero or greater."
+        );
+
+        Properties properties = new Properties();
+        properties.setProperty("db.alias", alias);
+        properties.setProperty("driver", MCPServer.requiredParam(args, "driver"));
+        properties.setProperty(
+            "connectionString",
+            MCPServer.requiredParam(args, "connectionString")
+        );
+        properties.setProperty("user", MCPServer.paramOrDefault(args, "user", ""));
+        properties.setProperty("password", passwordRef);
+        properties.setProperty("timeout", String.valueOf(timeout));
+        properties.setProperty("commit", String.valueOf(boolArg(args, "commit", false)));
+        properties.setProperty("readOnly", String.valueOf(boolArg(args, "readOnly", false)));
+        connections.addDB(alias, properties);
+
+        return json
+            .createObjectNode()
+            .put("created", true)
+            .put("alias", alias)
+            .put("driver", properties.getProperty("driver"))
+            .put("connectionString", properties.getProperty("connectionString"));
+    }
+
+    private static boolean isSafePasswordReference(String value) {
+        return (
+            (value.length() > 2 && value.startsWith("%") && value.endsWith("%")) ||
+            value.matches("PLACEHOLDER_[A-Z0-9_]+_DO_NOT_COMMIT")
+        );
+    }
+
+    private JsonNode apiCollectionCreate(ObjectMapper json, JsonNode args) {
+        File dir = resolveProject(projectArg(args));
+        String name = MCPServer.requiredParam(args, "name");
+        String ifExists = MCPServer
+            .paramOrDefault(args, "ifExists", "error")
+            .toLowerCase(Locale.ROOT);
+        com.ing.datalib.api.APICollection existing = ApiCollectionStore.loadCollection(dir, name);
+        if (existing != null) {
+            if ("skip".equals(ifExists)) {
+                return json
+                    .createObjectNode()
+                    .put("created", false)
+                    .put("existing", true)
+                    .put("collection", existing.getName());
+            }
+            throw new MCPServer.MCPException(-32602, "API collection already exists: " + name);
+        }
+        com.ing.datalib.api.APICollection collection = new com.ing.datalib.api.APICollection(name);
+        String description = MCPServer.paramOrDefault(args, "description", null);
+        if (description != null && !description.isBlank()) collection.setDescription(description);
+        ApiCollectionStore.saveCollection(dir, collection);
+        return json
+            .createObjectNode()
+            .put("created", true)
+            .put("collection", collection.getName())
+            .put("requests", 0);
+    }
+
+    private JsonNode apiCollectionRequestsAdd(ObjectMapper json, JsonNode args) {
+        File dir = resolveProject(projectArg(args));
+        String collectionName = MCPServer.requiredParam(args, "name");
+        com.ing.datalib.api.APICollection collection = ApiCollectionStore.loadCollection(
+            dir,
+            collectionName
+        );
+        if (collection == null) throw new MCPServer.MCPException(
+            -32602,
+            "API collection not found: " + collectionName
+        );
+
+        String curl = MCPServer.paramOrDefault(args, "curl", null);
+        String openApi = MCPServer.paramOrDefault(args, "openapi", null);
+        if ((curl == null || curl.isBlank()) == (openApi == null || openApi.isBlank())) {
+            throw new MCPServer.MCPException(-32602, "Provide exactly one of 'curl' or 'openapi'.");
+        }
+
+        List<com.ing.datalib.api.APIRequest> added = new ArrayList<>();
+        if (curl != null && !curl.isBlank()) {
+            if (!com.ing.datalib.api.CurlParser.looksLikeCurl(curl)) {
+                throw new MCPServer.MCPException(-32602, "Provide a valid 'curl' command.");
+            }
+            com.ing.datalib.api.APIRequest request = com.ing.datalib.api.CurlParser.parse(curl);
+            if (request.getName() == null || request.getName().isBlank()) request.setName(
+                deriveRequestName(request)
+            );
+            added.add(request);
+        } else {
+            added.addAll(openApiRequests(openApi, MCPServer.paramOrDefault(args, "baseUrl", null)));
+        }
+        String promoteTo = MCPServer.paramOrDefault(args, "promoteTo", null);
+        String requestedName = MCPServer.paramOrDefault(args, "testcase", null);
+        if (requestedName != null && added.size() != 1) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "'testcase' may only be supplied when adding exactly one request."
+            );
+        }
+        validatePromotionTarget(promoteTo);
+        for (com.ing.datalib.api.APIRequest request : added) collection.addRequest(request);
+        ApiCollectionStore.saveCollection(dir, collection);
+
+        ObjectNode result = json
+            .createObjectNode()
+            .put("collection", collection.getName())
+            .put("added", added.size());
+        ArrayNode requests = result.putArray("requests");
+        for (com.ing.datalib.api.APIRequest request : added) {
+            requests
+                .addObject()
+                .put("name", request.getName())
+                .put("method", request.getMethod().name())
+                .put("url", request.getUrl());
+        }
+        if (promoteTo != null && !promoteTo.isBlank()) {
+            result.set("promoted", promoteAddedRequests(json, dir, collection, added, args));
+        }
+        return result;
+    }
+
+    private static void validatePromotionTarget(String target) {
+        if (
+            target != null &&
+            !target.isBlank() &&
+            !"testcase".equalsIgnoreCase(target) &&
+            !"user_intent".equalsIgnoreCase(target)
+        ) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "'promoteTo' must be testcase or user_intent."
+            );
+        }
+    }
+
+    private ArrayNode promoteAddedRequests(
+        ObjectMapper json,
+        File projectDir,
+        com.ing.datalib.api.APICollection collection,
+        List<com.ing.datalib.api.APIRequest> requests,
+        JsonNode args
+    ) {
+        String target = MCPServer.paramOrDefault(args, "promoteTo", "").toLowerCase(Locale.ROOT);
+        boolean reusable;
+        if ("testcase".equals(target)) {
+            reusable = false;
+        } else if ("user_intent".equals(target)) {
+            reusable = true;
+        } else {
+            throw new MCPServer.MCPException(-32602, "Missing promotion target.");
+        }
+
+        Project project = loadProject(projectDir);
+        String scenarioName = MCPServer.paramOrDefault(args, "scenario", collection.getName());
+        Scenario scenario = ensureScenario(project, scenarioName, reusable);
+        String requestedName = MCPServer.paramOrDefault(args, "testcase", null);
+        String ifExists = MCPServer
+            .paramOrDefault(args, "ifExists", "error")
+            .toLowerCase(Locale.ROOT);
+        ArrayNode promoted = json.createArrayNode();
+        for (com.ing.datalib.api.APIRequest request : requests) {
+            String targetName = com.ing.datalib.api.importer.ImportUtils.sanitizeFileName(
+                requestedName == null ? deriveRequestName(request) : requestedName
+            );
+            TestCase existing = scenario.getTestCaseByName(targetName);
+            if (existing != null) {
+                if ("skip".equals(ifExists)) {
+                    promoted
+                        .addObject()
+                        .put("request", request.getName())
+                        .put("created", false)
+                        .put("existing", true)
+                        .put("scenario", scenario.getName())
+                        .put("name", targetName);
+                    continue;
+                }
+                if ("overwrite".equals(ifExists)) {
+                    File old = new File(existing.getLocation());
+                    if (old.exists()) old.delete();
+                    scenario.getTestCases().remove(existing);
+                } else {
+                    throw new MCPServer.MCPException(
+                        -32602,
+                        "Test case already exists: " +
+                        targetName +
+                        " (pass ifExists=skip|overwrite)"
+                    );
+                }
+            }
+            TestCase created = com.ing.engine.cli.lib.RequestToTestCaseBuilder.build(
+                request,
+                scenario,
+                targetName
+            );
+            if (created == null) throw new MCPServer.MCPException(
+                -32603,
+                "Failed to create test case: " + targetName
+            );
+            promoted
+                .addObject()
+                .put("request", request.getName())
+                .put("created", true)
+                .put("scenario", scenario.getName())
+                .put("name", targetName)
+                .put("userIntent", reusable);
+        }
+        project.save();
+        return promoted;
+    }
+
+    private List<com.ing.datalib.api.APIRequest> openApiRequests(String source, String baseUrl) {
+        JsonNode spec;
+        try {
+            spec = new com.fasterxml.jackson.dataformat.yaml.YAMLMapper().readTree(source);
+        } catch (IOException e) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "Failed to parse OpenAPI document: " + e.getMessage()
+            );
+        }
+        JsonNode paths = spec.path("paths");
+        if (!paths.isObject()) throw new MCPServer.MCPException(
+            -32602,
+            "No 'paths' object in the OpenAPI document."
+        );
+        String base = baseUrl;
+        if (base == null || base.isBlank()) base =
+            spec.path("servers").path(0).path("url").asText("");
+        List<com.ing.datalib.api.APIRequest> requests = new ArrayList<>();
+        Set<String> usedNames = new LinkedHashSet<>();
+        java.util.Iterator<Map.Entry<String, JsonNode>> pathsIterator = paths.fields();
+        while (pathsIterator.hasNext()) {
+            Map.Entry<String, JsonNode> path = pathsIterator.next();
+            for (String method : new String[] {
+                "get",
+                "post",
+                "put",
+                "patch",
+                "delete",
+                "head",
+                "options"
+            }) {
+                JsonNode operation = path.getValue().get(method);
+                if (operation == null || !operation.isObject()) continue;
+                String requestName = uniqueName(deriveApiName(method, path.getKey()), usedNames);
+                com.ing.datalib.api.APIRequest request = new com.ing.datalib.api.APIRequest(
+                    requestName,
+                    com.ing.datalib.api.APIRequest.HttpMethod.valueOf(
+                        method.toUpperCase(Locale.ROOT)
+                    ),
+                    base + path.getKey()
+                );
+                request.setDescription(
+                    operation.path("summary").asText(operation.path("description").asText(""))
+                );
+                requests.add(request);
+            }
+        }
+        if (requests.isEmpty()) throw new MCPServer.MCPException(
+            -32602,
+            "No supported operations found in the OpenAPI document."
+        );
+        return requests;
+    }
+
     private JsonNode apiCollectionImport(ObjectMapper json, JsonNode args) {
         File dir = resolveProject(projectArg(args));
         String name = MCPServer.requiredParam(args, "name");
@@ -3579,6 +4469,7 @@ final class MCPTools {
 
         List<Scenario> scope = reusable ? p.getReusableScenarios() : p.getScenarios();
         Map<String, List<String>> tcStepKeys = new LinkedHashMap<>(); // for W10
+        Map<String, Set<String>> orPageUsage = new LinkedHashMap<>(); // for W11
         Set<String> genericNamesFlagged = new HashSet<>(); // for I1
         for (Scenario s : scope) {
             if (scenName != null && !s.getName().equals(scenName)) continue;
@@ -3714,6 +4605,27 @@ final class MCPTools {
                     if (refPage != null && !orPageExists(p, refPage)) {
                         errors.add(where + ": referenced OR page '" + refPage + "' not found [E2]");
                     }
+                    // W11 – fan-out: same OR page referenced by many test cases.
+                    if (refPage != null) {
+                        orPageUsage.computeIfAbsent(refPage, k -> new LinkedHashSet<>()).add(path);
+                    }
+                    // E12 – a page-object step needs a scope reference to resolve at all.
+                    if (
+                        reference.isEmpty() &&
+                        !object.isEmpty() &&
+                        !"Execute".equalsIgnoreCase(object) &&
+                        !"Webservice".equalsIgnoreCase(object) &&
+                        !"Browser".equalsIgnoreCase(object) &&
+                        !"General".equalsIgnoreCase(object)
+                    ) {
+                        errors.add(
+                            where +
+                            ": object '" +
+                            object +
+                            "' has no scope reference (e.g. '[Project] <page>'); it will not " +
+                            "resolve at run time [E12]"
+                        );
+                    }
                     // E4 – data references must resolve.
                     if (ConventionCatalog.isDataRef(input)) {
                         String[] sc = input.split(":", 2);
@@ -3830,11 +4742,29 @@ final class MCPTools {
                 reported++;
             }
         }
+        // W11 – one OR page fanned out across many test cases suggests a monolithic
+        // "journey" page that was never split into per-screen pages.
+        if (tcName == null) {
+            for (Map.Entry<String, Set<String>> e : orPageUsage.entrySet()) {
+                if (e.getValue().size() < 3) continue;
+                warnings.add(
+                    "OR page '" +
+                    e.getKey() +
+                    "' is referenced by " +
+                    e.getValue().size() +
+                    " test cases (" +
+                    String.join(", ", e.getValue()) +
+                    "); distribute its objects onto per-screen pages [W11]"
+                );
+            }
+        }
         if (checked == 0) throw new MCPServer.MCPException(
             -32602,
             "No matching test cases to validate."
         );
         ObjectNode out = json.createObjectNode();
+        if (scenName != null) out.put("scenario", scenName);
+        if (tcName != null) out.put("testcase", tcName);
         out.put("checked", checked);
         out.put("valid", errors.size() == 0);
         out.set("errors", errors);
@@ -4199,7 +5129,6 @@ final class MCPTools {
     private static JsonNode tryParseJson(ObjectMapper json, String input) {
         String t = input.trim();
         if (!(t.startsWith("{") || t.startsWith("["))) return null;
-        if (ConventionCatalog.containsPayloadTokens(t)) return null; // already parameterized
         try {
             JsonNode n = json.readTree(t);
             return (n != null && n.isContainerNode()) ? n : null;
@@ -4212,7 +5141,6 @@ final class MCPTools {
     private static org.w3c.dom.Document tryParseXml(String input) {
         String t = input.trim();
         if (!t.startsWith("<")) return null;
-        if (ConventionCatalog.containsPayloadTokens(t)) return null; // already parameterized
         try {
             javax.xml.parsers.DocumentBuilderFactory dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
             dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
@@ -5028,17 +5956,86 @@ final class MCPTools {
 
     private JsonNode testCaseEditStep(ObjectMapper json, JsonNode args) {
         TestCase tc = openTestCase(args);
+        JsonNode batch = args.get("edits");
+        if (batch != null && batch.isArray() && batch.size() > 0) {
+            return testCaseEditStepBatch(json, tc, batch);
+        }
         int idx = oneBasedIndex(args, "index", tc.getTestSteps().size());
         TestStep step = tc.getTestSteps().get(idx);
-        applyIfPresent(args, "action", step::setAction);
-        applyIfPresent(args, "object", step::setObject);
-        applyIfPresent(args, "input", step::setInput);
-        applyIfPresent(args, "condition", step::setCondition);
-        applyIfPresent(args, "description", step::setDescription);
-        applyIfPresent(args, "reference", step::setReference);
-        // Re-normalize the final action+input pair so edits stay grammar-conformant.
+        List<String> warnings = applyStepEdit(step, idx + 1, args);
+        tc.save();
+        ObjectNode out = json
+            .createObjectNode()
+            .put("edited", true)
+            .put("testcase", tc.getName())
+            .put("index", idx + 1);
+        if (!warnings.isEmpty()) {
+            ArrayNode wa = out.putArray("warnings");
+            for (String w : warnings) wa.add(w);
+        }
+        return out;
+    }
+
+    /**
+     * Batch variant of {@link #testCaseEditStep}: applies every edit in {@code edits}
+     * to {@code tc} with a single save, instead of one round-trip per step. Per-item
+     * failures (bad index, grammar error) are collected in the result rather than
+     * aborting the whole batch.
+     */
+    private JsonNode testCaseEditStepBatch(ObjectMapper json, TestCase tc, JsonNode edits) {
+        int size = tc.getTestSteps().size();
+        ArrayNode results = json.createArrayNode();
+        int edited = 0;
+        int failed = 0;
+        for (JsonNode item : edits) {
+            int rawIdx = item.hasNonNull("index") ? item.get("index").asInt(-1) : -1;
+            ObjectNode r = json.createObjectNode().put("index", rawIdx);
+            if (rawIdx < 1 || rawIdx > size) {
+                r
+                    .put("edited", false)
+                    .put("error", "index out of range (1.." + size + "): " + rawIdx);
+                failed++;
+                results.add(r);
+                continue;
+            }
+            try {
+                TestStep step = tc.getTestSteps().get(rawIdx - 1);
+                List<String> warnings = applyStepEdit(step, rawIdx, item);
+                r.put("edited", true);
+                if (!warnings.isEmpty()) {
+                    ArrayNode wa = r.putArray("warnings");
+                    for (String w : warnings) wa.add(w);
+                }
+                edited++;
+            } catch (MCPServer.MCPException e) {
+                r.put("edited", false).put("error", e.getMessage());
+                failed++;
+            }
+            results.add(r);
+        }
+        if (edited > 0) tc.save();
+        ObjectNode out = json.createObjectNode();
+        out.put("testcase", tc.getName());
+        out.put("requested", edits.size());
+        out.put("edited", edited);
+        out.put("failed", failed);
+        out.set("results", results);
+        return out;
+    }
+
+    /**
+     * Applies the supplied fields to one step and re-normalizes its action+input pair
+     * so edits stay grammar-conformant. Throws MCPException on a grammar violation.
+     */
+    private static List<String> applyStepEdit(TestStep step, int stepNumber, JsonNode fields) {
+        applyIfPresent(fields, "action", step::setAction);
+        applyIfPresent(fields, "object", step::setObject);
+        applyIfPresent(fields, "input", step::setInput);
+        applyIfPresent(fields, "condition", step::setCondition);
+        applyIfPresent(fields, "description", step::setDescription);
+        applyIfPresent(fields, "reference", step::setReference);
         StepNormalizer.Result norm = StepNormalizer.normalize(
-            "step " + (idx + 1),
+            "step " + stepNumber,
             step.getAction(),
             step.getObject(),
             step.getInput(),
@@ -5049,13 +6046,27 @@ final class MCPTools {
         }
         step.setInput(norm.input);
         step.setCondition(norm.condition);
-        tc.save();
-        ObjectNode out = json.createObjectNode().put("edited", true).put("index", idx + 1);
-        if (!norm.warnings.isEmpty()) {
-            ArrayNode wa = out.putArray("warnings");
-            for (String w : norm.warnings) wa.add(w);
-        }
-        return out;
+        return norm.warnings;
+    }
+
+    /** JSON Schema for one {@code ingenious_testcase_edit_step.edits[]} batch item. */
+    private static ObjectNode editStepItemSchema(ObjectMapper json) {
+        ObjectNode item = json.createObjectNode();
+        item.put("type", "object");
+        ObjectNode p = item.putObject("properties");
+        p
+            .putObject("index")
+            .put("type", "integer")
+            .put("description", "1-based step index to edit.");
+        p.putObject("action").put("type", "string").put("description", "New action.");
+        p.putObject("object").put("type", "string").put("description", "New object reference.");
+        p.putObject("input").put("type", "string").put("description", "New input value.");
+        p.putObject("condition").put("type", "string").put("description", "New condition.");
+        p.putObject("description").put("type", "string").put("description", "New description.");
+        p.putObject("reference").put("type", "string").put("description", "New reference.");
+        item.putArray("required").add("index");
+        item.put("additionalProperties", true);
+        return item;
     }
 
     private JsonNode testCaseInsertStep(ObjectMapper json, JsonNode args) {
@@ -5085,10 +6096,12 @@ final class MCPTools {
         step.setInput(norm.input);
         step.setCondition(norm.condition);
         step.setDescription(MCPServer.paramOrDefault(args, "description", ""));
+        step.setReference(MCPServer.paramOrDefault(args, "reference", ""));
         tc.save();
         ObjectNode out = json
             .createObjectNode()
             .put("inserted", true)
+            .put("testcase", tc.getName())
             .put("index", idx + 1)
             .put("totalSteps", tc.getTestSteps().size());
         if (!norm.warnings.isEmpty()) {
@@ -5106,6 +6119,7 @@ final class MCPTools {
         return json
             .createObjectNode()
             .put("removed", true)
+            .put("testcase", tc.getName())
             .put("index", idx + 1)
             .put("totalSteps", tc.getTestSteps().size());
     }
@@ -5131,6 +6145,7 @@ final class MCPTools {
         return json
             .createObjectNode()
             .put("moved", true)
+            .put("testcase", tc.getName())
             .put("from", from + 1)
             .put("to", insertAt + 1);
     }
@@ -5157,18 +6172,23 @@ final class MCPTools {
     private JsonNode objectAdd(ObjectMapper json, JsonNode args) {
         Project p = loadProject(resolveProject(projectArg(args)));
         String page = MCPServer.requiredParam(args, "page");
-        String name = MCPServer.requiredParam(args, "name");
-        String locator = MCPServer.paramOrDefault(args, "locator", "");
-        String value = MCPServer.paramOrDefault(args, "value", "");
         com.ing.datalib.or.ObjectRepository orRepo = p.getObjectRepository();
         com.ing.datalib.or.web.WebOR web = orRepo == null ? null : orRepo.getWebOR();
         if (web == null) throw new MCPServer.MCPException(
             -32603,
             "Object Repository model unavailable for project."
         );
+        JsonNode batch = args.get("objects");
+        boolean dryRun = boolArg(args, "dryRun", false);
+        if (batch != null && batch.isArray() && batch.size() > 0) {
+            return objectAddBatch(json, orRepo, web, page, batch, dryRun);
+        }
+        String name = MCPServer.requiredParam(args, "name");
+        String locator = MCPServer.paramOrDefault(args, "locator", "");
+        String value = MCPServer.paramOrDefault(args, "value", "");
         com.ing.datalib.or.web.WebORPage orPage = web.getPageByName(page);
         boolean exists = orPage != null && orPage.getObjectGroupByName(name) != null;
-        if (boolArg(args, "dryRun", false)) {
+        if (dryRun) {
             return json
                 .createObjectNode()
                 .put("dryRun", true)
@@ -5181,11 +6201,14 @@ final class MCPTools {
             -32602,
             "Object already exists on page: " + name
         );
+        // Validate/normalize the locator up front so a bad role never mutates the OR.
+        String[] mapped = (!locator.isEmpty() || !value.isEmpty())
+            ? mapLocatorToAttr(locator, value)
+            : null;
         if (orPage == null) orPage = web.addPage(page);
         com.ing.datalib.or.web.WebORObject o = orPage.addObject(name);
         if (o == null) throw new MCPServer.MCPException(-32603, "Failed to add object: " + name);
-        if (!locator.isEmpty() || !value.isEmpty()) {
-            String[] mapped = mapLocatorToAttr(locator, value);
+        if (mapped != null) {
             setWebAttr(o, mapped[0], mapped[1]);
         }
         orRepo.saveWebPageNow(orPage);
@@ -5195,6 +6218,114 @@ final class MCPTools {
             .put("page", page)
             .put("name", name)
             .put("format", "yaml");
+    }
+
+    /**
+     * Batch variant of {@link #objectAdd}: writes every item in {@code items} to
+     * {@code page} with a single YAML save, instead of one round-trip per object.
+     * Per-item failures (duplicate name, bad locator) are collected in the result
+     * rather than aborting the whole batch.
+     */
+    private JsonNode objectAddBatch(
+        ObjectMapper json,
+        com.ing.datalib.or.ObjectRepository orRepo,
+        com.ing.datalib.or.web.WebOR web,
+        String page,
+        JsonNode items,
+        boolean dryRun
+    ) {
+        com.ing.datalib.or.web.WebORPage orPage = web.getPageByName(page);
+        Set<String> existing = new LinkedHashSet<>();
+        if (orPage != null) {
+            for (com.ing.datalib.or.common.ObjectGroup<com.ing.datalib.or.web.WebORObject> g : orPage.getObjectGroups()) existing.add(
+                g.getName()
+            );
+        }
+        ArrayNode results = json.createArrayNode();
+        int added = 0;
+        int skipped = 0;
+        for (JsonNode item : items) {
+            String name = item.hasNonNull("name") ? item.get("name").asText().trim() : "";
+            ObjectNode r = json.createObjectNode().put("name", name);
+            if (name.isEmpty()) {
+                r.put("added", false).put("error", "Missing name");
+                skipped++;
+                results.add(r);
+                continue;
+            }
+            boolean exists = existing.contains(name);
+            if (dryRun) {
+                r.put("wouldAdd", !exists).put("exists", exists);
+                results.add(r);
+                continue;
+            }
+            if (exists) {
+                r.put("added", false).put("error", "Object already exists on page: " + name);
+                skipped++;
+                results.add(r);
+                continue;
+            }
+            String locator = item.hasNonNull("locator") ? item.get("locator").asText() : "";
+            String value = item.hasNonNull("value") ? item.get("value").asText() : "";
+            String[] mapped;
+            try {
+                mapped =
+                    (!locator.isEmpty() || !value.isEmpty())
+                        ? mapLocatorToAttr(locator, value)
+                        : null;
+            } catch (RuntimeException e) {
+                r.put("added", false).put("error", e.getMessage());
+                skipped++;
+                results.add(r);
+                continue;
+            }
+            if (orPage == null) orPage = web.addPage(page);
+            com.ing.datalib.or.web.WebORObject o = orPage.addObject(name);
+            if (o == null) {
+                r.put("added", false).put("error", "Failed to add object: " + name);
+                skipped++;
+                results.add(r);
+                continue;
+            }
+            if (mapped != null) setWebAttr(o, mapped[0], mapped[1]);
+            existing.add(name);
+            added++;
+            r.put("added", true);
+            results.add(r);
+        }
+        if (!dryRun && added > 0) orRepo.saveWebPageNow(orPage);
+        ObjectNode out = json.createObjectNode();
+        if (dryRun) out.put("dryRun", true);
+        out.put("page", page);
+        out.put("requested", items.size());
+        out.put("added", added);
+        out.put("skipped", skipped);
+        out.put("format", "yaml");
+        out.set("results", results);
+        return out;
+    }
+
+    /** JSON Schema for one {@code ingenious_object_add.objects[]} batch item. */
+    private static ObjectNode objectAddItemSchema(ObjectMapper json) {
+        ObjectNode item = json.createObjectNode();
+        item.put("type", "object");
+        ObjectNode p = item.putObject("properties");
+        p.putObject("name").put("type", "string").put("description", "Object name.");
+        p
+            .putObject("locator")
+            .put("type", "string")
+            .put(
+                "description",
+                "Locator strategy: role, text, label, placeholder, css, xpath, testId, " +
+                "altText, title, jsPath, chainedLocator."
+            );
+        p
+            .putObject("value")
+            .put("type", "string")
+            .put("description", "Locator value (selector / accessible name).");
+        item.putArray("required").add("name");
+        item.put("additionalProperties", true);
+        return item;
     }
 
     private JsonNode objectUpdate(ObjectMapper json, JsonNode args) {
@@ -5317,7 +6448,7 @@ final class MCPTools {
             case "xpath1":
                 return new String[] { "xpath", v };
             case "role":
-                return new String[] { "Role", v };
+                return new String[] { "Role", normalizeRoleLocator(v) };
             case "text":
             case "linktext":
             case "link":
@@ -5355,6 +6486,40 @@ final class MCPTools {
             default:
                 return new String[] { "css", v };
         }
+    }
+
+    /**
+     * Validate and normalize a role locator to the canonical {@code Role;Name}
+     * form. Accepts a mistaken {@code Role:Name} colon (the data-reference
+     * separator) and rewrites it, and rejects a role that is not a real ARIA
+     * role up front - so a bad role fails at authoring time with a clear message
+     * instead of crashing AriaRole.valueOf three reusables deep at run time.
+     */
+    private static String normalizeRoleLocator(String value) {
+        String raw = value == null ? "" : value.trim();
+        if (raw.isEmpty()) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "Empty role locator. Use 'Role;Name', e.g. 'button;Create a new account'."
+            );
+        }
+        int sep = raw.indexOf(';');
+        if (sep < 0) sep = raw.indexOf(':');
+        String rolePart = (sep >= 0 ? raw.substring(0, sep) : raw).trim();
+        String namePart = sep >= 0 ? raw.substring(sep + 1).trim() : "";
+        try {
+            com.microsoft.playwright.options.AriaRole.valueOf(rolePart.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "Invalid ARIA role '" +
+                rolePart +
+                "'. A role locator is 'Role;Name' with a SEMICOLON (e.g. " +
+                "'button;Create a new account'); a colon ':' is the data-reference " +
+                "separator (Sheet:Column), not for object roles."
+            );
+        }
+        return namePart.isEmpty() ? rolePart : rolePart + ";" + namePart;
     }
 
     /** First OBJECT_PROP with a non-empty value on the object, or null. */
@@ -6882,7 +8047,8 @@ final class MCPTools {
         String scenario = MCPServer.paramOrDefault(args, "scenario", null);
         String testcase = MCPServer.paramOrDefault(args, "testcase", null);
         String browser = MCPServer.paramOrDefault(args, "browser", "chromium");
-        boolean headed = boolArg(args, "headed", false);
+        // Headed by default so discovery stays a transparent, watchable process.
+        boolean headed = boolArg(args, "headed", true);
         boolean reusable = boolArg(args, "reusable", false);
         String session = MCPServer.paramOrDefault(
             args,
@@ -6920,6 +8086,7 @@ final class MCPTools {
         s.browser = browser;
         s.startUrl = url;
         s.lastSnapshot = r.output;
+        s.knownRefs.putAll(parseSnapshotRefs(r.output));
         s.scenario = scenario;
         s.testcase = testcase;
         s.page = page;
@@ -6965,7 +8132,8 @@ final class MCPTools {
         String name = MCPServer.requiredParam(args, "name");
         String url = MCPServer.requiredParam(args, "url");
         String browser = MCPServer.paramOrDefault(args, "browser", "chromium");
-        boolean headed = boolArg(args, "headed", false);
+        // Headed by default so discovery stays a transparent, watchable process.
+        boolean headed = boolArg(args, "headed", true);
         List<String> verb = new ArrayList<>();
         verb.add("open");
         verb.add(url);
@@ -6977,6 +8145,7 @@ final class MCPTools {
         s.browser = browser;
         s.startUrl = url;
         s.lastSnapshot = r.output;
+        s.knownRefs.putAll(parseSnapshotRefs(r.output));
         pwSessions.put(name, s);
         return json
             .createObjectNode()
@@ -6985,6 +8154,36 @@ final class MCPTools {
             .put("url", url)
             .put("exitCode", r.exitCode)
             .put("snapshot", r.output);
+    }
+
+    /**
+     * Resolve a recorded session for a terminal operation (save/export). Falls
+     * back to the sole active session, then to the most recently closed session,
+     * so a name mismatch or a close-before-export race doesn't discard a full
+     * discovery and force a re-run.
+     */
+    private PwSession sessionForFinalize(String name) {
+        PwSession s = pwSessions.get(name);
+        if (s == null && pwSessions.size() == 1) {
+            s = pwSessions.values().iterator().next();
+        }
+        if (s == null) {
+            PwSession closed = lastClosedSession;
+            if (closed != null && (name.equals(closed.name) || pwSessions.isEmpty())) {
+                s = closed; // a just-closed session (race with export/save)
+            }
+        }
+        if (s == null) {
+            throw new MCPServer.MCPException(
+                -32602,
+                "No such session: " +
+                name +
+                " (active: " +
+                String.join(", ", pwSessions.keySet()) +
+                ")"
+            );
+        }
+        return s;
     }
 
     private JsonNode browserSessionDo(ObjectMapper json, JsonNode args) {
@@ -6998,12 +8197,15 @@ final class MCPTools {
         List<String> tokens = tokenize(command);
         if (tokens.isEmpty()) throw new MCPServer.MCPException(-32602, "Empty command.");
         List<PlaywrightCliTranslator.Step> mapped = PlaywrightCliTranslator.translate(command);
-        // Resolve each ref to a durable locator from the CURRENT (pre-action)
-        // snapshot, while the ref is still valid. This is fully deterministic.
-        Map<String, String[]> refs = parseSnapshotRefs(s.lastSnapshot);
+        // Resolve each ref against every ref EVER seen in a real snapshot for this
+        // session (s.knownRefs) - NOT just the last returned snapshot. A do-command's
+        // own action-result output is not a snapshot and gets stored in lastSnapshot
+        // for display, so relying on it here silently drops any ref not shown by the
+        // MOST RECENT snapshot call, even though the element and its ref are still
+        // valid (this was the root cause of steps vanishing between snapshots).
         for (PlaywrightCliTranslator.Step st : mapped) {
-            if (st.ref != null && refs.containsKey(st.ref)) {
-                String[] rn = refs.get(st.ref);
+            if (st.ref != null && s.knownRefs.containsKey(st.ref)) {
+                String[] rn = s.knownRefs.get(st.ref);
                 st.locator = ariaLocatorValue(rn[0], rn[1]);
             }
         }
@@ -7022,7 +8224,20 @@ final class MCPTools {
                 .put("action", st.action)
                 .put("object", st.object)
                 .put("input", st.input);
-            if (st.locator != null) so.put("locator", st.locator);
+            if (st.locator != null) {
+                so.put("locator", st.locator);
+            } else if (st.ref != null) {
+                // Defense in depth: this ref was never seen in any snapshot yet, so
+                // the step WILL be dropped on export. Surface it explicitly instead
+                // of failing silently - call ingenious_browser_session_snapshot first.
+                so.put(
+                    "warning",
+                    "ref '" +
+                    st.ref +
+                    "' not seen in any snapshot yet - this step will be DROPPED on " +
+                    "export/save. Call ingenious_browser_session_snapshot, then retry."
+                );
+            }
         }
         out.put("snapshot", r.output);
         return out;
@@ -7034,13 +8249,13 @@ final class MCPTools {
         if (s == null) throw new MCPServer.MCPException(-32602, "No such session: " + name);
         PwResult r = runPlaywright(name, Arrays.asList("snapshot"), 30);
         s.lastSnapshot = r.output;
+        s.knownRefs.putAll(parseSnapshotRefs(r.output));
         return json.createObjectNode().put("session", name).put("snapshot", r.output);
     }
 
     private JsonNode browserSessionSave(ObjectMapper json, JsonNode args) {
         String name = MCPServer.requiredParam(args, "name");
-        PwSession s = pwSessions.get(name);
-        if (s == null) throw new MCPServer.MCPException(-32602, "No such session: " + name);
+        PwSession s = sessionForFinalize(name);
         // scenario / testcase / reusable default to whatever ingenious_browser_discover
         // pre-bound on the session, so a discovery flow can save with no extra args.
         String scenName = MCPServer.paramOrDefault(args, "scenario", s.scenario);
@@ -7051,7 +8266,47 @@ final class MCPTools {
         boolean reusable = boolArg(args, "reusable", s.reusable);
         String page = MCPServer.paramOrDefault(args, "page", s.page);
         if (page == null || page.isEmpty()) page = capitalize(sanitizeObjectName(tcName)) + "Page";
+        String ifExists = MCPServer
+            .paramOrDefault(args, "ifExists", "error")
+            .toLowerCase(Locale.ROOT);
         Project p = loadProject(resolveProject(projectArg(args)));
+
+        // A redundant save (e.g. after ingenious_import_playwright already created
+        // this test case) should degrade gracefully instead of throwing, unless the
+        // caller explicitly wants the default strict behaviour.
+        Scenario existingScenario = reusable
+            ? p.getReusableScenarioByName(scenName)
+            : p.getScenarioByName(scenName);
+        TestCase existingTc = existingScenario == null
+            ? null
+            : existingScenario.getTestCaseByName(tcName);
+        if (existingTc != null) {
+            switch (ifExists) {
+                case "skip":
+                    ensureLoaded(existingTc);
+                    return json
+                        .createObjectNode()
+                        .put("created", false)
+                        .put("existing", true)
+                        .put("scenario", scenName)
+                        .put("testcase", tcName)
+                        .put("reusable", reusable)
+                        .put("steps", existingTc.getTestSteps().size());
+                case "overwrite":
+                    File old = new File(existingTc.getLocation());
+                    if (old.exists()) old.delete();
+                    existingScenario.getTestCases().remove(existingTc);
+                    break;
+                case "error":
+                default:
+                    throw new MCPServer.MCPException(
+                        -32602,
+                        "Test case already exists: " +
+                        tcName +
+                        " (pass ifExists=skip|overwrite to change this)"
+                    );
+            }
+        }
 
         // ---- Materialize discovered locators into the Object Repository ----
         // Every recorded ref that carries a durable locator becomes (or reuses)
@@ -7062,13 +8317,13 @@ final class MCPTools {
         int objectsCreated = materializeDiscoveredObjects(p, page, s.steps);
 
         // ---- Build the test case from the (now OR-linked) steps ----
+        // Wrap with real catalog actions: Open (Browser, url) ... ClosePage.
         List<PlaywrightCliTranslator.Step> steps = new ArrayList<>();
-        steps.add(new PlaywrightCliTranslator.Step("OpenBrowser", "", ""));
         if (s.startUrl != null && !s.startUrl.isEmpty()) {
-            steps.add(new PlaywrightCliTranslator.Step("NavigateTo", "", s.startUrl));
+            steps.add(new PlaywrightCliTranslator.Step("Open", "Browser", "@" + s.startUrl));
         }
         steps.addAll(s.steps);
-        steps.add(new PlaywrightCliTranslator.Step("CloseBrowser", "", ""));
+        steps.add(new PlaywrightCliTranslator.Step("ClosePage", "", ""));
 
         TestCase tc = buildTestCaseFromSteps(p, scenName, tcName, reusable, steps);
         p.save();
@@ -7081,6 +8336,143 @@ final class MCPTools {
             .put("page", page)
             .put("objectsCreated", objectsCreated)
             .put("steps", tc.getTestSteps().size());
+    }
+
+    /**
+     * Export a discovery session's recorded actions as a Playwright Java
+     * recording file. The output is the same shape 'playwright codegen --target
+     * java' emits, so ingenious_import_playwright parses it deterministically
+     * into a Page-Object-Model page + steps + standard locators.
+     */
+    private JsonNode browserSessionExport(ObjectMapper json, JsonNode args) {
+        String name = MCPServer.requiredParam(args, "name");
+        PwSession s = sessionForFinalize(name);
+
+        File out;
+        String file = MCPServer.paramOrDefault(args, "file", null);
+        if (file != null && !file.isEmpty()) {
+            out = new File(file);
+        } else {
+            File recDir = new File(resolveProject(projectArg(args)), "Recording");
+            recDir.mkdirs();
+            out = new File(recDir, sanitizeObjectName(name) + ".java");
+        }
+
+        String source = generatePlaywrightJava(s);
+        int emitted = 0;
+        for (String line : source.split("\n")) {
+            if (line.trim().startsWith("page.")) emitted++;
+        }
+        // A step with a ref that never resolved to a locator (e.g. it was acted on
+        // before any snapshot captured it) is silently skipped by generatePlaywrightJava.
+        // Surface that explicitly instead of leaving the test quietly incomplete.
+        int droppedSteps = 0;
+        for (PlaywrightCliTranslator.Step st : s.steps) {
+            if (st.ref != null && st.locator == null) droppedSteps++;
+        }
+        try {
+            Files.write(out.toPath(), source.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new MCPServer.MCPException(
+                -32603,
+                "Failed to write recording: " + e.getMessage()
+            );
+        }
+        ObjectNode o = json.createObjectNode();
+        o.put("session", name);
+        o.put("file", out.getAbsolutePath());
+        o.put("recordedSteps", s.steps.size());
+        o.put("emittedLines", emitted);
+        if (droppedSteps > 0) {
+            o.put(
+                "warning",
+                droppedSteps +
+                " recorded step(s) had no resolvable locator and were NOT written to " +
+                "the file - they will be missing from the imported test. This means a " +
+                "ingenious_browser_session_do call ran on a ref before any snapshot had " +
+                "shown it; re-discover those specific steps with a snapshot immediately " +
+                "before each session_do call."
+            );
+        }
+        o.put(
+            "nextStep",
+            "Import it deterministically: ingenious_import_playwright {file:\"" +
+            out.getAbsolutePath() +
+            "\", scenario, testcase}. Then refine (reusables, page split, parameterize)."
+        );
+        return o;
+    }
+
+    /** Render a session's recorded steps as a Playwright Java codegen body. */
+    private String generatePlaywrightJava(PwSession s) {
+        StringBuilder sb = new StringBuilder();
+        if (s.startUrl != null && !s.startUrl.isEmpty()) {
+            sb.append("        page.navigate(\"").append(escapeJava(s.startUrl)).append("\");\n");
+        }
+        for (PlaywrightCliTranslator.Step st : s.steps) {
+            String line = playwrightLineFor(st);
+            if (line != null) sb.append("        ").append(line).append("\n");
+        }
+        return sb.toString();
+    }
+
+    /** Map one recorded step to a Playwright Java line the importer can parse. */
+    private String playwrightLineFor(PlaywrightCliTranslator.Step st) {
+        if (st == null) return null;
+        String locatorJava = ariaToJavaLocator(st.locator);
+        if (locatorJava == null) return null; // synthetic (Open/Close) or unlocatable - skip
+        String action = st.action == null ? "" : st.action;
+        String input = st.input == null ? "" : st.input;
+        if (input.startsWith("@")) input = input.substring(1);
+        switch (action) {
+            case "Fill":
+                return locatorJava + ".fill(\"" + escapeJava(input) + "\");";
+            case "Click":
+            case "clickAndSwitchToNewPage":
+                return locatorJava + ".click();";
+            case "SelectSingleByText":
+                return locatorJava + ".selectOption(\"" + escapeJava(input) + "\");";
+            case "Check":
+                return locatorJava + ".check();";
+            case "KeyPress":
+                return locatorJava + ".press(\"" + escapeJava(input) + "\");";
+            default:
+                return input.isEmpty()
+                    ? locatorJava + ".click();"
+                    : locatorJava + ".fill(\"" + escapeJava(input) + "\");";
+        }
+    }
+
+    /**
+     * Convert an aria locator ({@code role=<role>[name="<label>"]}) to the
+     * Playwright Java getByRole form the recording importer parses. Returns
+     * {@code null} when there is no usable role (so the step is skipped).
+     */
+    private static String ariaToJavaLocator(String aria) {
+        if (aria == null || aria.isEmpty()) return null;
+        java.util.regex.Matcher rm = java
+            .util.regex.Pattern.compile("role=([A-Za-z]+)")
+            .matcher(aria);
+        if (!rm.find()) return null;
+        String role = rm.group(1).toUpperCase(Locale.ROOT);
+        java.util.regex.Matcher nm = java
+            .util.regex.Pattern.compile("name=\"([^\"]*)\"")
+            .matcher(aria);
+        if (nm.find() && !nm.group(1).trim().isEmpty()) {
+            return (
+                "page.getByRole(AriaRole." +
+                role +
+                ", new Page.GetByRoleOptions().setName(\"" +
+                escapeJava(nm.group(1)) +
+                "\"))"
+            );
+        }
+        return "page.getByRole(AriaRole." + role + ")";
+    }
+
+    /** Minimal Java string-literal escaping for generated recording source. */
+    private static String escapeJava(String s) {
+        return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     /** Derive an Object-Repository object name from an aria locator value. */
@@ -7268,6 +8660,9 @@ final class MCPTools {
     private JsonNode browserSessionClose(ObjectMapper json, JsonNode args) {
         String name = MCPServer.requiredParam(args, "name");
         PwSession s = pwSessions.remove(name);
+        if (s != null) {
+            lastClosedSession = s; // retain so a late export/save can still finalize
+        }
         int recorded = s == null ? 0 : s.steps.size();
         try {
             runPlaywright(name, Arrays.asList("close"), 20);
@@ -7446,7 +8841,16 @@ final class MCPTools {
             for (PlaywrightCliTranslator.Step st : steps) {
                 TestStep step = tc.addNewStep();
                 step.setAction(st.action == null ? "" : st.action);
-                step.setObject(st.object == null ? "" : st.object);
+                String obj = st.object == null ? "" : st.object;
+                // Discovered objects are written as "<Page>.<obj>"; the engine resolves an
+                // OR object by bare name + a "[Project] <Page>" scope reference, so split them.
+                int dot = obj.indexOf('.');
+                if (dot > 0 && dot < obj.length() - 1) {
+                    step.setObject(obj.substring(dot + 1));
+                    step.setReference("[Project] " + obj.substring(0, dot));
+                } else {
+                    step.setObject(obj);
+                }
                 step.setInput(st.input == null ? "" : st.input);
             }
             tc.save();
@@ -7572,6 +8976,15 @@ final class MCPTools {
         String startUrl;
         /** The most recent accessibility snapshot text (holds the live element refs). */
         String lastSnapshot = "";
+        /**
+         * Every ref -> [role, accessibleName] ever seen from a REAL snapshot
+         * (discover/session_start's initial snapshot, plus every explicit
+         * ingenious_browser_session_snapshot). Accumulates across the whole
+         * session so a ref resolves even several ingenious_browser_session_do
+         * calls after it was last shown - unlike {@link #lastSnapshot}, which a
+         * do-command's own (ref-less) action-result output overwrites.
+         */
+        final Map<String, String[]> knownRefs = new LinkedHashMap<>();
         /** Discovery context pre-bound by ingenious_browser_discover (optional). */
         String scenario;
         String testcase;
@@ -7769,9 +9182,28 @@ final class MCPTools {
         );
     }
 
+    /**
+     * Loads a project, reusing a short-lived cached instance so a burst of tool
+     * calls in one agent turn does not re-read the whole project (all OR YAML +
+     * settings) - and re-run on-load migrations - on every single call. Bounded
+     * to {@link #PROJECT_CACHE_TTL_MS} so external edits are still picked up.
+     */
     private Project loadProject(File dir) {
+        String key = dir.getAbsolutePath();
+        long now = System.currentTimeMillis();
+        if (
+            cachedProject != null &&
+            key.equals(cachedProjectKey) &&
+            now - cachedProjectAt < PROJECT_CACHE_TTL_MS
+        ) {
+            return cachedProject;
+        }
         try {
-            return new Project(dir.getAbsolutePath());
+            Project p = new Project(dir.getAbsolutePath());
+            cachedProject = p;
+            cachedProjectKey = key;
+            cachedProjectAt = now;
+            return p;
         } catch (Exception e) {
             throw new MCPServer.MCPException(
                 -32603,
@@ -7886,7 +9318,10 @@ final class MCPTools {
             "Payload candidates only: which JSON paths to parameterize. Items are a path " +
             "string or {path, column}. Omit to parameterize every field of the payload."
         );
-        paths.putObject("items").put("type", "object").put("additionalProperties", true);
+        ObjectNode items = paths.putObject("items");
+        ArrayNode itemTypes = items.putArray("oneOf");
+        itemTypes.addObject().put("type", "string");
+        itemTypes.addObject().put("type", "object").put("additionalProperties", true);
         item.put("additionalProperties", true);
         return item;
     }
@@ -7961,6 +9396,7 @@ final class MCPTools {
         boolean headless;
         int parallel;
         boolean rerun;
+        boolean breakOnError;
     }
 
     static class RunHandle {

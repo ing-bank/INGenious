@@ -103,4 +103,17 @@ public final class AICredentials {
             AppSettings.store("AI Copilot SDK model updated");
         }
     }
+
+    /**
+     * Whether the assistant should pause at logical checkpoints (and on the first
+     * failure) to ask the user for input, instead of working fully autonomously.
+     */
+    public boolean isAttendedMode() {
+        return Boolean.parseBoolean(AppSettings.get(APP_SETTINGS.AI_ATTENDED_MODE.getKey()));
+    }
+
+    public void setAttendedMode(boolean attended) {
+        AppSettings.set(APP_SETTINGS.AI_ATTENDED_MODE.getKey(), Boolean.toString(attended));
+        AppSettings.store("AI attended mode updated");
+    }
 }

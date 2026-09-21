@@ -73,6 +73,7 @@ public final class Repl {
     final AgentLoop agent;
 
     private final boolean noBanner;
+    private final String modeOverride;
     private AiProvider provider;
     private UndoJournal journal;
     private String journalRoot;
@@ -80,6 +81,10 @@ public final class Repl {
     private Terminal terminal;
 
     public Repl(String projectOverride, boolean noBanner) {
+        this(projectOverride, noBanner, null);
+    }
+
+    public Repl(String projectOverride, boolean noBanner, String modeOverride) {
         // Datalib logs INFO chatter through JUL; keep the conversation clean.
         java
             .util.logging.Logger.getLogger("com.ing.datalib")
@@ -98,6 +103,7 @@ public final class Repl {
         this.planner = new Planner(registry);
         this.agent = new AgentLoop(registry, mapper);
         this.noBanner = noBanner;
+        this.modeOverride = modeOverride;
         if (projectOverride != null && !projectOverride.isBlank()) {
             session.setProject(projectOverride, cwd);
         }
@@ -125,6 +131,7 @@ public final class Repl {
         }
 
         if (!noBanner) banner();
+        promptOperatingMode();
         SlashCommands slash = new SlashCommands(this);
 
         while (true) {
@@ -334,10 +341,9 @@ public final class Repl {
         p.setActivity(null);
 
         if (answer != null && !answer.isBlank()) {
-            markdown.print(answer);
             convo.addAssistant(answer);
         }
-        printToolReport(activities);
+        printSummary(answer, activities);
         printTurnStatus(p, before);
         session.save();
     }
@@ -381,72 +387,65 @@ public final class Repl {
         }
     }
 
+    /** Max visible width of a wrapped line inside the summary panel. */
+    private static final int SUMMARY_WRAP_WIDTH = 88;
+
     /**
-     * Renders the final turn report focused on what actually happened — a card
-     * per user-facing activity ("Test case created", "Test executed", …) with a
-     * status badge and human-readable detail lines, plus a pill summary. The raw
-     * tool calls themselves are reduced to a single minimal footer line.
+     * Renders one purple panel for the whole turn: the assistant's own answer
+     * (word-wrapped), followed by status pills and a compact tool-call footnote —
+     * no per-tool-call itemization, since that's noise, not a user-facing outcome.
      */
-    private void printToolReport(List<ToolActivity> acts) {
-        if (acts == null || acts.isEmpty()) {
-            return;
+    private void printSummary(String answer, List<ToolActivity> acts) {
+        List<String> lines = new ArrayList<>();
+        if (answer != null && !answer.isBlank()) {
+            for (String line : markdown.render(answer).split("\n", -1)) {
+                lines.addAll(Panels.wrap(line, SUMMARY_WRAP_WIDTH));
+            }
         }
         List<com.ing.engine.aicli.ai.ActivityReport.Call> calls = new ArrayList<>();
-        for (ToolActivity a : acts) {
-            calls.add(
-                new com.ing.engine.aicli.ai.ActivityReport.Call(a.name, a.success, a.summary)
-            );
+        if (acts != null) {
+            for (ToolActivity a : acts) {
+                calls.add(
+                    new com.ing.engine.aicli.ai.ActivityReport.Call(a.name, a.success, a.summary)
+                );
+            }
         }
         com.ing.engine.aicli.ai.ActivityReport.Result r = com.ing.engine.aicli.ai.ActivityReport.summarize(
             calls
         );
-        if (r.isEmpty()) {
+        List<String> pills = new ArrayList<>();
+        if (r.okCount > 0) {
+            pills.add(theme.badgeOk(r.okCount + " OK"));
+        }
+        if (r.infoCount > 0) {
+            pills.add(theme.badgeInfo(r.infoCount + " INFO"));
+        }
+        if (r.warnCount > 0) {
+            pills.add(theme.badgeWarn(r.warnCount + " WARN"));
+        }
+        if (r.failCount > 0) {
+            pills.add(theme.badgeFail(r.failCount + " FAIL"));
+        }
+        if (!pills.isEmpty()) {
+            if (!lines.isEmpty()) {
+                lines.add("");
+            }
+            lines.add(String.join("  ", pills));
+        }
+        if (lines.isEmpty() && r.totalCalls == 0) {
             return;
         }
-        List<String> rows = new ArrayList<>();
-        for (com.ing.engine.aicli.ai.ActivityReport.Activity act : r.activities) {
-            rows.add(badgeFor(act.status) + "  " + theme.bold(act.title));
-            for (String d : act.details) {
-                rows.add("     " + theme.dim(d));
+        System.out.println();
+        panels.print("Summary", lines);
+        if (r.totalCalls > 0) {
+            String foot = r.totalCalls + (r.totalCalls == 1 ? " tool call" : " tool calls");
+            if (r.minorCount > 0) {
+                foot += " · " + r.minorCount + " lookup" + (r.minorCount == 1 ? "" : "s");
             }
-        }
-        if (!r.activities.isEmpty()) {
-            List<String> pills = new ArrayList<>();
-            if (r.okCount > 0) {
-                pills.add(theme.badgeOk(r.okCount + " OK"));
+            if (r.retryCount > 0) {
+                foot += " · " + r.retryCount + " self-corrected";
             }
-            if (r.infoCount > 0) {
-                pills.add(theme.badgeInfo(r.infoCount + " INFO"));
-            }
-            if (r.warnCount > 0) {
-                pills.add(theme.badgeWarn(r.warnCount + " WARN"));
-            }
-            if (r.failCount > 0) {
-                pills.add(theme.badgeFail(r.failCount + " FAIL"));
-            }
-            if (!pills.isEmpty()) {
-                rows.add("");
-                rows.add(String.join("  ", pills));
-            }
-        }
-        panels.print("Activity", rows);
-        String foot = r.totalCalls + (r.totalCalls == 1 ? " tool call" : " tool calls");
-        if (r.minorCount > 0) {
-            foot += " · " + r.minorCount + " lookup" + (r.minorCount == 1 ? "" : "s");
-        }
-        System.out.println("  " + theme.dim(foot));
-    }
-
-    private String badgeFor(com.ing.engine.aicli.ai.ActivityReport.Status s) {
-        switch (s) {
-            case FAIL:
-                return theme.badgeFail("FAIL");
-            case WARN:
-                return theme.badgeWarn("WARN");
-            case INFO:
-                return theme.badgeInfo("INFO");
-            default:
-                return theme.badgeOk(" OK ");
+            System.out.println("  " + theme.dim(foot));
         }
     }
 
@@ -541,12 +540,49 @@ public final class Repl {
                     spinning[0] = false;
                 }
             }
+
+            @Override
+            public String checkpoint(String tool, boolean success, String resultJson) {
+                if (spinning[0]) {
+                    spinner.stop();
+                    spinning[0] = false;
+                }
+                System.out.println();
+                if (success) {
+                    System.out.println(
+                        theme.bold("Checkpoint") + theme.dim(" — " + tool + " finished:")
+                    );
+                } else {
+                    System.out.println(theme.fail("Checkpoint — " + tool + " failed:"));
+                }
+                results.print(tool, parseCheckpointJson(resultJson));
+                try {
+                    String ans = reader.readLine(
+                        success
+                            ? "Continue automatically, or type guidance (Enter = continue): "
+                            : "Want to help me fix this? Type guidance, or press Enter to let me keep trying: "
+                    );
+                    return ans == null || ans.isBlank() ? null : ans.trim();
+                } catch (UserInterruptException | EndOfFileException e) {
+                    return null;
+                }
+            }
         };
 
         Path root = session.projectPath() != null ? Path.of(session.projectPath()) : null;
         AgentLoop.Outcome outcome;
         try {
-            outcome = agent.run(p, messages, projectArg(), root, journal(), input, ui);
+            outcome =
+                agent.run(
+                    p,
+                    messages,
+                    projectArg(),
+                    root,
+                    journal(),
+                    input,
+                    ui,
+                    aiConfig.operatingMode()
+                );
         } catch (AiProvider.AiException e) {
             if (spinning[0]) spinner.stop();
             System.out.println(theme.fail("AI error: " + e.getMessage()));
@@ -609,6 +645,8 @@ public final class Repl {
             "up. Do not fabricate results.\n\n" +
             com.ing.engine.mcp.ConventionCatalog.condensedInstructions() +
             "\n\n" +
+            aiConfig.operatingMode().policyText() +
+            "\n\n" +
             "Session context:\n" +
             session.summary() +
             "\n\n" +
@@ -645,6 +683,15 @@ public final class Repl {
         if (args == null || args.isEmpty()) return "";
         String s = args.toString();
         return "  " + (s.length() > 70 ? s.substring(0, 70) + "…" : s);
+    }
+
+    /** Best-effort parse for {@link AgentLoop.Ui#checkpoint} — falls back to a plain text node. */
+    private JsonNode parseCheckpointJson(String raw) {
+        try {
+            return mapper.readTree(raw == null || raw.isBlank() ? "{}" : raw);
+        } catch (Exception e) {
+            return mapper.getNodeFactory().textNode(raw);
+        }
     }
 
     void confirmAndRun(Plan plan) {
@@ -1245,5 +1292,49 @@ public final class Repl {
 
     private void banner() {
         AiBanner.print(theme, session, currentProviderUnchecked());
+    }
+
+    /**
+     * Asks, at the very start of the session, whether the assistant should run fully
+     * autonomously or pause at logical checkpoints for the user. Skipped when {@code --mode}
+     * was passed on the command line, or when stdin isn't a real interactive terminal (e.g.
+     * a script piping input) — in both cases the persisted/default mode is kept as-is.
+     */
+    private void promptOperatingMode() {
+        if (modeOverride != null && !modeOverride.isBlank()) {
+            aiConfig.mode = com.ing.engine.aicli.ai.OperatingMode.fromString(modeOverride).label();
+            trySaveAiConfig();
+            return;
+        }
+        if (System.console() == null) {
+            return; // non-interactive shell — keep the persisted default, don't hijack piped input
+        }
+        System.out.println();
+        System.out.println(theme.bold("How should I run this session?"));
+        System.out.println(
+            theme.dim(
+                "  unattended — work requests to completion on my own, self-correcting on failure"
+            )
+        );
+        System.out.println(
+            theme.dim(
+                "  attended   — same, but pause at logical checkpoints (and on the first failure) to ask you"
+            )
+        );
+        String current = com.ing.engine.aicli.ai.OperatingMode.fromString(aiConfig.mode).label();
+        String choice = selectFrom("Mode", List.of("unattended", "attended"), false, current);
+        if (choice != null) {
+            aiConfig.mode = choice;
+            trySaveAiConfig();
+        }
+        System.out.println(theme.dim("(Change anytime with /mode attended|unattended.)"));
+    }
+
+    private void trySaveAiConfig() {
+        try {
+            aiConfig.save();
+        } catch (java.io.IOException ignored) {
+            // best-effort persistence
+        }
     }
 }

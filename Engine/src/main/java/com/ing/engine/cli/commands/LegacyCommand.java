@@ -146,6 +146,8 @@ public class LegacyCommand implements Callable<Integer> {
      */
     public static String[] convertToLegacyArgs(String[] newArgs) {
         List<String> legacyArgs = new ArrayList<>();
+        String browserName = "Chromium";
+        boolean headlessRequested = false;
 
         for (int i = 0; i < newArgs.length; i++) {
             String arg = newArgs[i];
@@ -176,7 +178,8 @@ public class LegacyCommand implements Callable<Integer> {
                 case "-b":
                     legacyArgs.add("-browser");
                     if (i + 1 < newArgs.length) {
-                        legacyArgs.add(newArgs[++i]);
+                        browserName = newArgs[++i];
+                        legacyArgs.add(browserName);
                     }
                     break;
                 case "--parallel":
@@ -186,13 +189,23 @@ public class LegacyCommand implements Callable<Integer> {
                     }
                     break;
                 case "--headless":
-                    legacyArgs.add("-op_setHeadless");
-                    legacyArgs.add("true");
+                    // -op_setHeadless is not a legacy option; record and apply as a
+                    // capability override after the loop (browser-aware).
+                    headlessRequested = true;
                     break;
                 default:
                     // Pass through as-is
                     legacyArgs.add(arg);
             }
+        }
+
+        if (headlessRequested) {
+            com.ing.engine.constants.SystemDefaults.EnvVars.put(
+                "capability." +
+                com.ing.engine.cli.lib.BrowserNames.normalize(browserName) +
+                ".setHeadless",
+                "true"
+            );
         }
 
         return legacyArgs.toArray(new String[0]);

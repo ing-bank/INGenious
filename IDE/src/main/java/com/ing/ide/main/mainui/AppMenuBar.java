@@ -286,6 +286,7 @@ public class AppMenuBar extends JMenuBar {
         );
 
         tools.addSeparator();
+        tools.add(withMnemonics(Utils.createMenuItem("Mobile Recorder", sActionListener), 'R'));
         tools.add(withMnemonics(Utils.createMenuItem("Project Health", sActionListener), 'P'));
 
         return tools;

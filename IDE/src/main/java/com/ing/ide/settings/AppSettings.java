@@ -34,10 +34,11 @@ public class AppSettings {
         HELP_DOC("helpdoc", "https://ing-bank.github.io/ingenious-doc/"),
         AI_GITHUB_TOKEN("githubModelsToken", ""),
         AI_GITHUB_LOGIN("githubModelsLogin", ""),
-        AI_SELECTED_MODEL("githubModelsModel", "openai/gpt-4o-mini"),
+        AI_SELECTED_MODEL("githubModelsModel", "openai/gpt-4o"),
         AI_GITHUB_CLIENT_ID("githubOAuthClientId", ""),
         AI_COPILOT_SDK_ENABLED("aiCopilotSdkEnabled", "true"),
-        AI_COPILOT_SDK_MODEL("aiCopilotSdkModel", "claude-sonnet-4.5"),
+        AI_COPILOT_SDK_MODEL("aiCopilotSdkModel", ""),
+        AI_ATTENDED_MODE("aiAttendedMode", "false"),
         AI_SIDEBAR_VISIBLE("aiSidebarVisible", "false"),
         AI_SIDEBAR_WIDTH("aiSidebarWidth", "675"),
         TC_VISIBLE_COLUMNS(

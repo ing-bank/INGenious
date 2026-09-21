@@ -132,12 +132,13 @@ public class ChatWebView {
     }
 
     /**
-     * Appends a coloured "Activity" card summarizing what the turn actually did
-     * (test cases created, tests executed, objects captured, …) with status
-     * badges and pills. Raw tool calls are reduced to a minimal footer line.
+     * Appends a coloured "Summary" card with status pills (OK/WARN/FAIL/INFO
+     * counts) and a compact tool-call footnote for the turn. Deliberately does
+     * NOT itemize every tool call — that's noise, not a user-facing outcome;
+     * the assistant's own answer already explains what happened.
      */
     public void appendActivityReport(com.ing.engine.aicli.ai.ActivityReport.Result r) {
-        if (r == null || r.isEmpty()) {
+        if (r == null || r.totalCalls == 0) {
             return;
         }
         runScript("appendActivity(" + jsString(buildActivityHtml(r)) + ");");
@@ -145,80 +146,32 @@ public class ChatWebView {
 
     private static String buildActivityHtml(com.ing.engine.aicli.ai.ActivityReport.Result r) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<div class='act-head'>Activity</div>");
-        for (com.ing.engine.aicli.ai.ActivityReport.Activity a : r.activities) {
-            String cls = badgeClass(a.status);
-            sb
-                .append("<div class='act-row'><div class='act-line'>")
-                .append("<span class='badge ")
-                .append(cls)
-                .append("'>")
-                .append(badgeLabel(a.status))
-                .append("</span><span class='act-title'>")
-                .append(MarkdownRenderer.escape(a.title))
-                .append("</span></div>");
-            if (a.details != null && !a.details.isEmpty()) {
-                StringBuilder det = new StringBuilder();
-                for (int i = 0; i < a.details.size(); i++) {
-                    if (i > 0) {
-                        det.append("  \u00b7  ");
-                    }
-                    det.append(MarkdownRenderer.escape(a.details.get(i)));
-                }
-                sb.append("<div class='act-details'>").append(det).append("</div>");
-            }
-            sb.append("</div>");
+        sb.append("<div class='act-head'>Summary</div>");
+        StringBuilder pills = new StringBuilder();
+        if (r.okCount > 0) {
+            pills.append("<span class='pill ok'>").append(r.okCount).append(" OK</span>");
         }
-        if (!r.activities.isEmpty()) {
-            StringBuilder pills = new StringBuilder();
-            if (r.okCount > 0) {
-                pills.append("<span class='pill ok'>").append(r.okCount).append(" OK</span>");
-            }
-            if (r.infoCount > 0) {
-                pills.append("<span class='pill info'>").append(r.infoCount).append(" INFO</span>");
-            }
-            if (r.warnCount > 0) {
-                pills.append("<span class='pill warn'>").append(r.warnCount).append(" WARN</span>");
-            }
-            if (r.failCount > 0) {
-                pills.append("<span class='pill fail'>").append(r.failCount).append(" FAIL</span>");
-            }
-            if (pills.length() > 0) {
-                sb.append("<div class='act-pills'>").append(pills).append("</div>");
-            }
+        if (r.infoCount > 0) {
+            pills.append("<span class='pill info'>").append(r.infoCount).append(" INFO</span>");
+        }
+        if (r.warnCount > 0) {
+            pills.append("<span class='pill warn'>").append(r.warnCount).append(" WARN</span>");
+        }
+        if (r.failCount > 0) {
+            pills.append("<span class='pill fail'>").append(r.failCount).append(" FAIL</span>");
+        }
+        if (pills.length() > 0) {
+            sb.append("<div class='act-pills'>").append(pills).append("</div>");
         }
         String foot = r.totalCalls + (r.totalCalls == 1 ? " tool call" : " tool calls");
         if (r.minorCount > 0) {
             foot += " \u00b7 " + r.minorCount + " lookup" + (r.minorCount == 1 ? "" : "s");
         }
+        if (r.retryCount > 0) {
+            foot += " \u00b7 " + r.retryCount + " self-corrected";
+        }
         sb.append("<div class='act-foot'>").append(MarkdownRenderer.escape(foot)).append("</div>");
         return sb.toString();
-    }
-
-    private static String badgeClass(com.ing.engine.aicli.ai.ActivityReport.Status s) {
-        switch (s) {
-            case FAIL:
-                return "fail";
-            case WARN:
-                return "warn";
-            case INFO:
-                return "info";
-            default:
-                return "ok";
-        }
-    }
-
-    private static String badgeLabel(com.ing.engine.aicli.ai.ActivityReport.Status s) {
-        switch (s) {
-            case FAIL:
-                return "FAIL";
-            case WARN:
-                return "WARN";
-            case INFO:
-                return "INFO";
-            default:
-                return "OK";
-        }
     }
 
     private void runScript(String script) {
@@ -349,14 +302,6 @@ public class ChatWebView {
             "background:#faf7ff;border:1px solid #e0d3f7;}" +
             ".act-head{font-size:11px;text-transform:uppercase;letter-spacing:.5px;" +
             "color:#6b3fd4;font-weight:bold;margin-bottom:8px;}" +
-            ".act-row{margin:8px 0;}" +
-            ".act-line{display:flex;align-items:center;gap:8px;}" +
-            ".act-title{font-weight:bold;color:#1e1e1e;}" +
-            ".act-details{margin:2px 0 0 4px;color:#555;font-size:12px;}" +
-            ".badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:10px;" +
-            "font-weight:bold;text-transform:uppercase;color:#ffffff;}" +
-            ".badge.ok{background:#2e7d32;}.badge.info{background:#0277bd;}" +
-            ".badge.warn{background:#ed6c02;}.badge.fail{background:#c62828;}" +
             ".act-pills{margin-top:8px;}" +
             ".pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;" +
             "font-weight:bold;margin-right:6px;}" +
