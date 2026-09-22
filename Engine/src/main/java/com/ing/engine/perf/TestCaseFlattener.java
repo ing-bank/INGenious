@@ -4,6 +4,7 @@ import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
+import com.ing.engine.execution.data.TestDataToken;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -86,10 +87,7 @@ final class TestCaseFlattener {
             return s;
         }
         if (
-            s.matches("%\\w+%") ||
-            s.startsWith("=") ||
-            s.matches("\\{[^:{}]+:[^:{}]+\\}") ||
-            s.matches("[^:@{}\\s]+:[^:{}]+")
+            s.matches("%\\w+%") || s.startsWith("=") || TestDataToken.isReference(s) // {Sheet:Col}, Sheet:Col, [Project]/[Shared]-tagged
         ) {
             warnings.add(
                 "Dynamic input in " +

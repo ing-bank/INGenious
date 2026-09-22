@@ -153,14 +153,23 @@ public final class ConventionCatalog {
     // input grammar helpers
     // ==================================================================
 
-    /** Whole-input data reference: {@code Sheet:Column} (no spaces, no scheme URLs). */
+    /** Optional leading Test Data scope tag, e.g. {@code "[Project] "} / {@code "[Shared] "}. */
+    private static final String SCOPE_TAG = "(?:\\[(?:Shared|Project)\\]\\s+)?";
+
+    /**
+     * Whole-input data reference: {@code Sheet:Column}, optionally scope-tagged
+     * ({@code [Project] Sheet:Column} / {@code [Shared] Sheet:Column}). No scheme URLs.
+     */
     private static final Pattern DATA_REF = Pattern.compile(
-        "^[A-Za-z0-9_.\\-]+:[A-Za-z0-9_.\\-]+$"
+        "^" + SCOPE_TAG + "[A-Za-z0-9_.\\-]+:[A-Za-z0-9_.\\-]+$"
     );
 
-    /** Data reference embedded in a payload: {@code {Sheet:Column}}. */
+    /**
+     * Data reference embedded in a payload: {@code {Sheet:Column}}, optionally scope-tagged.
+     * Group 1 = sheet (tag stripped), group 2 = column.
+     */
     public static final Pattern PAYLOAD_TOKEN = Pattern.compile(
-        "\\{([A-Za-z0-9_.\\-]+):([A-Za-z0-9_.\\-]+)\\}"
+        "\\{" + SCOPE_TAG + "([A-Za-z0-9_.\\-]+):([A-Za-z0-9_.\\-]+)\\}"
     );
 
     /** Engine directives that look like literals but must never be parameterized. */

@@ -199,6 +199,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
         styleModernLabel(jLabel29, sectionFont);
         styleModernLabel(jLabel32, sectionFont);
         styleModernLabel(envLabel, sectionFont);
+        styleModernLabel(sharedEnvLabel, sectionFont);
 
         // Style toolbar
         if (jToolBar1 != null) {
@@ -217,6 +218,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
 
         // Style inputs
         styleModernComboBox(testEnv);
+        styleModernComboBox(sharedTestEnv);
         styleModernComboBox(testMgmtModuleCombo);
         styleModernSpinner(threadCount);
         styleModernSpinner(reRunNo);
@@ -843,6 +845,8 @@ public class INGeniousSettings extends javax.swing.JFrame {
          */
         testEnv.setModel(new DefaultComboBoxModel(getEnvList()));
         testEnv.setSelectedItem(execSettings.getRunSettings().getTestEnv());
+        sharedTestEnv.setModel(new DefaultComboBoxModel(getSharedEnvList()));
+        sharedTestEnv.setSelectedItem(execSettings.getRunSettings().getSharedTestEnv());
     }
 
     private void alterDefaultKeyBindings(JTextField textField) {
@@ -892,6 +896,10 @@ public class INGeniousSettings extends javax.swing.JFrame {
 
     private Object[] getEnvList() {
         return sProject.getTestData().getEnvironments().toArray();
+    }
+
+    private Object[] getSharedEnvList() {
+        return sProject.getSharedTestData().getEnvironments().toArray();
     }
 
     private void loadTMSettings() {
@@ -968,6 +976,11 @@ public class INGeniousSettings extends javax.swing.JFrame {
         execSettings.getRunSettings().setAzureReport(azure.isSelected());
         execSettings.getRunSettings().setSlackNotification(slackNotify.isSelected());
         execSettings.getRunSettings().setTestEnv(testEnv.getSelectedItem().toString());
+        if (sharedTestEnv.getSelectedItem() != null) {
+            execSettings
+                .getRunSettings()
+                .setSharedTestEnv(sharedTestEnv.getSelectedItem().toString());
+        }
         // execSettings.getRunSettings().setAutoHealMode(autoHeal.isSelected());
         execSettings.getRunSettings().save();
         sMainFrame.reloadSettings();
@@ -1171,6 +1184,8 @@ public class INGeniousSettings extends javax.swing.JFrame {
         reportPerformanceLog = new javax.swing.JCheckBox();
         envLabel = new javax.swing.JLabel();
         testEnv = new javax.swing.JComboBox<>();
+        sharedEnvLabel = new javax.swing.JLabel();
+        sharedTestEnv = new javax.swing.JComboBox<>();
         bddReport = new javax.swing.JCheckBox();
         slackNotify = new javax.swing.JCheckBox();
         rpUpdate = new javax.swing.JCheckBox();
@@ -1462,6 +1477,15 @@ public class INGeniousSettings extends javax.swing.JFrame {
         testEnv.setFont(UIManager.getFont("TableMenu.font"));
         testEnv.setForeground(new java.awt.Color(0, 0, 255));
         testEnv.setToolTipText("Select the execution Environment");
+
+        sharedEnvLabel.setFont(UIManager.getFont("TableMenu.font"));
+        sharedEnvLabel.setText("Shared Data Environment");
+
+        sharedTestEnv.setFont(UIManager.getFont("TableMenu.font"));
+        sharedTestEnv.setForeground(new java.awt.Color(0, 0, 255));
+        sharedTestEnv.setToolTipText(
+            "Environment for [Shared] test data - independent of the execution Environment"
+        );
 
         bddReport.setFont(UIManager.getFont("TableMenu.font"));
         bddReport.setText("Bdd Reporting");
@@ -1822,6 +1846,27 @@ public class INGeniousSettings extends javax.swing.JFrame {
                                             javax.swing.GroupLayout.PREFERRED_SIZE
                                         )
                                 )
+                                .addGroup(
+                                    javax.swing.GroupLayout.Alignment.LEADING,
+                                    globalSettingsLayout
+                                        .createSequentialGroup()
+                                        .addContainerGap()
+                                        .addComponent(
+                                            sharedEnvLabel,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                            160,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                        )
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.UNRELATED
+                                        )
+                                        .addComponent(
+                                            sharedTestEnv,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                            150,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                        )
+                                )
                         )
                         .addGap(0, 0, Short.MAX_VALUE)
                 )
@@ -1871,6 +1916,18 @@ public class INGeniousSettings extends javax.swing.JFrame {
                                 .addComponent(envLabel)
                                 .addComponent(
                                     testEnv,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addGap(18, 18, 18)
+                        .addGroup(
+                            globalSettingsLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(sharedEnvLabel)
+                                .addComponent(
+                                    sharedTestEnv,
                                     javax.swing.GroupLayout.PREFERRED_SIZE,
                                     javax.swing.GroupLayout.DEFAULT_SIZE,
                                     javax.swing.GroupLayout.PREFERRED_SIZE
@@ -2157,6 +2214,8 @@ public class INGeniousSettings extends javax.swing.JFrame {
     private javax.swing.JPanel savePanel;
     private javax.swing.JButton saveSettings;
     private javax.swing.JCheckBox slackNotify;
+    private javax.swing.JLabel sharedEnvLabel;
+    private javax.swing.JComboBox<String> sharedTestEnv;
     private javax.swing.JButton testConn;
     private javax.swing.JComboBox<String> testEnv;
     private javax.swing.JComboBox testMgmtModuleCombo;

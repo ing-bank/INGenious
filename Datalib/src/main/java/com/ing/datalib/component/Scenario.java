@@ -112,12 +112,7 @@ public class Scenario extends DataModel {
 
     /**
      * Returns the source of this scenario.
-     * @return TEST_PLAN, REUSABLE_COMPONENTS, or SHARED_rce.REUSABLE_COMPONENTS;
-    }
-
-    /**
-     * Returns the source of this scenario.
-     * @return TEST_PLAN or REUSABLE_COMPONENTS
+     * @return TEST_PLAN, REUSABLE_COMPONENTS, or SHARED_REUSABLE_COMPONENTS
      */
     public Source getSource() {
         return source;
@@ -638,9 +633,27 @@ public class Scenario extends DataModel {
     }
 
     public void refactorTestData(String oldTDName, String newTDName) {
+        refactorTestData(oldTDName, newTDName, null);
+    }
+
+    public void refactorTestData(String oldTDName, String newTDName, String scopeToken) {
         for (TestCase testCase : testCases) {
-            testCase.refactorTestData(oldTDName, newTDName);
+            testCase.refactorTestData(oldTDName, newTDName, scopeToken);
         }
+    }
+
+    /**
+     * Rewrites every whole-input Test Data reference to {@code originalName} in this scenario's
+     * test cases to {@code [Shared] finalName:Column}. Used by "Make As Shared TestData".
+     *
+     * @return number of test steps changed
+     */
+    public int retagTestDataReferencesToShared(String originalName, String finalName) {
+        int count = 0;
+        for (TestCase testCase : testCases) {
+            count += testCase.retagTestDataReferencesToShared(originalName, finalName);
+        }
+        return count;
     }
 
     public void refactorTestDataColumn(
@@ -648,8 +661,17 @@ public class Scenario extends DataModel {
         String oldColumnName,
         String newColumnName
     ) {
+        refactorTestDataColumn(testDataName, oldColumnName, newColumnName, null);
+    }
+
+    public void refactorTestDataColumn(
+        String testDataName,
+        String oldColumnName,
+        String newColumnName,
+        String scopeToken
+    ) {
         for (TestCase testCase : testCases) {
-            testCase.refactorTestDataColumn(testDataName, oldColumnName, newColumnName);
+            testCase.refactorTestDataColumn(testDataName, oldColumnName, newColumnName, scopeToken);
         }
     }
 

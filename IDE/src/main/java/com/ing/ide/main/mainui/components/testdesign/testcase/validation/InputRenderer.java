@@ -42,6 +42,7 @@ public class InputRenderer extends AbstractRenderer {
             ) {
                 if (isTestDataPresent(step).booleanValue()) {
                     setDefault(comp);
+                    applyTestDataScopeColor(comp, step.getTestDataScopeTag());
                 } else {
                     setNotPresent(comp, this.testDataNotPresent);
                 }
@@ -87,10 +88,12 @@ public class InputRenderer extends AbstractRenderer {
 
     private Boolean isTestDataPresent(TestStep step) {
         String[] data = step.getTestDataFromInput();
+        com.ing.datalib.component.EnvTestData source = "[Shared]".equals(step.getTestDataScopeTag())
+            ? step.getProject().getSharedTestData()
+            : step.getProject().getTestData();
         return Boolean.valueOf(
-            step
-                .getProject()
-                .getTestData()
+            source != null &&
+            source
                 .getAllEnvironments()
                 .stream()
                 .map(sTestData -> sTestData.getByName(data[0]))
@@ -100,6 +103,18 @@ public class InputRenderer extends AbstractRenderer {
 
     private boolean hasColumn(TestDataModel tdModel, String column) {
         return tdModel != null && tdModel.getColumnIndex(column) >= 0;
+    }
+
+    /**
+     * Colors a [Shared]/[Project]-tagged Test Data reference the same way Shared/Project
+     * Reusable Component references are colored elsewhere (ActionRenderer/ReferenceRenderer).
+     */
+    private void applyTestDataScopeColor(JComponent comp, String scopeTag) {
+        if ("[Shared]".equals(scopeTag)) {
+            comp.setForeground(new Color(0, 128, 0));
+        } else if ("[Project]".equals(scopeTag)) {
+            comp.setForeground(Color.BLACK);
+        }
     }
 
     private Boolean isInputValid(Object value, String objectName) {
