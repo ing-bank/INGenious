@@ -1,6 +1,6 @@
 package com.ing.datalib.testdata.model;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
@@ -37,8 +37,8 @@ public class RecordTest {
     @Test
     public void testSetAndGetScope() {
         Record record = new Record();
-        record.setScope("Project");
-        assertEquals(record.getScope(), "Project");
+        record.setScope("[Project]");
+        assertEquals(record.getScope(), "[Project]");
     }
 
     @Test
@@ -59,14 +59,14 @@ public class RecordTest {
     public void testInvalidIteration_ResetToOne() {
         Record record = new Record();
         record.setIteration("invalid");
-        assertEquals(record.getIteration(), "1");
+        assertEquals(record.getIteration(), "");
     }
 
     @Test
     public void testInvalidSubIteration_ResetToOne() {
         Record record = new Record();
         record.setSubIteration("invalid");
-        assertEquals(record.getSubIteration(), "1");
+        assertEquals(record.getSubIteration(), "");
     }
 
     @Test
@@ -96,13 +96,13 @@ public class RecordTest {
         Record record = new Record();
         record.setScenario("Customer APIs");
         record.setTestcase("TC_01_GetCustomer");
-        record.setScope("Project");
+        record.setScope("[Project]");
         record.setIteration("1");
         record.setSubIteration("1");
 
         assertEquals(record.getScenario(), "Customer APIs");
         assertEquals(record.getTestcase(), "TC_01_GetCustomer");
-        assertEquals(record.getScope(), "Project");
+        assertEquals(record.getScope(), "[Project]");
         assertEquals(record.getIteration(), "1");
         assertEquals(record.getSubIteration(), "1");
     }

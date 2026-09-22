@@ -782,6 +782,14 @@ public class GeneralOperations extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.ENUM,
+        inputExample = "@iso",
+        inputHelp = "UTC timestamp format option: @iso, @iso+milliseconds, or @date",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%UTCTime%",
+        conditionHelp = "destination variable name in %var% format (e.g. %UTCTime%)"
+    )
     public void storeUTCTimestampInVariable() {
         if (Condition == null || Condition.isBlank() || Condition.equals("%%")) {
             Report.updateTestLog(

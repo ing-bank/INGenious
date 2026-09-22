@@ -169,7 +169,13 @@ public class ReusableImportEngine {
 
         // Create datasheet rows for all imported test cases/reusables when environments are imported
         if (opts.isImportEnvironments() && !allVariableNames.isEmpty()) {
-            createDatasheetRows(datasheetName, createdTestCases, nc.getEnvironments(), result);
+            createDatasheetRows(
+                datasheetName,
+                createdTestCases,
+                nc.getEnvironments(),
+                result,
+                opts
+            );
         }
 
         return result;
@@ -305,7 +311,8 @@ public class ReusableImportEngine {
         String datasheetName,
         List<String[]> testCases,
         List<NormalizedEnvironment> environments,
-        ImportResult result
+        ImportResult result,
+        ImportOptions opts
     ) {
         // Create rows ONLY in the imported data environments where the datasheet exists
         // Do NOT create datasheets in the default environment
@@ -338,7 +345,9 @@ public class ReusableImportEngine {
                 record.setTestcase(testCaseName);
                 record.setIteration("1");
                 record.setSubIteration("1");
-                record.setScope("Project");
+                if (opts.getTargetType() == ImportOptions.TargetType.REUSABLE) {
+                    record.setScope("[Project]");
+                }
 
                 // Populate environment variable values in this row
                 int rowIndex = datasheet.getRowCount() - 1;
