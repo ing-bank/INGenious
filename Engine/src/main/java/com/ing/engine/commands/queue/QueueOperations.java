@@ -495,13 +495,12 @@ public class QueueOperations extends Command {
     public void storeQueueXMLtagInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
                     String xmlText = receivedMessage.get(key);
                     DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
                     DocumentBuilder dBuilder;
@@ -513,7 +512,7 @@ public class QueueOperations extends Command {
                     XPath xPath = XPathFactory.newInstance().newXPath();
                     String expression = Condition;
                     String value = (String) xPath.compile(expression).evaluate(doc);
-                    userData.putData(sheetName, columnName, value);
+                    userData.putData(sheetDetail[0], sheetDetail[1], value);
                     Report.updateTestLog(
                         Action,
                         "Element text [" + value + "] is stored in " + strObj,
@@ -749,17 +748,16 @@ public class QueueOperations extends Command {
     public void storeQueueJSONtagInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
                     String response = receivedMessage.get(key);
                     String jsonpath = Condition;
                     String value = JsonPath.read(response, jsonpath).toString();
-                    userData.putData(sheetName, columnName, value);
+                    userData.putData(sheetDetail[0], sheetDetail[1], value);
                     Report.updateTestLog(
                         Action,
                         "Element text [" + value + "] is stored in " + strObj,

@@ -544,17 +544,16 @@ public class Webservice extends GeneralWebservice {
     public void storeJSONelementInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
                     String response = responsebodies.get(key);
                     String jsonpath = Condition;
                     String value = JsonPath.read(response, jsonpath).toString();
-                    userData.putData(sheetName, columnName, value);
+                    userData.putData(sheetDetail[0], sheetDetail[1], value);
                     Report.updateTestLog(
                         Action,
                         "Element text [" + value + "] is stored in " + strObj,
@@ -615,13 +614,12 @@ public class Webservice extends GeneralWebservice {
     public void storeXMLelementInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
                     String xmlText = responsebodies.get(key);
                     DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
                     DocumentBuilder dBuilder;
@@ -637,7 +635,7 @@ public class Webservice extends GeneralWebservice {
                         .evaluate(doc, XPathConstants.NODESET);
                     Node nNode = nodeList.item(0);
                     String value = nNode.getNodeValue();
-                    userData.putData(sheetName, columnName, value);
+                    userData.putData(sheetDetail[0], sheetDetail[1], value);
                     Report.updateTestLog(
                         Action,
                         "Element text [" + value + "] is stored in " + strObj,
@@ -807,14 +805,13 @@ public class Webservice extends GeneralWebservice {
     public void storeResponseBodyInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
-                    userData.putData(sheetName, columnName, responsebodies.get(key));
+                    userData.putData(sheetDetail[0], sheetDetail[1], responsebodies.get(key));
                     Report.updateTestLog(
                         Action,
                         "Response body is stored in " + strObj,
@@ -1252,16 +1249,15 @@ public class Webservice extends GeneralWebservice {
     public void storeJsonElementCountInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
                     int actualObjectCountInteger = 1; //getJsonElementCount();
                     String actualObjectCount = Integer.toString(actualObjectCountInteger);
-                    userData.putData(sheetName, columnName, actualObjectCount);
+                    userData.putData(sheetDetail[0], sheetDetail[1], actualObjectCount);
                     Report.updateTestLog(
                         Action,
                         "Element count [" + actualObjectCount + "] is stored in " + strObj,
@@ -1564,7 +1560,8 @@ public class Webservice extends GeneralWebservice {
             }
 
             // Early return if input format is invalid
-            if (!Input.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(Input);
+            if (sheetDetail == null) {
                 Report.updateTestLog(
                     Action,
                     "Invalid input format [" + Input + "]. Expected format: sheetName:ColumnName",
@@ -1574,21 +1571,19 @@ public class Webservice extends GeneralWebservice {
             }
 
             try {
-                String sheetName = Input.split(":", 2)[0];
-                String columnName = Input.split(":", 2)[1];
                 String headerValue = currentHeaders.get(headerName);
 
                 // Store header value in datasheet
-                userData.putData(sheetName, columnName, headerValue);
+                userData.putData(sheetDetail[0], sheetDetail[1], headerValue);
 
                 Report.updateTestLog(
                     Action,
                     "Header value [" +
                     headerValue +
                     "] stored in datasheet [" +
-                    sheetName +
+                    sheetDetail[0] +
                     ":" +
-                    columnName +
+                    sheetDetail[1] +
                     "]",
                     Status.DONE
                 );

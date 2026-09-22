@@ -1,6 +1,7 @@
 package com.ing.engine.commands.mobile;
 
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.mobile.ElementException;
@@ -315,15 +316,14 @@ public class CommonMethods extends MobileGeneral {
     public void storeTextinDataSheet() {
         if (elementPresent()) {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
                     String elText = getElementText();
-                    userData.putData(sheetName, columnName, elText.trim());
+                    userData.putData(sheetDetail[0], sheetDetail[1], elText.trim());
                     Report.updateTestLog(
                         Action,
                         "Element text [" + elText + "] is stored in " + strObj,

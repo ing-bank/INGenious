@@ -2,6 +2,7 @@ package com.ing.engine.commands.structuredData;
 
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.status.Status;
@@ -783,15 +784,14 @@ public class StructuredData extends General {
     public void storeJsonPathResultCountInDataSheet() {
         try {
             String dataSheetReference = Input;
-            if (dataSheetReference.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(dataSheetReference);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = dataSheetReference.split(":", 2)[0];
-                    String columnName = dataSheetReference.split(":", 2)[1];
                     String actualObjectCount = Integer.toString(getJsonElementCount());
-                    userData.putData(sheetName, columnName, actualObjectCount);
+                    userData.putData(sheetDetail[0], sheetDetail[1], actualObjectCount);
                     Report.updateTestLog(
                         Action,
                         "Element count [" +
@@ -911,17 +911,16 @@ public class StructuredData extends General {
     public void storeJsonPathResultInDataSheet() {
         try {
             String dataSheetReference = Input;
-            if (dataSheetReference.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(dataSheetReference);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = dataSheetReference.split(":", 2)[0];
-                    String columnName = dataSheetReference.split(":", 2)[1];
                     String response = responsebodies.get(key);
                     String jsonpath = resolveStructuredDataPath();
                     String value = JsonPath.read(response, jsonpath).toString();
-                    userData.putData(sheetName, columnName, value);
+                    userData.putData(sheetDetail[0], sheetDetail[1], value);
                     Report.updateTestLog(
                         Action,
                         "Element text [" + value + "] is stored in " + dataSheetReference,
@@ -1732,13 +1731,12 @@ public class StructuredData extends General {
     public void storeXmlPathResultInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
                     String xmlText = responsebodies.get(key);
                     DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
                     DocumentBuilder dBuilder;
@@ -1754,7 +1752,7 @@ public class StructuredData extends General {
                         .evaluate(doc, XPathConstants.NODESET);
                     Node nNode = nodeList.item(0);
                     String value = extractXmlNodeText(nNode);
-                    userData.putData(sheetName, columnName, value);
+                    userData.putData(sheetDetail[0], sheetDetail[1], value);
                     Report.updateTestLog(
                         Action,
                         "Element text [" + value + "] is stored in " + strObj,

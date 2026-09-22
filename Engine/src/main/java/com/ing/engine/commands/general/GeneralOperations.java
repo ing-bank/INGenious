@@ -517,13 +517,19 @@ public class GeneralOperations extends General {
             String sourceSubIteration = prevSubIterationVar != null
                 ? prevSubIterationVar
                 : userData.getSubIteration();
-            String sourceDataSheet = Condition;
-            String sourceSheetName = sourceDataSheet.split(":", 2)[0];
-            String sourceColumnName = sourceDataSheet.split(":", 2)[1];
+            String[] sourceSheetDetail = TestDataToken.parse(Condition);
+            if (sourceSheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect Condition format; expected Sheet:Column",
+                    Status.FAIL
+                );
+                return;
+            }
             String reportDescription = "";
             String value = userData.getData(
-                sourceSheetName,
-                sourceColumnName,
+                sourceSheetDetail[0],
+                sourceSheetDetail[1],
                 sourceScenario,
                 sourceTestCase,
                 sourceIteration,
@@ -534,13 +540,19 @@ public class GeneralOperations extends General {
                 addVar(Input, value);
                 reportDescription = Input.replaceAll("%", "");
             } else {
-                String targetDataSheet = Input;
-                String targetSheetName = targetDataSheet.split(":", 2)[0];
-                String targetColumnName = targetDataSheet.split(":", 2)[1];
-                reportDescription = targetColumnName;
+                String[] targetSheetDetail = TestDataToken.parse(Input);
+                if (targetSheetDetail == null) {
+                    Report.updateTestLog(
+                        Action,
+                        "Incorrect Input format; expected Sheet:Column",
+                        Status.FAIL
+                    );
+                    return;
+                }
+                reportDescription = targetSheetDetail[1];
                 userData.putData(
-                    targetSheetName,
-                    targetColumnName,
+                    targetSheetDetail[0],
+                    targetSheetDetail[1],
                     value,
                     userData.getScenario(),
                     userData.getTestCase(),
