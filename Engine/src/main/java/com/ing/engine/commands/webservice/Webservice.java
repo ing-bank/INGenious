@@ -1154,7 +1154,7 @@ public class Webservice extends GeneralWebservice {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    int actualObjectCountInteger = 1; //getJsonElementCount();
+                    int actualObjectCountInteger = getJsonElementCount();
                     String actualObjectCount = Integer.toString(actualObjectCountInteger);
                     addVar(variableName, actualObjectCount);
                     Report.updateTestLog(
@@ -1258,7 +1258,7 @@ public class Webservice extends GeneralWebservice {
                     );
                     String sheetName = strObj.split(":", 2)[0];
                     String columnName = strObj.split(":", 2)[1];
-                    int actualObjectCountInteger = 1; //getJsonElementCount();
+                    int actualObjectCountInteger = getJsonElementCount();
                     String actualObjectCount = Integer.toString(actualObjectCountInteger);
                     userData.putData(sheetName, columnName, actualObjectCount);
                     Report.updateTestLog(
