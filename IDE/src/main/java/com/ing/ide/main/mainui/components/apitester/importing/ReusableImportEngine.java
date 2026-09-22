@@ -1,5 +1,12 @@
 package com.ing.ide.main.mainui.components.apitester.importing;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+
 import com.ing.datalib.api.APIRequest;
 import com.ing.datalib.api.AuthConfig;
 import com.ing.datalib.api.KeyValuePair;
@@ -18,12 +25,6 @@ import com.ing.datalib.component.TestData;
 import com.ing.datalib.testdata.model.Record;
 import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.ide.main.mainui.components.apitester.APITester;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * Glues a {@link NormalizedCollection} into INGenious as reusable scenarios + reusable
@@ -169,7 +170,13 @@ public class ReusableImportEngine {
 
         // Create datasheet rows for all imported test cases/reusables when environments are imported
         if (opts.isImportEnvironments() && !allVariableNames.isEmpty()) {
-            createDatasheetRows(datasheetName, createdTestCases, nc.getEnvironments(), result);
+            createDatasheetRows(
+                datasheetName,
+                createdTestCases,
+                nc.getEnvironments(),
+                result,
+                opts
+            );
         }
 
         return result;
@@ -305,7 +312,8 @@ public class ReusableImportEngine {
         String datasheetName,
         List<String[]> testCases,
         List<NormalizedEnvironment> environments,
-        ImportResult result
+        ImportResult result,
+        ImportOptions opts
     ) {
         // Create rows ONLY in the imported data environments where the datasheet exists
         // Do NOT create datasheets in the default environment
@@ -338,7 +346,9 @@ public class ReusableImportEngine {
                 record.setTestcase(testCaseName);
                 record.setIteration("1");
                 record.setSubIteration("1");
-                record.setScope("Project");
+                if (opts.getTargetType() == ImportOptions.TargetType.REUSABLE) {
+                    record.setScope("[Project]");
+                }
 
                 // Populate environment variable values in this row
                 int rowIndex = datasheet.getRowCount() - 1;
