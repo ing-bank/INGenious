@@ -1,5 +1,0 @@
-page: Landing Page
-scope: PROJECT
-elements:
-  '[Accept] Button':
-    role: BUTTON;Accept

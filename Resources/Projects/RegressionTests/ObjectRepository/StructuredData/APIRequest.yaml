@@ -1,7 +1,0 @@
-page: APIRequest
-scope: PROJECT
-elements:
-  _0_name:
-    jsonPath: "$[0].name"
-  message:
-    jsonPath: $.message

@@ -1,6 +1,0 @@
-Scenario,Flow,Scope,Iteration,SubIteration,SVal,DbDriver,DstShared,GenShared
-TestDataScope,AllReferenceForms,,1,1,SHRVAL,,,
-TestDataScope,RenderTemplate,,1,1,SHRVAL,,,
-TestDataScope,DbConnectionConfig,,1,1,SHRVAL,java.lang.String,,
-TestDataScope,PreviousTestCaseWriteBack,,1,1,SHRVAL,,SHRVAL,
-TestDataScope,SyntheticDataWriteBack,,1,1,,,,SOTKQ
