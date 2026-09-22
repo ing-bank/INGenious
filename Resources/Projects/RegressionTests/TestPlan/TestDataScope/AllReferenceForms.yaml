@@ -1,0 +1,145 @@
+schemaVersion: 1
+testCase: AllReferenceForms
+scenario: TestDataScope
+tags:
+  - regression
+steps:
+
+  # ---------------------------------------------------------------------------
+  # String Operations - resolves refs via CommandControl.getDataSheetValue ->
+  # TestDataToken. Accepts {Sheet:Col}, {[Project] Sheet:Col}, {[Shared] Sheet:Col}.
+  # (Bare unbraced refs are not a String Operations part form - see 'print' below.)
+  # ---------------------------------------------------------------------------
+
+  - step: 1
+    object: String Operations
+    action: Concat
+    input: '"A:",{DataScope:PVal}'
+    condition: '%c_untagged_braced%'
+  - step: 2
+    object: General
+    action: assertVariable
+    input: '%c_untagged_braced%=A:PROJVAL'
+
+  - step: 3
+    object: String Operations
+    action: Concat
+    input: '"B:",{[Project] DataScope:PVal}'
+    condition: '%c_project_braced%'
+  - step: 4
+    object: General
+    action: assertVariable
+    input: '%c_project_braced%=B:PROJVAL'
+
+  - step: 5
+    object: String Operations
+    action: Concat
+    input: '"C:",{[Shared] RegShared:SVal}'
+    condition: '%c_shared_braced%'
+  - step: 6
+    object: General
+    action: assertVariable
+    input: '%c_shared_braced%=C:SHRVAL'
+
+  # every String Operations action shares getVarValue -> spot-check a few more
+
+  - step: 7
+    object: String Operations
+    action: ToUpper
+    input: '{[Project] DataScope:PLower}'
+    condition: '%upper_project%'
+  - step: 8
+    object: General
+    action: assertVariable
+    input: '%upper_project%=PROJ'
+
+  - step: 9
+    object: String Operations
+    action: GetLength
+    input: '{[Shared] RegShared:SVal}'
+    condition: '%len_shared%'
+  - step: 10
+    object: General
+    action: assertVariable
+    input: '%len_shared%=6'
+
+  - step: 11
+    object: String Operations
+    action: Substring
+    input: '{[Project] DataScope:PVal},"0","4"'
+    condition: '%sub_project%'
+  - step: 12
+    object: General
+    action: assertVariable
+    input: '%sub_project%=PROJ'
+
+  - step: 13
+    object: String Operations
+    action: Trim
+    input: '{[Project] DataScope:PPadded}'
+    condition: '%trim_project%'
+  - step: 14
+    object: General
+    action: assertVariable
+    input: '%trim_project%=pad'
+
+  # ---------------------------------------------------------------------------
+  # Whole-input references - resolved by DataProcessor (sync). Covers the bare
+  # and [Project]/[Shared] tagged forms, braced and unbraced.
+  # assertVariableFromDataSheet compares %exp% to the resolved Input.
+  # ---------------------------------------------------------------------------
+
+  - step: 15
+    object: General
+    action: AddVar
+    input: '@PROJVAL'
+    condition: '%exp_p%'
+
+  - step: 16
+    object: General
+    action: assertVariableFromDataSheet
+    input: 'DataScope:PVal'
+    condition: '%exp_p%'
+  - step: 17
+    object: General
+    action: assertVariableFromDataSheet
+    input: '{DataScope:PVal}'
+    condition: '%exp_p%'
+  - step: 18
+    object: General
+    action: assertVariableFromDataSheet
+    input: '[Project] DataScope:PVal'
+    condition: '%exp_p%'
+  - step: 19
+    object: General
+    action: assertVariableFromDataSheet
+    input: '{[Project] DataScope:PVal}'
+    condition: '%exp_p%'
+
+  - step: 20
+    object: General
+    action: AddVar
+    input: '@SHRVAL'
+    condition: '%exp_s%'
+  - step: 21
+    object: General
+    action: assertVariableFromDataSheet
+    input: '[Shared] RegShared:SVal'
+    condition: '%exp_s%'
+  - step: 22
+    object: General
+    action: assertVariableFromDataSheet
+    input: '{[Shared] RegShared:SVal}'
+    condition: '%exp_s%'
+
+  # visible in the report (resolved value shown in the Data column)
+  - step: 23
+    object: General
+    description: "print the data [<Data>]"
+    action: print
+    input: '{[Project] DataScope:PVal}'
+  - step: 24
+    object: General
+    description: "print the data [<Data>]"
+    action: print
+    input: '{[Shared] RegShared:SVal}'

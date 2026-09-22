@@ -1,0 +1,36 @@
+schemaVersion: 1
+testCase: DbConnectionConfig
+scenario: TestDataScope
+tags:
+  - regression
+steps:
+
+  # Settings/config can carry test-datasheet references too - the Database connection
+  # config (Settings/Databases/regdb.properties) is the canonical example, and a single
+  # property value may MIX literal text + %runtimeVar% + {testdata}:
+  #
+  #   connectionString = jdbc:regmark:{[Project] DataScope:DbConn}-%dbEnv%-{[Shared] RegShared:SVal}
+  #   driver           = {[Shared] RegShared:DbDriver}   -> java.lang.String  (loads OK)
+  #   user             = svc_{DataScope:PLower}          -> svc_proj
+  #   timeout          = {DataScope:DbTimeout}           -> 30  (must parse)
+  #
+  # General.verifyDbConnection -> resolveAllVariables = handleDataSheetVariables
+  # (TestDataToken.resolveEmbeddedTokens) THEN resolveAllRuntimeVars (%var%).
+  #
+  # No JDBC driver on the classpath, so step 2 FAILS by design with:
+  #   "Error connecting Database: No suitable driver found for jdbc:regmark:proj-ok-LIVE-SHRVAL"
+  # The fully-composed marker proves literal + [Project] + %var% + [Shared] all resolved in
+  # one property value. A regression leaves a "{[Project] ..." / "{[Shared] ..." / "%dbEnv%"
+  # fragment in the message. run-regression.sh keys off the marker, not the step status.
+
+  - step: 1
+    object: General
+    action: AddVar
+    input: '@LIVE'
+    condition: '%dbEnv%'
+
+  - step: 2
+    object: Database
+    description: "Initiate the DB transaction"
+    action: initDBConnection
+    input: '#regdb'

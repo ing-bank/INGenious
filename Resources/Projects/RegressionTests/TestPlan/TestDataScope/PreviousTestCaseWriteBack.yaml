@@ -1,0 +1,82 @@
+schemaVersion: 1
+testCase: PreviousTestCaseWriteBack
+scenario: TestDataScope
+tags:
+  - regression
+
+# GeneralOperations.storeDataFromPreviousTestCaseData - reads a value from a (source) datasheet
+# cell via Condition and writes it to a (target) datasheet cell via Input. Both sides used raw
+# `split(":", 2)` before the fix; this exercises bare / braced / [Project] / [Shared] on BOTH
+# the source and the target in the same step, then reads the target back with String
+# Operations.Concat + assertVariable against the known literal PREVVAL/SHRVAL (unlike Faker
+# output, this value is ours, so we can assert the exact result, not just its length).
+# %PreviousScenario% / %PreviousTestCase% / %PreviousIteration% / %PreviousSubIteration% are
+# unset in a standalone run, so the action falls back to the CURRENT scenario/testcase/
+# iteration/subiteration - i.e. it reads/writes this test case's own row, which is enough to
+# prove the source- and target-side parsing without needing a real multi-test-case TestSet run.
+steps:
+
+  # bare source -> bare target
+  - step: 1
+    object: General
+    action: storeDataFromPreviousTestCaseData
+    input: 'DataScope:DstBare'
+    condition: 'DataScope:SrcVal'
+  - step: 2
+    object: String Operations
+    action: Concat
+    input: '"chk:",{DataScope:DstBare}'
+    condition: '%c_bare%'
+  - step: 3
+    object: General
+    action: assertVariable
+    input: '%c_bare%=chk:PREVVAL'
+
+  # braced source -> braced target - pre-fix: source sheet "{DataScope", target sheet
+  # "{DataScope" too, so DstBraced was never actually written.
+  - step: 4
+    object: General
+    action: storeDataFromPreviousTestCaseData
+    input: '{DataScope:DstBraced}'
+    condition: '{DataScope:SrcVal}'
+  - step: 5
+    object: String Operations
+    action: Concat
+    input: '"chk:",{DataScope:DstBraced}'
+    condition: '%c_braced%'
+  - step: 6
+    object: General
+    action: assertVariable
+    input: '%c_braced%=chk:PREVVAL'
+
+  # [Project]-tagged source -> [Project]-tagged target, braced
+  - step: 7
+    object: General
+    action: storeDataFromPreviousTestCaseData
+    input: '{[Project] DataScope:DstProj}'
+    condition: '{[Project] DataScope:SrcVal}'
+  - step: 8
+    object: String Operations
+    action: Concat
+    input: '"chk:",{[Project] DataScope:DstProj}'
+    condition: '%c_proj%'
+  - step: 9
+    object: General
+    action: assertVariable
+    input: '%c_proj%=chk:PREVVAL'
+
+  # [Shared]-tagged source -> [Shared]-tagged target, braced (app-root Shared store)
+  - step: 10
+    object: General
+    action: storeDataFromPreviousTestCaseData
+    input: '{[Shared] RegShared:DstShared}'
+    condition: '{[Shared] RegShared:SVal}'
+  - step: 11
+    object: String Operations
+    action: Concat
+    input: '"chk:",{[Shared] RegShared:DstShared}'
+    condition: '%c_shared%'
+  - step: 12
+    object: General
+    action: assertVariable
+    input: '%c_shared%=chk:SHRVAL'

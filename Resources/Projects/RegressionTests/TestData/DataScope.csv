@@ -1,0 +1,7 @@
+Scenario,Flow,Scope,Iteration,SubIteration,PVal,PLower,PPadded,Scratch,DbConn,DbTimeout,SrcVal,DstBare,DstBraced,DstProj,GenBare,GenBraced,GenProjectTagged
+TestDataScope,AllReferenceForms,,1,1,PROJVAL,proj," pad ",seed,,,,,,,,,
+TestDataScope,WriteBack,,1,1,PROJVAL,proj," pad ",written-by-regtest,,,,,,,,,
+TestDataScope,RenderTemplate,,1,1,PROJVAL,proj," pad ",seed,,,,,,,,,
+TestDataScope,DbConnectionConfig,,1,1,PROJVAL,proj," pad ",seed,proj-ok,30,,,,,,,
+TestDataScope,PreviousTestCaseWriteBack,,1,1,,,,,,,PREVVAL,PREVVAL,PREVVAL,PREVVAL,,,
+TestDataScope,SyntheticDataWriteBack,,1,1,,,,,,,,,,,263,463,QVAFI
