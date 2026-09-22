@@ -1,0 +1,12 @@
+schemaVersion: 1
+name: Smoke
+release: R1
+executions:
+  - execute: true
+    testScenario: SAP
+    testCase: SAP_Smoke
+    iteration: Single
+    status: NotExecuted
+    browser: Chromium
+    browserVersion: Default
+    platform: Any

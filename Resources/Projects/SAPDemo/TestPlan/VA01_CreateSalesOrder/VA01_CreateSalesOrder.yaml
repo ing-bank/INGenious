@@ -1,0 +1,117 @@
+schemaVersion: 1
+testCase: VA01_CreateSalesOrder
+scenario: VA01_CreateSalesOrder
+steps:
+  - step: 1
+    object: SAP
+    description: Initialize SAP connection
+    action: sapInitConnection
+
+  - step: 2
+    object: SAP_SYSTEM
+    description: Execute Transaction VA01
+    action: sapExecuteTransaction
+    input: VA01
+
+  - step: 3
+    object: ctxtVBAK_AUART
+    description: "Set [<Object>]"
+    action: sapFill
+    input: '@OR'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 4
+    object: ctxtVBAK_VKORG
+    description: "Set [<Object>]"
+    action: sapFill
+    input: '@1000'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 5
+    object: ctxtVBAK_VTWEG
+    description: "Set [<Object>]"
+    action: sapFill
+    input: '@10'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 6
+    object: btn0
+    description: "Click [<Object>]"
+    action: sapClick
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 7
+    object: ctxtKUAGV_KUNNR
+    description: "Set [<Object>]"
+    action: sapFill
+    input: '@0000100032'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 8
+    object: txtRV45A_KWMENG30
+    description: "Set [<Object>]"
+    action: sapFill
+    input: '@10'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 9
+    object: txtRV45A_KWMENG30
+    description: "SetFocus [<Object>]"
+    action: sapSetFocus
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 10
+    object: wnd0
+    description: "SendVKey [<Object>]"
+    action: sapSimulateKeyPress
+    input: '@0'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 11
+    object: chkRV45A_SELKZ60
+    description: "Check [<Object>]"
+    action: sapSelectCheckBox
+    input: '@true'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 12
+    object: SAP_SYSTEM
+    description: Execute Transaction VA03
+    action: sapExecuteTransaction
+    input: VA03
+
+  - step: 13
+    object: SAP
+    description: "Open SAP session [s1]"
+    action: sapOpenSession
+    input: '@s1'
+
+  - step: 14
+    object: sess_s1_ctxtVBAK_VBELN
+    description: "Set [<Object>]"
+    action: sapFill
+    input: '@0000012345'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 15
+    object: sess_s1_wnd0
+    description: "SendVKey [<Object>]"
+    action: sapSimulateKeyPress
+    input: '@0'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 16
+    object: SAP
+    description: Switch SAP session
+    action: sapSwitchSession
+
+  - step: 17
+    object: btn11
+    description: "Click [<Object>]"
+    action: sapClick
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 18
+    object: SAP
+    description: Close SAP connection
+    action: sapCloseConnection

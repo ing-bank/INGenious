@@ -78,10 +78,21 @@ To go back to a real build: `mvn clean install` (no property), or explicitly
 
 Once running against the fake:
 
-- `SAP.initConnection`, `SAP.openSession`, `SAP.switchSession`, `SAP.closeSession`,
-  `SAP.closeConnection` and the transaction/element actions in `SAPActions.java` all route
-  through `FakeSap.Locator` / `FakeSap.Session` / `FakeSap.Element` — no SAP GUI process, no
-  COM, no scripting registry keys needed.
+- **Only the connection/session lifecycle actions** — `sapInitConnection`,
+  `sapSwitchConnection`, `sapCloseConnection`, `sapCloseAllConnection`, `sapOpenSession`,
+  `sapSwitchSession`, `sapCloseSession` — route through `SapSessionManager` and therefore
+  through `FakeSap.Locator` / `FakeSap.Session` / `FakeSap.Element`. These are the ones
+  fake mode actually covers, no SAP GUI process, no COM, no scripting registry keys needed.
+- **`sapExecuteTransaction`, `sapEndTransaction`, `sapRefreshSession`, and every
+  element/window-level action** (`sapFill`, `sapClick`, `sapSelect...`, grid/tree actions,
+  etc. — see `SAPActions.java`) still call the legacy raw JACOB `Dispatch`/
+  `ActiveXComponent` directly via a `SAPsession` field (`Commander.currentSapRaw()` →
+  `SapGuiSession.raw()`), not the new interface. `FakeSap.Session.raw()` returns `null`, so
+  any of these under fake mode fail with a null-Dispatch error (caught, reported as
+  `FAILNS`, but not a pass). They have not been migrated onto the interface seam yet — see
+  `SAP-Connections-Redesign.md`'s "Effort" note under "Testing without a SAP environment".
+  A fake-mode test case should stick to the lifecycle actions above; see
+  `Resources/Projects/SAPDemo/README.md` for a worked example.
 - By default the fake's `Locator.rotPresent = false` and no elements are preset, so
   `initConnection` "launches" (a no-op in the fake) and opens a session with an empty element
   tree — `findById` on any id returns `null` unless you've preset it.
@@ -93,12 +104,13 @@ Once running against the fake:
 
 ## Limitations
 
-- The fake has no real screens. `SAP.findById` / element-based actions against fake ids that
-  were never preset in code just return `null` / no-ops — there's no logon screen, no actual
-  transaction UI, and no verification of GUI element ids beyond what
-  `SapSessionManagerTest`-style presets would configure programmatically. It's meant for
-  exercising **routing, session/connection lifecycle, and guardrails**, not for validating
-  real transaction screens or real element ids from a Scripting Tracker recording.
+- The fake has no real screens, and — as noted above — transaction/element actions don't
+  reach it at all (they hit the legacy raw-`Dispatch` path and fail on the `null` `raw()`).
+  There's no logon screen, no actual transaction UI, and no verification of GUI element ids
+  beyond what `SapSessionManagerTest`-style presets would configure programmatically. It's
+  meant for exercising **routing, connection/session lifecycle, and guardrails** only, not
+  for validating real transaction screens or real element ids from a Scripting Tracker
+  recording.
 - It's a single build-time switch for the whole jar — you can't mix real and fake connections
   in the same running app.
 - CI/release pipelines should never pass `-Dsap.fakeMode=true`; verify your pipeline config

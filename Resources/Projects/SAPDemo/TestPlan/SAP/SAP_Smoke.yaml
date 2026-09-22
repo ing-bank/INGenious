@@ -1,0 +1,41 @@
+schemaVersion: 1
+testCase: SAP_Smoke
+scenario: SAP
+tags:
+  - '@smoke'
+  - '@sap'
+steps:
+  - step: 1
+    object: SAP
+    description: Open the DEMO SAP connection
+    action: sapInitConnection
+    input: '#DEMO'
+
+  - step: 2
+    object: SAP
+    description: Open a second, concurrent session labeled [stock]
+    action: sapOpenSession
+    input: '@stock'
+
+  - step: 3
+    object: SAP
+    description: Switch back to the connection's primary session
+    action: sapSwitchSession
+
+  - step: 4
+    object: SAP
+    description: Switch to the [stock] session again
+    action: sapSwitchSession
+    input: '@stock'
+
+  - step: 5
+    object: SAP
+    description: Close the [stock] session
+    action: sapCloseSession
+    input: '@stock'
+
+  - step: 6
+    object: SAP
+    description: Close the DEMO SAP connection
+    action: sapCloseConnection
+    input: '#DEMO'

@@ -1,0 +1,153 @@
+schemaVersion: 1
+testCase: VA01_MultiWindowMultiSession
+scenario: VA01_MultiWindowMultiSession
+steps:
+  - step: 1
+    object: SAP
+    description: Initialize SAP connection
+    action: sapInitConnection
+
+  - step: 2
+    object: SAP_SYSTEM
+    description: Execute Transaction VA01
+    action: sapExecuteTransaction
+    input: VA01
+
+  - step: 3
+    object: ctxtVBAK_AUART
+    description: "Set [<Object>]"
+    action: sapFill
+    input: '@OR'
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 4
+    object: ctxtKUAGV_KUNNR
+    description: "SetFocus [<Object>]"
+    action: sapSetFocus
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 5
+    object: wnd0
+    description: "SendVKey [<Object>]"
+    action: sapSimulateKeyPress
+    input: '@4'
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 6
+    object: w1_txtV_LOW
+    description: "Set [<Object>]"
+    action: sapFill
+    input: '@100032'
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 7
+    object: w1_btn0
+    description: "Click [<Object>]"
+    action: sapClick
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 8
+    object: w1_shell
+    description: "DoubleClick [<Object>]"
+    action: sapDoubleClick
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 9
+    object: ctxtVBAK_VKORG
+    description: "Set [<Object>]"
+    action: sapFill
+    input: '@1000'
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 10
+    object: btn0
+    description: "Click [<Object>]"
+    action: sapClick
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 11
+    object: txtRV45A_KWMENG30
+    description: "Set [<Object>]"
+    action: sapFill
+    input: '@5'
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 12
+    object: txtRV45A_KWMENG30
+    description: "SetFocus [<Object>]"
+    action: sapSetFocus
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 13
+    object: wnd0
+    description: "SendVKey [<Object>]"
+    action: sapSimulateKeyPress
+    input: '@0'
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 14
+    object: SAP_SYSTEM
+    description: Execute Transaction VA02
+    action: sapExecuteTransaction
+    input: VA02
+
+  - step: 15
+    object: SAP
+    description: "Open SAP session [s1]"
+    action: sapOpenSession
+    input: '@s1'
+
+  - step: 16
+    object: sess_s1_ctxtVBAK_VBELN
+    description: "Set [<Object>]"
+    action: sapFill
+    input: '@0000012345'
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 17
+    object: sess_s1_wnd0
+    description: "SendVKey [<Object>]"
+    action: sapSimulateKeyPress
+    input: '@0'
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 18
+    object: sess_s1_txtRV45A_KWMENG30
+    description: "Set [<Object>]"
+    action: sapFill
+    input: '@8'
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 19
+    object: sess_s1_btn11
+    description: "Click [<Object>]"
+    action: sapClick
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 20
+    object: sess_s1_w1_btn3
+    description: "Click [<Object>]"
+    action: sapClick
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 21
+    object: sess_s1_w2_btnSPOP_OPTION1
+    description: "Click [<Object>]"
+    action: sapClick
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 22
+    object: SAP
+    description: Switch SAP session
+    action: sapSwitchSession
+
+  - step: 23
+    object: btn11
+    description: "Click [<Object>]"
+    action: sapClick
+    reference: "[Project] VA01_MultiWindowMultiSession"
+
+  - step: 24
+    object: SAP
+    description: Close SAP connection
+    action: sapCloseConnection
