@@ -83,6 +83,21 @@ public class DriverSettings extends javax.swing.JFrame {
     private com.ing.ide.main.utils.table.XTablePanel kafkaSSLPanel;
 
     /**
+     * Kafka Producer/Consumer configuration editors. A single "Kafka
+     * Configurations" tab hosts a nested tabbed pane segregating Producers from
+     * Consumers; each side is a name combo + key/value table backed by
+     * {@link ProjectSettings#getKafkaProducerSettings()} /
+     * {@link ProjectSettings#getKafkaConsumerSettings()}.
+     */
+    private javax.swing.JComboBox<String> kafkaProducerCombo;
+    private javax.swing.JComboBox<String> kafkaConsumerCombo;
+    private com.ing.ide.main.settings.devices.LambdaTestCapsPanel kafkaProducerTablePanel;
+    private com.ing.ide.main.settings.devices.LambdaTestCapsPanel kafkaConsumerTablePanel;
+    private javax.swing.JPanel kafkaConfigPanel;
+    private String currentKafkaProducer;
+    private String currentKafkaConsumer;
+
+    /**
      * Creates new form NewJFrame
      *
      * @param sMainFrame
@@ -100,9 +115,10 @@ public class DriverSettings extends javax.swing.JFrame {
         // Build the "Manage Devices" tab programmatically (not in generated initComponents)
         buildDevicesTab();
 
-        // Build the "Kafka SSL Configurations" tab programmatically. Moved here
-        // from the legacy "Settings" dialog; same project-side storage backs it.
-        buildKafkaSSLTab();
+        // Build the single "Kafka Configurations" tab (Producers + Consumers)
+        // programmatically. Supersedes the legacy "Kafka SSL Configurations" tab;
+        // per-config SSL now lives inside each producer/consumer config.
+        buildKafkaConfigTab();
 
         // Allows InsertRowPromptFeature to work with these DriverSettings tables.
         registerInsertRowPromptActionsForDriverSettingsTables();
@@ -554,7 +570,7 @@ public class DriverSettings extends javax.swing.JFrame {
         loadContexts();
         loadAPI();
         loadDevices();
-        loadKafkaSSLConfigurations();
+        loadKafkaConfigs();
     }
 
     private void loadDriverPropTable() {
@@ -855,6 +871,11 @@ public class DriverSettings extends javax.swing.JFrame {
         }
         if (kafkaSSLPanel != null && mainTab.getSelectedComponent() == kafkaSSLPanel) {
             saveKafkaSSLConfigurations();
+            return;
+        }
+        if (kafkaConfigPanel != null && mainTab.getSelectedComponent() == kafkaConfigPanel) {
+            saveCurrentKafkaProducer();
+            saveCurrentKafkaConsumer();
             return;
         }
         if (mainTab.getSelectedIndex() == 0) {
@@ -2200,6 +2221,16 @@ public class DriverSettings extends javax.swing.JFrame {
                 .table.getModel()
                 .addTableModelListener(saveSettingsListeners.new SaveTableModelListener());
         }
+        if (kafkaProducerTablePanel != null) {
+            kafkaProducerTablePanel.addTableChangeListener(
+                saveSettingsListeners.new SaveTableModelListener()
+            );
+        }
+        if (kafkaConsumerTablePanel != null) {
+            kafkaConsumerTablePanel.addTableChangeListener(
+                saveSettingsListeners.new SaveTableModelListener()
+            );
+        }
         if (deviceCombo != null) {
             deviceCombo.addItemListener(saveSettingsListeners.new SaveItemListener());
             deviceCapTable
@@ -3144,6 +3175,494 @@ public class DriverSettings extends javax.swing.JFrame {
         Properties properties = PropUtils.getPropertiesFromTable(kafkaSSLPanel.table);
         settings.getKafkaSSLConfigurations().set(properties);
         settings.getKafkaSSLConfigurations().save();
+    }
+
+    // ------------------------------------------------------------------
+    // Kafka Producer/Consumer configurations tab
+    // ------------------------------------------------------------------
+
+    /**
+     * Builds the single "Kafka Configurations" tab: a nested tabbed pane with
+     * "Producers" and "Consumers" sections, each a name combo + key/value table
+     * plus New / Delete / Test Connection controls. Appended to {@link #mainTab}
+     * after generated {@code initComponents()} runs.
+     */
+    // Logical grouping of Kafka config properties into collapsible sections.
+    private static java.util.Map<String, LinkedProperties> kafkaProducerGroups() {
+        java.util.Map<String, LinkedProperties> g = new java.util.LinkedHashMap<>();
+        g.put("General", kafkaGroup("producer.alias", "default"));
+        g.put(
+            "Connection",
+            kafkaGroup("bootstrap.servers", "", "producer.topic", "", "partition", "")
+        );
+        g.put(
+            "Serialization",
+            kafkaGroup("key.serializer", "string", "value.serializer", "string")
+        );
+        g.put(
+            "Schema Registry",
+            kafkaGroup(
+                "schema.registry.url",
+                "",
+                "auto.register.schemas",
+                "false",
+                "shared.secret",
+                ""
+            )
+        );
+        g.put(
+            "Broker SSL",
+            kafkaGroup(
+                "ssl.enabled",
+                "false",
+                "ssl.truststore.location",
+                "",
+                "ssl.truststore.password",
+                "",
+                "ssl.truststore.type",
+                "",
+                "ssl.keystore.location",
+                "",
+                "ssl.keystore.password",
+                "",
+                "ssl.keystore.type",
+                "",
+                "ssl.key.password",
+                ""
+            )
+        );
+        g.put(
+            "Schema Registry SSL",
+            kafkaGroup(
+                "schema.registry.ssl.truststore.location",
+                "",
+                "schema.registry.ssl.truststore.password",
+                "",
+                "schema.registry.ssl.keystore.location",
+                "",
+                "schema.registry.ssl.keystore.password",
+                "",
+                "schema.registry.ssl.key.password",
+                ""
+            )
+        );
+        return g;
+    }
+
+    private static java.util.Map<String, LinkedProperties> kafkaConsumerGroups() {
+        java.util.Map<String, LinkedProperties> g = new java.util.LinkedHashMap<>();
+        g.put("General", kafkaGroup("consumer.alias", "default"));
+        g.put(
+            "Connection",
+            kafkaGroup("bootstrap.servers", "", "consumer.topic", "", "group.id", "")
+        );
+        g.put("Serialization", kafkaGroup("value.deserializer", "string"));
+        g.put(
+            "Polling",
+            kafkaGroup("poll.retries", "5", "poll.interval.ms", "1000", "max.poll.records", "500")
+        );
+        g.put("Schema Registry", kafkaGroup("schema.registry.url", "", "shared.secret", ""));
+        g.put(
+            "Broker SSL",
+            kafkaGroup(
+                "ssl.enabled",
+                "false",
+                "ssl.truststore.location",
+                "",
+                "ssl.truststore.password",
+                "",
+                "ssl.truststore.type",
+                "",
+                "ssl.keystore.location",
+                "",
+                "ssl.keystore.password",
+                "",
+                "ssl.keystore.type",
+                "",
+                "ssl.key.password",
+                ""
+            )
+        );
+        g.put(
+            "Schema Registry SSL",
+            kafkaGroup(
+                "schema.registry.ssl.truststore.location",
+                "",
+                "schema.registry.ssl.truststore.password",
+                "",
+                "schema.registry.ssl.keystore.location",
+                "",
+                "schema.registry.ssl.keystore.password",
+                "",
+                "schema.registry.ssl.key.password",
+                ""
+            )
+        );
+        return g;
+    }
+
+    private static LinkedProperties kafkaGroup(String... kv) {
+        LinkedProperties lp = new LinkedProperties();
+        for (int i = 0; i + 1 < kv.length; i += 2) {
+            lp.setProperty(kv[i], kv[i + 1]);
+        }
+        return lp;
+    }
+
+    private void buildKafkaConfigTab() {
+        kafkaProducerCombo = new javax.swing.JComboBox<>();
+        kafkaConsumerCombo = new javax.swing.JComboBox<>();
+
+        kafkaProducerTablePanel =
+            new com.ing.ide.main.settings.devices.LambdaTestCapsPanel(kafkaProducerGroups());
+        kafkaConsumerTablePanel =
+            new com.ing.ide.main.settings.devices.LambdaTestCapsPanel(kafkaConsumerGroups());
+
+        // Short-name dropdown on serializer/deserializer value cells; Enter commits + saves.
+        kafkaProducerTablePanel.setValueEditorFactory(
+            () ->
+                new KafkaSerializerCellEditor(
+                    () -> {
+                        saveCurrentKafkaProducer();
+                        clearDirty();
+                    }
+                )
+        );
+        kafkaConsumerTablePanel.setValueEditorFactory(
+            () ->
+                new KafkaSerializerCellEditor(
+                    () -> {
+                        saveCurrentKafkaConsumer();
+                        clearDirty();
+                    }
+                )
+        );
+
+        javax.swing.JTabbedPane innerTab = new javax.swing.JTabbedPane();
+        innerTab.addTab(
+            "Producers",
+            buildKafkaSide(true, kafkaProducerCombo, kafkaProducerTablePanel)
+        );
+        innerTab.addTab(
+            "Consumers",
+            buildKafkaSide(false, kafkaConsumerCombo, kafkaConsumerTablePanel)
+        );
+
+        kafkaConfigPanel = new javax.swing.JPanel(new java.awt.BorderLayout());
+        kafkaConfigPanel.add(innerTab, java.awt.BorderLayout.CENTER);
+        mainTab.addTab("Kafka Configurations", kafkaConfigPanel);
+    }
+
+    /**
+     * Row-aware value editor: an editable {@code string/bytearray/avro}
+     * combo for {@code *.serializer} / {@code *.deserializer} rows, a plain text
+     * field otherwise. Editable so a fully-qualified class name is still allowed.
+     */
+    private static class KafkaSerializerCellEditor
+        extends javax.swing.AbstractCellEditor
+        implements javax.swing.table.TableCellEditor {
+        private final javax.swing.DefaultCellEditor comboEditor;
+        private final javax.swing.DefaultCellEditor textEditor;
+        private javax.swing.table.TableCellEditor active;
+
+        KafkaSerializerCellEditor(Runnable onEnterSave) {
+            javax.swing.JComboBox<String> combo = new javax.swing.JComboBox<>(
+                new String[] { "string", "bytearray", "avro" }
+            );
+            combo.setEditable(true);
+            comboEditor = new javax.swing.DefaultCellEditor(combo);
+            javax.swing.JTextField textField = new javax.swing.JTextField();
+            textEditor = new javax.swing.DefaultCellEditor(textField);
+            active = textEditor;
+
+            // Enter commits the edit and immediately persists the config.
+            java.awt.event.ActionListener enterSave = e -> {
+                stopCellEditing();
+                if (onEnterSave != null) {
+                    onEnterSave.run();
+                }
+            };
+            textField.addActionListener(enterSave);
+            java.awt.Component comboField = combo.getEditor().getEditorComponent();
+            if (comboField instanceof javax.swing.JTextField) {
+                ((javax.swing.JTextField) comboField).addActionListener(enterSave);
+            }
+        }
+
+        @Override
+        public java.awt.Component getTableCellEditorComponent(
+            javax.swing.JTable table,
+            Object value,
+            boolean isSelected,
+            int row,
+            int column
+        ) {
+            Object rowKey = table.getValueAt(row, 0);
+            String k = rowKey == null ? "" : rowKey.toString().trim().toLowerCase();
+            active =
+                (k.endsWith(".serializer") || k.endsWith(".deserializer"))
+                    ? comboEditor
+                    : textEditor;
+            return active.getTableCellEditorComponent(table, value, isSelected, row, column);
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return active.getCellEditorValue();
+        }
+
+        @Override
+        public boolean stopCellEditing() {
+            boolean stopped = active.stopCellEditing();
+            if (stopped) {
+                fireEditingStopped();
+            }
+            return stopped;
+        }
+
+        @Override
+        public void cancelCellEditing() {
+            active.cancelCellEditing();
+            fireEditingCanceled();
+        }
+    }
+
+    /** Assembles one side (producer or consumer) of the Kafka tab. */
+    private javax.swing.JPanel buildKafkaSide(
+        boolean isProducer,
+        javax.swing.JComboBox<String> combo,
+        com.ing.ide.main.settings.devices.LambdaTestCapsPanel tablePanel
+    ) {
+        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout());
+
+        javax.swing.JToolBar bar = new javax.swing.JToolBar();
+        bar.setFloatable(false);
+        bar.add(new javax.swing.JLabel(isProducer ? " Producer: " : " Consumer: "));
+        combo.setEditable(false);
+        bar.add(combo);
+
+        javax.swing.JButton newButton = new javax.swing.JButton(
+            INGIcons.swingColored("icon.addIcon", 16)
+        );
+        newButton.setToolTipText(isProducer ? "Add New Producer" : "Add New Consumer");
+        javax.swing.JButton deleteButton = new javax.swing.JButton(
+            INGIcons.swingColored("icon.deleteIcon", 16)
+        );
+        deleteButton.setToolTipText(isProducer ? "Delete Producer" : "Delete Consumer");
+        com.ing.ide.main.utils.ConnectButton testButton = new com.ing.ide.main.utils.ConnectButton();
+
+        newButton.addActionListener(
+            e -> {
+                if (isProducer) newKafkaProducer(); else newKafkaConsumer();
+            }
+        );
+        deleteButton.addActionListener(
+            e -> {
+                if (isProducer) deleteKafkaProducer(); else deleteKafkaConsumer();
+            }
+        );
+        testButton.addActionListener(e -> testKafkaConnection(isProducer, testButton));
+
+        combo.addItemListener(
+            evt -> {
+                if (evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) {
+                    if (isProducer) {
+                        saveCurrentKafkaProducer();
+                        loadKafkaProducer((String) evt.getItem());
+                    } else {
+                        saveCurrentKafkaConsumer();
+                        loadKafkaConsumer((String) evt.getItem());
+                    }
+                }
+            }
+        );
+
+        bar.add(newButton);
+        bar.add(deleteButton);
+        bar.add(testButton);
+
+        panel.add(bar, java.awt.BorderLayout.NORTH);
+        panel.add(tablePanel, java.awt.BorderLayout.CENTER);
+        return panel;
+    }
+
+    private void loadKafkaConfigs() {
+        if (settings == null) {
+            return;
+        }
+        kafkaProducerCombo.setModel(
+            new DefaultComboBoxModel<>(
+                settings.getKafkaProducerSettings().getProducerList().toArray(new String[0])
+            )
+        );
+        kafkaConsumerCombo.setModel(
+            new DefaultComboBoxModel<>(
+                settings.getKafkaConsumerSettings().getConsumerList().toArray(new String[0])
+            )
+        );
+        if (kafkaProducerCombo.getItemCount() > 0) {
+            kafkaProducerCombo.setSelectedIndex(0);
+            loadKafkaProducer((String) kafkaProducerCombo.getSelectedItem());
+        }
+        if (kafkaConsumerCombo.getItemCount() > 0) {
+            kafkaConsumerCombo.setSelectedIndex(0);
+            loadKafkaConsumer((String) kafkaConsumerCombo.getSelectedItem());
+        }
+    }
+
+    private void loadKafkaProducer(String name) {
+        currentKafkaProducer = name;
+        Properties prop = settings.getKafkaProducerSettings().getProducerPropertiesFor(name);
+        kafkaProducerTablePanel.setProperties(toLinkedProperties(prop));
+    }
+
+    private void loadKafkaConsumer(String name) {
+        currentKafkaConsumer = name;
+        Properties prop = settings.getKafkaConsumerSettings().getConsumerPropertiesFor(name);
+        kafkaConsumerTablePanel.setProperties(toLinkedProperties(prop));
+    }
+
+    private static LinkedProperties toLinkedProperties(Properties prop) {
+        LinkedProperties lp = new LinkedProperties();
+        if (prop == null) {
+            return lp;
+        }
+        if (prop instanceof LinkedProperties) {
+            for (Object k : ((LinkedProperties) prop).orderedKeys()) {
+                lp.setProperty(k.toString(), Objects.toString(prop.get(k), ""));
+            }
+        } else {
+            for (String k : prop.stringPropertyNames()) {
+                lp.setProperty(k, prop.getProperty(k));
+            }
+        }
+        return lp;
+    }
+
+    private void saveCurrentKafkaProducer() {
+        if (settings == null || currentKafkaProducer == null) {
+            return;
+        }
+        settings
+            .getKafkaProducerSettings()
+            .addProducer(currentKafkaProducer, kafkaProducerTablePanel.getProperties());
+    }
+
+    private void saveCurrentKafkaConsumer() {
+        if (settings == null || currentKafkaConsumer == null) {
+            return;
+        }
+        settings
+            .getKafkaConsumerSettings()
+            .addConsumer(currentKafkaConsumer, kafkaConsumerTablePanel.getProperties());
+    }
+
+    private void newKafkaProducer() {
+        String name = javax.swing.JOptionPane.showInputDialog(this, "New producer config name:");
+        if (name == null || name.trim().isEmpty()) {
+            return;
+        }
+        name = name.trim();
+        if (settings.getKafkaProducerSettings().doesProducerConfigExist(name)) {
+            Notification.show("Producer [" + name + "] already exists");
+            return;
+        }
+        saveCurrentKafkaProducer();
+        settings.getKafkaProducerSettings().addProducer(name);
+        kafkaProducerCombo.addItem(name);
+        kafkaProducerCombo.setSelectedItem(name);
+    }
+
+    private void newKafkaConsumer() {
+        String name = javax.swing.JOptionPane.showInputDialog(this, "New consumer config name:");
+        if (name == null || name.trim().isEmpty()) {
+            return;
+        }
+        name = name.trim();
+        if (settings.getKafkaConsumerSettings().doesConsumerConfigExist(name)) {
+            Notification.show("Consumer [" + name + "] already exists");
+            return;
+        }
+        saveCurrentKafkaConsumer();
+        settings.getKafkaConsumerSettings().addConsumer(name);
+        kafkaConsumerCombo.addItem(name);
+        kafkaConsumerCombo.setSelectedItem(name);
+    }
+
+    private void deleteKafkaProducer() {
+        if (kafkaProducerCombo.getSelectedItem() == null) {
+            return;
+        }
+        String name = kafkaProducerCombo.getSelectedItem().toString();
+        settings.getKafkaProducerSettings().delete(name);
+        currentKafkaProducer = null;
+        kafkaProducerCombo.removeItem(name);
+    }
+
+    private void deleteKafkaConsumer() {
+        if (kafkaConsumerCombo.getSelectedItem() == null) {
+            return;
+        }
+        String name = kafkaConsumerCombo.getSelectedItem().toString();
+        settings.getKafkaConsumerSettings().delete(name);
+        currentKafkaConsumer = null;
+        kafkaConsumerCombo.removeItem(name);
+    }
+
+    /**
+     * Validates broker reachability for the currently-selected Kafka config by
+     * reflectively invoking the profile-gated {@code KafkaConnectionTester}
+     * (only present when the engine is built with {@code -P kafka}). Flips the
+     * {@link com.ing.ide.main.utils.ConnectButton} bulb green/amber/red.
+     */
+    private void testKafkaConnection(
+        boolean isProducer,
+        com.ing.ide.main.utils.ConnectButton button
+    ) {
+        if (isProducer) saveCurrentKafkaProducer(); else saveCurrentKafkaConsumer();
+        final Properties cfg = isProducer
+            ? kafkaProducerTablePanel.getProperties()
+            : kafkaConsumerTablePanel.getProperties();
+        button.reset();
+        new javax.swing.SwingWorker<String, Void>() {
+
+            @Override
+            protected String doInBackground() {
+                try {
+                    Class<?> tester = Class.forName(
+                        "com.ing.engine.commands.kafka.KafkaConnectionTester"
+                    );
+                    Object result = tester.getMethod("test", Properties.class).invoke(null, cfg);
+                    return result == null ? "" : result.toString();
+                } catch (ClassNotFoundException cnf) {
+                    return "ERR:Kafka support is not enabled in this build (build with -P kafka).";
+                } catch (Exception ex) {
+                    Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                    return "ERR:" + cause.getMessage();
+                }
+            }
+
+            @Override
+            protected void done() {
+                String outcome;
+                try {
+                    outcome = get();
+                } catch (Exception ex) {
+                    outcome = "ERR:" + ex.getMessage();
+                }
+                if (outcome.isEmpty()) {
+                    button.success();
+                    Notification.show("Kafka connection succeeded");
+                } else if (outcome.startsWith("WARN:")) {
+                    button.reset();
+                    Notification.show(outcome.substring(5));
+                } else {
+                    button.failure();
+                    Notification.show(outcome.startsWith("ERR:") ? outcome.substring(4) : outcome);
+                }
+            }
+        }
+        .execute();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
