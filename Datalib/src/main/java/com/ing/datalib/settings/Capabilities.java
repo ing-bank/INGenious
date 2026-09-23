@@ -172,11 +172,11 @@ public class Capabilities {
         String chromiumFile = location + File.separator + "Chromium.properties";
         String webkitFile = location + File.separator + "WebKit.properties";
         String firefoxFile = location + File.separator + "Firefox.properties";
-        String sapFile = location + File.separator + "SAP.properties";
         createFile(chromiumFile);
         createFile(webkitFile);
         createFile(firefoxFile);
-        createFile(sapFile);
+        // SAP is no longer a Capabilities entry - see com.ing.datalib.settings.SapConnections
+        // (Settings/SAP/<alias>.properties).
     }
 
     private void createFile(String fileName) {
@@ -188,17 +188,7 @@ public class Capabilities {
                 // Determine browser type from filename
                 String baseName = propertiesFile.getName();
 
-                if (baseName.equals("SAP.properties")) {
-                    // SAP-specific properties
-                    prop.setProperty(
-                        "app",
-                        "C:\\Program Files\\SAP\\FrontEnd\\SAPGUI\\saplogon.exe"
-                    );
-                    prop.setProperty("libraryPath", "lib/jacob-1.21");
-                    prop.setProperty("dllPath", "lib/jacob-1.21/jacob-1.21-x64.dll");
-                    prop.setProperty("connectionName", "SAP_CONN_NAME");
-                    prop.setProperty("platformName", "Windows");
-                } else if (
+                if (
                     baseName.equals("Chromium.properties") ||
                     baseName.equals("WebKit.properties") ||
                     baseName.equals("Firefox.properties")
@@ -223,18 +213,6 @@ public class Capabilities {
             }
         } else {
             System.out.println(fileName + " properties file already exists: " + location);
-        }
-    }
-
-    /**
-     * Ensures SAP.properties file exists.
-     * Creates it if missing for projects that have SAP emulator.
-     * Skipped if in read-only mode (e.g., during validation).
-     */
-    public void ensureSAPCapabilitiesExist() {
-        if (!readOnlyMode) {
-            String sapFile = location + File.separator + "SAP.properties";
-            createFile(sapFile);
         }
     }
 

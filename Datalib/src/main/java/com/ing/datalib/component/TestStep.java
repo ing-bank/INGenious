@@ -523,4 +523,13 @@ public class TestStep {
     public Boolean isStringOperationsStep() {
         return getObject().equals("String Operations");
     }
+
+    public Boolean isSapStep() {
+        return com.ing.datalib.sap.SapCompatibility.isSapObjectType(getObject());
+    }
+
+    /** True for an archetype that cannot share a test case with SAP - see {@link com.ing.datalib.sap.SapCompatibility}. */
+    public Boolean isBlockedWithSapStep() {
+        return com.ing.datalib.sap.SapCompatibility.isBlockedWithSap(getObject());
+    }
 }

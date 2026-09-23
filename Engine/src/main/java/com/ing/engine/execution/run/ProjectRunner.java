@@ -261,6 +261,18 @@ public class ProjectRunner implements TestRunner {
                 .getContextSettings()
                 .getContextOptionsFor(context)
                 .put(property, value);
+        } else if (key.startsWith("sap.")) {
+            // sap.<alias>.<key> - create-on-missing so an override works before the
+            // Settings/SAP/<alias>.properties file exists.
+            String args[] = key.split("\\.", 3);
+            if (args.length < 3) return;
+            String alias = args[1];
+            String property = args[2];
+            getProject()
+                .getProjectSettings()
+                .getSapConnections()
+                .getOrCreateSapPropertiesFor(alias)
+                .update(property, value);
         } else if (key.startsWith("kafkaSSl.") || key.startsWith("kafkaSsl.")) {
             // §C-3: accept both legacy ("kafkaSSl") and canonical ("kafkaSsl")
             // spellings. The legacy spelling is preserved for back-compat.
@@ -391,6 +403,10 @@ public class ProjectRunner implements TestRunner {
         PREFIX_CATALOGUE.put(
             "context.<alias>.<key>",
             "Context configuration property (Archetype → Context Configurations)"
+        );
+        PREFIX_CATALOGUE.put(
+            "sap.<alias>.<key>",
+            "SAP connection property (Settings/SAP/<alias>.properties; create-on-missing)"
         );
         PREFIX_CATALOGUE.put(
             "api.<alias>.<key>",

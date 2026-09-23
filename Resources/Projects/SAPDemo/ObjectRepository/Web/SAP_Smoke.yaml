@@ -1,0 +1,13 @@
+page: SAP_Smoke
+scope: PROJECT
+elements:
+  username:
+    css: "[data-test=\"username\"]"
+  password:
+    css: "[data-test=\"password\"]"
+  login-button:
+    css: "[data-test=\"login-button\"]"
+  $29.99Add to cart:
+    text: $29.99Add to cart
+  login-container:
+    css: "[data-test=\"login-container\"]"

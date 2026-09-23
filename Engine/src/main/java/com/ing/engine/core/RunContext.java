@@ -22,6 +22,13 @@ public class RunContext {
     public String BrowserVersionValue;
     public boolean useExistingDriver = false;
 
+    /**
+     * Set by the legacy-SAP shim in {@code RunManager} when this run originally
+     * targeted {@code Browser = "SAP"}: it now runs as {@code "No Browser"} with an
+     * implicit {@code SAP.initConnection} to the project default. Transient.
+     */
+    public boolean sapLegacyShim = false;
+
     public void print() {
         System.out.println(
             "[Scenario:" +

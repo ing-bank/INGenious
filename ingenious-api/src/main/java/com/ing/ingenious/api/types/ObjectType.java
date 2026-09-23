@@ -50,8 +50,10 @@ public class ObjectType {
     public static final String STRINGOPERATIONS = "String Operations";
     /** Structured data operations object type */
     public static final String STRUCTUREDDATA = "Structured Data";
-    /** SAP operations object type */
+    /** SAP session / connection object type (no element required — e.g. initConnection) */
     public static final String SAP = "SAP";
+    /** SAP GUI element object type (requires a SAP Object Repository element) */
+    public static final String SAP_OBJECT = "SAP Object";
 
     /**
      * An unmodifiable set containing all standard framework object types.
@@ -79,6 +81,7 @@ public class ObjectType {
         add(STRINGOPERATIONS);
         add(STRUCTUREDDATA);
         add(SAP);
+        add(SAP_OBJECT);
         }};
 
     /**

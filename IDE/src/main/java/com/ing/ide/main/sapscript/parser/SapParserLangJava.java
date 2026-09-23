@@ -26,11 +26,16 @@ import java.util.regex.Pattern;
 public class SapParserLangJava extends SapLanguageParser {
     private boolean inBlockComment = false;
     private Map<String, String> variableMap = new HashMap<>();
+    // Phase 4: result variable -> the session label it was captured under (null = primary)
+    private Map<String, String> variableSessionMap = new HashMap<>();
     private Map<String, Map<Integer, String>> arrayMap = new HashMap<>();
     private String currentTransaction = null;
 
+    // Group 1: the result variable; group 2: the session variable findById was invoked on
+    // (session, session2, ...) - captured, not hardcoded, so a differently-named session
+    // variable is recognised instead of silently falling through unrecognised.
     private static final Pattern ACTIVEX_FINDBYID_PATTERN = Pattern.compile(
-        "(\\w+)\\s*=\\s*new\\s+ActiveXComponent\\(\\w+\\.invoke\\(\\s*\"findById\"\\s*,\\s*\"([^\"]+)\"",
+        "(\\w+)\\s*=\\s*new\\s+ActiveXComponent\\((\\w+)\\.invoke\\(\\s*\"findById\"\\s*,\\s*\"([^\"]+)\"",
         Pattern.CASE_INSENSITIVE
     );
 
@@ -98,6 +103,7 @@ public class SapParserLangJava extends SapLanguageParser {
         );
 
         variableMap.clear();
+        variableSessionMap.clear();
         arrayMap.clear();
         currentTransaction = null;
 
@@ -117,7 +123,7 @@ public class SapParserLangJava extends SapLanguageParser {
                 if (transaction != null) {
                     currentTransaction = transaction;
                     LOGGER.fine("Found transaction: " + currentTransaction);
-                    sapActions.add(
+                    addAction(
                         new SapAction("Transaction", "SAP_SYSTEM", currentTransaction, lineNumber)
                     );
                     continue;
@@ -163,8 +169,15 @@ public class SapParserLangJava extends SapLanguageParser {
         Matcher activeXMatcher = ACTIVEX_FINDBYID_PATTERN.matcher(line);
         if (activeXMatcher.find()) {
             String varName = activeXMatcher.group(1);
-            String objectId = activeXMatcher.group(2);
+            String sessionVar = activeXMatcher.group(2);
+            String objectId = activeXMatcher.group(3);
             variableMap.put(varName, objectId);
+
+            // Phase 4: which session this element was found on.
+            String label = labelForSessionVar(sessionVar);
+            variableSessionMap.put(varName, label);
+            noteSessionLabel(label, lineNumber);
+
             storeObject(objectId, lineNumber);
             return;
         }
@@ -177,6 +190,9 @@ public class SapParserLangJava extends SapLanguageParser {
 
             String objectId = variableMap.get(varName);
             if (objectId != null) {
+                // Phase 4: re-sync if this line acts on a variable captured under a different
+                // session than the one currently active (interleaved multi-session scripts).
+                noteSessionLabel(variableSessionMap.get(varName), lineNumber);
                 parseInvokeMethod(objectId, methodName, parameters, lineNumber);
             }
             return;
@@ -190,6 +206,7 @@ public class SapParserLangJava extends SapLanguageParser {
 
             String objectId = variableMap.get(varName);
             if (objectId != null) {
+                noteSessionLabel(variableSessionMap.get(varName), lineNumber);
                 parseSetProperty(objectId, propertyName, propertyValue, lineNumber);
             }
         }
@@ -402,7 +419,7 @@ public class SapParserLangJava extends SapLanguageParser {
             case "text":
                 value = extractQuotedValue(value);
                 addAction("Set", objectId, value, lineNumber);
-                SapObject obj = sapObjects.get(objectId);
+                SapObject obj = getSapObject(objectId);
                 if (obj != null) {
                     obj.text = value;
                 }
@@ -573,20 +590,14 @@ public class SapParserLangJava extends SapLanguageParser {
         return extractParameterValue(trimmed);
     }
 
+    // storeObject/addAction delegate to the base class (addSapObject / addAction(SapAction)) so
+    // this parser picks up the same session tagging, absolute-id stripping and session-scoped
+    // name dedup as the base-class-driven languages, instead of duplicating that logic here.
     private void storeObject(String objectId, int lineNumber) {
-        if (!sapObjects.containsKey(objectId)) {
-            String objectType = determineObjectType(objectId);
-            SapObject obj = new SapObject(objectId, objectType, currentTransaction);
-            sapObjects.put(objectId, obj);
-            LOGGER.fine("Stored SAP object: " + objectId + " (type: " + objectType + ")");
-        }
+        addSapObject(objectId, determineObjectType(objectId), currentTransaction);
     }
 
     private void addAction(String actionType, String objectId, String value, int lineNumber) {
-        SapAction action = new SapAction(actionType, objectId, value, lineNumber);
-        sapActions.add(action);
-        LOGGER.fine(
-            String.format("Added action: %s on %s (line %d)", actionType, objectId, lineNumber)
-        );
+        addAction(new SapAction(actionType, objectId, value, lineNumber));
     }
 }

@@ -160,7 +160,7 @@ public class ActionRenderer extends AbstractRenderer {
         }
 
         if (isSapObject(step)) {
-            return MethodInfoManager.getMethodListFor(ObjectType.SAP).contains(action);
+            return MethodInfoManager.getMethodListFor(ObjectType.SAP_OBJECT).contains(action);
         }
 
         // Fallback to generic actions available for any object

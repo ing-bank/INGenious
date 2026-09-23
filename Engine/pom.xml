@@ -9,10 +9,14 @@
     </parent>
     <artifactId>ingenious-engine</artifactId>
     <packaging>jar</packaging>
-    <properties>  
+    <properties>
         <timestamp>${maven.build.timestamp} UTC</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
         <app.root>../</app.root>
+        <!-- Baked into sap/sap-build.properties (filtered, see <resources> below) and read
+             once by SapSessionManager at class-init. Only "mvn ... -Dsap.fakeMode=true" turns
+             it on; a plain build always ships false. See SAP-Enhancement/SAP-Fake-Mode.md. -->
+        <sap.fakeMode>false</sap.fakeMode>
     </properties>
     <dependencies> 
         <!-- <dependency>
@@ -426,7 +430,20 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>   
+            </plugin>
+            <plugin>
+                <!-- Real-SAP-GUI tests (class name ending "LiveTest") need a live SAP GUI +
+                     COM on Windows, so they never run in the default build - only under the
+                     sap-live profile below. Fake-backed tests (e.g. SapSessionManagerTest)
+                     are unaffected; this excludes by name, not by package. -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*LiveTest.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-eclipse-plugin</artifactId>
@@ -693,6 +710,24 @@
             <!-- SAP GUI automation uses the JACOB bridge, referenced by engine core
                  classes (CommandControl, drivers.SAP*, base Command). It ships in the
                  core <dependencies> block. Marker profile retained. -->
+        </profile>
+
+        <profile>
+            <id>sap-live</id>
+            <!-- Runs the "*LiveTest" classes (excluded by default - see the surefire
+                 config above) against a real, already-logged-on SAP GUI. Windows only.
+                 mvn test -pl Engine -Psap-live -->
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <excludes combine.self="override"></excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
 
         <profile>

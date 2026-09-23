@@ -15,15 +15,23 @@ public class TestCaseTest {
     private Scenario scenario;
     private Project project;
     private TestCase testCase;
+    private File scenarioDir;
 
     @BeforeMethod
     public void setUp() {
+        File tempProjectDir = new File(
+            System.getProperty("java.io.tmpdir"),
+            "TestCaseTest_" + System.nanoTime()
+        );
+        File testPlanDir = new File(tempProjectDir, "TestPlan");
+        scenarioDir = new File(testPlanDir, "LoginScenario");
+
         project = mock(Project.class);
-        when(project.getLocation()).thenReturn("/tmp/test-project");
+        when(project.getLocation()).thenReturn(tempProjectDir.getAbsolutePath());
         scenario = mock(Scenario.class);
         when(scenario.getProject()).thenReturn(project);
         when(scenario.getName()).thenReturn("LoginScenario");
-        when(scenario.getLocation()).thenReturn("/tmp/test-project/TestPlan/LoginScenario");
+        when(scenario.getLocation()).thenReturn(scenarioDir.getAbsolutePath());
 
         testCase = new TestCase(scenario, "TC_Login.csv");
     }
@@ -53,9 +61,7 @@ public class TestCaseTest {
     @Test
     public void testGetLocation() {
         assertThat(testCase.getLocation())
-            .isEqualTo(
-                "/tmp/test-project/TestPlan/LoginScenario" + File.separator + "TC_Login.yaml"
-            );
+            .isEqualTo(scenarioDir.getAbsolutePath() + File.separator + "TC_Login.yaml");
     }
 
     // ---- toString ----

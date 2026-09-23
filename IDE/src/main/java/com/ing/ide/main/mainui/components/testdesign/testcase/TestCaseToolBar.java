@@ -149,14 +149,10 @@ public class TestCaseToolBar extends JToolBar {
         List<String> browsers = PlaywrightDriverFactory.Browser.getValuesAsList();
         setBrowserListPopupMenu(browsers);
 
-        // Extract SAP and add it with separator
+        // SAP is no longer a browser: it is a driverless connection opened via a
+        // SAP.initConnection step. Legacy Browser="SAP" cases run as "No Browser".
         List<String> emulatorsCopy = new ArrayList<>(emulators);
-        boolean hasSAP = emulatorsCopy.remove("SAP");
-
-        if (hasSAP) {
-            browsersMenu.addSeparator();
-            setBrowserListPopupMenu(List.of("SAP"));
-        }
+        emulatorsCopy.remove("SAP");
 
         // Add remaining emulators
         if (!emulatorsCopy.isEmpty()) {

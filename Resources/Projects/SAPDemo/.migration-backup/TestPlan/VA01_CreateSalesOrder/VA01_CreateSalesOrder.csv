@@ -1,0 +1,19 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,SAP,Initialize SAP connection,sapInitConnection,,,
+2,SAP_SYSTEM,Execute Transaction VA01,sapExecuteTransaction,VA01,,
+3,ctxtVBAK_AUART,Set [<Object>],sapFill,@OR,,[Project] VA01_CreateSalesOrder
+4,ctxtVBAK_VKORG,Set [<Object>],sapFill,@1000,,[Project] VA01_CreateSalesOrder
+5,ctxtVBAK_VTWEG,Set [<Object>],sapFill,@10,,[Project] VA01_CreateSalesOrder
+6,btn0,Click [<Object>],sapClick,,,[Project] VA01_CreateSalesOrder
+7,ctxtKUAGV_KUNNR,Set [<Object>],sapFill,@0000100032,,[Project] VA01_CreateSalesOrder
+8,txtRV45A_KWMENG30,Set [<Object>],sapFill,@10,,[Project] VA01_CreateSalesOrder
+9,txtRV45A_KWMENG30,SetFocus [<Object>],sapSetFocus,,,[Project] VA01_CreateSalesOrder
+10,wnd0,SendVKey [<Object>],sapSimulateKeyPress,@0,,[Project] VA01_CreateSalesOrder
+11,chkRV45A_SELKZ60,Check [<Object>],sapSelectCheckBox,@true,,[Project] VA01_CreateSalesOrder
+12,SAP_SYSTEM,Execute Transaction VA03,sapExecuteTransaction,VA03,,
+13,SAP,Open SAP session [s1],sapOpenSession,@s1,,
+14,sess_s1_ctxtVBAK_VBELN,Set [<Object>],sapFill,@0000012345,,[Project] VA01_CreateSalesOrder
+15,sess_s1_wnd0,SendVKey [<Object>],sapSimulateKeyPress,@0,,[Project] VA01_CreateSalesOrder
+16,SAP,Switch SAP session,sapSwitchSession,,,
+17,btn11,Click [<Object>],sapClick,,,[Project] VA01_CreateSalesOrder
+18,SAP,Close SAP connection,sapCloseConnection,,,

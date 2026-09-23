@@ -1,0 +1,96 @@
+schemaVersion: 1
+testCase: SAP_Smoke
+scenario: SAP
+tags:
+  - '@smoke'
+  - '@sap'
+steps:
+  - step: 1
+    object: SAP
+    description: Open the DEMO SAP connection
+    action: sapInitConnection
+    input: "#DEMO"
+
+  - step: 2
+    object: SAP
+    description: "Open a second, concurrent session labeled [stock]"
+    action: sapOpenSession
+    input: '@stock'
+
+  - step: 3
+    object: SAP
+    description: Switch back to the connection's primary session
+    action: sapSwitchSession
+
+  - step: 4
+    object: Browser
+    description: "Open the Url [<Data>] in the Browser"
+    action: Open
+    input: '@https://saucedemo.com'
+
+  - step: 5
+    object: General
+    description: "print the data [<Data>]"
+    action: print
+    input: '@test'
+
+  - step: 6
+    object: login-container
+    action: Click
+    reference: "[Project] SAP_Smoke"
+
+  - step: 7
+    object: username
+    description: "Click the [<Object>] "
+    action: Click
+    reference: "[Project] SAP_Smoke"
+
+  - step: 8
+    object: username
+    description: "Enter the value [<Data>] in the Field [<Object>]"
+    action: Fill
+    input: '@standard_user'
+    reference: "[Project] SAP_Smoke"
+
+  - step: 9
+    object: password
+    description: "Click the [<Object>] "
+    action: Click
+    reference: "[Project] SAP_Smoke"
+
+  - step: 10
+    object: password
+    description: "Enter the value [<Data>] in the Field [<Object>]"
+    action: Fill
+    input: '@secret_sauce'
+    reference: "[Project] SAP_Smoke"
+
+  - step: 11
+    object: login-button
+    description: "Click the [<Object>] "
+    action: Click
+    reference: "[Project] SAP_Smoke"
+
+  - step: 12
+    object: $29.99Add to cart
+    description: "Click the [<Object>] "
+    action: Click
+    reference: "[Project] SAP_Smoke"
+
+  - step: 13
+    object: SAP
+    description: "Switch to the [stock] session again"
+    action: sapSwitchSession
+    input: '@stock'
+
+  - step: 14
+    object: SAP
+    description: "Close the [stock] session"
+    action: sapCloseSession
+    input: '@stock'
+
+  - step: 15
+    object: SAP
+    description: Close the DEMO SAP connection
+    action: sapCloseConnection
+    input: "#DEMO"

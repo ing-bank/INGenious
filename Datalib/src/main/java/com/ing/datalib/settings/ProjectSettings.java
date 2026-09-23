@@ -4,7 +4,9 @@ import com.ing.datalib.component.Project;
 import com.ing.datalib.settings.emulators.Device;
 import com.ing.datalib.settings.emulators.Emulator;
 import com.ing.datalib.settings.migration.EmulatorToDeviceMigration;
+import com.ing.datalib.util.data.LinkedProperties;
 import java.io.File;
+import java.util.logging.Logger;
 
 /**
  *
@@ -29,6 +31,11 @@ public class ProjectSettings {
     private final ContextOptions contextSettings;
     private final KafkaSSLConfigurations SSLConfigurations;
     private final LambdaTestCaps lambdaTestCaps;
+    private final SapConnections sapConnections;
+    private final SapDefaults sapDefaults;
+    private final SapConfigRegistry sapConfigRegistry;
+
+    private static final Logger LOGGER = Logger.getLogger(ProjectSettings.class.getName());
 
     public ProjectSettings(Project sProject) {
         this(sProject, false);
@@ -51,9 +58,13 @@ public class ProjectSettings {
         this.contextSettings = new ContextOptions(getLocation());
         this.SSLConfigurations = new KafkaSSLConfigurations(getLocation());
         this.lambdaTestCaps = new LambdaTestCaps(getLocation());
+        this.sapConnections = new SapConnections(getLocation(), readOnlyMode);
+        this.sapDefaults = new SapDefaults(getLocation());
+        this.sapConfigRegistry = new SapConfigRegistry(sapConnections, sapDefaults);
 
-        // Ensure SAP is available as default browser (skipped if read-only)
-        ensureSAPDefaultEmulator();
+        // Ensure the project has at least one SAP connection + a default
+        // (skipped if read-only). Migrates the legacy single "SAP" config.
+        ensureSapDefaultConnection();
 
         // One-time migration: move legacy "Manage Browsers" emulator entries
         // into the new "Manage Devices" store. Idempotent and SAP-preserving.
@@ -64,21 +75,56 @@ public class ProjectSettings {
     }
 
     /**
-     * Ensures SAP emulator exists for this project.
-     * Adds SAP if missing and saves configuration.
-     * Creates SAP.properties file if it doesn't exist.
-     * Skipped if in read-only mode (e.g., during validation).
+     * Ensures the project has at least one SAP connection under {@code Settings/SAP/}
+     * plus a default pointer. On first run for a legacy project this migrates the old
+     * single config: {@code Settings/Capabilities/SAP.properties}, else the even older
+     * {@code Settings/SAP.properties}, else a blank starter template. The legacy
+     * {@code Emulators.json} "SAP" row is left untouched but no longer consulted.
+     * Skipped in read-only mode.
      */
-    private void ensureSAPDefaultEmulator() {
-        if (!readOnlyMode) {
-            // Always ensure SAP exists (regardless of file existence - works for new projects)
-            if (emulators.getEmulator("SAP") == null) {
-                emulators.addEmulator("SAP");
-                emulators.save();
+    private void ensureSapDefaultConnection() {
+        if (readOnlyMode) {
+            return;
+        }
+        if (!sapConnections.getSapList().isEmpty()) {
+            if (sapDefaults.getProperty(SapDefaults.KEY_MODEL) == null) {
+                sapDefaults.setModel(SapDefaults.MODEL_LEGACY);
+                sapDefaults.save();
             }
+            return;
+        }
 
-            // Ensure SAP.properties file exists
-            capabilities.ensureSAPCapabilitiesExist();
+        LinkedProperties seed = new LinkedProperties();
+        seed.putAll(sapConnections.defaultConnectionProperties());
+
+        LinkedProperties legacyCaps = capabilities.getCapabiltiesFor("SAP");
+        File legacyRoot = new File(getLocation() + File.separator + "SAP.properties");
+        if (legacyCaps != null) {
+            copyIfPresent(legacyCaps, seed, "app", "connectionName");
+        } else if (legacyRoot.exists()) {
+            LinkedProperties root = PropUtils.load(legacyRoot);
+            copyIfPresent(root, seed, "app", "connectionName");
+            LOGGER.warning(
+                "Migrating deprecated Settings/SAP.properties to Settings/SAP/SAP.properties"
+            );
+        }
+
+        sapConnections.addSap("SAP", seed);
+        sapDefaults.setDefaultConnection("SAP");
+        sapDefaults.setModel(SapDefaults.MODEL_LEGACY);
+        sapDefaults.save();
+    }
+
+    private static void copyIfPresent(
+        java.util.Properties from,
+        java.util.Properties to,
+        String... keys
+    ) {
+        for (String key : keys) {
+            String v = from.getProperty(key);
+            if (v != null && !v.trim().isEmpty()) {
+                to.setProperty(key, v);
+            }
         }
     }
 
@@ -96,6 +142,8 @@ public class ProjectSettings {
         extentSettings.setLocation(getLocation());
         contextSettings.setLocation(getLocation());
         lambdaTestCaps.setLocation(getLocation());
+        sapConnections.setLocation(getLocation());
+        sapDefaults.setLocation(getLocation());
     }
 
     public final String getLocation() {
@@ -181,6 +229,18 @@ public class ProjectSettings {
         return lambdaTestCaps;
     }
 
+    public SapConnections getSapConnections() {
+        return sapConnections;
+    }
+
+    public SapDefaults getSapDefaults() {
+        return sapDefaults;
+    }
+
+    public SapConfigRegistry getSapConfigRegistry() {
+        return sapConfigRegistry;
+    }
+
     public void save() {
         userDefinedSettings.save();
         execSettings.save();
@@ -194,5 +254,7 @@ public class ProjectSettings {
         contextSettings.save();
         SSLConfigurations.save();
         lambdaTestCaps.save();
+        sapConnections.save();
+        sapDefaults.save();
     }
 }

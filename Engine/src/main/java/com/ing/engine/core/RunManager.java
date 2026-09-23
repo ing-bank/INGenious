@@ -4,7 +4,9 @@ import com.ing.datalib.component.ExecutionStep;
 import com.ing.datalib.component.TestSet;
 import com.ing.datalib.model.Tags;
 import com.ing.engine.cli.LookUp;
+import com.ing.engine.cli.lib.BrowserNames;
 import com.ing.engine.constants.FilePath;
+import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.drivers.PlaywrightDriverFactory.Browser;
 import com.ing.engine.settings.GlobalSettings;
 import java.io.File;
@@ -75,6 +77,7 @@ public class RunManager {
         exe.ReusableScope = globalSettings.getReusableScope();
         exe.Description = "Test Run";
         exe.BrowserName = globalSettings.getBrowser();
+        applySapLegacyShim(exe);
         exe.Browser = Browser.fromString(exe.BrowserName);
         exe.PlatformValue = System.getProperty("os.name");
         exe.BrowserVersion = "default";
@@ -150,6 +153,22 @@ public class RunManager {
         return execQ;
     }
 
+    /**
+     * Legacy-SAP shim (Phases 1-2): a run targeting the old {@code Browser = "SAP"}
+     * now executes as {@code "No Browser"} with an implicit {@code SAP.initConnection}
+     * to the project default (see {@code Task.runIteration}). Flag-gated so it can be
+     * turned off; Phase 3 rewrites the stored value and removes this.
+     */
+    private static void applySapLegacyShim(RunContext exe) {
+        if (
+            SystemDefaults.sapConnectionModelEnabled.get() &&
+            "SAP".equalsIgnoreCase(exe.BrowserName)
+        ) {
+            exe.BrowserName = BrowserNames.NO_BROWSER;
+            exe.sapLegacyShim = true;
+        }
+    }
+
     private static void addRunContext(ExecutionStep step, Queue<RunContext> execQ) {
         RunContext exe = new RunContext();
         exe.Scenario = step.getTestScenarioName();
@@ -163,6 +182,7 @@ public class RunManager {
         } else {
             exe.BrowserName = step.getBrowser();
         }
+        applySapLegacyShim(exe);
         exe.Browser = Browser.fromString(exe.BrowserName);
         exe.BrowserVersionValue = step.getBrowserVersion();
         exe.BrowserVersion = getBrowserVersion(exe.BrowserVersionValue);

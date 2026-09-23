@@ -1,0 +1,87 @@
+{
+  "id" : "SAPDemo",
+  "name" : "SAPDemo",
+  "attributes" : [ ],
+  "tags" : [ ],
+  "_meta" : [ {
+    "type" : "attribute",
+    "name" : "scenario",
+    "desc" : "High level classification of test requirement/cases grouped together",
+    "ref" : "com.ing.datalib.model.Attribute",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "tag",
+    "name" : "@smoke",
+    "desc" : "Non-exhaustive set of tests that aim at ensuring that the most important functions work",
+    "ref" : "com.ing.datalib.model.Tag",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "tag",
+    "name" : "@uat",
+    "ref" : "com.ing.datalib.model.Tag",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "tag",
+    "name" : "@load",
+    "ref" : "com.ing.datalib.model.Tag",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "tag",
+    "name" : "@sap",
+    "desc" : "SAP archetype test cases",
+    "ref" : "com.ing.datalib.model.Tag",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "scenario",
+    "name" : "SAP",
+    "ref" : "com.ing.datalib.model.Attribute",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "scenario",
+    "name" : "VA01_CreateSalesOrder",
+    "ref" : "com.ing.datalib.model.Attribute",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "scenario",
+    "name" : "VA01_MultiWindowMultiSession",
+    "ref" : "com.ing.datalib.model.Attribute",
+    "attributes" : [ ],
+    "tags" : [ ]
+  } ],
+  "data" : [ {
+    "id" : "SAP_Smoke",
+    "name" : "SAP_Smoke",
+    "tags" : [ {
+      "value" : "@smoke"
+    }, {
+      "value" : "@sap"
+    } ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "SAP"
+    } ]
+  }, {
+    "id" : "VA01_CreateSalesOrder",
+    "name" : "VA01_CreateSalesOrder",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "VA01_CreateSalesOrder"
+    } ]
+  }, {
+    "id" : "VA01_MultiWindowMultiSession",
+    "name" : "VA01_MultiWindowMultiSession",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "VA01_MultiWindowMultiSession"
+    } ]
+  } ]
+}

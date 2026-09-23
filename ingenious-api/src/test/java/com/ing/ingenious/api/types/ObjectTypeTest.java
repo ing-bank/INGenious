@@ -14,7 +14,7 @@ class ObjectTypeTest {
     void getObjectTypesShouldContainAllInitialTypes() {
         Set<String> objectTypes = ObjectType.getObjectTypes();
 
-        assertEquals(18, objectTypes.size());
+        assertEquals(19, objectTypes.size());
         assertTrue(objectTypes.contains(ObjectType.BROWSER));
         assertTrue(objectTypes.contains(ObjectType.WEB));
         assertTrue(objectTypes.contains(ObjectType.MOBILE));
@@ -33,6 +33,7 @@ class ObjectTypeTest {
         assertTrue(objectTypes.contains(ObjectType.STRINGOPERATIONS));
         assertTrue(objectTypes.contains(ObjectType.STRUCTUREDDATA));
         assertTrue(objectTypes.contains(ObjectType.SAP));
+        assertTrue(objectTypes.contains(ObjectType.SAP_OBJECT));
     }
 
     @Test

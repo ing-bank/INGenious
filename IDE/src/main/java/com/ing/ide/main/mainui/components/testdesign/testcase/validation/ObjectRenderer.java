@@ -6,7 +6,9 @@ import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.sap.ResolvedSapObject;
 import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
+import com.ing.datalib.sap.SapCompatibility;
 import com.ing.engine.support.ObjectTypeUtil;
+import com.ing.ingenious.api.types.ObjectType;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Objects;
@@ -43,12 +45,16 @@ public class ObjectRenderer extends AbstractRenderer {
                 }
             } else if (step.isPageObjectStep()) {
                 if (isObjectPresent(step)) {
-                    setDefault(comp);
+                    if (!applyGuardrailWarning(comp, step)) {
+                        setDefault(comp);
+                    }
                 } else {
                     setNotPresent(comp, objNotPresent);
                 }
             } else if (isValidObject(value)) {
-                setDefault(comp);
+                if (!applyGuardrailWarning(comp, step)) {
+                    setDefault(comp);
+                }
             } else {
                 setNotPresent(comp, objNotPresent);
             }
@@ -58,6 +64,48 @@ public class ObjectRenderer extends AbstractRenderer {
             comp.setForeground(c != null ? c : Color.lightGray);
             comp.setFont(new Font("Default", Font.ITALIC, 11));
         }
+    }
+
+    /**
+     * Guardrails - what may share a SAP test case: a step needing its own live device, broker or
+     * remote driver gets a non-blocking amber warning (never a red error) once the test case also
+     * carries a SAP step. Returns {@code true} (and applies the decoration) when the warning fired,
+     * so the caller can skip its normal {@code setDefault}.
+     */
+    private boolean applyGuardrailWarning(JComponent comp, TestStep step) {
+        String blockedType = resolveBlockedObjectType(step);
+        if (blockedType == null || step.getTestCase() == null) {
+            return false;
+        }
+        if (!SapCompatibility.hasSapStep(step.getTestCase().getTestSteps())) {
+            return false;
+        }
+        setWarning(comp, SapCompatibility.blockedReasonMessage(blockedType));
+        return true;
+    }
+
+    /** @return the blocked {@link ObjectType} this step resolves to, or {@code null} if it isn't one. */
+    private String resolveBlockedObjectType(TestStep step) {
+        String literal = step.getObject();
+        if (SapCompatibility.isBlockedWithSap(literal)) {
+            return literal;
+        }
+        if (step.isPageObjectStep()) {
+            var repo = step.getProject().getObjectRepository();
+            String pageToken = step.getReference();
+            String objectName = step.getObject();
+            ResolvedMobileObject.PageRef mref = ResolvedMobileObject.PageRef.parse(pageToken);
+            boolean isMobileObject =
+                (
+                    (mref != null && mref.name != null && mref.scope != null) &&
+                    (repo.resolveMobileObject(mref, objectName) != null)
+                ) ||
+                (repo.resolveMobileObjectWithScope(pageToken, objectName) != null);
+            if (isMobileObject) {
+                return ObjectType.MOBILE;
+            }
+        }
+        return null;
     }
 
     private Boolean isObjectPresent(TestStep step) {

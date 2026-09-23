@@ -1,0 +1,41 @@
+page: VA01_MultiWindowMultiSession
+scope: PROJECT
+elements:
+  ctxtVBAK_AUART:
+    id: "wnd[0]/usr/ctxtVBAK-AUART"
+  ctxtKUAGV_KUNNR:
+    id: "wnd[0]/usr/ctxtKUAGV-KUNNR"
+  wnd0:
+    id: "wnd[0]"
+  w1_txtV_LOW:
+    id: "wnd[1]/usr/txtV-LOW"
+  w1_btn0:
+    id: "wnd[1]/tbar[0]/btn[0]"
+  w1_shell:
+    id: "wnd[1]/usr/cntlGRID1/shellcont/shell"
+  ctxtVBAK_VKORG:
+    id: "wnd[0]/usr/ctxtVBAK-VKORG"
+  btn0:
+    id: "wnd[0]/tbar[0]/btn[0]"
+  txtRV45A_KWMENG30:
+    id: "wnd[0]/usr/tblSAPMV45ATCTRL_U_ERF_AUFTRAG/txtRV45A-KWMENG[3,0]"
+  sess_s1_ctxtVBAK_VBELN:
+    id: "wnd[0]/usr/ctxtVBAK-VBELN"
+    session: s1
+  sess_s1_wnd0:
+    id: "wnd[0]"
+    session: s1
+  sess_s1_txtRV45A_KWMENG30:
+    id: "wnd[0]/usr/tblSAPMV45ATCTRL_U_ERF_AUFTRAG/txtRV45A-KWMENG[3,0]"
+    session: s1
+  sess_s1_btn11:
+    id: "wnd[0]/tbar[0]/btn[11]"
+    session: s1
+  sess_s1_w1_btn3:
+    id: "wnd[1]/tbar[0]/btn[3]"
+    session: s1
+  sess_s1_w2_btnSPOP_OPTION1:
+    id: "wnd[2]/usr/btnSPOP-OPTION1"
+    session: s1
+  btn11:
+    id: "wnd[0]/tbar[0]/btn[11]"

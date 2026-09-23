@@ -72,6 +72,8 @@ public enum ArgType {
     ALIAS_API("#apiAlias", "#PetStore", Pattern.compile("^#.+"), false),
     /** {@code #contextAlias} context alias. */
     ALIAS_CONTEXT("#contextAlias", "#mobileCtx", Pattern.compile("^#.+"), false),
+    /** {@code #sapAlias} SAP connection alias; blank is valid (means the project default). */
+    ALIAS_SAP("#sapAlias", "#SAP_QA", null, false),
     /** GlobalData environment id. */
     GLOBAL_ID("GlobalData id", "#test", Pattern.compile("^#.+"), false),
     /** Engine directive such as {@code @Enter}, {@code @Browser}. */

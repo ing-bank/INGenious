@@ -1,0 +1,25 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,SAP,Initialize SAP connection,sapInitConnection,,,
+2,SAP_SYSTEM,Execute Transaction VA01,sapExecuteTransaction,VA01,,
+3,ctxtVBAK_AUART,Set [<Object>],sapFill,@OR,,[Project] VA01_MultiWindowMultiSession
+4,ctxtKUAGV_KUNNR,SetFocus [<Object>],sapSetFocus,,,[Project] VA01_MultiWindowMultiSession
+5,wnd0,SendVKey [<Object>],sapSimulateKeyPress,@4,,[Project] VA01_MultiWindowMultiSession
+6,w1_txtV_LOW,Set [<Object>],sapFill,@100032,,[Project] VA01_MultiWindowMultiSession
+7,w1_btn0,Click [<Object>],sapClick,,,[Project] VA01_MultiWindowMultiSession
+8,w1_shell,DoubleClick [<Object>],sapDoubleClick,,,[Project] VA01_MultiWindowMultiSession
+9,ctxtVBAK_VKORG,Set [<Object>],sapFill,@1000,,[Project] VA01_MultiWindowMultiSession
+10,btn0,Click [<Object>],sapClick,,,[Project] VA01_MultiWindowMultiSession
+11,txtRV45A_KWMENG30,Set [<Object>],sapFill,@5,,[Project] VA01_MultiWindowMultiSession
+12,txtRV45A_KWMENG30,SetFocus [<Object>],sapSetFocus,,,[Project] VA01_MultiWindowMultiSession
+13,wnd0,SendVKey [<Object>],sapSimulateKeyPress,@0,,[Project] VA01_MultiWindowMultiSession
+14,SAP_SYSTEM,Execute Transaction VA02,sapExecuteTransaction,VA02,,
+15,SAP,Open SAP session [s1],sapOpenSession,@s1,,
+16,sess_s1_ctxtVBAK_VBELN,Set [<Object>],sapFill,@0000012345,,[Project] VA01_MultiWindowMultiSession
+17,sess_s1_wnd0,SendVKey [<Object>],sapSimulateKeyPress,@0,,[Project] VA01_MultiWindowMultiSession
+18,sess_s1_txtRV45A_KWMENG30,Set [<Object>],sapFill,@8,,[Project] VA01_MultiWindowMultiSession
+19,sess_s1_btn11,Click [<Object>],sapClick,,,[Project] VA01_MultiWindowMultiSession
+20,sess_s1_w1_btn3,Click [<Object>],sapClick,,,[Project] VA01_MultiWindowMultiSession
+21,sess_s1_w2_btnSPOP_OPTION1,Click [<Object>],sapClick,,,[Project] VA01_MultiWindowMultiSession
+22,SAP,Switch SAP session,sapSwitchSession,,,
+23,btn11,Click [<Object>],sapClick,,,[Project] VA01_MultiWindowMultiSession
+24,SAP,Close SAP connection,sapCloseConnection,,,

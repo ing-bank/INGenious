@@ -126,15 +126,11 @@ public class TestSetAutoSuggest {
         // Add Playwright browsers first
         browsers.addAll(PlaywrightDriverFactory.Browser.getValuesAsList());
 
-        // Extract SAP and add it next
+        // SAP is a driverless connection now, not a browser.
         List<String> emulators = new ArrayList<>(
             sProject.getProjectSettings().getEmulators().getEmulatorNames()
         );
-        if (emulators.remove("SAP")) {
-            browsers.add("SAP");
-        }
-
-        // Add remaining emulators
+        emulators.remove("SAP");
         browsers.addAll(emulators);
 
         // Add devices from Manage Devices tab

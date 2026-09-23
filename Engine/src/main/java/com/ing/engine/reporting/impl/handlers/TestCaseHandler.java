@@ -2,8 +2,8 @@ package com.ing.engine.reporting.impl.handlers;
 
 import com.ing.engine.core.RunContext;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
-import com.ing.engine.drivers.SAPSessionCreation;
 import com.ing.engine.drivers.WebDriverCreation;
+import com.ing.engine.drivers.sap.SapGuiSession;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.reporting.intf.Report;
 import com.ing.engine.support.Step;
@@ -95,5 +95,5 @@ public class TestCaseHandler implements Report {
 
     public void setWebDriver(WebDriverCreation driver) {}
 
-    public void setSapSession(SAPSessionCreation session) {}
+    public void setSapSession(SapGuiSession session) {}
 }
