@@ -1,0 +1,15 @@
+page: VA03_LineItemAuditAndNavigation
+scope: PROJECT
+elements:
+  # SAP Easy Access screen (before any transaction is started)
+  easyAccessTree:
+    id: "wnd[0]/shellcont/shell"
+  # VA03 line items (same tblSAPMV45ATCTRL_U_ERF_AUFTRAG table already verified in VA01_CreateSalesOrder)
+  lineItemsTable:
+    id: "wnd[0]/usr/tblSAPMV45ATCTRL_U_ERF_AUFTRAG"
+  # "Complete delivery" header indicator (VBAK-AUTLF)
+  chkVBAK_AUTLF:
+    id: "wnd[0]/usr/chkVBAK-AUTLF"
+  # Generic secondary popup slot (e.g. an unexpected information/warning dialog)
+  informationPopup:
+    id: "wnd[1]"

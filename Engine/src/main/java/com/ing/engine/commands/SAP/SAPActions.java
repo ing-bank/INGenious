@@ -6,12 +6,15 @@ import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.drivers.sap.SapConnectionException;
 import com.ing.engine.drivers.sap.SapSessionManager;
 import com.ing.engine.execution.run.TestCaseRunner;
+import com.ing.engine.util.NumberConditionEvaluator;
+import com.ing.engine.util.RowMatcher;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.mobile.ElementException;
 import com.ing.ingenious.api.exception.mobile.ElementException.ExceptionType;
 import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.jacob.com.Dispatch;
@@ -25,7 +28,7 @@ import java.util.Map;
  * This class provides comprehensive SAP GUI automation actions organized by element type.
  * Actions are grouped into logical sections for better maintainability and discoverability.
  *
- * Total Actions: 64 (17 Existing + 47 New)
+ * Total Actions: 98 (17 Existing + 81 New)
  *
  * Sections:
  * 1. Session & Transaction Management
@@ -80,6 +83,263 @@ public class SAPActions extends General {
 
     private TestCaseRunner currentRunner() {
         return userData.context();
+    }
+
+    /**
+     * Finds the first row (of a GuiTableControl/GuiGridView, both expose the same RowCount /
+     * GetCellValue API) whose {@code matchColumn} text matches {@code matchText}.
+     * @return matching row index, or -1 if no row matched
+     */
+    private int findMatchingRow(String matchColumn, String matchText, RowMatcher.MatchMode mode) {
+        int rowCount = Integer.parseInt(Dispatch.get(SAPElement, "RowCount").toString());
+        return RowMatcher.findRow(
+            rowCount,
+            row -> Dispatch.call(SAPElement, "GetCellValue", row, matchColumn).toString(),
+            matchText,
+            mode
+        );
+    }
+
+    /**
+     * Shared body for the exact/contains variants of {@code sapSelectTableRowByText} /
+     * {@code sapSelectGridRowByText} - table and grid controls expose the same
+     * RowCount/GetCellValue/SelectRow API.
+     * Data format: matchColumn,matchText
+     */
+    private void selectRowByText(RowMatcher.MatchMode mode) {
+        try {
+            String[] parts = Data.split(",", 2);
+            if (parts.length < 2) {
+                Report.updateTestLog(
+                    Action,
+                    "Invalid data format. Expected: column,text",
+                    Status.FAILNS
+                );
+                return;
+            }
+            String column = parts[0].trim();
+            String text = parts[1].trim();
+
+            int row = findMatchingRow(column, text, mode);
+            if (row < 0) {
+                Report.updateTestLog(
+                    Action,
+                    "No row found where column [" + column + "] matches [" + text + "]",
+                    Status.FAILNS
+                );
+                return;
+            }
+            Dispatch.call(SAPElement, "SelectRow", row);
+            Report.updateTestLog(
+                Action,
+                "Selected row " + row + " where column [" + column + "] matches [" + text + "]",
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to select row by text. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * Finds a row by {@code matchColumn}/{@code matchText}, then reads {@code targetColumn}'s
+     * value from that same row - lets a value from one column be retrieved using another
+     * column as the lookup key, since {@link #findMatchingRow} only returns an index that
+     * {@code GetCellValue} needs but never exposes to the caller.
+     * @return the target column's value, or null if no row matched
+     */
+    private String findValueInMatchingRow(
+        String matchColumn,
+        String matchText,
+        String targetColumn,
+        RowMatcher.MatchMode mode
+    ) {
+        int row = findMatchingRow(matchColumn, matchText, mode);
+        if (row < 0) {
+            return null;
+        }
+        return Dispatch.call(SAPElement, "GetCellValue", row, targetColumn).toString();
+    }
+
+    /**
+     * Shared body for the exact/contains, table/grid variants of storing a matched row's cell
+     * into a variable. Data format: matchColumn,matchText,targetColumn
+     */
+    private void storeCellValueByMatchInVariable(RowMatcher.MatchMode mode) {
+        try {
+            String[] parts = Data.split(",", 3);
+            if (parts.length < 3) {
+                Report.updateTestLog(
+                    Action,
+                    "Invalid data format. Expected: matchColumn,matchText,targetColumn",
+                    Status.FAILNS
+                );
+                return;
+            }
+            String matchColumn = parts[0].trim();
+            String matchText = parts[1].trim();
+            String targetColumn = parts[2].trim();
+
+            String value = findValueInMatchingRow(matchColumn, matchText, targetColumn, mode);
+            if (value == null) {
+                Report.updateTestLog(
+                    Action,
+                    "No row found where column [" + matchColumn + "] matches [" + matchText + "]",
+                    Status.FAILNS
+                );
+                return;
+            }
+            addVar(Condition, value);
+            Report.updateTestLog(
+                Action,
+                "Got value [" +
+                value +
+                "] from column [" +
+                targetColumn +
+                "] in row where [" +
+                matchColumn +
+                "] matches [" +
+                matchText +
+                "] into variable [" +
+                Condition +
+                "]",
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to store cell in matching row. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * Shared body for the exact/contains, table/grid variants of storing a matched row's cell
+     * into a datasheet cell. Data format: matchColumn,matchText,targetColumn,Sheet:Column
+     */
+    private void storeCellValueByMatchInDataSheet(RowMatcher.MatchMode mode) {
+        try {
+            String[] parts = Data.split(",", 4);
+            if (parts.length < 4) {
+                Report.updateTestLog(
+                    Action,
+                    "Invalid data format. Expected: matchColumn,matchText,targetColumn,Sheet:Column",
+                    Status.FAILNS
+                );
+                return;
+            }
+            String matchColumn = parts[0].trim();
+            String matchText = parts[1].trim();
+            String targetColumn = parts[2].trim();
+            String[] sheetRef = parts[3].trim().split(":", 2);
+            if (sheetRef.length < 2) {
+                Report.updateTestLog(
+                    Action,
+                    "Invalid datasheet reference. Expected: Sheet:Column",
+                    Status.FAILNS
+                );
+                return;
+            }
+            String sheetName = sheetRef[0].trim();
+            String columnName = sheetRef[1].trim();
+
+            String value = findValueInMatchingRow(matchColumn, matchText, targetColumn, mode);
+            if (value == null) {
+                Report.updateTestLog(
+                    Action,
+                    "No row found where column [" + matchColumn + "] matches [" + matchText + "]",
+                    Status.FAILNS
+                );
+                return;
+            }
+            userData.putData(sheetName, columnName, value);
+            Report.updateTestLog(
+                Action,
+                "Got value [" +
+                value +
+                "] from column [" +
+                targetColumn +
+                "] in row where [" +
+                matchColumn +
+                "] matches [" +
+                matchText +
+                "] into datasheet [" +
+                sheetName +
+                ":" +
+                columnName +
+                "]",
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to store cell in matching row. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * Shared body for {@code sapAssertTableRowCount} / {@code sapAssertGridRowCount} - table
+     * and grid controls expose the same RowCount API.
+     */
+    private void assertRowCount() {
+        String actualCount = null;
+        try {
+            actualCount = Dispatch.get(SAPElement, "RowCount").toString();
+            NumberConditionEvaluator.Condition parsed = NumberConditionEvaluator.parse(Data);
+            boolean result = NumberConditionEvaluator.evaluate(
+                actualCount,
+                parsed.operator(),
+                parsed.expected()
+            );
+            if (result) {
+                Report.updateTestLog(
+                    Action,
+                    "[" +
+                    ObjectName +
+                    "] row count [" +
+                    actualCount +
+                    "] satisfies condition [" +
+                    Data +
+                    "]",
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "[" +
+                    ObjectName +
+                    "] row count [" +
+                    actualCount +
+                    "] does not satisfy condition [" +
+                    Data +
+                    "]",
+                    Status.FAILNS
+                );
+            }
+        } catch (NumberFormatException e) {
+            Report.updateTestLog(
+                Action,
+                "[" +
+                ObjectName +
+                "] row count [" +
+                actualCount +
+                "] is not numeric. Error: " +
+                e.getMessage(),
+                Status.FAILNS
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to assert row count on [" + ObjectName + "]. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
     }
 
     // ============================================================================
@@ -866,6 +1126,175 @@ public class SAPActions extends General {
     }
 
     /**
+     * NEW: Assert that a checkbox is selected, complementing {@link #sapSelectCheckBox()}
+     * which only sets the state, never verifies it.
+     * SAP API: checkbox.Selected
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert that checkbox [<Object>] is selected",
+        input = InputType.NO
+    )
+    public void sapAssertCheckBoxSelected() {
+        try {
+            boolean selected = Boolean.parseBoolean(
+                Dispatch.get(SAPElement, "Selected").toString()
+            );
+            if (selected) {
+                Report.updateTestLog(
+                    Action,
+                    "Checkbox [" + ObjectName + "] is selected.",
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "Checkbox [" + ObjectName + "] is not selected.",
+                    Status.FAILNS
+                );
+            }
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to get checkbox state. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /** NEW: Assert that a checkbox is not selected, the complement of {@link #sapAssertCheckBoxSelected()}. */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert that checkbox [<Object>] is not selected",
+        input = InputType.NO
+    )
+    public void sapAssertCheckBoxNotSelected() {
+        try {
+            boolean selected = Boolean.parseBoolean(
+                Dispatch.get(SAPElement, "Selected").toString()
+            );
+            if (!selected) {
+                Report.updateTestLog(
+                    Action,
+                    "Checkbox [" + ObjectName + "] is not selected, as expected.",
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "Checkbox [" + ObjectName + "] is selected, but expected it not to be.",
+                    Status.FAILNS
+                );
+            }
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to get checkbox state. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * Shared body for the exact/contains variants of {@code sapSetCheckBoxInMatchingRow} -
+     * locates a table/grid row by one column's text (e.g. description, condition type) and
+     * ticks the checkbox in another column of that same row, without needing the row index.
+     * Data format: matchColumn,matchText,checkboxColumn | Condition: true/false (default true)
+     */
+    private void setCheckBoxInMatchingRow(RowMatcher.MatchMode mode) {
+        try {
+            String[] parts = Data.split(",", 3);
+            if (parts.length < 3) {
+                Report.updateTestLog(
+                    Action,
+                    "Invalid data format. Expected: matchColumn,matchText,checkboxColumn",
+                    Status.FAILNS
+                );
+                return;
+            }
+            String matchColumn = parts[0].trim();
+            String matchText = parts[1].trim();
+            String checkboxColumn = parts[2].trim();
+            boolean checked = Condition == null || Condition.trim().isEmpty()
+                ? true
+                : Boolean.parseBoolean(Condition.trim());
+
+            int row = findMatchingRow(matchColumn, matchText, mode);
+            if (row < 0) {
+                Report.updateTestLog(
+                    Action,
+                    "No row found where column [" + matchColumn + "] matches [" + matchText + "]",
+                    Status.FAILNS
+                );
+                return;
+            }
+            Dispatch checkbox = Dispatch
+                .call(SAPElement, "GetCell", row, checkboxColumn)
+                .toDispatch();
+            Dispatch.put(checkbox, "Selected", checked);
+            Report.updateTestLog(
+                Action,
+                "Set checkbox [" +
+                checkboxColumn +
+                "] to " +
+                checked +
+                " in row " +
+                row +
+                " where column [" +
+                matchColumn +
+                "] matches [" +
+                matchText +
+                "]",
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to set checkbox in matching row. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /** NEW: {@link #setCheckBoxInMatchingRow(RowMatcher.MatchMode)} with an exact column match. */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Set checkbox in row where column exactly matches [<Data>] (format: matchColumn,matchText,checkboxColumn)",
+        input = InputType.YES,
+        condition = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "ConditionType,ZPR0,Checkbox",
+        inputHelp = "match column, match text, checkbox column (format: matchColumn,matchText,checkboxColumn)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "true",
+        conditionHelp = "checkbox state to set (true/false); blank defaults to true"
+    )
+    public void sapSetCheckBoxInMatchingRow() {
+        setCheckBoxInMatchingRow(RowMatcher.MatchMode.EQUALS);
+    }
+
+    /** NEW: {@link #setCheckBoxInMatchingRow(RowMatcher.MatchMode)} with a substring column match. */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Set checkbox in row where column contains [<Data>] (format: matchColumn,matchText,checkboxColumn)",
+        input = InputType.YES,
+        condition = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "ConditionType,ZPR0,Checkbox",
+        inputHelp = "match column, match text, checkbox column (format: matchColumn,matchText,checkboxColumn)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "true",
+        conditionHelp = "checkbox state to set (true/false); blank defaults to true"
+    )
+    public void sapSetCheckBoxInMatchingRowContains() {
+        setCheckBoxInMatchingRow(RowMatcher.MatchMode.CONTAINS);
+    }
+
+    /**
      * EXISTING: Select radio button in table row
      * SAP API: table.GetAbsoluteRow(row).Selected = true
      */
@@ -1047,6 +1476,45 @@ public class SAPActions extends General {
     }
 
     /**
+     * NEW: Select a table row by an exact match of a column's text value instead of a
+     * hard-coded row index - the row order can change (sort/filter/new entries) without
+     * breaking the step.
+     * Data format: matchColumn,matchText
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Select table row where column exactly matches [<Data>] (format: column,text)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "Description,Vendor Invoice",
+        inputHelp = "column name + expected text (format: column,text)"
+    )
+    public void sapSelectTableRowByText() {
+        selectRowByText(RowMatcher.MatchMode.EQUALS);
+    }
+
+    /**
+     * NEW: Select a table row by a substring match of a column's text value instead of a
+     * hard-coded row index.
+     * Data format: matchColumn,matchText
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Select table row where column contains [<Data>] (format: column,text)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "Description,Vendor Invoice",
+        inputHelp = "column name + expected text (format: column,text)"
+    )
+    public void sapSelectTableRowByTextContains() {
+        selectRowByText(RowMatcher.MatchMode.CONTAINS);
+    }
+
+    /**
      * NEW: Set current table cell
      * SAP API: table.SetCurrentCell(row, column)
      * Data format: row,column
@@ -1108,16 +1576,25 @@ public class SAPActions extends General {
     }
 
     /**
-     * NEW: Get table cell value
+     * NEW: Store a table cell's value into a variable.
      * SAP API: table.GetCellValue(row, column)
-     * Data format: row,column
+     * Data format: row,column | Condition: destination variable in %var% format
      */
     @Action(
         object = ObjectType.SAP_OBJECT,
-        desc = "Get cell value [<Data>] (format: row,column)",
-        input = InputType.YES
+        desc = "Get cell value [<Data>] (format: row,column) and store into variable [<Condition>]",
+        input = InputType.YES,
+        condition = InputType.YES
     )
-    public void sapGetCellValue() {
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "2,VendorName",
+        inputHelp = "row + column (format: row,column)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%cellValue%",
+        conditionHelp = "destination variable in %var% format to store the captured value"
+    )
+    public void sapStoreCellValueByIndexInVariable() {
         try {
             String[] parts = Data.split(",", 2);
             if (parts.length < 2) {
@@ -1132,10 +1609,18 @@ public class SAPActions extends General {
             String column = parts[1].trim();
 
             String cellValue = Dispatch.call(SAPElement, "GetCellValue", row, column).toString();
-            addVar("CellValue", cellValue);
+            addVar(Condition, cellValue);
             Report.updateTestLog(
                 Action,
-                "Got cell value: " + cellValue + " from row " + row + ", column " + column,
+                "Got cell value [" +
+                cellValue +
+                "] from row " +
+                row +
+                ", column " +
+                column +
+                " into variable [" +
+                Condition +
+                "]",
                 Status.DONE
             );
         } catch (Exception e) {
@@ -1145,6 +1630,149 @@ public class SAPActions extends General {
                 Status.FAILNS
             );
         }
+    }
+
+    /**
+     * NEW: Store a table cell's value into a datasheet cell, complementing
+     * {@link #sapStoreCellValueByIndexInVariable()} which stores into a variable instead.
+     * SAP API: table.GetCellValue(row, column)
+     * Data format: row,column,Sheet:Column
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Get cell value and store into datasheet [<Data>] (format: row,column,Sheet:Column)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "2,VendorName,SapResults:Vendor",
+        inputHelp = "row + column + destination datasheet reference (format: row,column,Sheet:Column)"
+    )
+    public void sapStoreCellValueByIndexInDataSheet() {
+        try {
+            String[] parts = Data.split(",", 3);
+            if (parts.length < 3) {
+                Report.updateTestLog(
+                    Action,
+                    "Invalid data format. Expected: row,column,Sheet:Column",
+                    Status.FAILNS
+                );
+                return;
+            }
+            int row = Integer.parseInt(parts[0].trim());
+            String column = parts[1].trim();
+            String[] sheetRef = parts[2].trim().split(":", 2);
+            if (sheetRef.length < 2) {
+                Report.updateTestLog(
+                    Action,
+                    "Invalid datasheet reference. Expected: Sheet:Column",
+                    Status.FAILNS
+                );
+                return;
+            }
+            String sheetName = sheetRef[0].trim();
+            String columnName = sheetRef[1].trim();
+
+            String cellValue = Dispatch.call(SAPElement, "GetCellValue", row, column).toString();
+            userData.putData(sheetName, columnName, cellValue);
+            Report.updateTestLog(
+                Action,
+                "Got cell value [" +
+                cellValue +
+                "] from row " +
+                row +
+                ", column " +
+                column +
+                " into datasheet [" +
+                sheetName +
+                ":" +
+                columnName +
+                "]",
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to get cell value. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * NEW: Locate a table row by one column's text (e.g. job name) and store a *different*
+     * column's value (e.g. Status, End time) from that same row into a variable - exact match.
+     * Data format: matchColumn,matchText,targetColumn | Condition: destination variable
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Store column [<Data>] from row matched by another column, into variable [<Condition>] (format: matchColumn,matchText,targetColumn)",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "JobName,BATCH_JOB_1,Status",
+        inputHelp = "match column, match text, target column to read (format: matchColumn,matchText,targetColumn)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%jobStatus%",
+        conditionHelp = "destination variable in %var% format to store the captured value"
+    )
+    public void sapStoreCellValueByMatchInVariable() {
+        storeCellValueByMatchInVariable(RowMatcher.MatchMode.EQUALS);
+    }
+
+    /** NEW: {@link #sapStoreCellValueByMatchInVariable()} with a substring match column. */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Store column [<Data>] from row matched (contains) by another column, into variable [<Condition>] (format: matchColumn,matchText,targetColumn)",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "JobName,BATCH_JOB,Status",
+        inputHelp = "match column, match text, target column to read (format: matchColumn,matchText,targetColumn)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%jobStatus%",
+        conditionHelp = "destination variable in %var% format to store the captured value"
+    )
+    public void sapStoreCellValueByMatchInVariableContains() {
+        storeCellValueByMatchInVariable(RowMatcher.MatchMode.CONTAINS);
+    }
+
+    /**
+     * NEW: Locate a table row by one column's text and store a *different* column's value from
+     * that same row into a datasheet cell instead of a variable - exact match.
+     * Data format: matchColumn,matchText,targetColumn,Sheet:Column
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Store column and row matched by another column, into datasheet [<Data>] (format: matchColumn,matchText,targetColumn,Sheet:Column)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "JobName,BATCH_JOB_1,Status,SapResults:JobStatus",
+        inputHelp = "match column, match text, target column, destination datasheet reference (format: matchColumn,matchText,targetColumn,Sheet:Column)"
+    )
+    public void sapStoreCellValueByMatchInDataSheet() {
+        storeCellValueByMatchInDataSheet(RowMatcher.MatchMode.EQUALS);
+    }
+
+    /** NEW: {@link #sapStoreCellValueByMatchInDataSheet()} with a substring match column. */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Store column and row matched (contains) by another column, into datasheet [<Data>] (format: matchColumn,matchText,targetColumn,Sheet:Column)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "JobName,BATCH_JOB,Status,SapResults:JobStatus",
+        inputHelp = "match column, match text, target column, destination datasheet reference (format: matchColumn,matchText,targetColumn,Sheet:Column)"
+    )
+    public void sapStoreCellValueByMatchInDataSheetContains() {
+        storeCellValueByMatchInDataSheet(RowMatcher.MatchMode.CONTAINS);
     }
 
     /**
@@ -1253,6 +1881,25 @@ public class SAPActions extends General {
         }
     }
 
+    /**
+     * NEW: Assert a table's row count against an operator + expected value expression,
+     * e.g. {@code ==0} for "no results", {@code >=1} for "at least one match".
+     * SAP API: table.RowCount
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert that table [<Object>] row count satisfies expression [<Data>] (e.g. ==0, >=1)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = ">=1",
+        inputHelp = "operator + expected row count (e.g. ==0, >=1, >10)"
+    )
+    public void sapAssertTableRowCount() {
+        assertRowCount();
+    }
+
     // ============================================================================
     // SECTION 9: GRID/ALV ACTIONS (GuiGridView)
     // ============================================================================
@@ -1277,6 +1924,45 @@ public class SAPActions extends General {
                 Status.FAILNS
             );
         }
+    }
+
+    /**
+     * NEW: Select an ALV grid row by an exact match of a column's text value instead of a
+     * hard-coded row index - the row order can change (sort/filter/new entries) without
+     * breaking the step.
+     * Data format: matchColumn,matchText
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Select ALV grid row where column exactly matches [<Data>] (format: column,text)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "Description,Vendor Invoice",
+        inputHelp = "column name + expected text (format: column,text)"
+    )
+    public void sapSelectGridRowByText() {
+        selectRowByText(RowMatcher.MatchMode.EQUALS);
+    }
+
+    /**
+     * NEW: Select an ALV grid row by a substring match of a column's text value instead of a
+     * hard-coded row index.
+     * Data format: matchColumn,matchText
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Select ALV grid row where column contains [<Data>] (format: column,text)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "Description,Vendor Invoice",
+        inputHelp = "column name + expected text (format: column,text)"
+    )
+    public void sapSelectGridRowByTextContains() {
+        selectRowByText(RowMatcher.MatchMode.CONTAINS);
     }
 
     /**
@@ -1341,16 +2027,25 @@ public class SAPActions extends General {
     }
 
     /**
-     * NEW: Get grid cell value
+     * NEW: Store an ALV grid cell's value into a variable.
      * SAP API: grid.GetCellValue(row, column)
-     * Data format: row,column
+     * Data format: row,column | Condition: destination variable in %var% format
      */
     @Action(
         object = ObjectType.SAP_OBJECT,
-        desc = "Get grid cell value [<Data>] (format: row,column)",
-        input = InputType.YES
+        desc = "Get grid cell value [<Data>] (format: row,column) and store into variable [<Condition>]",
+        input = InputType.YES,
+        condition = InputType.YES
     )
-    public void sapGetGridCellValue() {
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "2,VendorName",
+        inputHelp = "row + column (format: row,column)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%gridCellValue%",
+        conditionHelp = "destination variable in %var% format to store the captured value"
+    )
+    public void sapStoreGridValueByIndexInVariable() {
         try {
             String[] parts = Data.split(",", 2);
             if (parts.length < 2) {
@@ -1365,10 +2060,18 @@ public class SAPActions extends General {
             String column = parts[1].trim();
 
             String cellValue = Dispatch.call(SAPElement, "GetCellValue", row, column).toString();
-            addVar("GridCellValue", cellValue);
+            addVar(Condition, cellValue);
             Report.updateTestLog(
                 Action,
-                "Got grid cell value: " + cellValue + " from row " + row + ", column " + column,
+                "Got grid cell value [" +
+                cellValue +
+                "] from row " +
+                row +
+                ", column " +
+                column +
+                " into variable [" +
+                Condition +
+                "]",
                 Status.DONE
             );
         } catch (Exception e) {
@@ -1378,6 +2081,149 @@ public class SAPActions extends General {
                 Status.FAILNS
             );
         }
+    }
+
+    /**
+     * NEW: Store an ALV grid cell's value into a datasheet cell, complementing
+     * {@link #sapStoreGridValueByIndexInVariable()} which stores into a variable instead.
+     * SAP API: grid.GetCellValue(row, column)
+     * Data format: row,column,Sheet:Column
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Get grid cell value and store into datasheet [<Data>] (format: row,column,Sheet:Column)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "2,VendorName,SapResults:Vendor",
+        inputHelp = "row + column + destination datasheet reference (format: row,column,Sheet:Column)"
+    )
+    public void sapStoreGridValueByIndexInDataSheet() {
+        try {
+            String[] parts = Data.split(",", 3);
+            if (parts.length < 3) {
+                Report.updateTestLog(
+                    Action,
+                    "Invalid data format. Expected: row,column,Sheet:Column",
+                    Status.FAILNS
+                );
+                return;
+            }
+            int row = Integer.parseInt(parts[0].trim());
+            String column = parts[1].trim();
+            String[] sheetRef = parts[2].trim().split(":", 2);
+            if (sheetRef.length < 2) {
+                Report.updateTestLog(
+                    Action,
+                    "Invalid datasheet reference. Expected: Sheet:Column",
+                    Status.FAILNS
+                );
+                return;
+            }
+            String sheetName = sheetRef[0].trim();
+            String columnName = sheetRef[1].trim();
+
+            String cellValue = Dispatch.call(SAPElement, "GetCellValue", row, column).toString();
+            userData.putData(sheetName, columnName, cellValue);
+            Report.updateTestLog(
+                Action,
+                "Got grid cell value [" +
+                cellValue +
+                "] from row " +
+                row +
+                ", column " +
+                column +
+                " into datasheet [" +
+                sheetName +
+                ":" +
+                columnName +
+                "]",
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to get grid cell value. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * NEW: Locate an ALV grid row by one column's text (e.g. job name) and store a *different*
+     * column's value (e.g. Status, End time) from that same row into a variable - exact match.
+     * Data format: matchColumn,matchText,targetColumn | Condition: destination variable
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Store column [<Data>] from grid row matched by another column, into variable [<Condition>] (format: matchColumn,matchText,targetColumn)",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "JobName,BATCH_JOB_1,Status",
+        inputHelp = "match column, match text, target column to read (format: matchColumn,matchText,targetColumn)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%jobStatus%",
+        conditionHelp = "destination variable in %var% format to store the captured value"
+    )
+    public void sapStoreGridValueByMatchInVariable() {
+        storeCellValueByMatchInVariable(RowMatcher.MatchMode.EQUALS);
+    }
+
+    /** NEW: {@link #sapStoreGridValueByMatchInVariable()} with a substring match column. */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Store column [<Data>] from grid row matched (contains) by another column, into variable [<Condition>] (format: matchColumn,matchText,targetColumn)",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "JobName,BATCH_JOB,Status",
+        inputHelp = "match column, match text, target column to read (format: matchColumn,matchText,targetColumn)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%jobStatus%",
+        conditionHelp = "destination variable in %var% format to store the captured value"
+    )
+    public void sapStoreGridValueByMatchInVariableContains() {
+        storeCellValueByMatchInVariable(RowMatcher.MatchMode.CONTAINS);
+    }
+
+    /**
+     * NEW: Locate an ALV grid row by one column's text and store a *different* column's value
+     * from that same row into a datasheet cell instead of a variable - exact match.
+     * Data format: matchColumn,matchText,targetColumn,Sheet:Column
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Store column and grid row matched by another column, into datasheet [<Data>] (format: matchColumn,matchText,targetColumn,Sheet:Column)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "JobName,BATCH_JOB_1,Status,SapResults:JobStatus",
+        inputHelp = "match column, match text, target column, destination datasheet reference (format: matchColumn,matchText,targetColumn,Sheet:Column)"
+    )
+    public void sapStoreGridValueByMatchInDataSheet() {
+        storeCellValueByMatchInDataSheet(RowMatcher.MatchMode.EQUALS);
+    }
+
+    /** NEW: {@link #sapStoreGridValueByMatchInDataSheet()} with a substring match column. */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Store column and grid row matched (contains) by another column, into datasheet [<Data>] (format: matchColumn,matchText,targetColumn,Sheet:Column)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "JobName,BATCH_JOB,Status,SapResults:JobStatus",
+        inputHelp = "match column, match text, target column, destination datasheet reference (format: matchColumn,matchText,targetColumn,Sheet:Column)"
+    )
+    public void sapStoreGridValueByMatchInDataSheetContains() {
+        storeCellValueByMatchInDataSheet(RowMatcher.MatchMode.CONTAINS);
     }
 
     /**
@@ -1669,6 +2515,25 @@ public class SAPActions extends General {
         }
     }
 
+    /**
+     * NEW: Assert an ALV grid's row count against an operator + expected value expression,
+     * e.g. {@code ==0} for "no results", {@code >=1} for "at least one match".
+     * SAP API: grid.RowCount
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert that grid [<Object>] row count satisfies expression [<Data>] (e.g. ==0, >=1)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = ">=1",
+        inputHelp = "operator + expected row count (e.g. ==0, >=1, >10)"
+    )
+    public void sapAssertGridRowCount() {
+        assertRowCount();
+    }
+
     // ============================================================================
     // SECTION 10: MENU & TOOLBAR ACTIONS
     // ============================================================================
@@ -1870,28 +2735,293 @@ public class SAPActions extends General {
         }
     }
 
+    /**
+     * NEW: Expand a parent tree node and select its child node in one step - removes the
+     * open-then-click sequencing guesswork of driving {@link #sapExpandTreeNode()} and
+     * {@link #sapSelectTreeNode()} as two separate, order-sensitive steps.
+     * Data format: parentNodeKey\childNodeKey
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Navigate tree path [<Data>] (format: parentNodeKey\\childNodeKey)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "Root\\Child",
+        inputHelp = "parent node key + child node key, separated by a backslash"
+    )
+    public void sapNavigateTreePath() {
+        try {
+            String[] parts = Data.split("\\\\", 2);
+            if (parts.length < 2) {
+                Report.updateTestLog(
+                    Action,
+                    "Invalid data format. Expected: parentNodeKey\\childNodeKey",
+                    Status.FAILNS
+                );
+                return;
+            }
+            String parentKey = parts[0].trim();
+            String childKey = parts[1].trim();
+
+            Dispatch.call(SAPElement, "ExpandNode", parentKey);
+            Dispatch.call(SAPElement, "SelectNode", childKey);
+            Report.updateTestLog(
+                Action,
+                "Expanded node [" + parentKey + "] and selected child node [" + childKey + "]",
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to navigate tree path. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * Finds the child node (of {@code parentKey}, via {@code GetSubNodesCol}) whose visible
+     * text ({@code GetNodeTextByKey}) matches - so the child can be resolved without knowing
+     * its raw SAP GUI node key up front.
+     * @return the matching child's node key, or null if none matched
+     */
+    private String findMatchingChildNodeKey(
+        String parentKey,
+        String childText,
+        RowMatcher.MatchMode mode
+    ) {
+        Dispatch subNodes = Dispatch.call(SAPElement, "GetSubNodesCol", parentKey).toDispatch();
+        int count = Integer.parseInt(Dispatch.get(subNodes, "Count").toString());
+        int index = RowMatcher.findRow(
+            count,
+            i ->
+                Dispatch
+                    .call(
+                        SAPElement,
+                        "GetNodeTextByKey",
+                        Dispatch.call(subNodes, "ElementAt", i).toString()
+                    )
+                    .toString(),
+            childText,
+            mode
+        );
+        return index < 0 ? null : Dispatch.call(subNodes, "ElementAt", index).toString();
+    }
+
+    /**
+     * Shared body for the exact/contains variants of {@code sapSelectTreeNodeByText} - expands
+     * the parent node and selects the first child whose visible text matches, instead of
+     * requiring the raw SAP GUI child node key up front (complements {@link #sapNavigateTreePath()}).
+     * Data format: parentNodeKey\childText
+     */
+    private void selectTreeNodeByText(RowMatcher.MatchMode mode) {
+        try {
+            String[] parts = Data.split("\\\\", 2);
+            if (parts.length < 2) {
+                Report.updateTestLog(
+                    Action,
+                    "Invalid data format. Expected: parentNodeKey\\childText",
+                    Status.FAILNS
+                );
+                return;
+            }
+            String parentKey = parts[0].trim();
+            String childText = parts[1].trim();
+
+            Dispatch.call(SAPElement, "ExpandNode", parentKey);
+            String childKey = findMatchingChildNodeKey(parentKey, childText, mode);
+            if (childKey == null) {
+                Report.updateTestLog(
+                    Action,
+                    "No child node found under [" + parentKey + "] with text [" + childText + "]",
+                    Status.FAILNS
+                );
+                return;
+            }
+            Dispatch.call(SAPElement, "SelectNode", childKey);
+            Report.updateTestLog(
+                Action,
+                "Expanded node [" +
+                parentKey +
+                "] and selected child node [" +
+                childKey +
+                "] matching text [" +
+                childText +
+                "]",
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to select tree node by text. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /** NEW: {@link #selectTreeNodeByText(RowMatcher.MatchMode)} with an exact child-text match. */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Expand parent and select child tree node where text exactly matches [<Data>] (format: parentNodeKey\\childText)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "Root\\Vendor Invoice",
+        inputHelp = "parent node key + expected child text, separated by a backslash"
+    )
+    public void sapSelectTreeNodeByText() {
+        selectTreeNodeByText(RowMatcher.MatchMode.EQUALS);
+    }
+
+    /** NEW: {@link #selectTreeNodeByText(RowMatcher.MatchMode)} with a substring child-text match. */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Expand parent and select child tree node where text contains [<Data>] (format: parentNodeKey\\childText)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "Root\\Vendor Invoice",
+        inputHelp = "parent node key + expected child text, separated by a backslash"
+    )
+    public void sapSelectTreeNodeByTextContains() {
+        selectTreeNodeByText(RowMatcher.MatchMode.CONTAINS);
+    }
+
     // ============================================================================
     // SECTION 13: STATUS BAR ACTIONS (GuiStatusBar)
     // ============================================================================
 
     /**
-     * NEW: Get status bar text
+     * NEW: Store the status bar text into a variable.
      * SAP API: statusBar.Text
      */
     @Action(
         object = ObjectType.SAP_OBJECT,
-        desc = "Get status bar text from [<Object>]",
-        input = InputType.NO
+        desc = "Get status bar text from [<Object>] and store into variable [<Condition>]",
+        input = InputType.NO,
+        condition = InputType.YES
     )
-    public void sapGetStatusBarText() {
+    @Args(
+        condition = ConditionKind.TEXT,
+        conditionExample = "%statusText%",
+        conditionHelp = "destination variable in %var% format to store the captured status bar text"
+    )
+    public void sapStoreStatusBarTextInVariable() {
         try {
             String statusText = Dispatch.get(SAPElement, "Text").toString();
-            addVar("StatusBarText", statusText);
-            Report.updateTestLog(Action, "Status bar text: " + statusText, Status.DONE);
+            addVar(Condition, statusText);
+            Report.updateTestLog(
+                Action,
+                "Status bar text [" + statusText + "] stored into variable [" + Condition + "]",
+                Status.DONE
+            );
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Failed to get status bar text. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * NEW: Store the status bar text into a datasheet cell, complementing
+     * {@link #sapStoreStatusBarTextInVariable()} which stores into a variable instead.
+     * SAP API: statusBar.Text
+     * Data format: Sheet:Column
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Get status bar text from [<Object>] and store into datasheet [<Data>] (format: Sheet:Column)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "SapResults:StatusText",
+        inputHelp = "destination datasheet reference in Sheet:Column format"
+    )
+    public void sapStoreStatusBarTextInDataSheet() {
+        try {
+            String[] parts = Data.split(":", 2);
+            if (parts.length < 2) {
+                Report.updateTestLog(
+                    Action,
+                    "Invalid data format. Expected: Sheet:Column",
+                    Status.FAILNS
+                );
+                return;
+            }
+            String sheetName = parts[0].trim();
+            String columnName = parts[1].trim();
+
+            String statusText = Dispatch.get(SAPElement, "Text").toString();
+            userData.putData(sheetName, columnName, statusText);
+            Report.updateTestLog(
+                Action,
+                "Status bar text [" + statusText + "] stored into datasheet [" + Data + "]",
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to get status bar text. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * NEW: Assert the status bar message type/severity (S=success, W=warning, E=error,
+     * I=info, A=abort) against an expected value - the common "assert no error after this
+     * transaction" check, distinct from the message text itself.
+     * SAP API: statusBar.MessageType
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert that status bar [<Object>] message type equals [<Data>] (S/W/E/I/A)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "S",
+        inputHelp = "expected message type: S=success, W=warning, E=error, I=info, A=abort"
+    )
+    public void sapAssertStatusBarType() {
+        try {
+            String actualType = Dispatch.get(SAPElement, "MessageType").toString();
+            if (actualType.equalsIgnoreCase(Data)) {
+                Report.updateTestLog(
+                    Action,
+                    "[" +
+                    ObjectName +
+                    "] message type [" +
+                    actualType +
+                    "] equals expected type [" +
+                    Data +
+                    "].",
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "[" +
+                    ObjectName +
+                    "] message type [" +
+                    actualType +
+                    "] does not equal expected type [" +
+                    Data +
+                    "].",
+                    Status.FAILNS
+                );
+            }
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to get status bar message type. Error: " + e.getMessage(),
                 Status.FAILNS
             );
         }
@@ -1938,6 +3068,46 @@ public class SAPActions extends General {
     }
 
     /**
+     * NEW: Soft assertion (PASSNS/FAILNS, never throws) that [<Object>] resolved to a real SAP
+     * element - complements the hard {@link ElementException} thrown by
+     * {@link #validateSAPElement()}-guarded actions like Fill/Click.
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert that [<Object>] is present",
+        input = InputType.NO
+    )
+    public void sapAssertElementPresent() {
+        if (SAPElement != null) {
+            Report.updateTestLog(Action, "[" + ObjectName + "] is present.", Status.PASSNS);
+        } else {
+            Report.updateTestLog(Action, "[" + ObjectName + "] is not present.", Status.FAILNS);
+        }
+    }
+
+    /** NEW: Assert that [<Object>] is not present, the complement of {@link #sapAssertElementPresent()}. */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert that [<Object>] is not present",
+        input = InputType.NO
+    )
+    public void sapAssertElementNotPresent() {
+        if (SAPElement == null) {
+            Report.updateTestLog(
+                Action,
+                "[" + ObjectName + "] is not present, as expected.",
+                Status.PASSNS
+            );
+        } else {
+            Report.updateTestLog(
+                Action,
+                "[" + ObjectName + "] is present, but expected it not to be.",
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
      * EXISTING: Assert element contains text
      * SAP API: element.Text (with assertion logic)
      */
@@ -1978,6 +3148,334 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Fails to get Element text. Error : " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * NEW: Assert element does not contain text, complementing {@link #sapAssertElementTextContains()}.
+     * SAP API: element.Text (with assertion logic)
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert that [<Object>] does not contain Text [<Data>]",
+        input = InputType.YES
+    )
+    public void sapAssertElementTextNotContains() {
+        try {
+            String actualText = Dispatch.get(SAPElement, "Text").toString();
+            if (!actualText.contains(Data)) {
+                Report.updateTestLog(
+                    Action,
+                    "[" +
+                    ObjectName +
+                    "] actual text [" +
+                    actualText +
+                    "] does not contain [" +
+                    Data +
+                    "], as expected.",
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "[" +
+                    ObjectName +
+                    "] actual text [" +
+                    actualText +
+                    "] contains [" +
+                    Data +
+                    "], but expected it not to.",
+                    Status.FAILNS
+                );
+            }
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Fails to get Element text. Error : " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * NEW: Capture the text of any SAP element (window title, result field, ST22 dump
+     * field, etc.) into a variable, generalizing {@link #sapStoreStatusBarTextInVariable()}.
+     * SAP API: element.Text
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Get text from [<Object>] and store into variable [<Condition>]",
+        input = InputType.NO,
+        condition = InputType.YES
+    )
+    @Args(
+        condition = ConditionKind.TEXT,
+        conditionExample = "%resultText%",
+        conditionHelp = "destination variable in %var% format to store the captured text"
+    )
+    public void sapStoreElementTextInVariable() {
+        try {
+            String text = Dispatch.get(SAPElement, "Text").toString();
+            addVar(Condition, text);
+            Report.updateTestLog(
+                Action,
+                "Captured text [" +
+                text +
+                "] from [" +
+                ObjectName +
+                "] into variable [" +
+                Condition +
+                "]",
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to get text from [" + ObjectName + "]. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * NEW: Capture the text of any SAP element into a datasheet cell, complementing
+     * {@link #sapStoreElementTextInVariable()} which stores into a variable instead.
+     * Data format: Sheet:Column
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Get text from [<Object>] and store into datasheet [<Data>] (format: Sheet:Column)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "SapResults:ErrorText",
+        inputHelp = "destination datasheet reference in Sheet:Column format"
+    )
+    public void sapStoreElementTextInDataSheet() {
+        try {
+            String[] parts = Data.split(":", 2);
+            if (parts.length < 2) {
+                Report.updateTestLog(
+                    Action,
+                    "Invalid data format. Expected: Sheet:Column",
+                    Status.FAILNS
+                );
+                return;
+            }
+            String sheetName = parts[0].trim();
+            String columnName = parts[1].trim();
+
+            String text = Dispatch.get(SAPElement, "Text").toString();
+            userData.putData(sheetName, columnName, text);
+            Report.updateTestLog(
+                Action,
+                "Captured text [" +
+                text +
+                "] from [" +
+                ObjectName +
+                "] into datasheet [" +
+                Data +
+                "]",
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to get text from [" + ObjectName + "]. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * NEW: Assert element text (or window title, exposed via the same Text property)
+     * equals an expected value, complementing the "contains" only
+     * {@link #sapAssertElementTextContains()}.
+     * SAP API: element.Text (with assertion logic)
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert that [<Object>] text equals [<Data>]",
+        input = InputType.YES
+    )
+    public void sapAssertElementTextEquals() {
+        try {
+            String actualText = Dispatch.get(SAPElement, "Text").toString();
+            if (actualText.equals(Data)) {
+                Report.updateTestLog(
+                    Action,
+                    "[" +
+                    ObjectName +
+                    "] actual text [" +
+                    actualText +
+                    "] equals expected text [" +
+                    Data +
+                    "].",
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "[" +
+                    ObjectName +
+                    "] actual text [" +
+                    actualText +
+                    "] does not equal expected text [" +
+                    Data +
+                    "].",
+                    Status.FAILNS
+                );
+            }
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Fails to get Element text. Error : " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * NEW: Assert element text numerically against an operator + expected value
+     * expression, e.g. {@code <>0}, {@code >=100}.
+     * SAP API: element.Text (with numeric assertion logic)
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert that [<Object>] numeric text satisfies expression [<Data>] (e.g. <>0, >=100)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "<>0",
+        inputHelp = "operator + expected numeric value (e.g. <>0, >=100, ==5, !=10)"
+    )
+    public void sapAssertElementNumericValue() {
+        String actualText = null;
+        try {
+            actualText = Dispatch.get(SAPElement, "Text").toString();
+            NumberConditionEvaluator.Condition parsed = NumberConditionEvaluator.parse(Data);
+            boolean result = NumberConditionEvaluator.evaluate(
+                actualText,
+                parsed.operator(),
+                parsed.expected()
+            );
+            if (result) {
+                Report.updateTestLog(
+                    Action,
+                    "[" +
+                    ObjectName +
+                    "] value [" +
+                    actualText +
+                    "] satisfies condition [" +
+                    Data +
+                    "]",
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "[" +
+                    ObjectName +
+                    "] value [" +
+                    actualText +
+                    "] does not satisfy condition [" +
+                    Data +
+                    "]",
+                    Status.FAILNS
+                );
+            }
+        } catch (NumberFormatException e) {
+            Report.updateTestLog(
+                Action,
+                "[" +
+                ObjectName +
+                "] value [" +
+                actualText +
+                "] is not numeric. Error: " +
+                e.getMessage(),
+                Status.FAILNS
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to assert numeric condition on [" +
+                ObjectName +
+                "]. Error: " +
+                e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /**
+     * NEW: Assert that a field is enabled/changeable (as opposed to greyed-out/read-only) -
+     * useful for verifying a field became locked after a business action (e.g. after posting).
+     * SAP API: element.Changeable
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert that [<Object>] is enabled/changeable",
+        input = InputType.NO
+    )
+    public void sapAssertElementEnabled() {
+        try {
+            boolean changeable = Boolean.parseBoolean(
+                Dispatch.get(SAPElement, "Changeable").toString()
+            );
+            if (changeable) {
+                Report.updateTestLog(
+                    Action,
+                    "[" + ObjectName + "] is enabled/changeable.",
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "[" + ObjectName + "] is not enabled/changeable.",
+                    Status.FAILNS
+                );
+            }
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to get Changeable property. Error: " + e.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    /** NEW: Assert that a field is disabled/read-only, the complement of {@link #sapAssertElementEnabled()}. */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert that [<Object>] is disabled/not changeable",
+        input = InputType.NO
+    )
+    public void sapAssertElementNotEnabled() {
+        try {
+            boolean changeable = Boolean.parseBoolean(
+                Dispatch.get(SAPElement, "Changeable").toString()
+            );
+            if (!changeable) {
+                Report.updateTestLog(
+                    Action,
+                    "[" + ObjectName + "] is disabled/not changeable, as expected.",
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "[" + ObjectName + "] is enabled/changeable, but expected it not to be.",
+                    Status.FAILNS
+                );
+            }
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to get Changeable property. Error: " + e.getMessage(),
                 Status.FAILNS
             );
         }

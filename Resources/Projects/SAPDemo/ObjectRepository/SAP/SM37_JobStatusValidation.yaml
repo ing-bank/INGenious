@@ -1,0 +1,17 @@
+page: SM37_JobStatusValidation
+scope: PROJECT
+elements:
+  # Selection screen (SM37 initial "Simple Job Selection" dialog)
+  ctxtJobName:
+    id: "wnd[0]/usr/ctxtBTCH2170-JOBNAME"
+  chkFinished:
+    id: "wnd[0]/usr/chkBTCH2170-XFIN"
+  chkCanceled:
+    id: "wnd[0]/usr/chkBTCH2170-XABR"
+  btnExecute:
+    id: "wnd[0]/tbar[1]/btn[8]"
+  sbar:
+    id: "wnd[0]/sbar"
+  # Job overview ALV grid (results list)
+  jobOverviewGrid:
+    id: "wnd[0]/usr/cntlOVERVIEW_CONTAINER/shellcont/shell"

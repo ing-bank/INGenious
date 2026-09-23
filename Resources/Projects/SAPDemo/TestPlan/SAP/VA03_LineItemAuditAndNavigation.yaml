@@ -1,0 +1,238 @@
+schemaVersion: 1
+testCase: VA03_LineItemAuditAndNavigation
+scenario: SAP
+tags:
+  - '@sap'
+  - '@order-audit'
+steps:
+  - step: 1
+    object: SAP
+    description: Open the DEMO SAP connection
+    action: sapInitConnection
+    input: "#DEMO"
+
+  - step: 2
+    object: easyAccessTree
+    description: "Confirm the SAP Easy Access favorites/menu tree is present and interactive"
+    action: sapAssertElementEnabled
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 3
+    object: easyAccessTree
+    description: "Expand Favorites [F] and select the first saved favorite [F0] by its known key"
+    action: sapNavigateTreePath
+    input: '@F\F0'
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 4
+    object: easyAccessTree
+    description: "Re-expand Favorites and select the entry whose visible text exactly matches"
+    action: sapSelectTreeNodeByText
+    input: '@F\Display Sales Order (VA03)'
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 5
+    object: easyAccessTree
+    description: "Same lookup, tolerant of the favorite's exact description changing"
+    action: sapSelectTreeNodeByTextContains
+    input: '@F\VA03'
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 6
+    object: SAP_SYSTEM
+    description: Execute Transaction VA03 (Display Sales Order)
+    action: sapExecuteTransaction
+    input: VA03
+
+  - step: 7
+    object: ctxtVBAK_VBELN
+    description: "Set [<Object>] to the order created by VA01_CreateSalesOrder"
+    action: sapFill
+    input: '@0000012345'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 8
+    object: wnd0
+    description: "SendVKey [<Object>] to open the order"
+    action: sapSimulateKeyPress
+    input: '@0'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 9
+    object: sbar
+    description: "Capture the status bar message after opening the order into a variable"
+    action: sapStoreStatusBarTextInVariable
+    condition: '%openStatus%'
+    reference: "[Project] SM37_JobStatusValidation"
+
+  - step: 10
+    object: sbar
+    description: "Also archive the open message into the audit datasheet"
+    action: sapStoreStatusBarTextInDataSheet
+    input: '@OrderAudit:OpenMessage'
+    reference: "[Project] SM37_JobStatusValidation"
+
+  - step: 11
+    object: lineItemsTable
+    description: "Assert that the order has at least one line item"
+    action: sapAssertTableRowCount
+    input: '@>=1'
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 12
+    object: lineItemsTable
+    description: "Select the line where Material exactly matches MAT-1000"
+    action: sapSelectTableRowByText
+    input: '@Material,MAT-1000'
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 13
+    object: lineItemsTable
+    description: "Select the first line whose Material contains MAT-10 (variant/batch suffix unknown)"
+    action: sapSelectTableRowByTextContains
+    input: '@Material,MAT-10'
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 14
+    object: lineItemsTable
+    description: "Read row 0's Material directly, since it's the first line by construction"
+    action: sapStoreCellValueByIndexInVariable
+    input: '@0,Material'
+    condition: '%firstLineMaterial%'
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 15
+    object: lineItemsTable
+    description: "Archive row 0's Material into the audit datasheet"
+    action: sapStoreCellValueByIndexInDataSheet
+    input: '@0,Material,OrderAudit:FirstMaterial'
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 16
+    object: lineItemsTable
+    description: "Find the MAT-1000 line and read its order quantity into a variable"
+    action: sapStoreCellValueByMatchInVariable
+    input: '@Material,MAT-1000,OrderQty'
+    condition: '%orderQty%'
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 17
+    object: General
+    description: "Assert the captured quantity matches the expected quantity from the datasheet"
+    action: assertVariableFromDataSheet
+    input: '{OrderAudit:ExpectedQty}'
+    condition: '%orderQty%'
+
+  - step: 18
+    object: lineItemsTable
+    description: "Find any MAT-10 line (Contains) and read its order quantity"
+    action: sapStoreCellValueByMatchInVariableContains
+    input: '@Material,MAT-10,OrderQty'
+    condition: '%anyMatQty%'
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 19
+    object: General
+    description: "Sanity-check the captured quantity is a positive number"
+    action: assertNumericValue
+    input: '@>0'
+    condition: '%anyMatQty%'
+
+  - step: 20
+    object: lineItemsTable
+    description: "Archive the MAT-1000 line's net value into the audit datasheet"
+    action: sapStoreCellValueByMatchInDataSheet
+    input: '@Material,MAT-1000,NetValue,OrderAudit:NetValue'
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 21
+    object: lineItemsTable
+    description: "Archive any MAT-10 line's net value into the audit datasheet (Contains match)"
+    action: sapStoreCellValueByMatchInDataSheetContains
+    input: '@Material,MAT-10,NetValue,OrderAudit:AnyNetValue'
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 22
+    object: lineItemsTable
+    description: "Tick the selection checkbox of any MAT-10 line for follow-up (Contains match)"
+    action: sapSetCheckBoxInMatchingRowContains
+    input: '@Material,MAT-10,Select'
+    condition: '@true'
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 23
+    object: chkVBAK_AUTLF
+    description: "Assert the 'Complete delivery' indicator is off, since VA01_CreateSalesOrder never set it"
+    action: sapAssertCheckBoxNotSelected
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 24
+    object: chkRV45A_SELKZ60
+    description: "Assert the line item selection indicator IS set, since VA01_CreateSalesOrder checked it"
+    action: sapAssertCheckBoxSelected
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 25
+    object: chkVBAK_AUTLF
+    description: "Assert the indicator is read-only, since VA03 is a display-only transaction"
+    action: sapAssertElementNotEnabled
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 26
+    object: wnd0
+    description: "Assert the order window is present after navigation"
+    action: sapAssertElementPresent
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 27
+    object: wnd0
+    description: "Capture the window title into a variable"
+    action: sapStoreElementTextInVariable
+    condition: '%windowTitle%'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 28
+    object: wnd0
+    description: "Also archive the window title into the audit datasheet"
+    action: sapStoreElementTextInDataSheet
+    input: '@OrderAudit:WindowTitle'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 29
+    object: wnd0
+    description: "Assert the window title shows no error indication"
+    action: sapAssertElementTextNotContains
+    input: '@Error'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 30
+    object: ctxtVBAK_VBELN
+    description: "Assert the displayed order number exactly equals the one requested"
+    action: sapAssertElementTextEquals
+    input: '@0000012345'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 31
+    object: ctxtVBAK_VBELN
+    description: "Assert the order number field's numeric text is greater than zero"
+    action: sapAssertElementNumericValue
+    input: '@>0'
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 32
+    object: ctxtVBAK_VBELN
+    description: "Assert the order number field is read-only in display mode"
+    action: sapAssertElementNotEnabled
+    reference: "[Project] VA01_CreateSalesOrder"
+
+  - step: 33
+    object: informationPopup
+    description: "Assert no unexpected information/warning dialog appeared during the flow"
+    action: sapAssertElementNotPresent
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
+
+  - step: 34
+    object: SAP
+    description: Close the DEMO SAP connection
+    action: sapCloseConnection
+    input: "#DEMO"

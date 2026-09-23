@@ -3,6 +3,7 @@ package com.ing.engine.commands.general;
 import com.ing.engine.commands.browser.CommonMethods;
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.util.NumberConditionEvaluator;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ForcedException;
@@ -140,6 +141,71 @@ public class GeneralOperations extends General {
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, e);
             throw new ForcedException("assertVariableFromDataSheet", e.getMessage());
+        }
+    }
+
+    @Action(
+        object = ObjectType.GENERAL,
+        desc = "Assert numeric variable [<Condition>] against expression [<Data>] (e.g. <>0, >=100)",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "<>0",
+        inputHelp = "operator + expected numeric value (e.g. <>0, >=100, ==5, !=10)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%errorCount%",
+        conditionHelp = "variable name in %var% format holding the actual numeric value"
+    )
+    public void assertNumericValue() throws RuntimeException {
+        String actual = getVar(Condition);
+        try {
+            NumberConditionEvaluator.Condition parsed = NumberConditionEvaluator.parse(Data);
+            boolean result = NumberConditionEvaluator.evaluate(
+                actual,
+                parsed.operator(),
+                parsed.expected()
+            );
+            if (result) {
+                Report.updateTestLog(
+                    Action,
+                    "Variable " +
+                    Condition +
+                    " value [" +
+                    actual +
+                    "] satisfies condition [" +
+                    Data +
+                    "]",
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "Variable " +
+                    Condition +
+                    " value [" +
+                    actual +
+                    "] does not satisfy condition [" +
+                    Data +
+                    "]",
+                    Status.FAILNS
+                );
+            }
+        } catch (NumberFormatException e) {
+            Report.updateTestLog(
+                Action,
+                "Variable " +
+                Condition +
+                " value [" +
+                actual +
+                "] is not numeric. Error: " +
+                e.getMessage(),
+                Status.FAILNS
+            );
+        } catch (IllegalArgumentException e) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, e);
+            throw new ForcedException("assertNumericValue", e.getMessage());
         }
     }
 
