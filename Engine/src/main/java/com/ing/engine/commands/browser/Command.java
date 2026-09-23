@@ -209,7 +209,12 @@ public class Command implements CommandPluginApi {
         Commander = cc;
         // SAP is checked first: a driverless "No Browser" run still carries a
         // (non-driving) webDriver, so testing webDriver first would mask SAP mode.
-        if (Commander.isSapMode()) {
+        // Gated on isSapArchetypeAction() (THIS step's own archetype), not just
+        // isSapMode() (whether ANY SAP connection is open elsewhere in the run) - a
+        // Browser/Database/etc. step interleaved with an open SAP connection must still
+        // get its Page/AObject/Locator/etc. wired up below, exactly as it would with no
+        // SAP connection open at all. See "Guardrails - what may share a SAP test case".
+        if (Commander.isSapMode() && Commander.isSapArchetypeAction()) {
             SAPsession = (com.jacob.activeX.ActiveXComponent) Commander.currentSapRaw();
             SAPProcess = Commander.SAPProcess;
             SAPObject = Commander.SAPObject;

@@ -103,8 +103,15 @@ import parses:
   (`sess_s1_`) name prefixes combining correctly — e.g. the nested confirmation button
   becomes `sess_s1_w2_btnSPOP_OPTION1`. See `ObjectRepository/SAP/VA01_MultiWindowMultiSession.yaml`
   for the full generated page.
+- `VA01_MultiWindowMultiSession.jsh` — the same multi-window/multi-session scenario as the
+  `.ps1` above, translated to the JACOB `ActiveXComponent` idiom, importable via Tools ->
+  Import SAP Recording -> Java (.java, .jsh). Verified: parses into the identical 16 objects /
+  22 actions, same window/session prefixing. Not separately imported into this project (would
+  either collide with or duplicate the `.ps1` version's `VA01_MultiWindowMultiSession` scenario
+  and OR page) — it exists purely as an alternate-format sample for testing the Java import
+  path specifically.
 
-All four were verified against the real parser classes (not just eyeballed) before being
+All five were verified against the real parser classes (not just eyeballed) before being
 added here — see the parse breakdown above for each.
 
 ### The imported test cases are already in this project

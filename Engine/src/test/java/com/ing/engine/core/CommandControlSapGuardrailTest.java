@@ -1,5 +1,7 @@
 package com.ing.engine.core;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
@@ -12,6 +14,8 @@ import static org.mockito.Mockito.when;
 import com.ing.datalib.settings.SapConfigRegistry;
 import com.ing.datalib.settings.SapConnections;
 import com.ing.datalib.settings.SapDefaults;
+import com.ing.engine.commands.browser.Command;
+import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.drivers.sap.FakeSap;
 import com.ing.engine.drivers.sap.SapSessionManager;
 import com.ing.engine.execution.run.TestCaseRunner;
@@ -19,6 +23,7 @@ import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.support.Step;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.ingenious.api.status.Status;
+import com.microsoft.playwright.Page;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -131,5 +136,72 @@ public class CommandControlSapGuardrailTest {
         cc.sync(step);
 
         verify(report, never()).updateTestLog(anyString(), anyString(), eq(Status.FAILNS));
+    }
+
+    /**
+     * {@link CommandControl#isSapArchetypeAction()} must reflect the CURRENT step's own
+     * archetype, not just whether a SAP connection happens to be open somewhere in the run
+     * (that's {@link CommandControl#isSapMode()}, which is true for every test in this class -
+     * see {@code @Before}).
+     */
+    @Test
+    public void isSapArchetypeAction_reflectsCurrentStepArchetypeNotJustSapMode() {
+        TestCaseReport report = mock(TestCaseReport.class);
+        CommandControl cc = newControl(report);
+
+        cc.Action = "sapExecuteTransaction";
+        assertTrue(
+            "a genuine SAP action must be recognised as SAP archetype",
+            cc.isSapArchetypeAction()
+        );
+
+        cc.Action = "Click";
+        assertFalse(
+            "a Browser action must NOT be recognised as SAP archetype, even though " +
+            "isSapMode() is true (a SAP connection is open elsewhere in the run)",
+            cc.isSapArchetypeAction()
+        );
+    }
+
+    /**
+     * Regression test for the exact reported bug: a Browser test case that also has an open
+     * SAP connection failed with a null Page ("this.page is null") on its first Browser step.
+     * Root cause: {@code Command}'s constructor branched on {@code Commander.isSapMode()} (any
+     * SAP connection open, run-wide) instead of the current step's own archetype, so once SAP
+     * mode was on, every subsequent {@code Command} - including a plain Browser click - took
+     * the SAP-only branch and never got {@code Page}/{@code AObject}/{@code Locator} wired up.
+     */
+    @Test
+    public void browserCommand_getsPageWiredUpWhenSapConnectionOpen() throws Exception {
+        PlaywrightDriverCreation pdc = new PlaywrightDriverCreation();
+        pdc.page = mock(Page.class);
+
+        TestCaseReport report = mock(TestCaseReport.class);
+        CommandControl cc = new CommandControl(pdc, pdc, pdc, null, report) {
+
+            @Override
+            public void execute(String com, int sub) {}
+
+            @Override
+            public void executeAction(String action) {}
+
+            @Override
+            public Object context() {
+                return runner();
+            }
+        };
+        cc.Action = "Click"; // a genuine Browser/Playwright action, not SAP
+
+        Command cmd = new Command(cc);
+
+        assertNotNull(
+            "Browser Command must get a live Page even while a SAP connection is open " +
+            "elsewhere in the run",
+            cmd.Page
+        );
+        assertNotNull(
+            "Browser Command must get AObject wired up even while a SAP connection is open",
+            cmd.AObject
+        );
     }
 }

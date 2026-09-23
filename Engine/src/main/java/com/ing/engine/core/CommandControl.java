@@ -135,6 +135,25 @@ public abstract class CommandControl {
         return SapSessionManager.INSTANCE.current();
     }
 
+    /**
+     * True when the CURRENT step's action is itself declared as a SAP archetype action
+     * (object type {@code SAP} or {@code "SAP Object"}) - unlike {@link #isSapMode()}, which
+     * is true whenever ANY SAP connection is open for this run, regardless of this step's own
+     * archetype. A step from a different archetype (Browser, Database, ...) interleaved with
+     * open SAP connections must resolve/execute exactly as it would with no SAP connection
+     * open at all - see {@code SapCompatibility} and design doc "Guardrails - what may share
+     * a SAP test case". Also consulted by {@code Command}'s constructor so Playwright/webDriver
+     * fields still get wired up for a non-SAP step while SAP mode is on.
+     */
+    public boolean isSapArchetypeAction() {
+        if (Action == null) {
+            return false;
+        }
+        com.ing.ingenious.api.annotation.Action actionMeta = MethodInfoManager.getActionFor(Action);
+        String actionObjectType = actionMeta != null ? actionMeta.object() : null;
+        return SapCompatibility.isSapObjectType(actionObjectType);
+    }
+
     /** The raw {@code ActiveXComponent} of the current SAP session, or {@code null}. */
     public Object currentSapRaw() {
         SapGuiSession s = sapGuiSession();
@@ -211,15 +230,20 @@ public abstract class CommandControl {
             if (!(ObjectName.matches("(?i:app|browser|execute|executeclass)"))) {
                 this.Reference = curr.Reference;
                 if (!curr.Action.startsWith("img")) {
-                    // While a SAP connection is open, non-SAP steps (General, DB, ...)
-                    // resolve nothing against SAP - the handler proceeds without an object.
-                    if (isSapMode() && !isSAPAction()) {
-                        return;
-                    }
-
                     // SAP element finding is hoisted ahead of the web/mobile branches
                     // because a "No Browser" run still carries a (non-driving) webDriver.
-                    if (isSapMode() && isSAPAction()) {
+                    // Gated on isSapArchetypeAction() (THIS step's own archetype), not just
+                    // isSapMode() (whether ANY SAP connection is open elsewhere in the run) -
+                    // a Browser/Database/etc. step interleaved with an open SAP connection
+                    // must still fall through to canIFindElement() below and resolve exactly
+                    // as it would with no SAP connection open at all. See "Guardrails - what
+                    // may share a SAP test case".
+                    if (isSapMode() && isSapArchetypeAction()) {
+                        if (!isSAPAction()) {
+                            // SAP-archetype action, but doesn't resolve against the SAP OR -
+                            // nothing to do.
+                            return;
+                        }
                         if (SAPObject == null) {
                             bindSapSession();
                         }
@@ -305,7 +329,9 @@ public abstract class CommandControl {
 
     private Boolean canIFindElement() {
         // SAP is checked first: a "No Browser" run still carries a non-driving webDriver.
-        if (isSapMode()) {
+        // Gated on isSapArchetypeAction() so a non-SAP step (Browser, Database, ...) still
+        // resolves normally below even while a SAP connection happens to be open elsewhere.
+        if (isSapMode() && isSapArchetypeAction()) {
             if (!isSAPAction()) {
                 return false;
             }
