@@ -733,14 +733,31 @@ public class ProjectTree implements ActionListener {
     }
 
     /**
+     * Display name for a single test case in dialogs. Reusable trees surface
+     * test cases to the user as "Intents".
+     * @return singular display name
+     */
+    protected String getTestCaseLabel() {
+        return "TestCase";
+    }
+
+    /**
+     * Display name for multiple test cases in dialogs.
+     * @return plural display name
+     */
+    protected String getTestCaseLabelPlural() {
+        return "TestCases";
+    }
+
+    /**
      * Deletes selected test cases after user confirmation.
      */
     private void deleteTestCases() {
         List<TestCaseNode> testcaseNodes = getSelectedTestCaseNodes();
         if (!testcaseNodes.isEmpty()) {
             int option = showScrollableDeleteConfirmation(
-                "Delete TestCase",
-                "TestCases",
+                "Delete " + getTestCaseLabel(),
+                getTestCaseLabelPlural(),
                 testcaseNodes
             );
             if (option == JOptionPane.YES_OPTION) {
