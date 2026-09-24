@@ -459,4 +459,192 @@ public class Database extends General {
             );
         }
     }
+
+    /**
+     * Asserts that the last SELECT returned exactly the expected number of rows.
+     */
+    @Action(
+        object = ObjectType.DATABASE,
+        desc = "Assert the result has [<Input>] row(s)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.INTEGER,
+        inputExample = "@3",
+        inputHelp = "expected number of rows returned by the last SELECT",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
+    public void assertRowCount() {
+        try {
+            if (result == null) {
+                Report.updateTestLog(
+                    Action,
+                    "No query result available. Run a SELECT first.",
+                    Status.FAILNS
+                );
+                return;
+            }
+            int expected = Integer.parseInt(Data.trim());
+            result.last();
+            int actual = result.getRow();
+            result.beforeFirst();
+            if (actual == expected) {
+                Report.updateTestLog(Action, "Row count is " + actual, Status.PASSNS);
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "Expected " + expected + " row(s) but found " + actual,
+                    Status.FAILNS
+                );
+            }
+        } catch (NumberFormatException ex) {
+            Report.updateTestLog(Action, "Invalid expected row count: " + Data, Status.FAILNS);
+        } catch (SQLException ex) {
+            Report.updateTestLog(Action, "Error counting rows: " + ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    /**
+     * Asserts that the value at a specific column (and optional row) equals the input exactly.
+     */
+    @Action(
+        object = ObjectType.DATABASE,
+        desc = "Assert the value [<Input>] equals column [<Condition>]",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Ervin Howell",
+        inputHelp = "exact expected value",
+        condition = ConditionKind.TEXT,
+        conditionExample = "user_name,2",
+        conditionHelp = "column name, optionally column,row (1-based; default row 1)"
+    )
+    public void assertColumnValueEquals() {
+        try {
+            String[] cr = parseColumnRow(Condition);
+            String column = cr[0];
+            int row = Integer.parseInt(cr[1]);
+            if (getColumnIndex(column) == -1) {
+                Report.updateTestLog(Action, "Column " + column + " doesn't exist", Status.FAILNS);
+                return;
+            }
+            if (!result.absolute(row)) {
+                Report.updateTestLog(Action, "Row " + row + " doesn't exist", Status.FAILNS);
+                return;
+            }
+            String actual = result.getString(column);
+            boolean equal = (Data == null) ? (actual == null) : Data.equals(actual);
+            if (equal) {
+                Report.updateTestLog(
+                    Action,
+                    "Value at " + column + " row " + row + " equals " + Data,
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "Expected [" +
+                    Data +
+                    "] but found [" +
+                    actual +
+                    "] at " +
+                    column +
+                    " row " +
+                    row,
+                    Status.FAILNS
+                );
+            }
+        } catch (SQLException ex) {
+            Report.updateTestLog(Action, "Error: " + ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    /**
+     * Asserts that the value at a specific column (and optional row) is SQL NULL.
+     */
+    @Action(
+        object = ObjectType.DATABASE,
+        desc = "Assert the value in column [<Condition>] is NULL",
+        condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "email,3",
+        conditionHelp = "column name, optionally column,row (1-based; default row 1)"
+    )
+    public void assertColumnValueIsNull() {
+        assertNullness(true);
+    }
+
+    /**
+     * Asserts that the value at a specific column (and optional row) is not SQL NULL.
+     */
+    @Action(
+        object = ObjectType.DATABASE,
+        desc = "Assert the value in column [<Condition>] is NOT NULL",
+        condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "email,1",
+        conditionHelp = "column name, optionally column,row (1-based; default row 1)"
+    )
+    public void assertColumnValueIsNotNull() {
+        assertNullness(false);
+    }
+
+    private void assertNullness(boolean expectNull) {
+        try {
+            String[] cr = parseColumnRow(Condition);
+            String column = cr[0];
+            int row = Integer.parseInt(cr[1]);
+            if (getColumnIndex(column) == -1) {
+                Report.updateTestLog(Action, "Column " + column + " doesn't exist", Status.FAILNS);
+                return;
+            }
+            if (!result.absolute(row)) {
+                Report.updateTestLog(Action, "Row " + row + " doesn't exist", Status.FAILNS);
+                return;
+            }
+            result.getObject(column);
+            boolean isNull = result.wasNull();
+            if (isNull == expectNull) {
+                Report.updateTestLog(
+                    Action,
+                    "Value at " +
+                    column +
+                    " row " +
+                    row +
+                    " is " +
+                    (expectNull ? "NULL" : "NOT NULL"),
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "Value at " + column + " row " + row + " is " + (isNull ? "NULL" : "NOT NULL"),
+                    Status.FAILNS
+                );
+            }
+        } catch (SQLException ex) {
+            Report.updateTestLog(Action, "Error: " + ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    /** Splits a {@code column} or {@code column,row} condition into [column, row]. */
+    private String[] parseColumnRow(String condition) {
+        String col = condition == null ? "" : condition.trim();
+        String row = "1";
+        if (condition != null && condition.contains(",")) {
+            String[] s = condition.split(",", 2);
+            col = s[0].trim();
+            row = s[1].trim();
+        }
+        return new String[] { col, row };
+    }
 }
