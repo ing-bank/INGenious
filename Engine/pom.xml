@@ -598,13 +598,12 @@
     <!--
         Lightweight archetype-based distribution (RELEASE_STRATEGY.md §9.3).
 
-        The default build produces the Browser archetype. Optional archetypes whose
-        dependencies are cleanly separable are activated with -P:
+        The default build produces the Browser + Database archetypes, since the DB
+        Workbench UI is always present and needs its JDBC drivers on the classpath.
+        Additional archetypes are activated with -P:
 
-            mvn clean package                 (browser - default)
+            mvn clean package                 (browser + database - default)
             mvn clean package -P database     (browser + JDBC drivers)
-            mvn clean package -P kafka        (browser + Kafka/Avro)
-            mvn clean package -P database,kafka
             mvn clean package -P full         (everything)
 
         Only the database (JDBC drivers, loaded reflectively at runtime) and kafka
@@ -644,6 +643,12 @@
 
         <profile>
             <id>database</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <!-- JDBC drivers required by the DB Workbench UI, which is a core
+                 IDE feature (not opt-in), so this profile is active by default
+                 alongside 'browser'. -->
             <dependencies>
                 <dependency>
                     <groupId>com.microsoft.sqlserver</groupId>
@@ -660,6 +665,43 @@
                     <artifactId>ojdbc11</artifactId>
                     <version>23.26.1.0.0</version>
                 </dependency>
+                <!-- Additional Database Drivers -->
+                <!-- <dependency>
+                    <groupId>org.postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                    <version>42.7.4</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.mariadb.jdbc</groupId>
+                    <artifactId>mariadb-java-client</artifactId>
+                    <version>3.5.10</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.oracle.database.jdbc</groupId>
+                    <artifactId>ojdbc11</artifactId>
+                    <version>23.4.0.24.05</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.xerial</groupId>
+                    <artifactId>sqlite-jdbc</artifactId>
+                    <version>3.53.4.0</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                    <version>2.3.232</version>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.ibm.db2</groupId>
+                    <artifactId>jcc</artifactId>
+                    <version>11.5.0.0</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.ing.data</groupId>
+                    <artifactId>cassandra-jdbc-wrapper</artifactId>
+                    <version>4.9.0</version>
+                </dependency> -->
             </dependencies>
         </profile>
 
