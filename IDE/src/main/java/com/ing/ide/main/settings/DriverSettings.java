@@ -764,10 +764,81 @@ public class DriverSettings extends javax.swing.JFrame {
 
     public void open() {
         loadBrowsers();
+        // Configurations can be added elsewhere (e.g. the Database Workbench)
+        // while this window is closed, so re-read the lists every time.
+        loadDatabases();
+        loadContexts();
         // Ensure Save starts disabled when opening the window.
         clearDirty();
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+
+    /**
+     * Connects using the properties currently shown in the Database tab so the
+     * alias can be verified without leaving Archetype Configurations. The
+     * password is decrypted first when it carries the {@code " Enc"} marker.
+     */
+    private void testDBConnection() {
+        if (dbCombo.getSelectedIndex() == -1) {
+            Notification.show("Select a database alias first");
+            return;
+        }
+        if (dbPropTable.isEditing()) {
+            dbPropTable.getCellEditor().stopCellEditing();
+        }
+        final String alias = dbCombo.getSelectedItem().toString();
+        final Properties props = new Properties();
+        DefaultTableModel model = (DefaultTableModel) dbPropTable.getModel();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            String key = Objects.toString(model.getValueAt(i, 0), "").trim();
+            if (!key.isEmpty()) {
+                props.setProperty(key, Objects.toString(model.getValueAt(i, 1), ""));
+            }
+        }
+        String password = props.getProperty("password", "");
+        if (password.endsWith(" Enc")) {
+            String plain = com
+                .ing.util.encryption.Encryption.getInstance()
+                .decrypt(password.substring(0, password.lastIndexOf(" Enc")));
+            props.setProperty("password", plain == null ? "" : plain);
+        }
+
+        testDBConn.setEnabled(false);
+        final javax.swing.JFrame self = this;
+        new javax.swing.SwingWorker<String, Void>() {
+
+            @Override
+            protected String doInBackground() throws Exception {
+                return new com.ing.ide.main.mainui.components.dbworkbench.util.JdbcExecutor()
+                .testConnection(props);
+            }
+
+            @Override
+            protected void done() {
+                testDBConn.setEnabled(true);
+                try {
+                    javax.swing.JOptionPane.showMessageDialog(
+                        self,
+                        get(),
+                        "Connection OK: " + alias,
+                        javax.swing.JOptionPane.INFORMATION_MESSAGE
+                    );
+                } catch (Exception ex) {
+                    Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                    javax.swing.JOptionPane.showMessageDialog(
+                        self,
+                        com.ing.ide.main.mainui.components.dbworkbench.connections.ConnectionDialog.describeFailure(
+                            cause,
+                            props.getProperty("driver", "")
+                        ),
+                        "Connection Failed: " + alias,
+                        javax.swing.JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+        }
+        .execute();
     }
 
     private void addNewEmulator() {
@@ -1111,6 +1182,7 @@ public class DriverSettings extends javax.swing.JFrame {
 
         databasePanel = new javax.swing.JPanel();
         dbCombo = new javax.swing.JComboBox<>();
+        testDBConn = new javax.swing.JButton();
         addNewDB = new javax.swing.JButton();
         deleteDB = new javax.swing.JButton();
         addDBPropbutton = new javax.swing.JButton();
@@ -1535,6 +1607,20 @@ public class DriverSettings extends javax.swing.JFrame {
             }
         });
         jToolBar5.add(testConn);*/
+
+        testDBConn.setText("Test Connection");
+        testDBConn.setToolTipText("Connect using the properties shown below");
+        testDBConn.setFocusable(false);
+        testDBConn.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
+        testDBConn.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    testDBConnection();
+                }
+            }
+        );
+        jToolBar5.add(testDBConn);
 
         addNewDB.setIcon(INGIcons.swingColored("icon.addIcon", 16));
         addNewDB.setToolTipText("Add New Database");
@@ -3190,6 +3276,7 @@ public class DriverSettings extends javax.swing.JFrame {
     private javax.swing.JButton addNewDB;
     private javax.swing.JComboBox<String> dbCombo;
     private javax.swing.JTable dbPropTable;
+    private javax.swing.JButton testDBConn;
     private javax.swing.JButton deleteDB;
     private javax.swing.JButton addDBPropbutton;
     private javax.swing.JButton deleteDBPropbutton;

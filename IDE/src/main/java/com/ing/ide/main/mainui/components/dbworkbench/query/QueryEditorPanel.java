@@ -5,18 +5,25 @@ import com.ing.datalib.component.TestCase;
 import com.ing.datalib.dbworkbench.DBQuery;
 import com.ing.ide.main.mainui.components.dbworkbench.DBWorkbench;
 import com.ing.ide.main.mainui.components.dbworkbench.DBWorkbenchUI;
+import com.ing.ide.main.mainui.components.dbworkbench.util.SqlScript;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import org.fife.ui.autocomplete.AutoCompletion;
 import org.fife.ui.autocomplete.BasicCompletion;
 import org.fife.ui.autocomplete.DefaultCompletionProvider;
@@ -102,7 +109,7 @@ public class QueryEditorPanel extends JPanel {
         bar.add(runBtn);
 
         JButton saveBtn = new JButton("Save");
-        saveBtn.setToolTipText("Save this query in the project");
+        saveBtn.setToolTipText("Save the whole query in the project");
         saveBtn.addActionListener(e -> parent.saveCurrentQuery());
         bar.add(saveBtn);
 
@@ -110,6 +117,11 @@ public class QueryEditorPanel extends JPanel {
         openBtn.setToolTipText("Open a saved query");
         openBtn.addActionListener(e -> parent.openSavedQuery());
         bar.add(openBtn);
+
+        JButton importBtn = new JButton("Import SQL");
+        importBtn.setToolTipText("Load a .sql file into the editor");
+        importBtn.addActionListener(e -> importSqlFile());
+        bar.add(importBtn);
 
         JButton commitBtn = new JButton("Commit");
         commitBtn.setToolTipText("Commit the current transaction on this connection");
@@ -129,6 +141,39 @@ public class QueryEditorPanel extends JPanel {
         return bar;
     }
 
+    /** Replaces the editor content with a {@code .sql} file from disk. */
+    private void importSqlFile() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Import SQL File");
+        chooser.setFileFilter(new FileNameExtensionFilter("SQL files (*.sql)", "sql"));
+        if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
+        java.io.File file = chooser.getSelectedFile();
+        try {
+            String sql = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+            editor.setText(sql);
+            editor.setCaretPosition(0);
+            nameField.setText(stripExtension(file.getName()));
+            parent
+                .getResultPanel()
+                .showMessage(
+                    "Imported " +
+                    file.getName() +
+                    " (" +
+                    SqlScript.split(sql).size() +
+                    " statement(s))."
+                );
+        } catch (IOException ex) {
+            parent
+                .getResultPanel()
+                .showError("Could not read " + file.getName() + ": " + ex.getMessage());
+        }
+    }
+
+    private static String stripExtension(String fileName) {
+        int dot = fileName.lastIndexOf('.');
+        return dot > 0 ? fileName.substring(0, dot) : fileName;
+    }
+
     public void refreshConnections(List<String> aliases) {
         Object selected = connectionCombo.getSelectedItem();
         connectionCombo.setModel(new DefaultComboBoxModel<>(aliases.toArray(new String[0])));
@@ -142,14 +187,41 @@ public class QueryEditorPanel extends JPanel {
         return a == null ? null : a.toString();
     }
 
-    public String getSql() {
-        String selected = editor.getSelectedText();
-        String sql = (selected != null && !selected.trim().isEmpty()) ? selected : editor.getText();
-        sql = sql.trim();
-        while (sql.endsWith(";")) {
-            sql = sql.substring(0, sql.length() - 1).trim();
+    /**
+     * Points the editor at a connection, e.g. after a table is picked in the
+     * schema browser, so Run targets the database the table came from.
+     *
+     * @param alias the connection alias to select
+     */
+    public void setSelectedAlias(String alias) {
+        if (alias == null) return;
+        for (int i = 0; i < connectionCombo.getItemCount(); i++) {
+            if (alias.equals(connectionCombo.getItemAt(i))) {
+                connectionCombo.setSelectedIndex(i);
+                return;
+            }
         }
-        return sql;
+    }
+
+    /**
+     * The full script as typed, semicolons included. Saving and automation use
+     * this so nothing is silently dropped.
+     *
+     * @return the editor content, trimmed
+     */
+    public String getSql() {
+        return editor.getText().trim();
+    }
+
+    /**
+     * @return the selected text when there is a selection, otherwise the whole
+     *         script; this is what Run executes
+     */
+    public String getSqlToRun() {
+        String selected = editor.getSelectedText();
+        return (selected != null && !selected.trim().isEmpty())
+            ? selected.trim()
+            : editor.getText().trim();
     }
 
     /** Adds table/column identifiers discovered by the schema browser to autocomplete. */
@@ -181,15 +253,14 @@ public class QueryEditorPanel extends JPanel {
         editor.setText(q.getSql() == null ? "" : q.getSql());
     }
 
-    /** True when the statement looks like DML (INSERT/UPDATE/DELETE/MERGE). */
+    /** True when the script contains at least one statement that writes. */
     public boolean isDml() {
-        String sql = getSql().toUpperCase();
-        return (
-            sql.startsWith("INSERT") ||
-            sql.startsWith("UPDATE") ||
-            sql.startsWith("DELETE") ||
-            sql.startsWith("MERGE")
-        );
+        for (String statement : SqlScript.split(getSql())) {
+            if (SqlScript.classify(statement).isWrite()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Builds a {@link DBQuery} from the current editor state + grid validations. */
@@ -222,20 +293,20 @@ public class QueryEditorPanel extends JPanel {
             );
             return;
         }
-
-        final List<Scenario> testPlanScenarios = controller.getAvailableScenarios();
-        final List<Scenario> reusableScenarios = controller.getAvailableReusableScenarios();
-        if (testPlanScenarios.isEmpty() && reusableScenarios.isEmpty()) {
+        if (controller.getMainFrame().getProject() == null) {
             JOptionPane.showMessageDialog(
                 this,
-                "No scenarios available. Please open a project and create a scenario first.",
-                "No Scenarios",
+                "Open a project first.",
+                "No Project",
                 JOptionPane.WARNING_MESSAGE
             );
             return;
         }
 
-        JPanel panel = new JPanel(new java.awt.GridLayout(3, 2, 10, 10));
+        final List<Scenario> testPlanScenarios = controller.getAvailableScenarios();
+        final List<Scenario> reusableScenarios = controller.getAvailableReusableScenarios();
+
+        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
         panel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         panel.add(new JLabel("Automation Type:"));
@@ -245,32 +316,9 @@ public class QueryEditorPanel extends JPanel {
         panel.add(typeCombo);
 
         panel.add(new JLabel("Target Scenario:"));
-        final JComboBox<Scenario> scenarioCombo = new JComboBox<>();
-        scenarioCombo.setRenderer(
-            new javax.swing.DefaultListCellRenderer() {
-
-                @Override
-                public java.awt.Component getListCellRendererComponent(
-                    javax.swing.JList<?> list,
-                    Object value,
-                    int index,
-                    boolean isSelected,
-                    boolean cellHasFocus
-                ) {
-                    super.getListCellRendererComponent(
-                        list,
-                        value,
-                        index,
-                        isSelected,
-                        cellHasFocus
-                    );
-                    if (value instanceof Scenario) {
-                        setText(((Scenario) value).getName());
-                    }
-                    return this;
-                }
-            }
-        );
+        // Editable so a brand-new scenario can be typed straight into the combo.
+        final JComboBox<String> scenarioCombo = new JComboBox<>();
+        scenarioCombo.setEditable(true);
         panel.add(scenarioCombo);
 
         final JLabel nameLabel = new JLabel("Test Case Name:");
@@ -278,17 +326,20 @@ public class QueryEditorPanel extends JPanel {
         final JTextField tcNameField = new JTextField(getQueryName());
         panel.add(tcNameField);
 
+        panel.add(new JLabel(" "));
+        JLabel hint = new JLabel("Type a new name in either field to create it.");
+        hint.setForeground(java.awt.Color.GRAY);
+        panel.add(hint);
+
         typeCombo.addActionListener(
             e -> {
                 boolean reusable = TYPE_USER_INTENT.equals(typeCombo.getSelectedItem());
                 List<Scenario> list = reusable ? reusableScenarios : testPlanScenarios;
-                scenarioCombo.setModel(new DefaultComboBoxModel<>(list.toArray(new Scenario[0])));
+                scenarioCombo.setModel(new DefaultComboBoxModel<>(scenarioNames(list)));
                 nameLabel.setText(reusable ? "User Intent Name:" : "Test Case Name:");
             }
         );
-        scenarioCombo.setModel(
-            new DefaultComboBoxModel<>(testPlanScenarios.toArray(new Scenario[0]))
-        );
+        scenarioCombo.setModel(new DefaultComboBoxModel<>(scenarioNames(testPlanScenarios)));
 
         int result = JOptionPane.showConfirmDialog(
             this,
@@ -300,11 +351,12 @@ public class QueryEditorPanel extends JPanel {
         if (result != JOptionPane.OK_OPTION) return;
 
         boolean reusable = TYPE_USER_INTENT.equals(typeCombo.getSelectedItem());
-        Scenario scenario = (Scenario) scenarioCombo.getSelectedItem();
-        if (scenario == null) {
+        Object scenarioItem = scenarioCombo.getEditor().getItem();
+        String scenarioName = scenarioItem == null ? "" : scenarioItem.toString().trim();
+        if (scenarioName.isEmpty()) {
             JOptionPane.showMessageDialog(
                 this,
-                "Please select a scenario.",
+                "Please select or enter a scenario name.",
                 "No Scenario",
                 JOptionPane.WARNING_MESSAGE
             );
@@ -321,10 +373,31 @@ public class QueryEditorPanel extends JPanel {
             return;
         }
 
+        Scenario scenario = controller.findOrCreateScenario(scenarioName, reusable);
+        if (scenario == null) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Could not create scenario '" + scenarioName + "'.",
+                "Conversion Failed",
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        DBWorkbench.ExistingCasePolicy policy = DBWorkbench.ExistingCasePolicy.CREATE;
+        if (controller.testCaseExists(scenario, tcName)) {
+            policy = askExistingCasePolicy(tcName, reusable);
+            if (policy == null) return;
+        }
+
         DBQuery query = buildQuery();
-        TestCase created = reusable
-            ? controller.convertQueryToReusable(query, scenario, tcName)
-            : controller.convertQueryToTestCase(query, scenario, tcName);
+        TestCase created = controller.convertQueryToAutomation(
+            query,
+            scenario,
+            tcName,
+            reusable,
+            policy
+        );
 
         if (created != null) {
             int nav = JOptionPane.showConfirmDialog(
@@ -350,5 +423,37 @@ public class QueryEditorPanel extends JPanel {
                 JOptionPane.ERROR_MESSAGE
             );
         }
+    }
+
+    /**
+     * @param tcName the conflicting name
+     * @param reusable whether the target is a user intent
+     * @return the chosen policy, or {@code null} when the user cancelled
+     */
+    private DBWorkbench.ExistingCasePolicy askExistingCasePolicy(String tcName, boolean reusable) {
+        String[] options = { "Overwrite steps", "Append steps", "Cancel" };
+        int choice = JOptionPane.showOptionDialog(
+            this,
+            (reusable ? "User intent '" : "Test Case '") +
+            tcName +
+            "' already exists.\n\nOverwrite its steps, or append the new steps at the end?",
+            "Already Exists",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            options,
+            options[1]
+        );
+        if (choice == 0) return DBWorkbench.ExistingCasePolicy.OVERWRITE;
+        if (choice == 1) return DBWorkbench.ExistingCasePolicy.APPEND;
+        return null;
+    }
+
+    private static String[] scenarioNames(List<Scenario> scenarios) {
+        String[] names = new String[scenarios.size()];
+        for (int i = 0; i < scenarios.size(); i++) {
+            names[i] = scenarios.get(i).getName();
+        }
+        return names;
     }
 }

@@ -48,6 +48,16 @@ public class ReusableTree extends ProjectTree {
         return new ReusableTreeModel();
     }
 
+    @Override
+    protected String getTestCaseLabel() {
+        return "Intent";
+    }
+
+    @Override
+    protected String getTestCaseLabelPlural() {
+        return "Intents";
+    }
+
     /**
      * Creates a new popup menu for the reusable tree.
      * @return new ReusablePopupMenu instance
@@ -573,6 +583,8 @@ public class ReusableTree extends ProjectTree {
             super.init();
             // Reusable test cases are surfaced to the user as "intents".
             renameTestCase.setText("Rename Intent");
+            deleteTestCase.setText("Delete Intent");
+            addTestCase.setText("Add Intent");
             toggleTestCase.setVisible(true);
             toggleProjectReusable.setVisible(false);
             toggleSharedReusable.setVisible(true);

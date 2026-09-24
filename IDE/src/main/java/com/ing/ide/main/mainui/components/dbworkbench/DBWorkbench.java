@@ -13,6 +13,7 @@ import com.ing.datalib.settings.DBProperties;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.mainui.SlideShow;
 import com.ing.ide.main.mainui.components.dbworkbench.util.JdbcExecutor;
+import com.ing.ide.main.mainui.components.dbworkbench.util.SqlScript;
 import com.ing.util.encryption.Encryption;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -127,6 +128,42 @@ public class DBWorkbench implements SlideShow.SlideChangeListener {
         return scenarios;
     }
 
+    /**
+     * Returns the named scenario, creating it when it does not exist yet, so the
+     * Automation dialog can accept a brand-new scenario name.
+     *
+     * @param name the scenario name typed or picked by the user
+     * @param reusable true for a User Intent (reusable) scenario
+     * @return the existing or newly created scenario, or {@code null} on failure
+     */
+    public Scenario findOrCreateScenario(String name, boolean reusable) {
+        Project project = mainFrame.getProject();
+        if (project == null || name == null || name.trim().isEmpty()) return null;
+        String scenarioName = name.trim();
+        Scenario existing = reusable
+            ? project.getReusableScenarioByName(scenarioName)
+            : project.getTestPlanScenarioByName(scenarioName);
+        if (existing != null) return existing;
+
+        Scenario created = reusable
+            ? project.addReusableScenario(scenarioName)
+            : project.addScenario(scenarioName);
+        if (created != null) {
+            reloadTestDesignTrees();
+            LOG.info("Created scenario '" + scenarioName + "' from the Database Workbench");
+        }
+        return created;
+    }
+
+    /**
+     * @param scenario the target scenario
+     * @param testCaseName the name to check
+     * @return true when the scenario already holds a test case with that name
+     */
+    public boolean testCaseExists(Scenario scenario, String testCaseName) {
+        return scenario != null && scenario.getTestCaseByName(testCaseName) != null;
+    }
+
     public void navigateToTestCase(TestCase testCase) {
         if (testCase == null) return;
         javax.swing.SwingUtilities.invokeLater(
@@ -146,78 +183,114 @@ public class DBWorkbench implements SlideShow.SlideChangeListener {
     // Automation conversion
     // ═══════════════════════════════════════════════════════════════════
 
-    public TestCase convertQueryToTestCase(DBQuery query, Scenario scenario, String testCaseName) {
+    /** What to do when the target test case already exists. */
+    public enum ExistingCasePolicy {
+        /** The name is free; create a new test case. */
+        CREATE,
+        /** Replace every step of the existing test case. */
+        OVERWRITE,
+        /** Keep the existing steps and add the new ones at the end. */
+        APPEND
+    }
+
+    /**
+     * Converts a workbench query into a Test Case or a User Intent (reusable).
+     *
+     * @param query the query, its validations and its connection alias
+     * @param scenario the target scenario
+     * @param testCaseName the name of the test case / user intent
+     * @param reusable true to create a User Intent instead of a Test Case
+     * @param policy what to do when {@code testCaseName} already exists
+     * @return the created or updated test case, or {@code null} on failure
+     */
+    public TestCase convertQueryToAutomation(
+        DBQuery query,
+        Scenario scenario,
+        String testCaseName,
+        boolean reusable,
+        ExistingCasePolicy policy
+    ) {
         if (query == null || scenario == null || testCaseName == null) return null;
-        TestCase testCase = scenario.addTestCase(testCaseName);
-        if (testCase == null) {
+        if (reusable && !scenario.isReusableScenario()) {
             LOG.warning(
-                "Test case '" + testCaseName + "' could not be created (likely already exists)"
+                "convertQueryToAutomation called with non-reusable scenario: " + scenario.getName()
             );
             return null;
         }
+
+        TestCase existing = scenario.getTestCaseByName(testCaseName);
+        boolean created = existing == null;
+        TestCase testCase = created ? scenario.addTestCase(testCaseName) : existing;
+        if (testCase == null) {
+            LOG.warning("Test case '" + testCaseName + "' could not be created");
+            return null;
+        }
+        if (!created && policy == ExistingCasePolicy.OVERWRITE) {
+            testCase.getTestSteps().clear();
+        }
+
         try {
+            ensureConnectionPersisted(query.getConnectionAlias());
             buildStepsForQuery(testCase, query);
             testCase.save();
-            if (
-                mainFrame.getTestDesign() != null &&
-                mainFrame.getTestDesign().getProjectTree() != null
-            ) {
-                mainFrame.getTestDesign().getProjectTree().getTreeModel().addTestCase(testCase);
-            }
+            addToTestDesignTree(testCase, reusable, created);
             LOG.info(
-                "Converted DB query '" + query.getName() + "' to test case '" + testCaseName + "'"
+                "Converted DB query '" +
+                query.getName() +
+                "' to " +
+                (reusable ? "user intent '" : "test case '") +
+                testCaseName +
+                "'"
             );
             return testCase;
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Failed to convert DB query to test case", e);
-            scenario.removeTestCase(testCase);
+            LOG.log(Level.SEVERE, "Failed to convert DB query to automation", e);
+            if (created) {
+                scenario.removeTestCase(testCase);
+            }
             return null;
         }
     }
 
-    public TestCase convertQueryToReusable(
-        DBQuery query,
-        Scenario reusableScenario,
-        String testCaseName
-    ) {
-        if (query == null || reusableScenario == null || testCaseName == null) return null;
-        if (!reusableScenario.isReusableScenario()) {
-            LOG.warning(
-                "convertQueryToReusable called with non-reusable scenario: " +
-                reusableScenario.getName()
-            );
-            return null;
-        }
-        TestCase testCase = reusableScenario.addTestCase(testCaseName);
-        if (testCase == null) {
-            LOG.warning(
-                "Reusable '" + testCaseName + "' could not be created (likely already exists)"
-            );
-            return null;
-        }
-        try {
-            buildStepsForQuery(testCase, query);
-            testCase.save();
-            if (
-                mainFrame.getTestDesign() != null &&
-                mainFrame.getTestDesign().getReusableTree() != null
-            ) {
+    private void addToTestDesignTree(TestCase testCase, boolean reusable, boolean created) {
+        if (!created || mainFrame.getTestDesign() == null) return;
+        if (reusable) {
+            if (mainFrame.getTestDesign().getReusableTree() != null) {
                 mainFrame.getTestDesign().getReusableTree().getTreeModel().addTestCase(testCase);
             }
-            LOG.info(
-                "Converted DB query '" + query.getName() + "' to reusable '" + testCaseName + "'"
-            );
-            return testCase;
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Failed to convert DB query to reusable", e);
-            reusableScenario.removeTestCase(testCase);
-            return null;
+        } else if (mainFrame.getTestDesign().getProjectTree() != null) {
+            mainFrame.getTestDesign().getProjectTree().getTreeModel().addTestCase(testCase);
+        }
+    }
+
+    private void reloadTestDesignTrees() {
+        if (mainFrame.getTestDesign() == null) return;
+        if (mainFrame.getTestDesign().getProjectTree() != null) {
+            mainFrame.getTestDesign().getProjectTree().load();
+        }
+        if (mainFrame.getTestDesign().getReusableTree() != null) {
+            mainFrame.getTestDesign().getReusableTree().load();
         }
     }
 
     /**
-     * Emits {@code Database} steps: open connection, run the query, one step per
-     * validation, then close the connection.
+     * Makes sure the alias referenced by the generated steps is on disk under
+     * Database Configurations before the test case is saved, so the generated
+     * test can resolve it without the IDE being restarted.
+     */
+    private void ensureConnectionPersisted(String alias) {
+        DBProperties dbp = getDatabaseSettings();
+        if (dbp == null || alias == null || alias.isEmpty()) return;
+        if (dbp.getDBPropertiesFor(alias) != null) {
+            dbp.save(alias);
+        }
+    }
+
+    /**
+     * Emits {@code Database} steps: open connection, one run step per SQL
+     * statement in the script, one step per validation, then close the
+     * connection. The engine executes a step's Input as a single statement, so a
+     * multi-statement script has to be split here.
      */
     private void buildStepsForQuery(TestCase testCase, DBQuery query) {
         // 1. Open connection
@@ -227,12 +300,15 @@ public class DBWorkbench implements SlideShow.SlideChangeListener {
         open.setAction("initDBConnection");
         open.setInput("#" + safe(query.getConnectionAlias()));
 
-        // 2. Run the query
-        TestStep run = testCase.addNewStep();
-        run.setObject(DB_OBJECT);
-        run.setDescription(query.isDml() ? "Execute DML query" : "Execute Select query");
-        run.setAction(query.isDml() ? "executeDMLQuery" : "executeSelectQuery");
-        run.setInput("@" + safe(query.getSql()));
+        // 2. Run the query, one step per statement
+        for (String statement : statementsOf(query)) {
+            boolean write = SqlScript.classify(statement).isWrite();
+            TestStep run = testCase.addNewStep();
+            run.setObject(DB_OBJECT);
+            run.setDescription(write ? "Execute DML query" : "Execute Select query");
+            run.setAction(write ? "executeDMLQuery" : "executeSelectQuery");
+            run.setInput("@" + statement);
+        }
 
         // 3. Validations / stores
         if (query.getValidations() != null) {
@@ -247,6 +323,14 @@ public class DBWorkbench implements SlideShow.SlideChangeListener {
         close.setObject(DB_OBJECT);
         close.setDescription("Close the DB Connection");
         close.setAction("closeDBConnection");
+    }
+
+    private List<String> statementsOf(DBQuery query) {
+        List<String> statements = SqlScript.split(safe(query.getSql()));
+        if (statements.isEmpty()) {
+            statements.add(safe(query.getSql()));
+        }
+        return statements;
     }
 
     private void addValidationStep(TestCase testCase, DBValidation v) {
