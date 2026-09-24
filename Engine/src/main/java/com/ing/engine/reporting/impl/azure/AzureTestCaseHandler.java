@@ -442,7 +442,14 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
             if (optional != null) {
                 data.put(RDS.Step.Data.OBJECTS, optional.get(0));
             }
-            if (ReportUtils.takeScreenshot(getPlaywrightDriver(), getWebDriver(), imgSrc)) {
+            if (
+                ReportUtils.takeScreenshot(
+                    getPlaywrightDriver(),
+                    getWebDriver(),
+                    getSapDriver(),
+                    imgSrc
+                )
+            ) {
                 data.put(RDS.Step.Data.LINK, imgSrc);
             }
         }

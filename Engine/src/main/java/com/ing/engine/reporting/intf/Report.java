@@ -3,6 +3,7 @@ package com.ing.engine.reporting.intf;
 import com.ing.datalib.component.ReusableRef;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
+import com.ing.engine.drivers.SapDriverCreation;
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.support.Step;
 import com.ing.ingenious.api.status.Status;
@@ -41,6 +42,9 @@ public interface Report {
     public PlaywrightDriverCreation getPlaywrightDriver();
 
     public WebDriverCreation getWebDriver();
+
+    /** Null when no SAP session is active - callers must skip SAP screenshot capture in that case. */
+    public SapDriverCreation getSapDriver();
 
     public String getScreenShotName();
 

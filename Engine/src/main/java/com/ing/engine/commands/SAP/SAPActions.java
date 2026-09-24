@@ -28,7 +28,7 @@ import java.util.Map;
  * This class provides comprehensive SAP GUI automation actions organized by element type.
  * Actions are grouped into logical sections for better maintainability and discoverability.
  *
- * Total Actions: 98 (17 Existing + 81 New)
+ * Total Actions: 99 (17 Existing + 82 New)
  *
  * Sections:
  * 1. Session & Transaction Management
@@ -45,6 +45,7 @@ import java.util.Map;
  * 12. Tree Control Actions
  * 13. Status Bar Actions
  * 14. General Element Actions
+ * 15. Execution Evidence
  */
 public class SAPActions extends General {
 
@@ -75,7 +76,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "No SAP connection - add a SAP.initConnection step.",
-                Status.FAILNS
+                Status.FAIL
             );
             throw new ElementException(ExceptionType.Element_Not_Found, "SAP Session");
         }
@@ -113,7 +114,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: column,text",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -125,7 +126,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "No row found where column [" + column + "] matches [" + text + "]",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -139,7 +140,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to select row by text. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -175,7 +176,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: matchColumn,matchText,targetColumn",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -188,7 +189,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "No row found where column [" + matchColumn + "] matches [" + matchText + "]",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -212,7 +213,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to store cell in matching row. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -228,7 +229,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: matchColumn,matchText,targetColumn,Sheet:Column",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -240,7 +241,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid datasheet reference. Expected: Sheet:Column",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -252,7 +253,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "No row found where column [" + matchColumn + "] matches [" + matchText + "]",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -278,7 +279,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to store cell in matching row. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -307,7 +308,7 @@ public class SAPActions extends General {
                     "] satisfies condition [" +
                     Data +
                     "]",
-                    Status.PASSNS
+                    Status.PASS
                 );
             } else {
                 Report.updateTestLog(
@@ -319,7 +320,7 @@ public class SAPActions extends General {
                     "] does not satisfy condition [" +
                     Data +
                     "]",
-                    Status.FAILNS
+                    Status.FAIL
                 );
             }
         } catch (NumberFormatException e) {
@@ -331,13 +332,13 @@ public class SAPActions extends General {
                 actualCount +
                 "] is not numeric. Error: " +
                 e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Failed to assert row count on [" + ObjectName + "]. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -567,7 +568,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to execute transaction. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -585,7 +586,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to end transaction. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -603,7 +604,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to refresh session. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -687,7 +688,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to maximize window. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -713,7 +714,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to minimize window. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -739,7 +740,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to restore window. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -765,7 +766,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to close window. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -791,7 +792,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to iconify window. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -831,14 +832,14 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: width,height[,fullScreen]",
-                    Status.FAILNS
+                    Status.FAIL
                 );
             }
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Failed to resize working pane. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -866,13 +867,13 @@ public class SAPActions extends General {
                 Status.DONE
             );
         } catch (ElementException ex) {
-            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAILNS);
+            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAIL);
             throw ex;
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Failed to Enter Text. Error : " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -888,13 +889,13 @@ public class SAPActions extends General {
             Dispatch.call(SAPElement, "sendVKey", 0);
             Report.updateTestLog(Action, "Enter key pressed successfully.", Status.DONE);
         } catch (ElementException ex) {
-            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAILNS);
+            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAIL);
             throw ex;
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Error in Enter key press. Error : " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -920,13 +921,13 @@ public class SAPActions extends General {
                 Status.DONE
             );
         } catch (ElementException ex) {
-            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAILNS);
+            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAIL);
             throw ex;
         } catch (NumberFormatException ex) {
             Report.updateTestLog(
                 Action,
                 "Invalid VKey code format [" + Data + "]. Expected integer.",
-                Status.FAILNS
+                Status.FAIL
             );
             throw new IllegalArgumentException(ex);
         } catch (Exception e) {
@@ -936,7 +937,7 @@ public class SAPActions extends General {
                 Data +
                 "]. Error : " +
                 e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -956,13 +957,13 @@ public class SAPActions extends General {
             Dispatch.call(SAPElement, "SelectAll");
             Report.updateTestLog(Action, "Selected all text in [" + ObjectName + "]", Status.DONE);
         } catch (ElementException ex) {
-            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAILNS);
+            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAIL);
             throw ex;
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Failed to select all text. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -983,20 +984,20 @@ public class SAPActions extends General {
             Dispatch.put(SAPElement, "caretPosition", position);
             Report.updateTestLog(Action, "Set caret position to " + Data, Status.DONE);
         } catch (ElementException ex) {
-            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAILNS);
+            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAIL);
             throw ex;
         } catch (NumberFormatException ex) {
             Report.updateTestLog(
                 Action,
                 "Invalid caret position format [" + Data + "]. Expected integer.",
-                Status.FAILNS
+                Status.FAIL
             );
             throw new IllegalArgumentException(ex);
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Failed to set caret position. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1024,20 +1025,20 @@ public class SAPActions extends General {
             Dispatch.put(SAPElement, "modified", Boolean.parseBoolean(Data));
             Report.updateTestLog(Action, "Set modified property to " + Data, Status.DONE);
         } catch (ElementException ex) {
-            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAILNS);
+            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAIL);
             throw ex;
         } catch (IllegalArgumentException ex) {
             Report.updateTestLog(
                 Action,
                 "Invalid boolean format [" + Data + "]. Expected 'true' or 'false'.",
-                Status.FAILNS
+                Status.FAIL
             );
             throw ex;
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Failed to set modified property. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1057,14 +1058,10 @@ public class SAPActions extends General {
             Dispatch.call(SAPElement, "press");
             Report.updateTestLog(Action, "Clicking on [" + ObjectName + "]", Status.DONE);
         } catch (ElementException ex) {
-            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAILNS);
+            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAIL);
             throw ex;
         } catch (Exception e) {
-            Report.updateTestLog(
-                Action,
-                "Failed to click. Error : " + e.getMessage(),
-                Status.FAILNS
-            );
+            Report.updateTestLog(Action, "Failed to click. Error : " + e.getMessage(), Status.FAIL);
         }
     }
 
@@ -1083,13 +1080,13 @@ public class SAPActions extends General {
             Dispatch.call(SAPElement, "pressButton", Data);
             Report.updateTestLog(Action, "Pressed button [" + Data + "]", Status.DONE);
         } catch (ElementException ex) {
-            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAILNS);
+            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAIL);
             throw ex;
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Failed to press button. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1120,7 +1117,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Fails to set Checkbox. Error : " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1144,20 +1141,20 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Checkbox [" + ObjectName + "] is selected.",
-                    Status.PASSNS
+                    Status.PASS
                 );
             } else {
                 Report.updateTestLog(
                     Action,
                     "Checkbox [" + ObjectName + "] is not selected.",
-                    Status.FAILNS
+                    Status.FAIL
                 );
             }
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Failed to get checkbox state. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1177,20 +1174,20 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Checkbox [" + ObjectName + "] is not selected, as expected.",
-                    Status.PASSNS
+                    Status.PASS
                 );
             } else {
                 Report.updateTestLog(
                     Action,
                     "Checkbox [" + ObjectName + "] is selected, but expected it not to be.",
-                    Status.FAILNS
+                    Status.FAIL
                 );
             }
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Failed to get checkbox state. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1208,7 +1205,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: matchColumn,matchText,checkboxColumn",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -1224,7 +1221,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "No row found where column [" + matchColumn + "] matches [" + matchText + "]",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -1251,7 +1248,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to set checkbox in matching row. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1312,7 +1309,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Fails to select radio button. Error : " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1338,7 +1335,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to set dropdown with text. Error : " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1360,7 +1357,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to set dropdown with key. Error : " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1382,7 +1379,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to set dropdown with index. Error : " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1400,7 +1397,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to open dropdown. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1422,7 +1419,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to close dropdown. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1444,7 +1441,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to select tab. Error : " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1470,7 +1467,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to select table row. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1531,7 +1528,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: row,column",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -1548,7 +1545,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to set current cell. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1570,7 +1567,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to set current cell row. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1601,7 +1598,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: row,column",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -1627,7 +1624,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to get cell value. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1655,7 +1652,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: row,column,Sheet:Column",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -1666,7 +1663,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid datasheet reference. Expected: Sheet:Column",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -1694,7 +1691,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to get cell value. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1792,7 +1789,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: row,column,value",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -1810,7 +1807,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to modify cell. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1832,7 +1829,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to click current cell. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1854,7 +1851,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to double click. Error : " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1876,7 +1873,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to set scroll position. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1921,7 +1918,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to select grid row. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -1982,7 +1979,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to select grid column. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2004,7 +2001,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: row,column",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -2021,7 +2018,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to set current grid cell. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2052,7 +2049,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: row,column",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -2078,7 +2075,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to get grid cell value. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2106,7 +2103,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: row,column,Sheet:Column",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -2117,7 +2114,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid datasheet reference. Expected: Sheet:Column",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -2145,7 +2142,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to get grid cell value. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2243,7 +2240,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to click current grid cell. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2265,7 +2262,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to press toolbar button. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2291,7 +2288,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to press toolbar context button. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2317,7 +2314,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to select all. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2339,7 +2336,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to deselect row. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2357,7 +2354,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to clear selection. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2379,7 +2376,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: column,filterValue",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -2396,7 +2393,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to set filter. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2422,7 +2419,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to clear filter. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2444,7 +2441,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to set selected rows. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2466,7 +2463,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to set current cell column. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2488,7 +2485,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to set first visible column. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2510,7 +2507,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to set first visible row. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2555,7 +2552,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to select menu item. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2594,7 +2591,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to press context button. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2616,7 +2613,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to select context menu item. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2642,7 +2639,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to expand tree node. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2664,7 +2661,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to collapse tree node. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2686,7 +2683,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to select tree node. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2708,7 +2705,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to double-click tree node. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2730,7 +2727,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to set top node. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2758,7 +2755,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: parentNodeKey\\childNodeKey",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -2776,7 +2773,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to navigate tree path. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2823,7 +2820,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: parentNodeKey\\childText",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -2836,7 +2833,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "No child node found under [" + parentKey + "] with text [" + childText + "]",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -2856,7 +2853,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to select tree node by text. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2923,7 +2920,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to get status bar text. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -2951,7 +2948,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: Sheet:Column",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -2969,7 +2966,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to get status bar text. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -3003,7 +3000,7 @@ public class SAPActions extends General {
                     "] equals expected type [" +
                     Data +
                     "].",
-                    Status.PASSNS
+                    Status.PASS
                 );
             } else {
                 Report.updateTestLog(
@@ -3015,14 +3012,14 @@ public class SAPActions extends General {
                     "] does not equal expected type [" +
                     Data +
                     "].",
-                    Status.FAILNS
+                    Status.FAIL
                 );
             }
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Failed to get status bar message type. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -3044,7 +3041,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to set focus on [" + ObjectName + "]. Error : " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -3062,7 +3059,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to double click. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -3079,9 +3076,9 @@ public class SAPActions extends General {
     )
     public void sapAssertElementPresent() {
         if (SAPElement != null) {
-            Report.updateTestLog(Action, "[" + ObjectName + "] is present.", Status.PASSNS);
+            Report.updateTestLog(Action, "[" + ObjectName + "] is present.", Status.PASS);
         } else {
-            Report.updateTestLog(Action, "[" + ObjectName + "] is not present.", Status.FAILNS);
+            Report.updateTestLog(Action, "[" + ObjectName + "] is not present.", Status.FAIL);
         }
     }
 
@@ -3096,13 +3093,13 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "[" + ObjectName + "] is not present, as expected.",
-                Status.PASSNS
+                Status.PASS
             );
         } else {
             Report.updateTestLog(
                 Action,
                 "[" + ObjectName + "] is present, but expected it not to be.",
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -3129,7 +3126,7 @@ public class SAPActions extends General {
                     "] contains expected text [" +
                     Data +
                     "].",
-                    Status.PASSNS
+                    Status.PASS
                 );
             } else {
                 Report.updateTestLog(
@@ -3141,14 +3138,14 @@ public class SAPActions extends General {
                     "] not contains expected text [" +
                     Data +
                     "].",
-                    Status.FAILNS
+                    Status.FAIL
                 );
             }
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Fails to get Element text. Error : " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -3175,7 +3172,7 @@ public class SAPActions extends General {
                     "] does not contain [" +
                     Data +
                     "], as expected.",
-                    Status.PASSNS
+                    Status.PASS
                 );
             } else {
                 Report.updateTestLog(
@@ -3187,14 +3184,14 @@ public class SAPActions extends General {
                     "] contains [" +
                     Data +
                     "], but expected it not to.",
-                    Status.FAILNS
+                    Status.FAIL
                 );
             }
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Fails to get Element text. Error : " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -3234,7 +3231,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to get text from [" + ObjectName + "]. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -3261,7 +3258,7 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "Invalid data format. Expected: Sheet:Column",
-                    Status.FAILNS
+                    Status.FAIL
                 );
                 return;
             }
@@ -3285,7 +3282,7 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to get text from [" + ObjectName + "]. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -3314,7 +3311,7 @@ public class SAPActions extends General {
                     "] equals expected text [" +
                     Data +
                     "].",
-                    Status.PASSNS
+                    Status.PASS
                 );
             } else {
                 Report.updateTestLog(
@@ -3326,14 +3323,14 @@ public class SAPActions extends General {
                     "] does not equal expected text [" +
                     Data +
                     "].",
-                    Status.FAILNS
+                    Status.FAIL
                 );
             }
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Fails to get Element text. Error : " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -3373,7 +3370,7 @@ public class SAPActions extends General {
                     "] satisfies condition [" +
                     Data +
                     "]",
-                    Status.PASSNS
+                    Status.PASS
                 );
             } else {
                 Report.updateTestLog(
@@ -3385,7 +3382,7 @@ public class SAPActions extends General {
                     "] does not satisfy condition [" +
                     Data +
                     "]",
-                    Status.FAILNS
+                    Status.FAIL
                 );
             }
         } catch (NumberFormatException e) {
@@ -3397,7 +3394,7 @@ public class SAPActions extends General {
                 actualText +
                 "] is not numeric. Error: " +
                 e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         } catch (Exception e) {
             Report.updateTestLog(
@@ -3406,7 +3403,7 @@ public class SAPActions extends General {
                 ObjectName +
                 "]. Error: " +
                 e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -3430,20 +3427,20 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "[" + ObjectName + "] is enabled/changeable.",
-                    Status.PASSNS
+                    Status.PASS
                 );
             } else {
                 Report.updateTestLog(
                     Action,
                     "[" + ObjectName + "] is not enabled/changeable.",
-                    Status.FAILNS
+                    Status.FAIL
                 );
             }
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Failed to get Changeable property. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
     }
@@ -3463,22 +3460,38 @@ public class SAPActions extends General {
                 Report.updateTestLog(
                     Action,
                     "[" + ObjectName + "] is disabled/not changeable, as expected.",
-                    Status.PASSNS
+                    Status.PASS
                 );
             } else {
                 Report.updateTestLog(
                     Action,
                     "[" + ObjectName + "] is enabled/changeable, but expected it not to be.",
-                    Status.FAILNS
+                    Status.FAIL
                 );
             }
         } catch (Exception e) {
             Report.updateTestLog(
                 Action,
                 "Failed to get Changeable property. Error: " + e.getMessage(),
-                Status.FAILNS
+                Status.FAIL
             );
         }
+    }
+
+    // ============================================================================
+    // SECTION 15: EXECUTION EVIDENCE
+    // ============================================================================
+
+    /**
+     * NEW: On-demand SAP screenshot capture, mirroring the browser's
+     * {@code CommonMethods.TakePageScreenshot()}. Uses {@code Status.SCREENSHOT} so the capture
+     * is forced regardless of the {@code screenShotFor} (Fail/Pass/Both) setting - see
+     * {@code SapDriverCreation} for how the image itself is obtained (SAP GUI Scripting has no
+     * bitmap-capture API, so this crops an OS-level capture to the active window's bounds).
+     */
+    @Action(object = ObjectType.SAP, desc = "Capture a screenshot of the active SAP window")
+    public void sapCaptureScreenshot() {
+        Report.updateTestLog(Action, "SAP screenshot captured", Status.SCREENSHOT);
     }
 
     /**

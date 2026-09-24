@@ -619,7 +619,14 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
                 data.put(RDS.Step.Data.OBJECTS, optional.get(0));
             }
             // Always take screenshots for each step
-            if (ReportUtils.takeScreenshot(getPlaywrightDriver(), getWebDriver(), imgSrc)) {
+            if (
+                ReportUtils.takeScreenshot(
+                    getPlaywrightDriver(),
+                    getWebDriver(),
+                    getSapDriver(),
+                    imgSrc
+                )
+            ) {
                 data.put(RDS.Step.Data.LINK, imgSrc);
             }
         }

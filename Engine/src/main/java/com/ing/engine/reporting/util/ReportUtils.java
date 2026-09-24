@@ -7,6 +7,7 @@ import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.core.RunManager;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
+import com.ing.engine.drivers.SapDriverCreation;
 import com.ing.engine.drivers.WebDriverCreation;
 import java.io.File;
 import java.util.Arrays;
@@ -69,6 +70,7 @@ public class ReportUtils {
     public static Boolean takeScreenshot(
         PlaywrightDriverCreation playwrightdriver,
         WebDriverCreation mobileDriver,
+        SapDriverCreation sapDriver,
         String imgSrc
     ) {
         try {
@@ -82,6 +84,14 @@ public class ReportUtils {
                 }
             } else if (mobileDriver != null) {
                 File scrFile = mobileDriver.createScreenShot();
+                if (scrFile != null) {
+                    File imgFile = new File(FilePath.getCurrentResultsPath() + imgSrc);
+                    FileUtils.copyFile(scrFile, imgFile, true);
+                    scrFile.delete();
+                    return true;
+                }
+            } else if (sapDriver != null) {
+                File scrFile = sapDriver.createScreenShot();
                 if (scrFile != null) {
                     File imgFile = new File(FilePath.getCurrentResultsPath() + imgSrc);
                     FileUtils.copyFile(scrFile, imgFile, true);

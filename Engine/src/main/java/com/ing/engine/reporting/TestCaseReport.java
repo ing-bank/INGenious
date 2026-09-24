@@ -7,6 +7,7 @@ import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.core.RunManager;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
+import com.ing.engine.drivers.SapDriverCreation;
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.sap.SapGuiSession;
 import com.ing.engine.reporting.impl.azure.AzureTestCaseHandler;
@@ -392,6 +393,11 @@ public final class TestCaseReport implements Report, TestCaseReportApi {
     @Override
     public WebDriverCreation getWebDriver() {
         return webDriver;
+    }
+
+    @Override
+    public SapDriverCreation getSapDriver() {
+        return sapSession == null ? null : new SapDriverCreation(sapSession);
     }
 
     public int getIter() {

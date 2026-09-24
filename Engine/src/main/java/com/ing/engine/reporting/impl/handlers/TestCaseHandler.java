@@ -2,6 +2,7 @@ package com.ing.engine.reporting.impl.handlers;
 
 import com.ing.engine.core.RunContext;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
+import com.ing.engine.drivers.SapDriverCreation;
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.sap.SapGuiSession;
 import com.ing.engine.reporting.TestCaseReport;
@@ -42,6 +43,11 @@ public class TestCaseHandler implements Report {
     @Override
     public WebDriverCreation getWebDriver() {
         return report.getWebDriver();
+    }
+
+    @Override
+    public SapDriverCreation getSapDriver() {
+        return report.getSapDriver();
     }
 
     @Override
