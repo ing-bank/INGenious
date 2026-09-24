@@ -1,1255 +1,1283 @@
-// /**  Kafka Operations related commands */
-
-// package com.ing.engine.commands.kafka;
-
-// import com.fasterxml.jackson.core.JsonParser;
-// import com.fasterxml.jackson.databind.JsonNode;
-// import com.fasterxml.jackson.databind.ObjectMapper;
-// import com.fasterxml.jackson.databind.node.ArrayNode;
-// import com.fasterxml.jackson.databind.node.NullNode;
-// import com.fasterxml.jackson.databind.node.ObjectNode;
-// import com.fasterxml.jackson.databind.node.TextNode;
-// import com.ing.engine.commands.browser.General;
-// import com.ing.engine.core.CommandControl;
-// import com.ing.engine.core.Control;
-// import com.ing.ingenious.api.status.Status;
-// import com.ing.ingenious.api.annotation.Action;
-// import com.ing.ingenious.api.types.InputType;
-// import com.ing.ingenious.api.types.ObjectType;
-// import com.jayway.jsonpath.JsonPath;
-// import io.confluent.kafka.serializers.KafkaAvroDeserializer;
-// import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
-// import io.confluent.kafka.serializers.KafkaAvroSerializer;
-// import java.io.ByteArrayInputStream;
-// import java.io.File;
-
-// import java.time.Duration;
-// import java.util.*;
-// import java.util.logging.Level;
-// import java.util.logging.Logger;
-// import java.util.regex.Pattern;
-// import java.io.IOException;
-// import java.io.InputStream;
-// import java.io.StringReader;
-// import java.nio.file.Path;
-// import java.nio.file.Paths;
-// import java.time.Instant;
-// import javax.xml.parsers.DocumentBuilder;
-// import javax.xml.parsers.DocumentBuilderFactory;
-// import javax.xml.parsers.ParserConfigurationException;
-// import javax.xml.xpath.XPath;
-// import javax.xml.xpath.XPathExpressionException;
-// import javax.xml.xpath.XPathFactory;
-// import org.apache.avro.Schema;
-// import org.apache.avro.generic.GenericDatumReader;
-// import org.apache.avro.generic.GenericRecord;
-// import org.apache.avro.io.Decoder;
-// import org.apache.avro.io.DecoderFactory;
-// import org.apache.kafka.common.errors.SerializationException;
-// import org.apache.kafka.clients.consumer.*;
-// import org.apache.kafka.clients.producer.KafkaProducer;
-// import org.apache.kafka.clients.producer.ProducerConfig;
-// import org.apache.kafka.clients.producer.ProducerRecord;
-// import org.apache.kafka.clients.producer.RecordMetadata;
-// import org.apache.kafka.common.config.SslConfigs;
-// import org.apache.kafka.common.header.Header;
-// import org.apache.kafka.common.header.internals.RecordHeader;
-// import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-// import org.apache.kafka.common.serialization.ByteArraySerializer;
-// import org.apache.kafka.common.serialization.StringDeserializer;
-// import org.apache.kafka.common.serialization.StringSerializer;
-// import org.w3c.dom.DOMException;
-// import org.w3c.dom.Document;
-// import org.xml.sax.InputSource;
-// import org.xml.sax.SAXException;
-
-// /**
-//  * Provides end‑to‑end Kafka producer and consumer utilities for the test framework, including
-//  * topic setup, SSL/Schema Registry configuration, message production (String/byte[]/Avro),
-//  * and consumption with retry-based polling. Also supports JSONPath/XPath assertions to
-//  * identify a target record and store or validate fields from consumed messages.
-//  *
-//  * <p>State is maintained per framework {@code key}, allowing multiple independent Kafka
-//  * operations. Not thread‑safe.
-//  */
-// public class KafkaOperations extends General {
-
-// private final static ObjectMapper mapper = new ObjectMapper();
-
-//     public KafkaOperations(CommandControl cc) {
-//         super(cc);
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Add Kafka Header", input = InputType.YES)
-//     public void addKafkaHeader() {
-//         try {
-
-//             List<String> sheetlist = Control.getCurrentProject().getTestData().getTestDataFor(Control.exe.runEnv())
-//                     .getTestDataNames();
-//             for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
-//                 if (Data.contains("{" + sheetlist.get(sheet) + ":")) {
-//                     com.ing.datalib.testdata.model.TestDataModel tdModel = Control.getCurrentProject().getTestData()
-//                             .getTestDataByName(sheetlist.get(sheet));
-//                     List<String> columns = tdModel.getColumns();
-//                     for (int col = 0; col < columns.size(); col++) {
-//                         if (Data.contains("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}")) {
-//                             Data = Data.replace("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
-//                                     userData.getData(sheetlist.get(sheet), columns.get(col)));
-//                         }
-//                     }
-//                 }
-//             }
-
-//             Collection<Object> valuelist = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings()
-//                     .values();
-//             for (Object prop : valuelist) {
-//                 if (Data.contains("{" + prop + "}")) {
-//                     Data = Data.replace("{" + prop + "}", prop.toString());
-//                 }
-//             }
-//             String headerKey = Data.split("=", 2)[0];
-//             String headerValue = Data.split("=", 2)[1];
-
-//             if (kafkaHeaders.containsKey(key)) {
-//                 kafkaHeaders.get(key).add(new RecordHeader(headerKey, headerValue.getBytes()));
-//             } else {
-//                 ArrayList<Header> toBeAdded = new ArrayList<Header>();
-//                 toBeAdded.add(new RecordHeader(headerKey, headerValue.getBytes()));
-//                 kafkaHeaders.put(key, toBeAdded);
-//             }
-
-//             Report.updateTestLog(Action, "Header added " + Data, Status.DONE);
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-//             Report.updateTestLog(Action, "Error adding Header :" + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set Producer Topic", input = InputType.YES, condition = InputType.NO)
-//     public void setProducerTopic() {
-//         try {
-//             kafkaProducerTopic.put(key, Data);
-//             Report.updateTestLog(Action, "Topic has been set successfully", Status.DONE);
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Topic setup", ex);
-//             Report.updateTestLog(Action, "Error in setting Topic: " + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set Auto Register Schemas", input = InputType.YES, condition = InputType.NO)
-//     public void setAutoRegisterSchemas() {
-//         try {
-//             kafkaAutoRegisterSchemas.put(key, Boolean.valueOf(Data.toLowerCase().trim()));
-//             Report.updateTestLog(Action, "Auto Register Schemas has been set successfully", Status.DONE);
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception Max Poll Record setup", ex);
-//             Report.updateTestLog(Action, "Error in Auto Register Schemas: " + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set Consumer Topic", input = InputType.YES, condition = InputType.NO)
-//     public void setConsumerTopic() {
-//         try {
-//             kafkaConsumerTopic.put(key, Data);
-//             Report.updateTestLog(Action, "Topic has been set successfully", Status.DONE);
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Topic setup", ex);
-//             Report.updateTestLog(Action, "Error in setting Topic: " + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set Consumer Retries", input = InputType.YES, condition = InputType.NO)
-//     public void setConsumerPollRetries() {
-//         try {
-//             kafkaConsumerPollRetries.put(key, Integer.parseInt(Data));
-//             Report.updateTestLog(Action, "Poll Retries has been set successfully", Status.DONE);
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Poll Retries setup", ex);
-//             Report.updateTestLog(Action, "Error in setting Poll Retries: " + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set Consumer Retries", input = InputType.YES, condition = InputType.NO)
-//     public void setConsumerPollInterval() {
-//         try {
-//             kafkaConsumerPollDuration.put(key, Long.valueOf(Data));
-//             Report.updateTestLog(Action, "Poll interval has been set successfully", Status.DONE);
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Poll interval setup", ex);
-//             Report.updateTestLog(Action, "Error in setting Poll interval: " + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set Consumer Max Poll Records", input = InputType.YES, condition = InputType.NO)
-//     public void setConsumerMaxPollRecords() {
-//         try {
-//             kafkaConsumerMaxPollRecords.put(key, Integer.valueOf(Data));
-//             Report.updateTestLog(Action, "Max Poll Records has been set successfully", Status.DONE);
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception Max Poll Record setup", ex);
-//             Report.updateTestLog(Action, "Error in setting Max Poll Records: " + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set Bootstrap Servers", input = InputType.YES, condition = InputType.NO)
-//     public void setBootstrapServers() {
-//         try {
-//             kafkaServers.put(key, Data);
-//             Report.updateTestLog(Action, "Bootstrap Servers have been set successfully", Status.DONE);
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Bootstrap Servers setup",
-//                     ex);
-//             Report.updateTestLog(Action, "Error in setting Bootstrap Servers: " + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set Schema Registry URL", input = InputType.YES, condition = InputType.NO)
-//     public void setSchemaRegistryURL() {
-//         try {
-//             kafkaSchemaRegistryURL.put(key, Data);
-//             Report.updateTestLog(Action, "Schema Registry URL has been set successfully", Status.DONE);
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Schema Registry URL setup",
-//                     ex);
-//             Report.updateTestLog(Action, "Error in setting Schema Registry URL: " + "\n" + ex.getMessage(),
-//                     Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set Shared Secret", input = InputType.YES, condition = InputType.NO)
-//     public void setSharedSecret() {
-//         try {
-//             kafkaSharedSecret.put(key, Data);
-//             Report.updateTestLog(Action, "Shared Secret set successfully", Status.DONE);
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Shared Secret setup", ex);
-//             Report.updateTestLog(Action, "Error in setting Shared Secret: " + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set Key", input = InputType.YES, condition = InputType.NO)
-//     public void setKey() {
-//         try {
-//             kafkaKey.put(key, Data);
-//             Report.updateTestLog(Action, "Key has been set successfully", Status.DONE);
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Key setup", ex);
-//             Report.updateTestLog(Action, "Error in setting Key: " + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set Consumer GroupId", input = InputType.YES, condition = InputType.NO)
-//     public void setConsumerGroupId() {
-//         try {
-//             kafkaConsumerGroupId.put(key, Data);
-//             Report.updateTestLog(Action, "Consumer GroupId has been set successfully", Status.DONE);
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Consumer GroupId setup",
-//                     ex);
-//             Report.updateTestLog(Action, "Error in setting Consumer GroupId: " + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set Partition", input = InputType.YES, condition = InputType.NO)
-//     public void setPartition() {
-//         try {
-//             if (Data.toLowerCase().equals("null")) {
-//                 kafkaPartition.put(key, null);
-//             } else {
-//                 kafkaPartition.put(key, Integer.valueOf(Data));
-//             }
-//             Report.updateTestLog(Action, "Partition has been set successfully", Status.DONE);
-//         } catch (NumberFormatException ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Partition setup", ex);
-//             Report.updateTestLog(Action, "Error in setting Partition: " + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set TimeStamp", input = InputType.NO, condition = InputType.NO)
-//     public void setTimeStamp() {
-//         try {
-//             kafkaTimeStamp.put(key, System.currentTimeMillis());
-//             Report.updateTestLog(Action, "Time Stamp has been set successfully", Status.DONE);
-//         } catch (NumberFormatException ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Time Stamp setup", ex);
-//             Report.updateTestLog(Action, "Error in setting Time Stamp: " + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set Key Serializer", input = InputType.YES, condition = InputType.NO)
-//     public void setKeySerializer() {
-//         try {
-//             kafkaKeySerializer.put(key, Data);
-//             Report.updateTestLog(Action, "Key Serializer has been set successfully", Status.DONE);
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Key Serializer setup", ex);
-//             Report.updateTestLog(Action, "Error in setting Key Serializer: " + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set Value Serializer", input = InputType.YES, condition = InputType.NO)
-//     public void setValueSerializer() {
-//         try {
-//             kafkaValueSerializer.put(key, Data);
-//             Report.updateTestLog(Action, "Value Serializer has been set successfully", Status.DONE);
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Value Serializer setup",
-//                     ex);
-//             Report.updateTestLog(Action, "Error in setting Value Serializer: " + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Set Value Deserializer", input = InputType.YES, condition = InputType.NO)
-//     public void setValueDeserializer() {
-//         try {
-//             kafkaValueDeserializer.put(key, Data);
-//             Report.updateTestLog(Action, "Value Deserializer has been set successfully", Status.DONE);
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Value Deserializer setup",
-//                     ex);
-//             Report.updateTestLog(Action, "Error in setting Value Deserializer: " + "\n" + ex.getMessage(),
-//                     Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Add Avro Schema", input = InputType.YES, condition = InputType.NO)
-//     public void addSchema() throws IOException {
-//         try {
-//             Schema mainSchema = null;
-//             Schema.Parser parser = new Schema.Parser();
-//             if (Data.contains(";")) {
-//                 String[] paths = Data.split(";");
-//                 for (int i = 0; i < paths.length - 1; i++) {
-
-//                     parser.parse(new File(Paths.get(paths[i]).toString()));
-//                 }
-//                 mainSchema = parser.parse(new File(Paths.get(paths[paths.length - 1]).toString()));
-
-//             } else {
-//                 // Only one schema, no dependencies
-//                 mainSchema = new Schema.Parser().parse(new File(Paths.get(Data).toString()));
-//             }
-//             kafkaAvroSchema.put(key, mainSchema);
-//             Report.updateTestLog(Action, "Schema added successfully", Status.DONE);
-//         } catch (Exception e) {
-//             Report.updateTestLog(Action, " Unable to add Schema : " + e.getMessage(), Status.FAIL);
-//         }
-
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Produce Kafka Message", input = InputType.YES, condition = InputType.NO)
-//     public void produceMessage() {
-//         try {
-//             String value = Data;
-//             value = handleDataSheetVariables(value);
-//             value = handleuserDefinedVariables(value);
-//             System.out.println("\n Generated Record is : \n " + value + "\n");
-//             kafkaValue.put(key, value);
-//             if (kafkaValueSerializer.get(key).equals("avro")) {
-//                 getAvroCompatibleMessage();
-//                 kafkaValue.put(key, kafkaAvroCompatibleMessage.get(key));
-//                 produceGenericRecord(kafkaValue.get(key));
-//             }
-//             if (kafkaHeaders.get(key) != null && kafkaTimeStamp.get(key) != null) {
-//                 produceMessage(kafkaProducerTopic.get(key), kafkaPartition.get(key), kafkaTimeStamp.get(key),
-//                         kafkaKey.get(key), kafkaValue.get(key), kafkaHeaders.get(key));
-//             } else if (kafkaHeaders.get(key) != null) {
-//                 produceMessage(kafkaProducerTopic.get(key), kafkaPartition.get(key), kafkaKey.get(key),
-//                         kafkaValue.get(key), kafkaHeaders.get(key));
-//             } else if (kafkaTimeStamp.get(key) != null) {
-//                 produceMessage(kafkaProducerTopic.get(key), kafkaPartition.get(key), kafkaTimeStamp.get(key),
-//                         kafkaKey.get(key), kafkaValue.get(key));
-//             } else if (kafkaPartition.containsKey(key)) {
-//                 produceMessage(kafkaProducerTopic.get(key), kafkaPartition.get(key), kafkaKey.get(key),
-//                         kafkaValue.get(key));
-//             } else if (kafkaKey.get(key) != null) {
-//                 produceMessage(kafkaProducerTopic.get(key), kafkaKey.get(key), kafkaValue.get(key));
-//             } else {
-//                 produceMessage(kafkaProducerTopic.get(key), kafkaValue.get(key));
-//             }
-
-//             Report.updateTestLog(Action, "Message has been produced. ", Status.DONE);
-
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-//             Report.updateTestLog(Action, "Something went wrong in producing the message" + "\n" + ex.getMessage(),
-//                     Status.FAILNS);
-//             ex.printStackTrace();
-//         }
-//     }
-
-//     public void produceGenericRecord(Object message) {
-//         try {
-//             InputStream input = new ByteArrayInputStream(((String) message).getBytes());
-//             Decoder decoder = DecoderFactory.get().jsonDecoder(kafkaAvroSchema.get(key), input);
-//             GenericDatumReader<GenericRecord> reader = new GenericDatumReader<>(kafkaAvroSchema.get(key));
-//             GenericRecord record = reader.read(null, decoder);
-//             kafkaValue.put(key, record);
-//         } catch (Exception e) {
-//             e.printStackTrace();
-//         }
-
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Send Message", input = InputType.NO, condition = InputType.NO)
-//     public void sendKafkaMessage() {
-//         try {
-//             createProducer(kafkaValueSerializer.get(key));
-
-//             kafkaProducer.get(key).send(kafkaProducerRecord.get(key),
-//                     (RecordMetadata metadata, Exception exception) -> {
-//                         if (exception != null) {
-//                             Report.updateTestLog(Action, "Error in sending record : " + exception.getMessage(),
-//                                     Status.FAIL);
-//                         } else {
-//                             Report.updateTestLog(Action,
-//                                     "Record sent to [topic: " + metadata.topic() + ", partition: "
-//                                     + metadata.partition() + ", offset: " + metadata.offset() + ", timestamp: "
-//                                     + metadata.timestamp() + "]",
-//                                     Status.DONE);
-//                         }
-//                     });
-
-//             kafkaProducer.get(key).close();
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception while sending record", ex);
-//             Report.updateTestLog(Action, "Error in sending record: " + "\n" + ex.getMessage(), Status.DEBUG);
-//         } finally {
-//             clearProducerDetails();
-//         }
-//     }
-
-//     private void createProducer(String serializer) {
-// //        getProducersslConfigurations();
-//         Properties props = new Properties();
-//         if (isProducersslEnabled()) {
-//             props = getProducersslConfigurations(props);
-//             props.put("security.protocol", "SSL");
-//         }
-//         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServers.get(key));
-//         if (kafkaConfigs.containsKey(key)) {
-//             props = addConfigProps(props);
-//         }
-//         if (serializer.toLowerCase().contains("string")) {
-//             props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-//         } else if (serializer.toLowerCase().contains("bytearray")) {
-//             props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
-//         } else if (serializer.toLowerCase().contains("avro")) {
-//             props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
-//             props.put("schema.registry.url", kafkaSchemaRegistryURL.get(key));
-//             if (kafkaAutoRegisterSchemas.get(key) != null) {
-//                 props.put("auto.register.schemas", kafkaAutoRegisterSchemas.get(key));
-//             }
-
-//         } else {
-//             throw new IllegalArgumentException("Unsupported value type");
-//         }
-
-//         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-//         kafkaProducer.put(key, new KafkaProducer<>(props));
-//     }
-
-//     private void produceMessage(String topic, Object value) {
-//         kafkaProducerRecord.put(key, new ProducerRecord<>(topic, value));
-//     }
-
-//     private void produceMessage(String topic, String kafkaKey, Object value) {
-//         kafkaProducerRecord.put(key, new ProducerRecord<>(topic, kafkaKey, value));
-//     }
-
-//     private void produceMessage(String topic, Integer partition, String kafkaKey, Object value) {
-//         kafkaProducerRecord.put(key, new ProducerRecord<>(topic, partition, kafkaKey, value));
-//     }
-
-//     private void produceMessage(String topic, Integer partition, long timestamp, String kafkaKey, Object value) {
-//         kafkaProducerRecord.put(key, new ProducerRecord<>(topic, partition, timestamp, kafkaKey, value));
-//     }
-
-//     private void produceMessage(String topic, Integer partition, String kafkaKey, Object value, List<Header> headers) {
-//         kafkaProducerRecord.put(key, new ProducerRecord<>(topic, partition, kafkaKey, value, headers));
-//     }
-
-//     private void produceMessage(String topic, Integer partition, long timestamp, String kafkaKey, Object value,
-//             List<Header> headers) {
-//         kafkaProducerRecord.put(key, new ProducerRecord<>(topic, partition, timestamp, kafkaKey, value, headers));
-//     }
-
-//     private String handleDataSheetVariables(String payloadstring) {
-//         List<String> sheetlist = Control.getCurrentProject().getTestData().getTestDataFor(Control.exe.runEnv())
-//                 .getTestDataNames();
-//         for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
-//             if (payloadstring.contains("{" + sheetlist.get(sheet) + ":")) {
-//                 com.ing.datalib.testdata.model.TestDataModel tdModel = Control.getCurrentProject().getTestData()
-//                         .getTestDataByName(sheetlist.get(sheet));
-//                 List<String> columns = tdModel.getColumns();
-//                 for (int col = 0; col < columns.size(); col++) {
-//                     if (payloadstring.contains("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}")) {
-//                         payloadstring = payloadstring.replace("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
-//                                 userData.getData(sheetlist.get(sheet), columns.get(col)));
-//                     }
-//                 }
-//             }
-//         }
-//         return payloadstring;
-//     }
-
-//     private String handleuserDefinedVariables(String payloadstring) {
-//         Collection<Object> valuelist = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings()
-//                 .values();
-//         for (Object prop : valuelist) {
-//             if (payloadstring.contains("{" + prop + "}")) {
-//                 payloadstring = payloadstring.replace("{" + prop + "}", prop.toString());
-//             }
-//         }
-//         return payloadstring;
-//     }
-
-//     private void clearProducerDetails() {
-//         kafkaKey.clear();
-//         kafkaHeaders.clear();
-//         kafkaProducerTopic.clear();
-//         kafkaPartition.clear();
-//         kafkaTimeStamp.clear();
-//         kafkaKeySerializer.clear();
-//         kafkaValue.clear();
-//         kafkaValueSerializer.clear();
-//         kafkaProducer.clear();
-//         kafkaProducerRecord.clear();
-//         kafkaAvroSchema.clear();
-//         kafkaGenericRecord.clear();
-//         kafkaAvroProducer.clear();
-//         kafkaConfigs.clear();
-//         kafkaProducersslConfigs.clear();
-//         kafkaAvroCompatibleMessage.clear();
-//         kafkaSharedSecret.clear();
-//         kafkaAutoRegisterSchemas.clear();
-//     }
-
-//     public void createConsumer(String deserializer) {
-//         try {
-//             Properties props = new Properties();
-//             if (isConsumersslEnabled()) {
-//                 props = getConsumersslConfigurations(props);
-//                 props.put("security.protocol", "SSL");
-//             }
-//             props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServers.get(key));
-//             props.put(ConsumerConfig.GROUP_ID_CONFIG, kafkaConsumerGroupId.get(key));
-//             if (kafkaConsumerMaxPollRecords.get(key) != null) {
-//                 props.put("max.poll.records", kafkaConsumerMaxPollRecords.get(key));
-//             }
-//             if (deserializer.toLowerCase().contains("string")) {
-//                 props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-//             } else if (deserializer.toLowerCase().contains("bytearray")) {
-//                 props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
-//             } else if (deserializer.toLowerCase().contains("avro")) {
-//                 props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class.getName());
-//                 props.put(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, "false");
-//                 props.put("schema.registry.url", kafkaSchemaRegistryURL.get(key));
-
-//             } else {
-//                 throw new IllegalArgumentException("Unsupported value type");
-//             }
-
-//             props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-//             props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-
-//             kafkaConsumer.put(key, new KafkaConsumer<>(props));
-//         } catch (Exception e) {
-//             e.printStackTrace();
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Consume Kafka Message", input = InputType.NO)
-//     public void consumeKafkaMessage() {
-//         try {
-//             createConsumer(kafkaValueDeserializer.get(key));
-//             kafkaConsumer.get(key).subscribe(Arrays.asList(kafkaConsumerTopic.get(key)));
-//             ConsumerRecords record = pollKafkaConsumer();
-//             if (record != null && kafkaConsumeRecordValue.containsKey(key)) {
-//                 Report.updateTestLog(Action, "Kafka messages consumed successfully and Target message found.",
-//                         Status.DONE);
-//             } else if (record != null && !kafkaConsumeRecordValue.containsKey(key)
-//                     && kafkaConsumerPollRecord.containsKey(key)) {
-//                 Report.updateTestLog(Action, "Kafka messages consumed successfully but target message not found.",
-//                         Status.FAILNS);
-//             } else {
-//                 Report.updateTestLog(Action, "Kafka message not received.", Status.FAIL);
-//             }
-//         } catch (Exception e) {
-//             e.printStackTrace();
-//             Report.updateTestLog(Action, "Error while consuming Kafka message: " + e.getMessage(), Status.FAIL);
-//         } finally {
-//             kafkaConsumer.get(key).close();
-//         }
-//     }
-
-//     /**
-//      * Polls the Kafka consumer for the configured number of retries and returns the
-//      * polled batch that contains a record matching the assertion criteria.
-//      * Each attempt polls using the duration configured for {@code key}.
-//      * <p>
-//      * Side effects: Updates {@code kafkaConsumerPollRecord} and logs to stdout.
-//      *
-//      * @return the {@link ConsumerRecords} containing the matched record, or {@code null}
-//      *         if no matching record is found after all retries
-//      * @throws SerializationException if a deserialization error occurs during polling
-//      */
-//     private ConsumerRecords<String, Object> pollKafkaConsumer() throws SerializationException {
-//         int maxRetries = kafkaConsumerPollRetries.get(key);
-//         int attempt = 1;
-//         boolean matchRecordFound = false;
-//         List<ConsumerRecord<String, Object>> allRecords = new ArrayList<>();
-
-//         while (attempt <= maxRetries) {
-//             try {
-//                 ConsumerRecords<String, Object> pollRecords = kafkaConsumer.get(key)
-//                         .poll(Duration.ofMillis(kafkaConsumerPollDuration.get(key)));
-//                 if (!pollRecords.isEmpty()) {
-//                     for (ConsumerRecord<String, Object> record : pollRecords) {
-//                         kafkaConsumerPollRecord.put(key, record);
-//                         allRecords.add(record);
-//                         if (findAndSetTargetRecordForAssertion()) {
-//                             matchRecordFound = true;
-//                             break;
-//                         }
-//                     }
-//                     if (matchRecordFound) {
-//                         System.out.println("Record consumed in attempt " + attempt + " are " + pollRecords.count()
-//                                 + " and Record found with unique identifier.");
-//                         System.out.println("Details of record found with unique idetifier are as follows : ");
-//                         System.out.println("Key : " + kafkaConsumerPollRecord.get(key).key());
-//                         System.out.println("Partition : " + kafkaConsumerPollRecord.get(key).partition());
-//                         System.out.println("Offset : " + kafkaConsumerPollRecord.get(key).offset());
-//                         System.out.println("Value : " + kafkaConsumerPollRecord.get(key).value());
-//                         return pollRecords;
-//                     } else {
-//                         System.out.println("Record consumed in attempt " + attempt + " are " + pollRecords.count()
-//                                 + ". But, no Record found with unique identifier.");
-//                     }
-//                     attempt++;
-//                 } else {
-//                     System.out.println("Record consumed in attempt " + attempt + " are " + pollRecords.count() + ".");
-//                     attempt++;
-//                 }
-
-//             } catch (Exception e) {
-//                 System.out.println("Error in polling records : " + e.getMessage());
-//                 attempt++;
-//             }
-//         }
-//         return null;
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Identify target message", input = InputType.YES, condition = InputType.YES)
-//     public void identifyTargetMessage() {
-//         try {
-//             // --- Multi-condition support: append (path -> value) per key ---
-//             final String path = Condition;
-//             final String value = Data;
-
-//             // Create a single-condition map (path -> value)
-//             HashMap<String, String> identifyValuePath = new HashMap<>();
-//             identifyValuePath.put(path, value);
-
-//             // Get or create the list for this key, then add the condition map
-//             List<HashMap<String, String>> conditionsForKey =
-//                     kafkaRecordIdentifier.computeIfAbsent(key, k -> new ArrayList<>());
-//             conditionsForKey.add(identifyValuePath);
-//             Report.updateTestLog(
-//                     Action,
-//                     "Added target identifier: [path=" + path + " , value=" + value + "] for key [" + key + "]. "
-//                             + "Total conditions for key now: " + conditionsForKey.size(),
-//                     Status.DONE
-//             );
-//         } catch (Exception e) {
-//             Report.updateTestLog(Action, "Error in target message setup : " + e.getMessage(), Status.FAIL);
-//         }
-//     }
-
-//     public boolean findAndSetTargetRecordForAssertion() { // identifyTargetMessage
-//         boolean matchFound = false;
-//         try {
-//             if (kafkaConsumerPollRecord.get(key).value() != null) {
-//                 String recordValue = kafkaConsumerPollRecord.get(key).value().toString();
-//                 boolean isJson = Pattern.matches("^\\s*(\\{.*\\}|\\[.*\\])\\s*$", recordValue);
-//                 boolean isXml = Pattern.matches("^\\s*<\\?*xml*.*>.*<.*>.*</.*>\\s*$", recordValue);
-
-//                 if (isJson) {
-//                     if (getJSONRecordForAssertion(recordValue)) {
-//                         matchFound = true;
-//                     }
-
-//                 } else if (isXml) {
-//                     if (getXMLRecordForAssertion(recordValue)) {
-//                         matchFound = true;
-//                     }
-//                 } else {
-//                     System.out.println("Unknown format");
-//                 }
-//             }
-//         } catch (Exception e) {
-//             System.out.println("Error in find and set target record for assertion : " + e.getMessage());
-//         }
-//         return matchFound;
-//     }
-
-//     /**
-//      * Validates a JSON message against all JSONPath conditions associated with {@code key}.
-//      * Each condition consists of one JSONPath expression mapped to an expected value.
-//      * Returns {@code true} only if every condition matches; otherwise {@code false}.
-//      * <p>
-//      * Side effect: On success, stores the JSON message in {@code kafkaConsumeRecordValue.put(key, JSONMessage)}.
-//      * Any JSON parsing or evaluation error is logged and results in {@code false}.
-//      *
-//      * @param JSONMessage the JSON payload to evaluate
-//      * @return {@code true} if all JSONPath -> expectedValue conditions for {@code key} match;
-//      *         {@code false} if none exist, a mismatch occurs, or an exception is thrown
-//      */
-//     public boolean getJSONRecordForAssertion(String JSONMessage) {
-//         try {
-//             // Prefer multi-condition evaluation if present
-//             List<HashMap<String, String>> conditions = kafkaRecordIdentifier.get(key);
-
-//             if (conditions != null && !conditions.isEmpty()) {
-//                 // ALL conditions must match
-//                 for (HashMap<String, String> cond : conditions) {
-//                     // Each cond map contains exactly one entry: path -> expectedValue
-//                     Map.Entry<String, String> entry = cond.entrySet().iterator().next();
-//                     String path = entry.getKey();
-//                     String expected = entry.getValue();
-
-// //                    Object actualObj = com.jayway.jsonpath.JsonPath.read(JSONMessage, path);
-//                     Object actualObj = JsonPath.read(JSONMessage, path);
-//                     String actual = (actualObj == null) ? null : String.valueOf(actualObj);
-
-// //                    if (!java.util.Objects.equals(actual, expected)) {
-//                     if (!Objects.equals(actual, expected)) {
-//                         // Early exit on first mismatch
-//                         return false;
-//                     }
-//                 }
-//                 // All matched → set the matched message and return true
-//                 kafkaConsumeRecordValue.put(key, JSONMessage);
-//                 return true;
-//             }
-
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-//             Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//         return false;
-//     }
-
-//     /**
-//      * Parses the given XML string and validates it against XPath conditions linked to {@code key}.
-//      * Returns {@code true} only if all conditions match; otherwise {@code false}.
-//      * <p>
-//      * Side effect: On success, stores the original XML in {@code kafkaConsumeRecordValue.put(key, XMLMessage)}.
-//      * Any parsing/XPath error is logged and results in {@code false}.
-//      *
-//      * @param XMLMessage well-formed XML payload to evaluate
-//      * @return {@code true} if all XPath -> expectedValue conditions for {@code key} match;
-//      *         {@code false} if none exist, any mismatch occurs, or an error is thrown
-//      */
-//     public boolean getXMLRecordForAssertion(String XMLMessage) {
-//         try {
-//             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-//             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-//             InputSource inputSource = new org.xml.sax.InputSource(new java.io.StringReader(XMLMessage));
-//             Document doc = dBuilder.parse(inputSource);
-//             doc.getDocumentElement().normalize();
-
-//             XPath xPath = XPathFactory.newInstance().newXPath();
-
-//             // Get the list of (path -> expectedValue) condition maps for this key
-//             List<HashMap<String, String>> conditions = kafkaRecordIdentifier.get(key);
-//             if (conditions == null || conditions.isEmpty()) {
-//                 // No conditions defined for this key
-//                 return false;
-//             }
-
-//             // ALL conditions must match
-//             for (HashMap<String, String> cond : conditions) {
-//                 Map.Entry<String, String> entry = cond.entrySet().iterator().next();
-//                 String path = entry.getKey();
-//                 String expected = entry.getValue();
-
-//                 String actual = xPath.compile(path).evaluate(doc);
-
-//                 if (!java.util.Objects.equals(actual, expected)) {
-//                     // Early exit on first mismatch
-//                     return false;
-//                 }
-//             }
-
-//             // All matched → record the matched message
-//             kafkaConsumeRecordValue.put(key, XMLMessage);
-//             return true;
-
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-//             Report.updateTestLog(Action, "Error in validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
-//             return false;
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Close Consumer", input = InputType.NO, condition = InputType.NO)
-//     public void closeConsumer() {
-//         try {
-//             kafkaConsumerRecords.remove(key);
-//             kafkaConsumerRecord.remove(key);
-//             kafkaConsumeRecordValue.remove(key);
-//             kafkaConsumerPollDuration.remove(key);
-//             kafkaConsumerPollRetries.remove(key);
-//             kafkaConsumerTopic.remove(key);
-//             kafkaValueDeserializer.remove(key);
-//             kafkaSchemaRegistryURL.remove(key);
-//             kafkaSharedSecret.remove(key);
-//             kafkaConsumerGroupId.remove(key);
-//             kafkaConsumerPollRecord.remove(key);
-//             kafkaRecordIdentifierValue.remove(key);
-//             kafkaRecordIdentifierPath.remove(key);
-//             kafkaRecordIdentifier.remove(key);
-//             Report.updateTestLog(Action, "Consumer closed successfully", Status.DONE);
-//         } catch (Exception ex) {
-//             Report.updateTestLog(Action, "Error in closing Consumer.", Status.DEBUG);
-//         }
-
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Store XML tag In DataSheet ", input = InputType.YES, condition = InputType.NO)
-//     public void storeKafkaXMLtagInDataSheet() {
-
-//         try {
-//             String strObj = Input;
-//             if (strObj.matches(".*:.*")) {
-//                 try {
-//                     System.out.println("Updating value in SubIteration " + userData.getSubIteration());
-//                     String sheetName = strObj.split(":", 2)[0];
-//                     String columnName = strObj.split(":", 2)[1];
-//                     String xmlText = kafkaConsumeRecordValue.get(key);
-//                     DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-//                     DocumentBuilder dBuilder;
-//                     InputSource inputSource = new InputSource();
-//                     inputSource.setCharacterStream(new StringReader(xmlText));
-//                     dBuilder = dbFactory.newDocumentBuilder();
-//                     Document doc = dBuilder.parse(inputSource);
-//                     doc.getDocumentElement().normalize();
-//                     XPath xPath = XPathFactory.newInstance().newXPath();
-//                     String expression = Condition;
-//                     String value = (String) xPath.compile(expression).evaluate(doc);
-//                     userData.putData(sheetName, columnName, value);
-//                     Report.updateTestLog(Action, "Element text [" + value + "] is stored in " + strObj, Status.DONE);
-//                 } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-//                         | SAXException ex) {
-//                     Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-//                     Report.updateTestLog(Action, "Error Storing XML element in datasheet :" + "\n" + ex.getMessage(),
-//                             Status.DEBUG);
-//                 }
-//             } else {
-//                 Report.updateTestLog(Action,
-//                         "Given input [" + Input + "] format is invalid. It should be [sheetName:ColumnName]",
-//                         Status.DEBUG);
-//             }
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-//             Report.updateTestLog(Action, "Error Storing XML element in datasheet :" + "\n" + ex.getMessage(),
-//                     Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Assert XML Tag Equals ", input = InputType.YES, condition = InputType.YES)
-//     public void assertKafkaXMLtagEquals() {
-//         try {
-//             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-//             DocumentBuilder dBuilder;
-//             InputSource inputSource = new InputSource();
-//             inputSource.setCharacterStream(new StringReader(kafkaConsumeRecordValue.get(key)));
-//             dBuilder = dbFactory.newDocumentBuilder();
-//             Document doc = dBuilder.parse(inputSource);
-//             doc.getDocumentElement().normalize();
-//             XPath xPath = XPathFactory.newInstance().newXPath();
-//             String expression = Condition;
-//             String value = (String) xPath.compile(expression).evaluate(doc);
-//             if (value.equals(Data)) {
-//                 Report.updateTestLog(Action, "Element text [" + value + "] is as expected", Status.PASSNS);
-//             } else {
-//                 Report.updateTestLog(Action, "Element text [" + value + "] is not as expected", Status.FAILNS);
-//             }
-//         } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-//                 | SAXException ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-//             Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Assert XML Tag Contains ", input = InputType.YES, condition = InputType.YES)
-//     public void assertKafkaXMLtagContains() {
-//         try {
-//             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-//             DocumentBuilder dBuilder;
-//             InputSource inputSource = new InputSource();
-//             inputSource.setCharacterStream(new StringReader(kafkaConsumeRecordValue.get(key)));
-//             dBuilder = dbFactory.newDocumentBuilder();
-//             Document doc = dBuilder.parse(inputSource);
-//             doc.getDocumentElement().normalize();
-//             XPath xPath = XPathFactory.newInstance().newXPath();
-//             String expression = Condition;
-//             String value = (String) xPath.compile(expression).evaluate(doc);
-//             if (value.contains(Data)) {
-//                 Report.updateTestLog(Action, "Element text contains [" + Data + "] is as expected", Status.PASSNS);
-//             } else {
-//                 Report.updateTestLog(Action, "Element text [" + value + "] does not contain [" + Data + "]",
-//                         Status.FAILNS);
-//             }
-//         } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-//                 | SAXException ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-//             Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Assert Response Message contains ", input = InputType.YES)
-//     public void assertKafkaResponseMessageContains() {
-//         try {
-//             if (kafkaConsumeRecordValue.get(key).contains(Data)) {
-//                 Report.updateTestLog(Action, "Response Message contains : " + Data, Status.PASSNS);
-//             } else {
-//                 Report.updateTestLog(Action, "Response Message does not contain : " + Data, Status.FAILNS);
-//             }
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-//             Report.updateTestLog(Action, "Error in validating response body :" + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Assert JSON Tag Equals ", input = InputType.YES, condition = InputType.YES)
-//     public void assertKafkaJSONtagEquals() {
-//         try {
-//             String response = kafkaConsumeRecordValue.get(key);
-//             String jsonpath = Condition;
-//             String value = JsonPath.read(response, jsonpath).toString();
-//             if (value.equals(Data)) {
-//                 Report.updateTestLog(Action, "Element text [" + value + "] is as expected", Status.PASSNS);
-//             } else {
-//                 Report.updateTestLog(Action, "Element text is [" + value + "] but is expected to be [" + Data + "]",
-//                         Status.FAILNS);
-//             }
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-//             Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Assert JSON Tag Contains ", input = InputType.YES, condition = InputType.YES)
-//     public void assertKafkaJSONtagContains() {
-//         try {
-//             String response = kafkaConsumeRecordValue.get(key);
-//             String jsonpath = Condition;
-//             String value = JsonPath.read(response, jsonpath).toString();
-//             if (value.contains(Data)) {
-//                 Report.updateTestLog(Action, "Element text contains [" + Data + "] is as expected", Status.PASSNS);
-//             } else {
-//                 Report.updateTestLog(Action, "Element text [" + value + "] does not contain [" + Data + "]",
-//                         Status.FAILNS);
-//             }
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-//             Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Store JSON Tag In DataSheet ", input = InputType.YES, condition = InputType.YES)
-//     public void storeKafkaJSONtagInDataSheet() {
-
-//         try {
-//             String strObj = Input;
-//             if (strObj.matches(".*:.*")) {
-//                 try {
-//                     System.out.println("Updating value in SubIteration " + userData.getSubIteration());
-//                     String sheetName = strObj.split(":", 2)[0];
-//                     String columnName = strObj.split(":", 2)[1];
-//                     String response = kafkaConsumeRecordValue.get(key);
-//                     String jsonpath = Condition;
-//                     String value = JsonPath.read(response, jsonpath).toString();
-//                     userData.putData(sheetName, columnName, value);
-//                     Report.updateTestLog(Action, "Element text [" + value + "] is stored in " + strObj, Status.DONE);
-//                 } catch (Exception ex) {
-//                     Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-//                     Report.updateTestLog(Action, "Error Storing JSON element in datasheet :" + "\n" + ex.getMessage(),
-//                             Status.DEBUG);
-//                 }
-//             } else {
-//                 Report.updateTestLog(Action,
-//                         "Given input [" + Input + "] format is invalid. It should be [sheetName:ColumnName]",
-//                         Status.DEBUG);
-//             }
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-//             Report.updateTestLog(Action, "Error Storing JSON element in datasheet :" + "\n" + ex.getMessage(),
-//                     Status.DEBUG);
-//         }
-//     }
-
-//     @Action(object = ObjectType.KAFKA, desc = "Store Response In DataSheet ", input = InputType.YES, condition = InputType.NO)
-//     public void storeKafkaResponseInDataSheet() {
-
-//         try {
-//             String strObj = Input;
-//             if (strObj.matches(".*:.*")) {
-//                 try {
-//                     System.out.println("Updating value in SubIteration " + userData.getSubIteration());
-//                     String sheetName = strObj.split(":", 2)[0];
-//                     String columnName = strObj.split(":", 2)[1];
-//                     String response = kafkaConsumeRecordValue.get(key);
-//                     userData.putData(sheetName, columnName, response);
-//                     Report.updateTestLog(Action, "Response is stored in " + strObj, Status.DONE);
-//                 } catch (Exception ex) {
-//                     Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-//                     Report.updateTestLog(Action, "Error storing Response in datasheet :" + "\n" + ex.getMessage(),
-//                             Status.DEBUG);
-//                 }
-//             } else {
-//                 Report.updateTestLog(Action,
-//                         "Given input [" + Input + "] format is invalid. It should be [sheetName:ColumnName]",
-//                         Status.DEBUG);
-//             }
-//         } catch (Exception ex) {
-//             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-//             Report.updateTestLog(Action, "Error storing Response in datasheet :" + "\n" + ex.getMessage(),
-//                     Status.DEBUG);
-//         }
-//     }
-
-//     // to add Configs in props
-//     public Properties addConfigProps(Properties props) {
-//         for (String config : kafkaConfigs.get(key)) {
-//             String[] keyValue = config.split("=", 2);
-//             if (keyValue.length == 2) {
-//                 props.put(keyValue[0], keyValue[1]);
-//             }
-//         }
-//         return props;
-//     }
-
-//     public Properties getProducersslConfigurations(Properties prop) {
-//         Properties sslProp = Control.getCurrentProject().getProjectSettings().getKafkaSSLConfigurations();
-//         Set<String> keys = sslProp.stringPropertyNames();
-//         for (String key : keys) {
-//             String value = sslProp.getProperty(key);
-//             value = handleDataSheetVariables(value);
-//             value = handleuserDefinedVariables(value);
-//             switch (key) {
-//                 case "Producer_ssl_Enabled":
-//                     Boolean.valueOf(value);
-//                     break;
-//                 case "Producer_Truststore_Location":
-//                     String producertrustStroreLocation = Paths.get(value).toAbsolutePath().toString();
-//                     prop.put("ssl.truststore.location", producertrustStroreLocation);
-//                     break;
-//                 case "Producer_Truststore_Password":
-//                     prop.put("ssl.truststore.password", value);
-//                     break;
-//                 case "Producer_Keystore_Location":
-//                     String producerKeyStroreLocation = Paths.get(value).toAbsolutePath().toString();
-//                     prop.put("ssl.keystore.location", producerKeyStroreLocation);
-//                     break;
-//                 case "Producer_Keystore_Password":
-//                     prop.put("ssl.keystore.password", value);
-//                     break;
-//                 case "Producer_Key_Password":
-//                     prop.put("ssl.key.password", value);
-//                     break;
-//                 case "Schema_Registry_Truststore_Location":
-//                     String producerSchemaTrustStroreLocation = Paths.get(value).toAbsolutePath().toString();
-//                     prop.put("schema.registry.ssl.truststore.location", producerSchemaTrustStroreLocation);
-//                     break;
-//                 case "Schema_Registry_Truststore_Password":
-//                     prop.put("schema.registry.ssl.truststore.password", value);
-//                     break;
-//                 case "Schema_Registry_Keystore_Location":
-//                     String producerSchemaKeyStroreLocation = Paths.get(value).toAbsolutePath().toString();
-//                     prop.put("schema.registry.ssl.keystore.location", producerSchemaKeyStroreLocation);
-//                     break;
-//                 case "Schema_Registry_Keystore_Password":
-//                     prop.put("schema.registry.ssl.keystore.password", value);
-//                     break;
-//                 case "Schema_Registry_Key_Password":
-//                     prop.put("schema.registry.ssl.key.password", value);
-//                     break;
-//             }
-//         }
-//         return prop;
-//     }
-
-//     public Properties getConsumersslConfigurations(Properties prop) {
-//         Properties sslProp = Control.getCurrentProject().getProjectSettings().getKafkaSSLConfigurations();
-//         Set<String> keys = sslProp.stringPropertyNames();
-//         for (String key : keys) {
-//             String value = sslProp.getProperty(key);
-//             value = handleDataSheetVariables(value);
-//             value = handleuserDefinedVariables(value);
-//             switch (key) {
-//                 case "Consumer_ssl_Enabled":
-//                     break;
-//                 case "Consumer_Truststore_Location":
-//                     String trustStroreLocation = Paths.get(value).toAbsolutePath().toString();
-//                     prop.put("ssl.truststore.location", trustStroreLocation);
-//                     break;
-//                 case "Consumer_Truststore_Password":
-//                     prop.put("ssl.truststore.password", value);
-//                     break;
-//                 case "Consumer_Keystore_Location":
-//                     String consumerKeyStroreLocation = Paths.get(value).toAbsolutePath().toString();
-//                     prop.put("ssl.keystore.location", consumerKeyStroreLocation);
-//                     break;
-//                 case "Consumer_Keystore_Password":
-//                     prop.put("ssl.keystore.password", value);
-//                     break;
-//                 case "Consumer_Key_Password":
-//                     prop.put("ssl.key.password", value);
-//                     break;
-//                 case "Schema_Registry_Truststore_Location":
-//                     String consumerSchemaTrustStroreLocation = Paths.get(value).toAbsolutePath().toString();
-//                     prop.put("schema.registry.ssl.truststore.location", consumerSchemaTrustStroreLocation);
-//                     break;
-//                 case "Schema_Registry_Truststore_Password":
-//                     prop.put("schema.registry.ssl.truststore.password", value);
-//                     break;
-//                 case "Schema_Registry_Keystore_Location":
-//                     String consumerSchemaKeyStroreLocation = Paths.get(value).toAbsolutePath().toString();
-//                     prop.put("schema.registry.ssl.keystore.location", consumerSchemaKeyStroreLocation);
-//                     break;
-//                 case "Schema_Registry_Keystore_Password":
-//                     prop.put("schema.registry.ssl.keystore.password", value);
-//                     break;
-//                 case "Schema_Registry_Key_Password":
-//                     prop.put("schema.registry.ssl.key.password", value);
-//                     break;
-//             }
-//         }
-//         return prop;
-//     }
-
-//     public boolean isProducersslEnabled() {
-//         Properties prop = Control.getCurrentProject().getProjectSettings().getKafkaSSLConfigurations();
-//         String value = prop.getProperty("Producer_ssl_Enabled");
-//         value = handleRuntimeValues(value);
-//         return "true".equalsIgnoreCase(value);
-
-//     }
-
-//     public String handleRuntimeValues(String value) {
-//         value = handleDataSheetVariables(value);
-//         value = handleuserDefinedVariables(value);
-//         return value;
-//     }
-
-//     public boolean isConsumersslEnabled() {
-//         Properties prop = Control.getCurrentProject().getProjectSettings().getKafkaSSLConfigurations();
-//         String value = prop.getProperty("Consumer_ssl_Enabled");
-//         value = handleRuntimeValues(value);
-//         return "true".equalsIgnoreCase(value);
-//     }
-
-//     // Added to create avro compatible message
-//     public void getAvroCompatibleMessage() {
-//         String jsonAvroMessage = "";
-//         try {
-//             ObjectMapper stringMapper = new ObjectMapper();
-//             JsonNode inputJson = mapper.readTree(kafkaValue.get(key).toString());
-// //            JsonNode inputJson = stringMapper.readTree((String) kafkaValue.get(key));
-//             JsonNode avroCompatibleJson = convertNode(inputJson, kafkaAvroSchema.get(key));
-//             jsonAvroMessage = stringMapper.writerWithDefaultPrettyPrinter().writeValueAsString(avroCompatibleJson);
-//             kafkaAvroCompatibleMessage.put(key, jsonAvroMessage);
-//         } catch (Exception e) {
-//             e.printStackTrace();
-//         }
-//     }
-
-//     private static JsonNode convertNode(JsonNode input, Schema schema) {
-//         switch (schema.getType()) {
-//             case RECORD:
-//                 ObjectNode recordNode = mapper.createObjectNode();
-//                 for (Schema.Field field : schema.getFields()) {
-//                     JsonNode value = input.get(field.name());
-//                     recordNode.set(field.name(), convertNode(value, field.schema()));
-//                 }
-//                 return recordNode;
-
-//             case ARRAY:
-//                 ArrayNode arrayNode = mapper.createArrayNode();
-//                 for (JsonNode item : input) {
-//                     arrayNode.add(convertNode(item, schema.getElementType()));
-//                 }
-//                 return arrayNode;
-
-//             case MAP:
-//                 ObjectNode mapNode = mapper.createObjectNode();
-//                 for (Iterator<Map.Entry<String, JsonNode>> it = input.fields(); it.hasNext();) {
-//                     Map.Entry<String, JsonNode> entry = it.next();
-//                     mapNode.set(entry.getKey(), convertNode(entry.getValue(), schema.getValueType()));
-//                 }
-//                 return mapNode;
-
-//             case UNION:
-//                 for (Schema subSchema : schema.getTypes()) {
-//                     if (subSchema.getType() == Schema.Type.NULL && (input == null || input.isNull())) {
-//                         return NullNode.getInstance();
-//                     }
-
-//                     if (isCompatible(input, subSchema)) {
-//                         JsonNode wrapped = convertNode(input, subSchema);
-//                         ObjectNode unionNode = mapper.createObjectNode();
-
-//                         // ✅ Use fully qualified name for ENUM and RECORD
-//                         String typeName = (subSchema.getType() == Schema.Type.RECORD
-//                                 || subSchema.getType() == Schema.Type.ENUM) ? subSchema.getFullName()
-//                                 : subSchema.getType().getName();
-
-//                         unionNode.set(typeName, wrapped);
-//                         return unionNode;
-//                     }
-//                 }
-
-//                 System.err.println("❌ No matching type in union for value: " + input);
-//                 System.err.println("Schema: " + schema.toString(true));
-//                 throw new IllegalArgumentException("No matching type in union for value: " + input);
-
-//             case ENUM:
-//                 return new TextNode(input.textValue());
-
-//             default:
-//                 return input;
-//         }
-//     }
-
-//     private static boolean isCompatible(JsonNode value, Schema schema) {
-//         switch (schema.getType()) {
-//             case STRING:
-//                 return value.isTextual();
-//             case INT:
-//                 return value.isInt();
-//             case LONG:
-//                 return value.isLong() || value.isInt();
-//             case FLOAT:
-//                 return value.isFloat() || value.isDouble();
-//             case DOUBLE:
-//                 return value.isDouble() || value.isFloat();
-//             case BOOLEAN:
-//                 return value.isBoolean();
-//             case NULL:
-//                 return value == null || value.isNull();
-//             case RECORD:
-//                 return value.isObject();
-//             case ARRAY:
-//                 return value.isArray();
-//             case MAP:
-//                 return value.isObject();
-//             case ENUM:
-//                 return value.isTextual() && schema.getEnumSymbols().contains(value.textValue());
-//             default:
-//                 return false;
-//         }
-//     }
-// }
+package com.ing.engine.commands.kafka;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.ing.engine.commands.browser.Command;
+import com.ing.engine.core.CommandControl;
+import com.ing.engine.core.Control;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.InputType;
+import com.ing.ingenious.api.types.ObjectType;
+import com.jayway.jsonpath.JsonPath;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.nio.file.Paths;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericDatumReader;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.Decoder;
+import org.apache.avro.io.DecoderFactory;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.config.SslConfigs;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.internals.RecordHeader;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+
+/**
+ * Kafka producer/consumer commands.
+ *
+ * <p>Connection, serialization and SSL settings are read from <b>named
+ * configurations</b> defined in the Settings panel (Kafka Configurations tab)
+ * and referenced from a step via {@code #<configName>} in the Condition column
+ * &mdash; mirroring the API {@code #alias} pattern. The legacy per-step
+ * {@code setXxx} actions are retained as optional overrides.
+ *
+ * <p>This source depends on {@code kafka-clients} / {@code kafka-avro-serializer},
+ * which are only present on the classpath when the Engine module is built with
+ * the {@code -P kafka} (or {@code -P full}) Maven profile.
+ */
+public class KafkaOperations extends Command {
+    // Producer state (keyed by the engine's per-run key).
+    private static final Map<String, String> kafkaServers = new HashMap<>();
+    private static final Map<String, String> kafkaProducerTopic = new HashMap<>();
+    private static final Map<String, String> kafkaKeySerializer = new HashMap<>();
+    private static final Map<String, String> kafkaValueSerializer = new HashMap<>();
+    private static final Map<String, Integer> kafkaPartition = new HashMap<>();
+    private static final Map<String, String> kafkaKey = new HashMap<>();
+    private static final Map<String, Long> kafkaTimeStamp = new HashMap<>();
+    private static final Map<String, List<Header>> kafkaHeaders = new HashMap<>();
+    private static final Map<String, String> kafkaValue = new HashMap<>();
+    private static final Map<String, ProducerRecord<Object, Object>> kafkaProducerRecord = new HashMap<>();
+    private static final Map<String, KafkaProducer<Object, Object>> kafkaProducer = new HashMap<>();
+    private static final Map<String, Schema> kafkaAvroSchema = new HashMap<>();
+    private static final Map<String, String> kafkaSchemaRegistryURL = new HashMap<>();
+    private static final Map<String, String> kafkaSharedSecret = new HashMap<>();
+    private static final Map<String, Boolean> kafkaAutoRegisterSchemas = new HashMap<>();
+    private static final ObjectMapper mapper = new ObjectMapper();
+
+    // Consumer state.
+    private static final Map<String, String> kafkaConsumerTopic = new HashMap<>();
+    private static final Map<String, String> kafkaConsumerGroupId = new HashMap<>();
+    private static final Map<String, String> kafkaValueDeserializer = new HashMap<>();
+    private static final Map<String, Integer> kafkaConsumerPollRetries = new HashMap<>();
+    private static final Map<String, Long> kafkaConsumerPollDuration = new HashMap<>();
+    private static final Map<String, Integer> kafkaConsumerMaxPollRecords = new HashMap<>();
+    private static final Map<String, KafkaConsumer<String, Object>> kafkaConsumer = new HashMap<>();
+    private static final Map<String, String> kafkaConsumeRecordValue = new HashMap<>();
+    private static final Map<String, ConsumerRecord<String, Object>> kafkaConsumerPollRecord = new HashMap<>();
+    private static final Map<String, List<HashMap<String, String>>> kafkaRecordIdentifier = new HashMap<>();
+
+    public KafkaOperations(CommandControl cc) {
+        super(cc);
+    }
+
+    // ------------------------------------------------------------------
+    // Named-config resolution (#alias in the Condition column)
+    // ------------------------------------------------------------------
+
+    private String aliasFromCondition(String fallback) {
+        String cond = Condition == null ? "" : Condition.trim();
+        if (cond.startsWith("#")) {
+            return cond.substring(1);
+        }
+        return fallback;
+    }
+
+    /** Loads producer config referenced by the Condition alias into per-key state. */
+    private Properties resolveProducer() {
+        String name = aliasFromCondition("default");
+        com.ing.datalib.settings.KafkaProducerProperties store = Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getKafkaProducerSettings();
+        if (!store.doesProducerConfigExist(name)) {
+            name = "default";
+        }
+        Properties cfg = store.getProducerPropertiesFor(name);
+        if (cfg == null) {
+            cfg = new Properties();
+        }
+        // Named config seeds any field not already set by a setXxx override.
+        kafkaServers.putIfAbsent(key, cfg.getProperty("bootstrap.servers", ""));
+        kafkaProducerTopic.putIfAbsent(key, cfg.getProperty("producer.topic", ""));
+        kafkaKeySerializer.putIfAbsent(
+            key,
+            cfg.getProperty("key.serializer", StringSerializer.class.getName())
+        );
+        kafkaValueSerializer.putIfAbsent(
+            key,
+            cfg.getProperty("value.serializer", StringSerializer.class.getName())
+        );
+        String part = cfg.getProperty("partition", "");
+        if (!kafkaPartition.containsKey(key) && part != null && !part.trim().isEmpty()) {
+            kafkaPartition.put(key, Integer.valueOf(part.trim()));
+        }
+        // Legacy setXxx overrides take precedence over the named config.
+        if (kafkaSchemaRegistryURL.containsKey(key)) {
+            cfg.setProperty("schema.registry.url", kafkaSchemaRegistryURL.get(key));
+        }
+        if (kafkaSharedSecret.containsKey(key)) {
+            cfg.setProperty("shared.secret", kafkaSharedSecret.get(key));
+        }
+        if (kafkaAutoRegisterSchemas.containsKey(key)) {
+            cfg.setProperty(
+                "auto.register.schemas",
+                String.valueOf(kafkaAutoRegisterSchemas.get(key))
+            );
+        }
+        return cfg;
+    }
+
+    /** Loads consumer config referenced by the Condition alias into per-key state. */
+    private Properties resolveConsumer() {
+        String name = aliasFromCondition("default");
+        com.ing.datalib.settings.KafkaConsumerProperties store = Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getKafkaConsumerSettings();
+        if (!store.doesConsumerConfigExist(name)) {
+            name = "default";
+        }
+        Properties cfg = store.getConsumerPropertiesFor(name);
+        if (cfg == null) {
+            cfg = new Properties();
+        }
+        kafkaServers.putIfAbsent(key, cfg.getProperty("bootstrap.servers", ""));
+        kafkaConsumerTopic.putIfAbsent(key, cfg.getProperty("consumer.topic", ""));
+        kafkaConsumerGroupId.putIfAbsent(key, cfg.getProperty("group.id", ""));
+        kafkaValueDeserializer.putIfAbsent(
+            key,
+            cfg.getProperty("value.deserializer", StringDeserializer.class.getName())
+        );
+        kafkaConsumerPollRetries.putIfAbsent(
+            key,
+            Integer.valueOf(cfg.getProperty("poll.retries", "5"))
+        );
+        kafkaConsumerPollDuration.putIfAbsent(
+            key,
+            Long.valueOf(cfg.getProperty("poll.interval.ms", "1000"))
+        );
+        kafkaConsumerMaxPollRecords.putIfAbsent(
+            key,
+            Integer.valueOf(cfg.getProperty("max.poll.records", "500"))
+        );
+        // Legacy setXxx overrides take precedence over the named config.
+        if (kafkaSchemaRegistryURL.containsKey(key)) {
+            cfg.setProperty("schema.registry.url", kafkaSchemaRegistryURL.get(key));
+        }
+        if (kafkaSharedSecret.containsKey(key)) {
+            cfg.setProperty("shared.secret", kafkaSharedSecret.get(key));
+        }
+        return cfg;
+    }
+
+    /**
+     * Maps a short serializer name (string/bytearray/avro) to its class;
+     * any other value is treated as a fully-qualified class name and passed through.
+     */
+    private static String resolveSerializer(String v) {
+        if (v == null) {
+            return StringSerializer.class.getName();
+        }
+        switch (v.trim().toLowerCase()) {
+            case "string":
+                return StringSerializer.class.getName();
+            case "bytearray":
+                return ByteArraySerializer.class.getName();
+            case "avro":
+                return "io.confluent.kafka.serializers.KafkaAvroSerializer";
+            default:
+                return v.trim();
+        }
+    }
+
+    /** Deserializer counterpart of {@link #resolveSerializer(String)}. */
+    private static String resolveDeserializer(String v) {
+        if (v == null) {
+            return StringDeserializer.class.getName();
+        }
+        switch (v.trim().toLowerCase()) {
+            case "string":
+                return StringDeserializer.class.getName();
+            case "bytearray":
+                return ByteArrayDeserializer.class.getName();
+            case "avro":
+                return "io.confluent.kafka.serializers.KafkaAvroDeserializer";
+            default:
+                return v.trim();
+        }
+    }
+
+    private static boolean isAlias(String v, String alias) {
+        return v != null && alias.equalsIgnoreCase(v.trim());
+    }
+
+    private static void applySsl(Properties props, Properties cfg) {
+        if (Boolean.parseBoolean(cfg.getProperty("ssl.enabled", "false"))) {
+            props.put("security.protocol", "SSL");
+            // Broker TLS - truststore (server CA) for one-way TLS
+            put(
+                props,
+                SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
+                cfg.getProperty("ssl.truststore.location")
+            );
+            put(
+                props,
+                SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG,
+                cfg.getProperty("ssl.truststore.password")
+            );
+            put(
+                props,
+                SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG,
+                cfg.getProperty("ssl.truststore.type")
+            );
+            // Broker TLS - keystore (client cert) for mutual TLS
+            put(
+                props,
+                SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
+                cfg.getProperty("ssl.keystore.location")
+            );
+            put(
+                props,
+                SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG,
+                cfg.getProperty("ssl.keystore.password")
+            );
+            put(props, SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, cfg.getProperty("ssl.keystore.type"));
+            put(props, SslConfigs.SSL_KEY_PASSWORD_CONFIG, cfg.getProperty("ssl.key.password"));
+            // Schema Registry TLS (when schema.registry.url is https)
+            put(
+                props,
+                "schema.registry.ssl.truststore.location",
+                cfg.getProperty("schema.registry.ssl.truststore.location")
+            );
+            put(
+                props,
+                "schema.registry.ssl.truststore.password",
+                cfg.getProperty("schema.registry.ssl.truststore.password")
+            );
+            put(
+                props,
+                "schema.registry.ssl.keystore.location",
+                cfg.getProperty("schema.registry.ssl.keystore.location")
+            );
+            put(
+                props,
+                "schema.registry.ssl.keystore.password",
+                cfg.getProperty("schema.registry.ssl.keystore.password")
+            );
+            put(
+                props,
+                "schema.registry.ssl.key.password",
+                cfg.getProperty("schema.registry.ssl.key.password")
+            );
+        }
+    }
+
+    private static void put(Properties props, String key, String value) {
+        if (value != null && !value.trim().isEmpty()) {
+            props.put(key, value);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Producer setup overrides (optional; Condition = NONE)
+    // ------------------------------------------------------------------
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set Bootstrap Servers",
+        input = InputType.YES,
+        condition = InputType.NO,
+        deprecated = true
+    )
+    public void setBootstrapServers() {
+        kafkaServers.put(key, Data);
+        Report.updateTestLog(Action, "Bootstrap Servers set", Status.DONE);
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set Producer Topic",
+        input = InputType.YES,
+        condition = InputType.NO,
+        deprecated = true
+    )
+    public void setProducerTopic() {
+        kafkaProducerTopic.put(key, Data);
+        Report.updateTestLog(Action, "Producer Topic set", Status.DONE);
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set Key Serializer",
+        input = InputType.YES,
+        condition = InputType.NO,
+        deprecated = true
+    )
+    public void setKeySerializer() {
+        kafkaKeySerializer.put(key, Data);
+        Report.updateTestLog(Action, "Key Serializer set", Status.DONE);
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set Value Serializer",
+        input = InputType.YES,
+        condition = InputType.NO,
+        deprecated = true
+    )
+    public void setValueSerializer() {
+        kafkaValueSerializer.put(key, Data);
+        Report.updateTestLog(Action, "Value Serializer set", Status.DONE);
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set Schema Registry URL",
+        input = InputType.YES,
+        condition = InputType.NO,
+        deprecated = true
+    )
+    public void setSchemaRegistryURL() {
+        kafkaSchemaRegistryURL.put(key, Data);
+        Report.updateTestLog(Action, "Schema Registry URL set", Status.DONE);
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set Shared Secret",
+        input = InputType.YES,
+        condition = InputType.NO,
+        deprecated = true
+    )
+    public void setSharedSecret() {
+        kafkaSharedSecret.put(key, Data);
+        Report.updateTestLog(Action, "Shared Secret set", Status.DONE);
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set Auto Register Schemas",
+        input = InputType.YES,
+        condition = InputType.NO,
+        deprecated = true
+    )
+    public void setAutoRegisterSchemas() {
+        try {
+            kafkaAutoRegisterSchemas.put(key, Boolean.valueOf(Data.trim().toLowerCase()));
+            Report.updateTestLog(Action, "Auto Register Schemas set", Status.DONE);
+        } catch (Exception ex) {
+            Report.updateTestLog(
+                Action,
+                "Error setting Auto Register Schemas: " + ex.getMessage(),
+                Status.DEBUG
+            );
+        }
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set Partition",
+        input = InputType.YES,
+        condition = InputType.NO,
+        deprecated = true
+    )
+    public void setPartition() {
+        try {
+            kafkaPartition.put(key, Integer.valueOf(Data));
+            Report.updateTestLog(Action, "Partition set", Status.DONE);
+        } catch (NumberFormatException ex) {
+            Report.updateTestLog(Action, "Invalid partition: " + Data, Status.DEBUG);
+        }
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set Key",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
+    public void setKey() {
+        kafkaKey.put(key, Data);
+        Report.updateTestLog(Action, "Key set", Status.DONE);
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set TimeStamp",
+        input = InputType.NO,
+        condition = InputType.NO
+    )
+    public void setTimeStamp() {
+        kafkaTimeStamp.put(key, System.currentTimeMillis());
+        Report.updateTestLog(Action, "Time Stamp set", Status.DONE);
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Add Kafka Header",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
+    public void addKafkaHeader() {
+        try {
+            String value = handleDataSheetVariables(Data);
+            value = handleUserDefinedVariables(value);
+            String headerKey = value.split("=", 2)[0];
+            String headerValue = value.split("=", 2)[1];
+            kafkaHeaders
+                .computeIfAbsent(key, k -> new ArrayList<>())
+                .add(new RecordHeader(headerKey, headerValue.getBytes()));
+            Report.updateTestLog(Action, "Header added " + value, Status.DONE);
+        } catch (Exception ex) {
+            Report.updateTestLog(Action, "Error adding Header: " + ex.getMessage(), Status.DEBUG);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Produce / Send (Condition = optional #producerAlias)
+    // ------------------------------------------------------------------
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Add Avro Schema",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
+    public void addSchema() {
+        try {
+            String data = handleDataSheetVariables(Data);
+            data = handleUserDefinedVariables(data);
+            Schema.Parser parser = new Schema.Parser();
+            Schema mainSchema;
+            if (data.contains(";")) {
+                // Multiple ';'-separated files: dependent schemas first, main schema last.
+                String[] paths = data.split(";");
+                for (int i = 0; i < paths.length - 1; i++) {
+                    parser.parse(new File(Paths.get(paths[i].trim()).toString()));
+                }
+                mainSchema =
+                    parser.parse(new File(Paths.get(paths[paths.length - 1].trim()).toString()));
+            } else {
+                mainSchema = new Schema.Parser().parse(new File(Paths.get(data.trim()).toString()));
+            }
+            kafkaAvroSchema.put(key, mainSchema);
+            Report.updateTestLog(Action, "Schema added successfully", Status.DONE);
+        } catch (Exception ex) {
+            Report.updateTestLog(Action, "Unable to add Schema: " + ex.getMessage(), Status.FAIL);
+        }
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Produce Kafka Message",
+        input = InputType.YES,
+        condition = InputType.OPTIONAL
+    )
+    public void produceMessage() {
+        try {
+            resolveProducer();
+            String value = handleDataSheetVariables(Data);
+            value = handleUserDefinedVariables(value);
+            kafkaValue.put(key, value);
+
+            // Local-schema Avro: convert the JSON payload into a GenericRecord when
+            // an .avsc was supplied via "Add Avro Schema" and the avro serializer
+            // is selected. Otherwise the raw String value is sent.
+            Object recordValue = value;
+            String serializer = kafkaValueSerializer.get(key);
+            if (kafkaAvroSchema.containsKey(key) && isAlias(serializer, "avro")) {
+                recordValue = buildGenericRecord(value);
+            }
+
+            String topic = kafkaProducerTopic.get(key);
+            Integer partition = kafkaPartition.get(key);
+            String msgKey = kafkaKey.get(key);
+            Long ts = kafkaTimeStamp.get(key);
+            List<Header> headers = kafkaHeaders.get(key);
+
+            ProducerRecord<Object, Object> record;
+            if (partition != null && ts != null) {
+                record = new ProducerRecord<>(topic, partition, ts, msgKey, recordValue, headers);
+            } else if (partition != null) {
+                record = new ProducerRecord<>(topic, partition, msgKey, recordValue, headers);
+            } else if (msgKey != null) {
+                record = new ProducerRecord<>(topic, null, msgKey, recordValue, headers);
+            } else {
+                record = new ProducerRecord<>(topic, recordValue);
+            }
+            kafkaProducerRecord.put(key, record);
+            Report.updateTestLog(Action, "Message prepared for topic [" + topic + "]", Status.DONE);
+        } catch (Exception ex) {
+            Logger.getLogger(getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(
+                Action,
+                "Error producing message: " + ex.getMessage(),
+                Status.FAILNS
+            );
+        }
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Send Message",
+        input = InputType.NO,
+        condition = InputType.OPTIONAL
+    )
+    public void sendKafkaMessage() {
+        try {
+            Properties cfg = resolveProducer();
+            createProducer(cfg);
+            kafkaProducer
+                .get(key)
+                .send(
+                    kafkaProducerRecord.get(key),
+                    (RecordMetadata metadata, Exception exception) -> {
+                        if (exception != null) {
+                            Report.updateTestLog(
+                                Action,
+                                "Error sending record: " + exception.getMessage(),
+                                Status.FAIL
+                            );
+                        } else {
+                            Report.updateTestLog(
+                                Action,
+                                "Record sent [topic: " +
+                                metadata.topic() +
+                                ", partition: " +
+                                metadata.partition() +
+                                ", offset: " +
+                                metadata.offset() +
+                                "]",
+                                Status.DONE
+                            );
+                        }
+                    }
+                );
+            kafkaProducer.get(key).flush();
+            kafkaProducer.get(key).close();
+        } catch (Exception ex) {
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, "send failed", ex);
+            Report.updateTestLog(Action, "Error sending record: " + ex.getMessage(), Status.DEBUG);
+        } finally {
+            clearProducerDetails();
+        }
+    }
+
+    private void createProducer(Properties cfg) {
+        Properties props = new Properties();
+        applySsl(props, cfg);
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServers.get(key));
+        props.put(
+            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+            resolveSerializer(kafkaKeySerializer.get(key))
+        );
+        props.put(
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+            resolveSerializer(kafkaValueSerializer.get(key))
+        );
+        String schemaUrl = cfg.getProperty("schema.registry.url", "");
+        if (!schemaUrl.trim().isEmpty()) {
+            props.put("schema.registry.url", schemaUrl);
+            put(props, "auto.register.schemas", cfg.getProperty("auto.register.schemas"));
+        }
+        kafkaProducer.put(key, new KafkaProducer<>(props));
+    }
+
+    private void clearProducerDetails() {
+        kafkaKey.remove(key);
+        kafkaHeaders.remove(key);
+        kafkaProducerTopic.remove(key);
+        kafkaPartition.remove(key);
+        kafkaTimeStamp.remove(key);
+        kafkaKeySerializer.remove(key);
+        kafkaValue.remove(key);
+        kafkaValueSerializer.remove(key);
+        kafkaProducer.remove(key);
+        kafkaProducerRecord.remove(key);
+        kafkaAvroSchema.remove(key);
+        kafkaServers.remove(key);
+        kafkaSchemaRegistryURL.remove(key);
+        kafkaSharedSecret.remove(key);
+        kafkaAutoRegisterSchemas.remove(key);
+    }
+
+    // ------------------------------------------------------------------
+    // Local-schema Avro helpers (JSON payload -> GenericRecord)
+    // ------------------------------------------------------------------
+
+    private GenericRecord buildGenericRecord(String jsonValue) throws Exception {
+        Schema schema = kafkaAvroSchema.get(key);
+        JsonNode inputJson = mapper.readTree(jsonValue);
+        JsonNode avroCompatibleJson = convertNode(inputJson, schema);
+        String jsonAvroMessage = mapper.writeValueAsString(avroCompatibleJson);
+        InputStream input = new ByteArrayInputStream(jsonAvroMessage.getBytes());
+        Decoder decoder = DecoderFactory.get().jsonDecoder(schema, input);
+        GenericDatumReader<GenericRecord> reader = new GenericDatumReader<>(schema);
+        return reader.read(null, decoder);
+    }
+
+    /** Normalises a JSON tree into Avro-union-compatible form for the given schema. */
+    private static JsonNode convertNode(JsonNode input, Schema schema) {
+        switch (schema.getType()) {
+            case RECORD:
+                ObjectNode recordNode = mapper.createObjectNode();
+                for (Schema.Field field : schema.getFields()) {
+                    JsonNode value = input.get(field.name());
+                    recordNode.set(field.name(), convertNode(value, field.schema()));
+                }
+                return recordNode;
+            case ARRAY:
+                ArrayNode arrayNode = mapper.createArrayNode();
+                for (JsonNode item : input) {
+                    arrayNode.add(convertNode(item, schema.getElementType()));
+                }
+                return arrayNode;
+            case MAP:
+                ObjectNode mapNode = mapper.createObjectNode();
+                for (Iterator<Map.Entry<String, JsonNode>> it = input.fields(); it.hasNext();) {
+                    Map.Entry<String, JsonNode> entry = it.next();
+                    mapNode.set(
+                        entry.getKey(),
+                        convertNode(entry.getValue(), schema.getValueType())
+                    );
+                }
+                return mapNode;
+            case UNION:
+                for (Schema subSchema : schema.getTypes()) {
+                    if (
+                        subSchema.getType() == Schema.Type.NULL && (input == null || input.isNull())
+                    ) {
+                        return NullNode.getInstance();
+                    }
+                    if (isCompatible(input, subSchema)) {
+                        JsonNode wrapped = convertNode(input, subSchema);
+                        ObjectNode unionNode = mapper.createObjectNode();
+                        String typeName = (
+                                subSchema.getType() == Schema.Type.RECORD ||
+                                subSchema.getType() == Schema.Type.ENUM
+                            )
+                            ? subSchema.getFullName()
+                            : subSchema.getType().getName();
+                        unionNode.set(typeName, wrapped);
+                        return unionNode;
+                    }
+                }
+                throw new IllegalArgumentException("No matching type in union for value: " + input);
+            case ENUM:
+                return new TextNode(input.textValue());
+            default:
+                return input;
+        }
+    }
+
+    private static boolean isCompatible(JsonNode value, Schema schema) {
+        switch (schema.getType()) {
+            case STRING:
+                return value.isTextual();
+            case INT:
+                return value.isInt();
+            case LONG:
+                return value.isLong() || value.isInt();
+            case FLOAT:
+                return value.isFloat() || value.isDouble();
+            case DOUBLE:
+                return value.isDouble() || value.isFloat();
+            case BOOLEAN:
+                return value.isBoolean();
+            case NULL:
+                return value == null || value.isNull();
+            case RECORD:
+                return value.isObject();
+            case ARRAY:
+                return value.isArray();
+            case MAP:
+                return value.isObject();
+            case ENUM:
+                return value.isTextual() && schema.getEnumSymbols().contains(value.textValue());
+            default:
+                return false;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Consumer setup overrides (optional; Condition = NONE)
+    // ------------------------------------------------------------------
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set Consumer Topic",
+        input = InputType.YES,
+        condition = InputType.NO,
+        deprecated = true
+    )
+    public void setConsumerTopic() {
+        kafkaConsumerTopic.put(key, Data);
+        Report.updateTestLog(Action, "Consumer Topic set", Status.DONE);
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set Consumer GroupId",
+        input = InputType.YES,
+        condition = InputType.NO,
+        deprecated = true
+    )
+    public void setConsumerGroupId() {
+        kafkaConsumerGroupId.put(key, Data);
+        Report.updateTestLog(Action, "Consumer GroupId set", Status.DONE);
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set Value Deserializer",
+        input = InputType.YES,
+        condition = InputType.NO,
+        deprecated = true
+    )
+    public void setValueDeserializer() {
+        kafkaValueDeserializer.put(key, Data);
+        Report.updateTestLog(Action, "Value Deserializer set", Status.DONE);
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set Consumer Poll Retries",
+        input = InputType.YES,
+        condition = InputType.NO,
+        deprecated = true
+    )
+    public void setConsumerPollRetries() {
+        kafkaConsumerPollRetries.put(key, Integer.valueOf(Data));
+        Report.updateTestLog(Action, "Poll Retries set", Status.DONE);
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set Consumer Poll Interval",
+        input = InputType.YES,
+        condition = InputType.NO,
+        deprecated = true
+    )
+    public void setConsumerPollInterval() {
+        kafkaConsumerPollDuration.put(key, Long.valueOf(Data));
+        Report.updateTestLog(Action, "Poll Interval set", Status.DONE);
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Set Consumer Max Poll Records",
+        input = InputType.YES,
+        condition = InputType.NO,
+        deprecated = true
+    )
+    public void setConsumerMaxPollRecords() {
+        kafkaConsumerMaxPollRecords.put(key, Integer.valueOf(Data));
+        Report.updateTestLog(Action, "Max Poll Records set", Status.DONE);
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Identify Target Message",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    public void identifyTargetMessage() {
+        try {
+            HashMap<String, String> pathValue = new HashMap<>();
+            pathValue.put(Condition, Data);
+            kafkaRecordIdentifier.computeIfAbsent(key, k -> new ArrayList<>()).add(pathValue);
+            Report.updateTestLog(
+                Action,
+                "Target identifier added [" + Condition + "=" + Data + "]",
+                Status.DONE
+            );
+        } catch (Exception ex) {
+            Report.updateTestLog(Action, "Error in target setup: " + ex.getMessage(), Status.FAIL);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Consume (Condition = optional #consumerAlias)
+    // ------------------------------------------------------------------
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Consume Kafka Message",
+        input = InputType.NO,
+        condition = InputType.OPTIONAL
+    )
+    public void consumeKafkaMessage() {
+        try {
+            Properties cfg = resolveConsumer();
+            createConsumer(cfg);
+            kafkaConsumer.get(key).subscribe(Arrays.asList(kafkaConsumerTopic.get(key)));
+            ConsumerRecords<String, Object> records = pollKafkaConsumer();
+            boolean hasIdentifier = kafkaRecordIdentifier.containsKey(key);
+            if (records != null && kafkaConsumeRecordValue.containsKey(key)) {
+                Report.updateTestLog(
+                    Action,
+                    "Kafka message consumed and target found.",
+                    Status.DONE
+                );
+            } else if (records != null && hasIdentifier) {
+                Report.updateTestLog(
+                    Action,
+                    "Consumed messages but target not found.",
+                    Status.FAILNS
+                );
+            } else if (records != null) {
+                Report.updateTestLog(Action, "Kafka message consumed.", Status.DONE);
+            } else {
+                Report.updateTestLog(Action, "Kafka message not received.", Status.FAIL);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(
+                Action,
+                "Error consuming Kafka message: " + ex.getMessage(),
+                Status.FAIL
+            );
+        } finally {
+            if (kafkaConsumer.get(key) != null) {
+                kafkaConsumer.get(key).close();
+            }
+        }
+    }
+
+    private void createConsumer(Properties cfg) {
+        Properties props = new Properties();
+        applySsl(props, cfg);
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServers.get(key));
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, kafkaConsumerGroupId.get(key));
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+            resolveDeserializer(kafkaValueDeserializer.get(key))
+        );
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        if (kafkaConsumerMaxPollRecords.get(key) != null) {
+            props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, kafkaConsumerMaxPollRecords.get(key));
+        }
+        String schemaUrl = cfg.getProperty("schema.registry.url", "");
+        if (!schemaUrl.trim().isEmpty()) {
+            props.put("schema.registry.url", schemaUrl);
+        }
+        String valDes = kafkaValueDeserializer.get(key);
+        if (isAlias(valDes, "avro")) {
+            props.put("specific.avro.reader", "false");
+        }
+        kafkaConsumer.put(key, new KafkaConsumer<>(props));
+    }
+
+    private ConsumerRecords<String, Object> pollKafkaConsumer() {
+        int maxRetries = kafkaConsumerPollRetries.get(key);
+        long pollMs = kafkaConsumerPollDuration.get(key);
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            ConsumerRecords<String, Object> polled = kafkaConsumer
+                .get(key)
+                .poll(Duration.ofMillis(pollMs));
+            if (!polled.isEmpty()) {
+                for (ConsumerRecord<String, Object> record : polled) {
+                    kafkaConsumerPollRecord.put(key, record);
+                    if (findAndSetTargetRecord()) {
+                        return polled;
+                    }
+                }
+                if (!kafkaRecordIdentifier.containsKey(key)) {
+                    // No identifier configured: first non-empty batch is the result.
+                    ConsumerRecord<String, Object> first = polled.iterator().next();
+                    if (first.value() != null) {
+                        kafkaConsumeRecordValue.put(key, first.value().toString());
+                    }
+                    return polled;
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean findAndSetTargetRecord() {
+        try {
+            Object val = kafkaConsumerPollRecord.get(key).value();
+            if (val == null) {
+                return false;
+            }
+            String recordValue = val.toString();
+            boolean isJson = Pattern.matches("^\\s*(\\{.*\\}|\\[.*\\])\\s*$", recordValue);
+            boolean isXml = Pattern.matches("^\\s*<\\?*xml.*>.*<.*>.*</.*>\\s*$", recordValue);
+            if (isJson) {
+                return matchJson(recordValue);
+            } else if (isXml) {
+                return matchXml(recordValue);
+            }
+        } catch (Exception ex) {
+            System.out.println("Error matching record: " + ex.getMessage());
+        }
+        return false;
+    }
+
+    private boolean matchJson(String message) {
+        List<HashMap<String, String>> conditions = kafkaRecordIdentifier.get(key);
+        if (conditions == null || conditions.isEmpty()) {
+            return false;
+        }
+        for (HashMap<String, String> cond : conditions) {
+            Map.Entry<String, String> entry = cond.entrySet().iterator().next();
+            Object actualObj = JsonPath.read(message, entry.getKey());
+            String actual = actualObj == null ? null : String.valueOf(actualObj);
+            if (!Objects.equals(actual, entry.getValue())) {
+                return false;
+            }
+        }
+        kafkaConsumeRecordValue.put(key, message);
+        return true;
+    }
+
+    private boolean matchXml(String message) {
+        try {
+            List<HashMap<String, String>> conditions = kafkaRecordIdentifier.get(key);
+            if (conditions == null || conditions.isEmpty()) {
+                return false;
+            }
+            Document doc = parseXml(message);
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            for (HashMap<String, String> cond : conditions) {
+                Map.Entry<String, String> entry = cond.entrySet().iterator().next();
+                String actual = xPath.compile(entry.getKey()).evaluate(doc);
+                if (!Objects.equals(actual, entry.getValue())) {
+                    return false;
+                }
+            }
+            kafkaConsumeRecordValue.put(key, message);
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Close Consumer",
+        input = InputType.NO,
+        condition = InputType.NO
+    )
+    public void closeConsumer() {
+        kafkaConsumeRecordValue.remove(key);
+        kafkaConsumerPollDuration.remove(key);
+        kafkaConsumerPollRetries.remove(key);
+        kafkaConsumerTopic.remove(key);
+        kafkaValueDeserializer.remove(key);
+        kafkaConsumerGroupId.remove(key);
+        kafkaConsumerMaxPollRecords.remove(key);
+        kafkaConsumerPollRecord.remove(key);
+        kafkaRecordIdentifier.remove(key);
+        kafkaConsumer.remove(key);
+        kafkaServers.remove(key);
+        kafkaSchemaRegistryURL.remove(key);
+        kafkaSharedSecret.remove(key);
+        Report.updateTestLog(Action, "Consumer closed", Status.DONE);
+    }
+
+    // ------------------------------------------------------------------
+    // Assertions on the consumed message
+    // ------------------------------------------------------------------
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Assert Response Message Contains",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
+    public void assertKafkaResponseMessageContains() {
+        String response = kafkaConsumeRecordValue.get(key);
+        if (response != null && response.contains(Data)) {
+            Report.updateTestLog(Action, "Response contains: " + Data, Status.PASSNS);
+        } else {
+            Report.updateTestLog(Action, "Response does not contain: " + Data, Status.FAILNS);
+        }
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Assert JSON Tag Equals",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    public void assertKafkaJSONtagEquals() {
+        try {
+            String value = JsonPath.read(kafkaConsumeRecordValue.get(key), Condition).toString();
+            if (value.equals(Data)) {
+                Report.updateTestLog(
+                    Action,
+                    "Element [" + value + "] is as expected",
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "Element is [" + value + "] expected [" + Data + "]",
+                    Status.FAILNS
+                );
+            }
+        } catch (Exception ex) {
+            Report.updateTestLog(
+                Action,
+                "Error validating JSON element: " + ex.getMessage(),
+                Status.DEBUG
+            );
+        }
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Assert JSON Tag Contains",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    public void assertKafkaJSONtagContains() {
+        try {
+            String value = JsonPath.read(kafkaConsumeRecordValue.get(key), Condition).toString();
+            if (value.contains(Data)) {
+                Report.updateTestLog(Action, "Element contains [" + Data + "]", Status.PASSNS);
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "Element [" + value + "] does not contain [" + Data + "]",
+                    Status.FAILNS
+                );
+            }
+        } catch (Exception ex) {
+            Report.updateTestLog(
+                Action,
+                "Error validating JSON element: " + ex.getMessage(),
+                Status.DEBUG
+            );
+        }
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Assert XML Tag Equals",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    public void assertKafkaXMLtagEquals() {
+        try {
+            String value = XPathFactory
+                .newInstance()
+                .newXPath()
+                .compile(Condition)
+                .evaluate(parseXml(kafkaConsumeRecordValue.get(key)));
+            if (value.equals(Data)) {
+                Report.updateTestLog(
+                    Action,
+                    "Element [" + value + "] is as expected",
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "Element [" + value + "] not as expected",
+                    Status.FAILNS
+                );
+            }
+        } catch (Exception ex) {
+            Report.updateTestLog(
+                Action,
+                "Error validating XML element: " + ex.getMessage(),
+                Status.DEBUG
+            );
+        }
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Assert XML Tag Contains",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    public void assertKafkaXMLtagContains() {
+        try {
+            String value = XPathFactory
+                .newInstance()
+                .newXPath()
+                .compile(Condition)
+                .evaluate(parseXml(kafkaConsumeRecordValue.get(key)));
+            if (value.contains(Data)) {
+                Report.updateTestLog(Action, "Element contains [" + Data + "]", Status.PASSNS);
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "Element [" + value + "] does not contain [" + Data + "]",
+                    Status.FAILNS
+                );
+            }
+        } catch (Exception ex) {
+            Report.updateTestLog(
+                Action,
+                "Error validating XML element: " + ex.getMessage(),
+                Status.DEBUG
+            );
+        }
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Store Response In DataSheet",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
+    public void storeKafkaResponseInDataSheet() {
+        storeInDataSheet(kafkaConsumeRecordValue.get(key));
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Store JSON Tag In DataSheet",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    public void storeKafkaJSONtagInDataSheet() {
+        try {
+            storeInDataSheet(JsonPath.read(kafkaConsumeRecordValue.get(key), Condition).toString());
+        } catch (Exception ex) {
+            Report.updateTestLog(
+                Action,
+                "Error storing JSON element: " + ex.getMessage(),
+                Status.DEBUG
+            );
+        }
+    }
+
+    @Action(
+        object = ObjectType.KAFKA,
+        desc = "Store XML Tag In DataSheet",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    public void storeKafkaXMLtagInDataSheet() {
+        try {
+            String value = XPathFactory
+                .newInstance()
+                .newXPath()
+                .compile(Condition)
+                .evaluate(parseXml(kafkaConsumeRecordValue.get(key)));
+            storeInDataSheet(value);
+        } catch (Exception ex) {
+            Report.updateTestLog(
+                Action,
+                "Error storing XML element: " + ex.getMessage(),
+                Status.DEBUG
+            );
+        }
+    }
+
+    private void storeInDataSheet(String value) {
+        String strObj = Input;
+        if (strObj != null && strObj.matches(".*:.*")) {
+            String sheetName = strObj.split(":", 2)[0];
+            String columnName = strObj.split(":", 2)[1];
+            userData.putData(sheetName, columnName, value);
+            Report.updateTestLog(Action, "[" + value + "] stored in " + strObj, Status.DONE);
+        } else {
+            Report.updateTestLog(
+                Action,
+                "Invalid input [" + Input + "]; expected [sheetName:ColumnName]",
+                Status.DEBUG
+            );
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------------
+
+    private static Document parseXml(String xml) throws Exception {
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        InputSource is = new InputSource(new StringReader(xml));
+        Document doc = dBuilder.parse(is);
+        doc.getDocumentElement().normalize();
+        return doc;
+    }
+
+    private String handleDataSheetVariables(String payload) {
+        if (payload == null) {
+            return null;
+        }
+        List<String> sheets = Control
+            .getCurrentProject()
+            .getTestData()
+            .getTestDataFor(Control.exe.runEnv())
+            .getTestDataNames();
+        for (String sheet : sheets) {
+            if (payload.contains("{" + sheet + ":")) {
+                com.ing.datalib.testdata.model.TestDataModel td = Control
+                    .getCurrentProject()
+                    .getTestData()
+                    .getTestDataByName(sheet);
+                for (String col : td.getColumns()) {
+                    String token = "{" + sheet + ":" + col + "}";
+                    if (payload.contains(token)) {
+                        payload = payload.replace(token, userData.getData(sheet, col));
+                    }
+                }
+            }
+        }
+        return payload;
+    }
+
+    private String handleUserDefinedVariables(String payload) {
+        if (payload == null) {
+            return null;
+        }
+        Collection<Object> values = Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getUserDefinedSettings()
+            .values();
+        for (Object prop : values) {
+            if (payload.contains("{" + prop + "}")) {
+                payload = payload.replace("{" + prop + "}", prop.toString());
+            }
+        }
+        return payload;
+    }
+}

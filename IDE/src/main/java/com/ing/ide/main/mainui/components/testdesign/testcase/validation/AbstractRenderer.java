@@ -166,6 +166,14 @@ public abstract class AbstractRenderer extends DefaultTableCellRenderer {
         comp.setToolTipText(null);
     }
 
+    protected void setDeprecated(JComponent comp, String tooltip) {
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
+        Color c = UIManager.getColor("ing.deprecatedForeground");
+        comp.setForeground(c != null ? c : new Color(204, 102, 0));
+        comp.setToolTipText(tooltip);
+    }
+
     protected Boolean isEmpty(Object value) {
         return Objects.toString(value, "").trim().isEmpty();
     }

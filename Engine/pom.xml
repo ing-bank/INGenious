@@ -606,9 +606,13 @@
             mvn clean package -P database     (browser + JDBC drivers)
             mvn clean package -P full         (everything)
 
-        Only the kafka (source currently disabled; deps optional) archetype can
-        be fully gated today, so that profile strips real dependencies from the
-        default build.
+        Only the database (JDBC drivers, loaded reflectively at runtime) and kafka
+        archetypes can be fully gated today, so those profiles strip real
+        dependencies from the default build. As of the Kafka Configurations
+        enhancement, KafkaOperations.java is compiled unconditionally (it is no
+        longer commented out), so building the Engine module now REQUIRES
+        -P kafka (or -P full) — a plain `mvn clean package` will fail to
+        resolve org.apache.kafka classes without one of those profiles.
 
         The mobile (Appium), api (Apache HttpClient), sap (JACOB) and axe (axe-core)
         archetypes currently ship inside the core <dependencies> block because engine

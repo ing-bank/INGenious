@@ -77,6 +77,10 @@ public class XTable extends JTable {
         setFont(new Font("ING Me", Font.BOLD, 11));
         searchRenderer = new SearchRenderer();
         setFillsViewportHeight(true);
+        // Registers this table with ToolTipManager so getToolTipText(MouseEvent)
+        // below is actually consulted; without a non-null tooltip text, Swing
+        // never asks a JTable for per-cell tooltips.
+        setToolTipText("");
         setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         getTableHeader().setFont(new Font("ING Me", Font.BOLD, 11));
         Color headerBg = UIManager.getColor("TableHeader.background");
@@ -328,6 +332,31 @@ public class XTable extends JTable {
     @Override
     public TableCellRenderer getCellRenderer(int row, int column) {
         return searchRenderer.setDefRenderer(super.getCellRenderer(row, column));
+    }
+
+    /**
+     * Surfaces the tooltip a cell renderer set on itself (e.g. validation
+     * errors, "soon to be deprecated" actions) as the table's own tooltip.
+     * Renderer components are never shown on-screen, so without this,
+     * {@code JComponent.setToolTipText(...)} calls made inside a renderer's
+     * {@code getTableCellRendererComponent(...)} would otherwise be inert.
+     */
+    @Override
+    public String getToolTipText(java.awt.event.MouseEvent event) {
+        java.awt.Point point = event.getPoint();
+        int row = rowAtPoint(point);
+        int column = columnAtPoint(point);
+        if (row >= 0 && column >= 0) {
+            TableCellRenderer renderer = getCellRenderer(row, column);
+            Component comp = prepareRenderer(renderer, row, column);
+            if (comp instanceof JComponent) {
+                String tip = ((JComponent) comp).getToolTipText();
+                if (tip != null) {
+                    return tip;
+                }
+            }
+        }
+        return super.getToolTipText(event);
     }
 
     @Override
