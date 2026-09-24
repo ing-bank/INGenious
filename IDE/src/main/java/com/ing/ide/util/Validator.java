@@ -9,7 +9,16 @@ public class Validator {
     // Stricter list for reusable component names: blocks comma, dot, colon, brackets, percent, hash
     private static final String REUSABLE_EXCLUDE_LIST = "\\S*[,|\\.|:|\\[|\\]|%|#]\\S*";
 
+    // Conservative cap on name length: these names become path segments nested several
+    // directories deep (Project/Scenario/TestData/Environment/...), so keeping individual
+    // segments well under the ~255 byte filesystem/component limit (and Windows' 260 char
+    // MAX_PATH) leaves enough headroom for the rest of the path.
+    public static final int MAX_NAME_LENGTH = 100;
+
     public static boolean isValidName(String text) {
+        if (text == null || text.length() > MAX_NAME_LENGTH) {
+            return false;
+        }
         Pattern pattern = Pattern.compile(
             "# Match a valid Windows filename (unspecified file system).          \n" +
             "^                                    # Anchor to start of string.        \n" +

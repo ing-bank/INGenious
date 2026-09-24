@@ -440,10 +440,26 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             model.addRecord();
             model.getRecords().get(0).setScenario(testcase.getScenario().getName());
             model.getRecords().get(0).setTestcase(testcase.getName());
+            model.getRecords().get(0).setScope(scopeFor(testcase.getScenario()));
             model.getRecords().get(0).setIteration("1");
             model.getRecords().get(0).setSubIteration("1");
         }
         addToLastTab(tab, model);
+    }
+
+    /**
+     * Resolves the TestData "Scope" value matching the scope of the given scenario, so a newly
+     * added datasheet row correctly reflects Project/Shared reusable scenarios instead of always
+     * defaulting to Test Plan scope.
+     */
+    private String scopeFor(Scenario scenario) {
+        if (scenario != null && scenario.isReusableScenario()) {
+            return "[Project]";
+        }
+        if (scenario != null && scenario.isSharedReusableScenario()) {
+            return "[Shared]";
+        }
+        return "";
     }
 
     public void testDataAdded(String env, TestDataModel tdModel) {
@@ -526,7 +542,22 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 oldName
             );
 
-            if (newName != null && !newName.trim().isEmpty() && Validator.isValidName(newName)) {
+            if (newName == null) {
+                return;
+            }
+            newName = newName.trim();
+            if (newName.isEmpty()) {
+                return;
+            }
+            if (newName.length() > Validator.MAX_NAME_LENGTH) {
+                Notification.show(
+                    "TestData name can't be longer than " +
+                    Validator.MAX_NAME_LENGTH +
+                    " characters"
+                );
+                return;
+            }
+            if (Validator.isValidName(newName)) {
                 panel.rename(newName);
             }
         }
@@ -976,6 +1007,25 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             }
         }
         return false;
+    }
+
+    /**
+     * Reloads every currently-open TestData sheet view across all environments so that
+     * Scenario/TestCase names already displayed (e.g. rows referencing a Project or Shared
+     * reusable TestCase) reflect a rename performed elsewhere in the project.
+     */
+    public void refreshOpenTestData() {
+        for (int i = 0; i < envTab.getTabCount(); i++) {
+            Object envComponent = envTab.getComponentAt(i);
+            if (envComponent instanceof JTabbedPane) {
+                JTabbedPane tab = (JTabbedPane) envComponent;
+                for (int j = 0; j < tab.getTabCount(); j++) {
+                    if (tab.getComponentAt(j) instanceof TestDataTablePanel) {
+                        ((TestDataTablePanel) tab.getComponentAt(j)).reload();
+                    }
+                }
+            }
+        }
     }
 
     public void importTestData(File file) {
