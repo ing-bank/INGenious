@@ -177,7 +177,11 @@ public abstract class TestDataView implements TestDataViewApi {
     public Set<String> getIterations() {
         Set<String> iters = new LinkedHashSet<>();
         for (Object iter : getFields(records(), Record.HEADERS[3])) {
-            iters.add((String) iter);
+            // blank cells (e.g. ragged/trailing rows) are not a real Iteration and must not
+            // inflate the count used to size the "All" iteration loop
+            if (iter != null && !((String) iter).isEmpty()) {
+                iters.add((String) iter);
+            }
         }
         return iters;
     }
@@ -194,7 +198,11 @@ public abstract class TestDataView implements TestDataViewApi {
     public Set<String> getSubIterations() {
         Set<String> iters = new LinkedHashSet<>();
         for (Object iter : getFields(records(), Record.HEADERS[4])) {
-            iters.add((String) iter);
+            // blank cells (e.g. ragged/trailing rows) are not a real SubIteration and must not
+            // inflate the count used to detect end-of-data for a main Iteration
+            if (iter != null && !((String) iter).isEmpty()) {
+                iters.add((String) iter);
+            }
         }
         return iters;
     }
