@@ -181,6 +181,7 @@ public final class INGIcons {
         register("testexecution", MaterialDesignP.PLAY_BOX, CLR_RUN);
         register("dashboard", MaterialDesignV.VIEW_DASHBOARD, CLR_CREATE);
         register("apidock", MaterialDesignS.SERVER_NETWORK, CLR_TOOL);
+        register("dbdock", MaterialDesignD.DATABASE, CLR_DATA);
         register("perfstudio", MaterialDesignS.SPEEDOMETER, CLR_RUN);
 
         // ── Table ──

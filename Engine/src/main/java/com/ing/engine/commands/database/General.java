@@ -121,7 +121,19 @@ public class General extends Command implements DatabasePluginApi {
         query = handleDataSheetVariables(query);
         query = handleUserDefinedVariables(query);
         System.out.println("Query :" + query);
-        result = statement.executeQuery(query);
+        ResultSet rs = statement.executeQuery(query);
+        if (statement.getResultSetType() == ResultSet.TYPE_FORWARD_ONLY) {
+            // Forward-only driver (e.g. SQLite): buffer into a scrollable, disconnected
+            // rowset so downstream assert/store navigation (beforeFirst/absolute) works.
+            javax.sql.rowset.CachedRowSet crs = javax
+                .sql.rowset.RowSetProvider.newFactory()
+                .createCachedRowSet();
+            crs.populate(rs);
+            rs.close();
+            result = crs;
+        } else {
+            result = rs;
+        }
         resultData = result.getMetaData();
         populateColumnNames();
     }
@@ -151,11 +163,23 @@ public class General extends Command implements DatabasePluginApi {
     private void initialize(Boolean commit, int timeout) throws SQLException {
         colNames.clear();
         dbconnection.setAutoCommit(commit);
-        statement =
-            dbconnection.createStatement(
-                ResultSet.TYPE_SCROLL_INSENSITIVE,
-                ResultSet.CONCUR_READ_ONLY
-            );
+        boolean scrollable = false;
+        try {
+            scrollable =
+                dbconnection.getMetaData().supportsResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
+        } catch (SQLException ignore) {
+            // Assume forward-only when the driver cannot report capability.
+        }
+        if (scrollable) {
+            statement =
+                dbconnection.createStatement(
+                    ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    ResultSet.CONCUR_READ_ONLY
+                );
+        } else {
+            // e.g. SQLite supports only TYPE_FORWARD_ONLY; executeSelect() buffers results.
+            statement = dbconnection.createStatement();
+        }
         statement.setQueryTimeout(timeout);
         resolveVars();
     }
@@ -167,11 +191,21 @@ public class General extends Command implements DatabasePluginApi {
      * @throws SQLException if a database access error occurs
      */
     public boolean closeConnection() throws SQLException {
-        if (dbconnection != null && statement != null && result != null) {
+        // Close result/statement defensively: a disconnected CachedRowSet (used for
+        // forward-only drivers such as SQLite) does not implement isClosed().
+        if (result != null) {
+            try {
+                result.close();
+            } catch (Exception ignore) {}
+        }
+        if (statement != null) {
+            try {
+                statement.close();
+            } catch (Exception ignore) {}
+        }
+        if (dbconnection != null) {
             dbconnection.close();
-            statement.close();
-            result.close();
-            return dbconnection.isClosed() && statement.isClosed() && result.isClosed();
+            return dbconnection.isClosed();
         }
         return true;
     }
