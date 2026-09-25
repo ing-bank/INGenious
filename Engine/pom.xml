@@ -624,8 +624,12 @@
             mvn clean package -P full         (everything, including kafka)
 
         Only the database (JDBC drivers, loaded reflectively at runtime) and kafka
-        (source currently disabled; deps optional) archetypes can be fully gated
-        today, so those profiles strip real dependencies from the default build.
+        archetypes can be fully gated today, so those profiles strip real
+        dependencies from the default build. As of the Kafka Configurations
+        enhancement, KafkaOperations.java is compiled unconditionally (it is no
+        longer commented out), so building the Engine module now REQUIRES
+        -P kafka (or -P full) — a plain `mvn clean package` will fail to
+        resolve org.apache.kafka classes without one of those profiles.
 
         The mobile (Appium), api (Apache HttpClient), sap (JACOB) and axe (axe-core)
         archetypes currently ship inside the core <dependencies> block because engine
@@ -675,6 +679,43 @@
                     <artifactId>ojdbc11</artifactId>
                     <version>23.26.1.0.0</version>
                 </dependency>
+                <!-- Additional Database Drivers -->
+                <!-- <dependency>
+                    <groupId>org.postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                    <version>42.7.4</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.mariadb.jdbc</groupId>
+                    <artifactId>mariadb-java-client</artifactId>
+                    <version>3.5.10</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.oracle.database.jdbc</groupId>
+                    <artifactId>ojdbc11</artifactId>
+                    <version>23.4.0.24.05</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.xerial</groupId>
+                    <artifactId>sqlite-jdbc</artifactId>
+                    <version>3.53.4.0</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                    <version>2.3.232</version>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.ibm.db2</groupId>
+                    <artifactId>jcc</artifactId>
+                    <version>11.5.0.0</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.ing.data</groupId>
+                    <artifactId>cassandra-jdbc-wrapper</artifactId>
+                    <version>4.9.0</version>
+                </dependency> -->
             </dependencies>
         </profile>
 

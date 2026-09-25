@@ -268,6 +268,26 @@ public class ProjectRunner implements TestRunner {
             if (args.length < 2) return;
             String capability = args[1];
             getProject().getProjectSettings().getKafkaSSLConfigurations().put(capability, value);
+        } else if (key.startsWith("kafkaProducer.")) {
+            String args[] = key.split("\\.", 3);
+            if (args.length < 3) return;
+            java.util.Properties prop = getProject()
+                .getProjectSettings()
+                .getKafkaProducerSettings()
+                .getProducerPropertiesFor(args[1]);
+            if (prop != null) {
+                prop.put(args[2], value);
+            }
+        } else if (key.startsWith("kafkaConsumer.")) {
+            String args[] = key.split("\\.", 3);
+            if (args.length < 3) return;
+            java.util.Properties prop = getProject()
+                .getProjectSettings()
+                .getKafkaConsumerSettings()
+                .getConsumerPropertiesFor(args[1]);
+            if (prop != null) {
+                prop.put(args[2], value);
+            }
         } else if (key.startsWith("api.")) {
             String args[] = key.split("\\.", 3);
             if (args.length < 3) return;
@@ -400,6 +420,14 @@ public class ProjectRunner implements TestRunner {
             "kafkaSsl.<key>",
             "Kafka SSL configuration (Archetype → Kafka SSL Configurations). " +
             "Legacy spelling 'kafkaSSl' is still accepted."
+        );
+        PREFIX_CATALOGUE.put(
+            "kafkaProducer.<name>.<key>",
+            "Kafka producer config (Settings → Kafka Configurations → Producers)"
+        );
+        PREFIX_CATALOGUE.put(
+            "kafkaConsumer.<name>.<key>",
+            "Kafka consumer config (Settings → Kafka Configurations → Consumers)"
         );
         PREFIX_CATALOGUE.put(
             "lambdatest.<key>",
