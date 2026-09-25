@@ -167,6 +167,7 @@ public final class INGIcons {
         register("summary", MaterialDesignC.CHART_BAR, CLR_CREATE);
         register("detailedSummary", MaterialDesignC.CHART_BOX, CLR_DATA);
         register("latestSummary", MaterialDesignF.FILE_CHART, CLR_CREATE);
+        register("importReports", MaterialDesignF.FILE_DOCUMENT_MULTIPLE, CLR_DATA);
 
         // ── Panel Header Actions ──
         register("up", MaterialDesignA.ARROW_UP, CLR_SEARCH);
