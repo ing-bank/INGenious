@@ -6,7 +6,6 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.io.File;
 import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -91,9 +90,7 @@ public final class ReusableComponentDialog {
         // Populate with project reusables initially
         if (project != null) {
             for (Scenario scenario : project.getReusableScenarios()) {
-                if (existsOnDisk(scenario)) {
-                    scenarioBox.addItem(scenario.getName());
-                }
+                scenarioBox.addItem(scenario.getName());
             }
         }
         if (scenarioBox.getItemCount() > 0) {
@@ -108,15 +105,11 @@ public final class ReusableComponentDialog {
             if (project != null) {
                 if (projectRadio.isSelected()) {
                     for (Scenario scenario : project.getReusableScenarios()) {
-                        if (existsOnDisk(scenario)) {
-                            scenarioBox.addItem(scenario.getName());
-                        }
+                        scenarioBox.addItem(scenario.getName());
                     }
                 } else if (sharedRadio.isSelected()) {
                     for (Scenario scenario : project.getSharedScenarios()) {
-                        if (existsOnDisk(scenario)) {
-                            scenarioBox.addItem(scenario.getName());
-                        }
+                        scenarioBox.addItem(scenario.getName());
                     }
                 }
             }
@@ -213,13 +206,5 @@ public final class ReusableComponentDialog {
             ? TargetScope.SHARED
             : TargetScope.PROJECT;
         return new Result(scenarioName, reusableName, targetScope);
-    }
-
-    /**
-     * Checks whether a scenario's backing directory still exists on disk, so scenarios that were
-     * renamed or removed elsewhere (and therefore no longer valid) don't linger stale in the list.
-     */
-    private static boolean existsOnDisk(Scenario scenario) {
-        return scenario != null && new File(scenario.getLocation()).exists();
     }
 }

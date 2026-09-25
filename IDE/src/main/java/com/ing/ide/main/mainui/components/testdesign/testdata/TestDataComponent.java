@@ -151,11 +151,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             public void actionPerformed(ActionEvent ae) {
                 String newName = getValue("newValue").toString();
                 Boolean returnVal = false;
-                if (Validator.isValidName(newName)) {
+                if (Validator.isValidTestDataName(newName)) {
                     TestDataTablePanel panel = getSelectedData();
                     if (panel != null) {
                         returnVal = panel.rename(getValue("newValue").toString());
                     }
+                } else {
+                    showInvalidTestDataNameNotification();
                 }
                 putValue("rename", returnVal);
             }
@@ -549,18 +551,24 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             if (newName.isEmpty()) {
                 return;
             }
-            if (newName.length() > Validator.MAX_NAME_LENGTH) {
-                Notification.show(
-                    "TestData name can't be longer than " +
-                    Validator.MAX_NAME_LENGTH +
-                    " characters"
-                );
+            if (!Validator.isValidTestDataName(newName)) {
+                showInvalidTestDataNameNotification();
                 return;
             }
-            if (Validator.isValidName(newName)) {
-                panel.rename(newName);
-            }
+            panel.rename(newName);
         }
+    }
+
+    /**
+     * Shows the naming rule shared by TestData datasheet and column names.
+     */
+    private void showInvalidTestDataNameNotification() {
+        Notification.show(
+            "Name must be alphanumeric (only '-' and '_' allowed as special characters), " +
+            "up to " +
+            Validator.MAX_TESTDATA_NAME_LENGTH +
+            " characters"
+        );
     }
 
     private void reopenTestData() {
@@ -1263,6 +1271,12 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
                 @Override
                 public void actionPerformed(ActionEvent ae) {
+                    String newValue = getValue("newvalue").toString();
+                    if (!Validator.isValidTestDataName(newValue)) {
+                        showInvalidTestDataNameNotification();
+                        putValue("rename", false);
+                        return;
+                    }
                     assignThePreviouslySelected();
                     Boolean flag = testDesign
                         .getProject()
@@ -1270,7 +1284,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                         .renameTestDataColumn(
                             std.getName(),
                             getValue("oldvalue").toString(),
-                            getValue("newvalue").toString()
+                            newValue
                         );
                     putValue("rename", flag);
                     if (flag) {
