@@ -126,14 +126,21 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
     public void refactorScenario(String oldScenarioName, String newScenarioName) {
         Boolean clearOnExit = getRecords().isEmpty();
         loadTableModel();
+        boolean changed = false;
         for (Record record : getRecords()) {
             if (record.getScenario().equals(oldScenarioName)) {
                 record.setScenario(newScenarioName);
                 fireTableCellUpdated(getRecords().indexOf(record), 0);
+                changed = true;
             }
         }
-        if (clearOnExit) {
+        // Always save if a record was updated to persist changes, even when the sheet is
+        // already open in the UI (records non-empty), otherwise a later reload would
+        // revert the rename since it was never written to disk.
+        if (changed) {
             save();
+        }
+        if (clearOnExit) {
             getRecords().clear();
         }
     }
@@ -145,6 +152,7 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
     ) {
         Boolean clearOnExit = getRecords().isEmpty();
         loadTableModel();
+        boolean changed = false;
         for (Record record : getRecords()) {
             if (
                 record.getScenario().equals(scenarioName) &&
@@ -152,10 +160,16 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
             ) {
                 record.setTestcase(newTestCaseName);
                 fireTableCellUpdated(getRecords().indexOf(record), 1);
+                changed = true;
             }
         }
-        if (clearOnExit) {
+        // Always save if a record was updated to persist changes, even when the sheet is
+        // already open in the UI (records non-empty), otherwise a later reload would
+        // revert the rename since it was never written to disk.
+        if (changed) {
             save();
+        }
+        if (clearOnExit) {
             getRecords().clear();
         }
     }
@@ -167,6 +181,7 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
     ) {
         Boolean clearOnExit = getRecords().isEmpty();
         loadTableModel();
+        boolean changed = false;
         for (Record record : getRecords()) {
             if (
                 record.getScenario().equals(oldScenarioName) &&
@@ -174,10 +189,16 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
             ) {
                 record.setScenario(newScenarioName);
                 fireTableCellUpdated(getRecords().indexOf(record), 1);
+                changed = true;
             }
         }
-        if (clearOnExit) {
+        // Always save if a record was updated to persist changes, even when the sheet is
+        // already open in the UI (records non-empty), otherwise a later reload would
+        // revert the rename since it was never written to disk.
+        if (changed) {
             save();
+        }
+        if (clearOnExit) {
             getRecords().clear();
         }
     }

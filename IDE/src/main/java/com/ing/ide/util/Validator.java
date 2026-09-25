@@ -9,7 +9,16 @@ public class Validator {
     // Stricter list for reusable component names: blocks comma, dot, colon, brackets, percent, hash
     private static final String REUSABLE_EXCLUDE_LIST = "\\S*[,|\\.|:|\\[|\\]|%|#]\\S*";
 
+    // Conservative cap on name length: these names become path segments nested several
+    // directories deep (Project/Scenario/TestData/Environment/...), so keeping individual
+    // segments well under the ~255 byte filesystem/component limit (and Windows' 260 char
+    // MAX_PATH) leaves enough headroom for the rest of the path.
+    public static final int MAX_NAME_LENGTH = 100;
+
     public static boolean isValidName(String text) {
+        if (text == null || text.length() > MAX_NAME_LENGTH) {
+            return false;
+        }
         Pattern pattern = Pattern.compile(
             "# Match a valid Windows filename (unspecified file system).          \n" +
             "^                                    # Anchor to start of string.        \n" +
@@ -45,5 +54,24 @@ public class Validator {
         }
         // Must pass basic name validation AND additional reusable-specific restrictions
         return isValidName(text) && !text.matches(REUSABLE_EXCLUDE_LIST);
+    }
+
+    // TestData datasheet/column names: alphanumeric plus '-' and '_' only, up to 50 chars.
+    public static final int MAX_TESTDATA_NAME_LENGTH = 50;
+    private static final Pattern TESTDATA_NAME_PATTERN = Pattern.compile("^[A-Za-z0-9_-]+$");
+
+    /**
+     * Validates a TestData datasheet or column name: alphanumeric characters with only
+     * '-' and '_' allowed as special characters, up to {@value #MAX_TESTDATA_NAME_LENGTH} chars.
+     *
+     * @param text the name to validate
+     * @return true if the name is valid for a TestData datasheet/column, false otherwise
+     */
+    public static boolean isValidTestDataName(String text) {
+        return (
+            text != null &&
+            text.length() <= MAX_TESTDATA_NAME_LENGTH &&
+            TESTDATA_NAME_PATTERN.matcher(text).matches()
+        );
     }
 }

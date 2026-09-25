@@ -179,6 +179,7 @@ public class ReusableTree extends ProjectTree {
                 if (testCaseNode.getTestCase().renameReusable(name)) {
                     getTreeModel().reload(testCaseNode);
                     super.getTestDesign().getTestCaseComp().refreshTitle();
+                    super.getTestDesign().getTestDatacomp().refreshOpenTestData();
                     return true;
                 } else {
                     Notification.show(

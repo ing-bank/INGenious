@@ -674,6 +674,7 @@ public class ProjectTree implements ActionListener {
                 if (testCaseNode.getTestCase().rename(name)) {
                     getTreeModel().reload(testCaseNode);
                     testDesign.getTestCaseComp().refreshTitle();
+                    testDesign.getTestDatacomp().refreshOpenTestData();
                     persistSortOrder(testCaseNode.getParent());
                     return true;
                 } else {

@@ -631,6 +631,7 @@ public class SharedReusableTree extends ProjectTree {
                 if (testCaseNode.getTestCase().renameSharedReusable(name)) {
                     getTreeModel().reload(testCaseNode);
                     super.getTestDesign().getTestCaseComp().refreshTitle();
+                    super.getTestDesign().getTestDatacomp().refreshOpenTestData();
                     LOGGER.log(
                         Level.INFO,
                         "Test case successfully renamed from ''{0}'' to ''{1}''",
