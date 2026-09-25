@@ -483,7 +483,7 @@ public class DataAccessInternal {
                 field
             );
             if (!sheetExists(context, sheet)) {
-                String where = isSharedScopeRef(sheet)
+                String where = isSharedScopeSheet(sheet)
                     ? "in Shared Test Data"
                     : "in the project's test data";
                 scopedField =
@@ -551,11 +551,13 @@ public class DataAccessInternal {
     }
 
     /**
-     * Explicit scope tag a Test Data reference (sheet name or global data GID) can carry, e.g.
-     * "{[Shared] LoginData:Username}" or "[Shared] #url" - mirrors ReusableRef.Scope's
-     * [Project]/[Shared]/unscoped convention. With no tag (or an explicit [Project] tag), a
-     * reference resolves against the project's own test data only; Shared Test Data is only
-     * consulted when a reference explicitly carries the [Shared] tag.
+     * Explicit scope tag a Global Data GID can carry, e.g. "[Shared] #url" - mirrors
+     * ReusableRef.Scope's [Project]/[Shared]/unscoped convention. With no tag (or an explicit
+     * [Project] tag), a reference resolves against the project's own Global Data only; Shared
+     * Global Data is only consulted when a reference explicitly carries the [Shared] tag.
+     *
+     * <p>Test Data {@code Sheet:Column} references use a different, trailing convention - see
+     * {@link #SHEET_SHARED_TAG}/{@link #SHEET_PROJECT_TAG} below.</p>
      */
     protected static final String SHARED_SCOPE_TAG = "[Shared]";
 
@@ -576,15 +578,42 @@ public class DataAccessInternal {
             : trimmed;
     }
 
+    /**
+     * Explicit scope tag a Test Data {@code Sheet:Column} reference can carry, e.g.
+     * "{LoginData:Username@Shared}" - trailing, not leading, so it stays clear of the sheet name.
+     * With no tag (or an explicit {@code @Project} tag), a reference resolves against the
+     * project's own test data only; Shared Test Data is only consulted when a reference
+     * explicitly carries the {@code @Shared} tag.
+     */
+    protected static final String SHEET_SHARED_TAG = "@Shared";
+
+    protected static final String SHEET_PROJECT_TAG = "@Project";
+
+    protected static boolean isSharedScopeSheet(String sheet) {
+        return sheet != null && sheet.trim().endsWith(SHEET_SHARED_TAG);
+    }
+
+    protected static String stripSharedSheetScopeTag(String sheet) {
+        String t = sheet.trim();
+        return t.substring(0, t.length() - SHEET_SHARED_TAG.length()).trim();
+    }
+
+    protected static String stripProjectSheetScopeTag(String sheet) {
+        String trimmed = sheet.trim();
+        return trimmed.endsWith(SHEET_PROJECT_TAG)
+            ? trimmed.substring(0, trimmed.length() - SHEET_PROJECT_TAG.length()).trim()
+            : trimmed;
+    }
+
     protected static TestDataModel getModel(TestCaseRunner context, String sheet) {
-        if (isSharedScopeRef(sheet)) {
+        if (isSharedScopeSheet(sheet)) {
             return getSharedModel(
                 context,
                 context.executor().sharedRunEnv(),
-                stripSharedScopeTag(sheet)
+                stripSharedSheetScopeTag(sheet)
             );
         }
-        String name = stripProjectScopeTag(sheet);
+        String name = stripProjectSheetScopeTag(sheet);
         TestData env = context
             .executor()
             .dataProvider()
@@ -593,18 +622,22 @@ public class DataAccessInternal {
     }
 
     protected static TestDataModel getDefModel(TestCaseRunner context, String sheet) {
-        if (isSharedScopeRef(sheet)) {
+        if (isSharedScopeSheet(sheet)) {
             return getSharedModel(
                 context,
                 context.executor().dataProvider().defEnv(),
-                stripSharedScopeTag(sheet)
+                stripSharedSheetScopeTag(sheet)
             );
         }
-        return context.executor().dataProvider().defData().getByName(stripProjectScopeTag(sheet));
+        return context
+            .executor()
+            .dataProvider()
+            .defData()
+            .getByName(stripProjectSheetScopeTag(sheet));
     }
 
     /**
-     * Resolves a sheet explicitly tagged "[Shared] &lt;name&gt;" against the app-root Shared Test
+     * Resolves a sheet explicitly tagged "&lt;name&gt;@Shared" against the app-root Shared Test
      * Data (Shared/SharedTestData), independent of the running project's own test data.
      */
     private static TestDataModel getSharedModel(
@@ -625,7 +658,7 @@ public class DataAccessInternal {
 
     /**
      * If val is a bare (untagged) Global Data reference ("#gid"), inherits the containing
-     * sheet's [Shared]/[Project] scope, so a cell inside a Shared sheet that references global
+     * sheet's Shared/Project scope, so a cell inside a Shared sheet that references global
      * data without its own explicit tag resolves against Shared GlobalData too, rather than
      * always defaulting to Project. An already-tagged cell value ("[Shared] #gid" / "[Project]
      * #gid") is left untouched - explicit wins - as is any non-global-data value.
@@ -638,7 +671,7 @@ public class DataAccessInternal {
         if (!s.startsWith("#")) {
             return val;
         }
-        return isSharedScopeRef(sheet) ? (SHARED_SCOPE_TAG + " " + s) : val;
+        return isSharedScopeSheet(sheet) ? (SHARED_SCOPE_TAG + " " + s) : val;
     }
 
     /**
@@ -665,7 +698,7 @@ public class DataAccessInternal {
     /**
      * Whether {@code sharedRunEnv()} names a real, non-default environment in the Shared Test
      * Data - the Shared-scope counterpart of {@link #validEnv(TestCaseRunner)}. When false, a
-     * {@code [Shared]} reference resolves against the Shared {@code Default} environment.
+     * {@code @Shared} reference resolves against the Shared {@code Default} environment.
      */
     protected static boolean validSharedEnv(TestCaseRunner context) {
         EnvTestData shared = context.project().getSharedTestData();
@@ -678,13 +711,13 @@ public class DataAccessInternal {
 
     /**
      * Environment-validity check for the given sheet reference: {@link #validSharedEnv} for a
-     * {@code [Shared]}-tagged sheet (it resolves against {@code sharedRunEnv()}), otherwise
+     * {@code @Shared}-tagged sheet (it resolves against {@code sharedRunEnv()}), otherwise
      * {@link #validEnv} (project {@code runEnv()}). A run can select a Shared environment while
      * leaving the Project environment on Default - and vice versa - so the two scopes must be
      * checked independently rather than letting the project env gate Shared data lookups.
      */
     protected static boolean validEnvFor(TestCaseRunner context, String sheet) {
-        return isSharedScopeRef(sheet) ? validSharedEnv(context) : validEnv(context);
+        return isSharedScopeSheet(sheet) ? validSharedEnv(context) : validEnv(context);
     }
 
     public static boolean notNull(Object ins) {

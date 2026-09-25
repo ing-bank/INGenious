@@ -99,10 +99,10 @@ public class General extends Command implements DatabasePluginApi {
     /**
      * Resolves a Database-connection config value (connectionString / user / password / driver /
      * ...). A single value may <b>mix</b> literal text, embedded {@code {Sheet:Column}} test-data
-     * tokens (braces required as the delimiter; {@code [Project]}/{@code [Shared]} tags honoured
-     * via {@link TestDataToken#resolveEmbeddedTokens}) and {@code %runtimeVar%} references, e.g.
-     * {@code jdbc:mysql://{[Project] DbCfg:Host}:%port%/{DbCfg:Schema}}. Test-data tokens are
-     * substituted first, then runtime vars. A value with none is returned unchanged.
+     * tokens (braces required as the delimiter; trailing {@code @Project}/{@code @Shared} tags
+     * honoured via {@link TestDataToken#resolveEmbeddedTokens}) and {@code %runtimeVar%}
+     * references, e.g. {@code jdbc:mysql://{DbCfg:Host@Project}:%port%/{DbCfg:Schema}}. Test-data
+     * tokens are substituted first, then runtime vars. A value with none is returned unchanged.
      */
     private String resolveAllVariables(String str) {
         str = handleDataSheetVariables(str);
@@ -272,7 +272,7 @@ public class General extends Command implements DatabasePluginApi {
                     if (s.contains("%")) {
                         replace = getVar(s);
                     } else {
-                        // Accepts Sheet:Column, [Project] Sheet:Column and [Shared] Sheet:Column
+                        // Accepts Sheet:Column, Sheet:Column@Project and Sheet:Column@Shared
                         // (split on the first ':' so a column name may itself contain one).
                         String[] sheet = TestDataToken.parse(s);
                         replace = sheet == null ? null : userData.getData(sheet[0], sheet[1]);
@@ -323,7 +323,7 @@ public class General extends Command implements DatabasePluginApi {
      * @return the query with datasheet variables replaced
      */
     private String handleDataSheetVariables(String query) {
-        // Resolves {Sheet:Column} / {[Project] Sheet:Column} / {[Shared] Sheet:Column} tokens;
+        // Resolves {Sheet:Column} / {Sheet:Column@Project} / {Sheet:Column@Shared} tokens;
         // unknown tokens are left literal.
         return TestDataToken.resolveEmbeddedTokens(query, userData);
     }

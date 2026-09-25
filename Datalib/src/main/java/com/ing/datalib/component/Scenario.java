@@ -644,7 +644,7 @@ public class Scenario extends DataModel {
 
     /**
      * Rewrites every whole-input Test Data reference to {@code originalName} in this scenario's
-     * test cases to {@code [Shared] finalName:Column}. Used by "Make As Shared TestData".
+     * test cases to {@code finalName:Column@Shared}. Used by "Make As Shared TestData".
      *
      * @return number of test steps changed
      */

@@ -1868,7 +1868,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 .get(testCaseTable.getSelectedRow());
             String[] tdFromInput = tStep.getTestDataFromInput();
             if (tdFromInput != null) {
-                boolean shared = "[Shared]".equals(tStep.getTestDataScopeTag());
+                boolean shared = "@Shared".equals(tStep.getTestDataScopeTag());
                 com.ing.ide.main.mainui.components.testdesign.testdata.TestDataComponent tdComp = shared
                     ? testDesign.getSharedTestDataComp()
                     : testDesign.getTestDatacomp();

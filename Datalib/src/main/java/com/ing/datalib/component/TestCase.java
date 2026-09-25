@@ -817,13 +817,13 @@ public class TestCase extends DataModel {
     }
 
     /**
-     * Whether any step in this test case carries a {@code [Shared]} Test Data reference -
-     * whole-input ({@code [Shared] Sheet:Col}) or an embedded {@code {[Shared] Sheet:Col}}
+     * Whether any step in this test case carries an {@code @Shared} Test Data reference -
+     * whole-input ({@code Sheet:Col@Shared}) or an embedded {@code {Sheet:Col@Shared}}
      * token in the Input / Condition.
      */
     private boolean referencesSharedTestData() {
         for (TestStep step : testSteps) {
-            if (step.isTestDataStep() && "[Shared]".equals(step.getTestDataScopeTag())) {
+            if (step.isTestDataStep() && "@Shared".equals(step.getTestDataScopeTag())) {
                 return true;
             }
             if (
@@ -1384,7 +1384,7 @@ public class TestCase extends DataModel {
     }
 
     /**
-     * @param scopeToken "[Shared]" to rewrite only Shared-tagged references, "[Project]" to
+     * @param scopeToken "@Shared" to rewrite only Shared-tagged references, "@Project" to
      *     rewrite only untagged / Project-tagged references, or {@code null} to rewrite any
      */
     public void refactorTestData(String oldTDName, String newTDName, String scopeToken) {
@@ -1406,7 +1406,7 @@ public class TestCase extends DataModel {
 
     /**
      * Rewrites every whole-input Test Data reference to {@code originalName} (whatever scope tag
-     * it currently carries, or none) to {@code [Shared] finalName:Column...}, then persists the
+     * it currently carries, or none) to {@code finalName:Column...@Shared}, then persists the
      * test case. Used by "Make As Shared TestData" when a project datasheet moves to the Shared
      * store; {@code finalName} differs from {@code originalName} only when the name collided in
      * the Shared store and was suffixed.
@@ -1424,7 +1424,7 @@ public class TestCase extends DataModel {
                 for (int i = 1; i < values.length; i++) {
                     ref.append(":").append(values[i]);
                 }
-                String newInput = "[Shared] " + ref;
+                String newInput = ref + "@Shared";
                 if (!newInput.equals(testStep.getInput())) {
                     testStep.setInput(newInput);
                     count++;
@@ -1441,19 +1441,20 @@ public class TestCase extends DataModel {
     }
 
     /**
-     * Re-applies the "[Shared]"/"[Project]" scope tag a test data reference carried, since
+     * Re-applies the "@Shared"/"@Project" scope tag a test data reference carried, since
      * refactorTestData/refactorTestDataColumn rebuild the Input from bare sheet/column names.
+     * The tag trails the whole reference, so it's appended, not prepended.
      */
     private String withScopeTag(TestStep testStep, String bareInput) {
         String tag = testStep.getTestDataScopeTag();
-        return tag.isEmpty() ? bareInput : tag + " " + bareInput;
+        return tag.isEmpty() ? bareInput : bareInput + tag;
     }
 
     /**
      * Whether a test step's test data reference belongs to the scope a refactor targets. A
-     * {@code null} scopeToken matches any step (legacy behavior). "[Shared]" matches only
-     * steps whose Input carries the "[Shared]" tag; "[Project]" matches steps that are
-     * untagged or carry the "[Project]" tag - since an untagged reference resolves against the
+     * {@code null} scopeToken matches any step (legacy behavior). "@Shared" matches only
+     * steps whose Input carries the "@Shared" tag; "@Project" matches steps that are
+     * untagged or carry the "@Project" tag - since an untagged reference resolves against the
      * project's own test data.
      */
     private boolean scopeMatches(TestStep testStep, String scopeToken) {
@@ -1461,10 +1462,10 @@ public class TestCase extends DataModel {
             return true;
         }
         String tag = testStep.getTestDataScopeTag();
-        if ("[Shared]".equals(scopeToken)) {
-            return "[Shared]".equals(tag);
+        if ("@Shared".equals(scopeToken)) {
+            return "@Shared".equals(tag);
         }
-        return tag.isEmpty() || "[Project]".equals(tag);
+        return tag.isEmpty() || "@Project".equals(tag);
     }
 
     public void refactorTestDataColumn(
@@ -1476,7 +1477,7 @@ public class TestCase extends DataModel {
     }
 
     /**
-     * @param scopeToken "[Shared]" / "[Project]" / {@code null} - see
+     * @param scopeToken "@Shared" / "@Project" / {@code null} - see
      *     {@link #refactorTestData(String, String, String)}
      */
     public void refactorTestDataColumn(

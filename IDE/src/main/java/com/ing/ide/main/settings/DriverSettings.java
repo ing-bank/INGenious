@@ -992,10 +992,10 @@ public class DriverSettings extends javax.swing.JFrame {
     }
 
     private Boolean isDatasheetOrVariable(String value) {
-        String pattern1 = "\\{[^:]+:[^}]+\\}"; // {Sheet:Column} (incl. {[Project]/[Shared] ...})
+        String pattern1 = "\\{[^:]+:[^}]+\\}"; // {Sheet:Column} (incl. {Sheet:Column@Project/@Shared})
         String pattern2 = "%[^%]+%";
-        // Bare, explicitly scope-tagged data reference: [Project] Sheet:Column / [Shared] ...
-        String pattern3 = "(\\[Shared\\]|\\[Project\\])\\s*[^:{}]+:[^:{}]+";
+        // Bare, explicitly scope-tagged data reference: Sheet:Column@Project / Sheet:Column@Shared
+        String pattern3 = "[^:{}@]+:[^:{}@]+(@Shared|@Project)";
         return (
             Pattern.compile(pattern1).matcher(value).matches() ||
             Pattern.compile(pattern2).matcher(value).matches() ||

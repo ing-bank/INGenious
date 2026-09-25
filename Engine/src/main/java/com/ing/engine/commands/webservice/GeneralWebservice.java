@@ -526,8 +526,8 @@ public class GeneralWebservice extends Command implements WebservicePluginApi {
     }
 
     protected String handleDataSheetVariables(String payloadstring) {
-        // Resolves every embedded {Sheet:Column} token - untagged (project), "{[Project] ...}"
-        // and "{[Shared] ...}" alike. Unknown tokens are left literal, keeping JSON/YAML safe.
+        // Resolves every embedded {Sheet:Column} token - untagged (project), "{Sheet:Column@Project}"
+        // and "{Sheet:Column@Shared}" alike. Unknown tokens are left literal, keeping JSON/YAML safe.
         return TestDataToken.resolveEmbeddedTokens(payloadstring, userData);
     }
 

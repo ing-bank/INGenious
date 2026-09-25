@@ -590,7 +590,7 @@ public class Switch extends Command {
     }
 
     private String handleDataSheet(String value) {
-        // Resolves {Sheet:Column} / {[Project] Sheet:Column} / {[Shared] Sheet:Column} tokens;
+        // Resolves {Sheet:Column} / {Sheet:Column@Project} / {Sheet:Column@Shared} tokens;
         // unknown tokens are left literal.
         return TestDataToken.resolveEmbeddedTokens(value, userData);
     }

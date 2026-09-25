@@ -87,7 +87,7 @@ final class TestCaseFlattener {
             return s;
         }
         if (
-            s.matches("%\\w+%") || s.startsWith("=") || TestDataToken.isReference(s) // {Sheet:Col}, Sheet:Col, [Project]/[Shared]-tagged
+            s.matches("%\\w+%") || s.startsWith("=") || TestDataToken.isReference(s) // {Sheet:Col}, Sheet:Col, @Project/@Shared-tagged
         ) {
             warnings.add(
                 "Dynamic input in " +

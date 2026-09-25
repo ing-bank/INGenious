@@ -306,117 +306,10 @@ public class TestCaseAutoSuggest {
 
         inputAutoSuggest =
             (InputAutoSuggest) new InputAutoSuggest().withOnHide(stopEditingOnFocusLost());
-
-        // Same scope-prefix separator/coloring as the Execute action dropdown above, applied to
-        // the Input column's sheet-name suggestions ("[Project] Sheet" / "[Shared] Sheet").
-        inputAutoSuggest.setRenderer(
-            new ComboSeparatorsRenderer(inputAutoSuggest.getRenderer()) {
-
-                @Override
-                protected void customizeListItemComponent(
-                    java.awt.Component comp,
-                    JList list,
-                    Object value,
-                    int index,
-                    boolean isSelected,
-                    boolean cellHasFocus
-                ) {
-                    if (!(comp instanceof javax.swing.JLabel) || value == null) {
-                        return;
-                    }
-                    javax.swing.JLabel lbl = (javax.swing.JLabel) comp;
-                    String raw = value.toString();
-                    lbl.setText(removeScopePrefix(raw));
-                    if (raw.startsWith("[Shared]")) {
-                        if (isSelected) {
-                            lbl.setOpaque(true);
-                            lbl.setBackground(new Color(213, 238, 220));
-                            lbl.setForeground(new Color(0, 83, 0));
-                        } else {
-                            lbl.setForeground(new Color(0, 128, 0));
-                        }
-                    } else if (raw.startsWith("[Project]")) {
-                        if (isSelected) {
-                            lbl.setOpaque(true);
-                        }
-                        lbl.setForeground(Color.BLACK);
-                    }
-                }
-
-                @Override
-                protected boolean addHeaderBefore(JList list, Object value, int index) {
-                    if (value == null) {
-                        return false;
-                    }
-                    String current = value.toString();
-                    if (current.startsWith("[Project]")) {
-                        return (
-                            index == 0 ||
-                            !Objects
-                                .toString(list.getModel().getElementAt(index - 1), "")
-                                .startsWith("[Project]")
-                        );
-                    }
-                    if (current.startsWith("[Shared]")) {
-                        return (
-                            index == 0 ||
-                            !Objects
-                                .toString(list.getModel().getElementAt(index - 1), "")
-                                .startsWith("[Shared]")
-                        );
-                    }
-                    return false;
-                }
-
-                @Override
-                protected String getHeaderLabel(JList list, Object value, int index) {
-                    if (value == null) {
-                        return "";
-                    }
-                    String current = value.toString();
-                    if (current.startsWith("[Project]")) {
-                        return "Project Test Data";
-                    }
-                    if (current.startsWith("[Shared]")) {
-                        return "Shared Test Data";
-                    }
-                    return "";
-                }
-
-                @Override
-                protected Color getHeaderForeground(
-                    JList list,
-                    Object value,
-                    int index,
-                    java.awt.Component comp
-                ) {
-                    if (value == null) {
-                        return Color.DARK_GRAY;
-                    }
-                    String current = value.toString();
-                    if (current.startsWith("[Shared]")) {
-                        return new Color(0, 128, 0);
-                    }
-                    return Color.BLACK;
-                }
-
-                @Override
-                protected boolean addSeparatorAfter(JList list, Object value, int index) {
-                    if (value == null) return false;
-                    String val = value.toString();
-                    // Add separator after last [Project] item before [Shared] items
-                    if (index < list.getModel().getSize() - 1) {
-                        Object nextValue = list.getModel().getElementAt(index + 1);
-                        if (nextValue != null) {
-                            String current = val;
-                            String next = nextValue.toString();
-                            return current.startsWith("[Project]") && next.startsWith("[Shared]");
-                        }
-                    }
-                    return false;
-                }
-            }
-        );
+        // Test Data sheet suggestions are no longer scope-prefixed (the @Shared/@Project tag now
+        // trails the whole Sheet:Column reference, appended after the column is chosen), so the
+        // dedicated Project/Shared header-and-color renderer that used to live here is gone -
+        // the default renderer is used instead.
     }
 
     private boolean isStringOpsEditor() {
@@ -1212,30 +1105,14 @@ public class TestCaseAutoSuggest {
         }
 
         /**
-         * Optional "[Shared]"/"[Project]" scope tag a sheet reference can carry (mirrors
-         * ReusableRef.Scope's convention) - see DataAccessInternal for the runtime-side parsing.
+         * A sheet reference's scope tag ("@Shared"/"@Project") now trails the whole
+         * {@code Sheet:Column} reference (after the column), not the sheet name - see
+         * DataAccessInternal for the runtime-side parsing. Autosuggest triggers while the user
+         * is still typing the sheet/column, before the tag exists, so the sheet name offered
+         * here is always bare and column lookups are merged across both Test Data stores.
          */
-        private static final String SHARED_TAG = "[Shared]";
-
-        private static final String PROJECT_TAG = "[Project]";
-
         private String stripLeadingBrace(String s) {
             return s.startsWith("{") ? s.substring(1) : s;
-        }
-
-        private boolean hasSharedTag(String s) {
-            return stripLeadingBrace(s).trim().startsWith(SHARED_TAG);
-        }
-
-        private String stripScopeTag(String s) {
-            String t = stripLeadingBrace(s).trim();
-            if (t.startsWith(SHARED_TAG)) {
-                return t.substring(SHARED_TAG.length()).trim();
-            }
-            if (t.startsWith(PROJECT_TAG)) {
-                return t.substring(PROJECT_TAG.length()).trim();
-            }
-            return t;
         }
 
         private List setupTestData(String value) {
@@ -1243,11 +1120,14 @@ public class TestCaseAutoSuggest {
                 prevText = value.substring(0, value.indexOf(':'));
                 isPending = true;
                 Set colList = new LinkedHashSet<>();
-                String tdName = stripScopeTag(prevText);
-                EnvTestData source = hasSharedTag(prevText)
-                    ? sProject.getSharedTestData()
-                    : sProject.getTestData();
-                if (source != null) {
+                String tdName = stripLeadingBrace(prevText).trim();
+                for (EnvTestData source : Arrays.asList(
+                    sProject.getTestData(),
+                    sProject.getSharedTestData()
+                )) {
+                    if (source == null) {
+                        continue;
+                    }
                     for (TestData sTestData : source.getAllEnvironments()) {
                         for (TestDataModel stdList : sTestData.getTestDataList()) {
                             if (stdList.getName().equals(tdName)) {
@@ -1262,13 +1142,13 @@ public class TestCaseAutoSuggest {
                 Set tdList = new LinkedHashSet<>();
                 for (TestData sTestData : sProject.getTestData().getAllEnvironments()) {
                     for (TestDataModel stdList : sTestData.getTestDataList()) {
-                        tdList.add(PROJECT_TAG + " " + stdList.getName());
+                        tdList.add(stdList.getName());
                     }
                 }
                 if (sProject.getSharedTestData() != null) {
                     for (TestData sTestData : sProject.getSharedTestData().getAllEnvironments()) {
                         for (TestDataModel stdList : sTestData.getTestDataList()) {
-                            tdList.add(SHARED_TAG + " " + stdList.getName());
+                            tdList.add(stdList.getName());
                         }
                     }
                 }

@@ -63,7 +63,7 @@ public class TestDataNotFoundExceptionTest {
         TestCaseRunner context = mockContext();
         TestDataNotFoundException ex = new TestDataNotFoundException(
             context,
-            "[Shared] TestData1",
+            "TestData1@Shared",
             "Data1",
             Cause.Iteration,
             "1"

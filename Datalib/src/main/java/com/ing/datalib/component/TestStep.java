@@ -307,8 +307,8 @@ public class TestStep {
     /**
      * True when this step's <b>whole Input</b> is a Test Data reference - used for IDE
      * validation / colouring / the "TestData/Column not available" check. Braces are optional
-     * for a whole-input reference: bare {@code Sheet:Column} and {@code [Project]/[Shared]
-     * Sheet:Column} (bare or braced) all count.
+     * for a whole-input reference: bare {@code Sheet:Column} and {@code Sheet:Column@Project}/
+     * {@code Sheet:Column@Shared} (bare or braced) all count.
      *
      * <p>This is <em>not</em> about embedded {@code {Sheet:Column}} tokens inside a larger Input
      * (a webservice / MQ payload, SQL text, a file template, a connection string). Those are a
@@ -328,15 +328,12 @@ public class TestStep {
     }
 
     /**
-     * "[Shared] Sheet:Column" / "[Project] Sheet:Column" - bare or braced - an explicit Test
-     * Data scope tag, mirroring ReusableRef.Scope's [Project]/[Shared] convention. Checked
-     * ahead of the generic "starts with [/{ " rule above (which would otherwise reject it),
-     * mirroring DataProcessor.isInputPatternDataSheet on the execution side.
+     * "Sheet:Column@Shared" / "Sheet:Column@Project" - bare or braced - an explicit Test Data
+     * scope tag, trailing (after the column) rather than leading, mirroring the engine's
+     * DataProcessor.isInputPatternDataSheet / TestDataToken convention.
      */
     private boolean isScopedTestDataRef(String inp) {
-        // \s* (not \s+) to stay in step with the engine's DataProcessor.SCOPED_DATASHEET_PATTERN.
-        return unwrapBraces(inp)
-            .matches("(\\[Shared\\]|\\[Project\\])\\s*[^:{}\\[\\]]+:[^:{}\\[\\]]+");
+        return unwrapBraces(inp).matches("[^:{}\\[\\]@]+:[^:{}\\[\\]@]+(@Shared|@Project)");
     }
 
     private String unwrapBraces(String inp) {
@@ -348,12 +345,12 @@ public class TestStep {
     }
 
     /**
-     * A {@code [Shared] Sheet:Column} Test Data reference anywhere in {@code s} - whole-input
-     * or an embedded {@code {[Shared] Sheet:Column}} token inside a larger string (payload,
+     * A {@code Sheet:Column@Shared} Test Data reference anywhere in {@code s} - whole-input
+     * or an embedded {@code {Sheet:Column@Shared}} token inside a larger string (payload,
      * SQL, template, condition). Used to decide whether a project consumes Shared Test Data.
      */
     private static final java.util.regex.Pattern SHARED_TD_TOKEN = java.util.regex.Pattern.compile(
-        "\\[Shared\\]\\s*[^:{}\\[\\]]+:[^:{}\\[\\]]+"
+        "[^:{}\\[\\]@]+:[^:{}\\[\\]@]+@Shared"
     );
 
     public static boolean containsSharedTestDataToken(String s) {
@@ -361,15 +358,15 @@ public class TestStep {
     }
 
     /**
-     * Returns the "[Shared]"/"[Project]" scope tag this step's Input carries, or "" if unscoped.
+     * Returns the "@Shared"/"@Project" scope tag this step's Input carries, or "" if unscoped.
      */
     public String getTestDataScopeTag() {
         String t = unwrapBraces(getInput());
-        if (t.startsWith("[Shared]")) {
-            return "[Shared]";
+        if (t.endsWith("@Shared")) {
+            return "@Shared";
         }
-        if (t.startsWith("[Project]")) {
-            return "[Project]";
+        if (t.endsWith("@Project")) {
+            return "@Project";
         }
         return "";
     }
@@ -515,7 +512,7 @@ public class TestStep {
             String inp = unwrapBraces(getInput());
             String tag = getTestDataScopeTag();
             if (!tag.isEmpty()) {
-                inp = inp.substring(tag.length()).trim();
+                inp = inp.substring(0, inp.length() - tag.length()).trim();
             }
             return inp.split(":");
         }

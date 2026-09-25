@@ -526,7 +526,7 @@ public class Project {
 
     /**
      * True when any test step in this project (Test Plan, Project Reusables or Shared
-     * Reusables) carries a {@code [Shared]}-scoped Test Data reference - i.e. the project
+     * Reusables) carries an {@code @Shared}-scoped Test Data reference - i.e. the project
      * consumes the app-root Shared Test Data store.
      *
      * @return whether this project references Shared Test Data
@@ -537,7 +537,7 @@ public class Project {
                 testCase.loadTableModel();
                 for (TestStep step : testCase.getTestSteps()) {
                     if (
-                        (step.isTestDataStep() && "[Shared]".equals(step.getTestDataScopeTag())) ||
+                        (step.isTestDataStep() && "@Shared".equals(step.getTestDataScopeTag())) ||
                         TestStep.containsSharedTestDataToken(step.getInput()) ||
                         TestStep.containsSharedTestDataToken(step.getCondition())
                     ) {

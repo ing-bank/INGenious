@@ -26,7 +26,7 @@ import org.testng.annotations.Test;
  * {@link Project#makeEnvironmentTestDataShared(String, java.util.List)} - the "Make As Shared
  * TestData" flow: a project datasheet is moved into the app-root Shared Test Data store and
  * every whole-input reference to it (Test Plan, Project Reusables, Shared Reusables) is
- * rewritten to a {@code [Shared]} reference.
+ * rewritten to an {@code @Shared} reference.
  */
 public class MakeSharedTestDataTest {
     private Path tempDir;
@@ -115,7 +115,7 @@ public class MakeSharedTestDataTest {
     public void movesSheetAndRetagsReferencesAcrossScopes() throws Exception {
         importProjectSheet("Basic", "Default");
         TestCase plan = testPlanCaseReferencing("S1", "TC1", "Basic:URL");
-        TestCase reusable = projectReusableCaseReferencing("R1", "RTC1", "[Project] Basic:URL");
+        TestCase reusable = projectReusableCaseReferencing("R1", "RTC1", "Basic:URL@Project");
 
         Project.MakeSharedTestDataResult result = project.makeTestDataSheetShared(
             "Default",
@@ -136,8 +136,8 @@ public class MakeSharedTestDataTest {
         assertThat(projectDefault.getByNameIgnoreCase("Basic")).isNull();
         assertThat(new File(projectDefault.getLocation(), "Basic.csv")).doesNotExist();
 
-        assertThat(firstInput(plan)).isEqualTo("[Shared] Basic:URL");
-        assertThat(firstInput(reusable)).isEqualTo("[Shared] Basic:URL");
+        assertThat(firstInput(plan)).isEqualTo("Basic:URL@Shared");
+        assertThat(firstInput(reusable)).isEqualTo("Basic:URL@Shared");
     }
 
     @Test
@@ -156,7 +156,7 @@ public class MakeSharedTestDataTest {
         TestData sharedDefault = project.getSharedTestData().getTestDataFor("Default");
         assertThat(sharedDefault.getByNameIgnoreCase("Basic")).isNotNull(); // pre-existing
         assertThat(sharedDefault.getByNameIgnoreCase("Basic_1")).isNotNull(); // moved copy
-        assertThat(firstInput(plan)).isEqualTo("[Shared] Basic_1:URL");
+        assertThat(firstInput(plan)).isEqualTo("Basic_1:URL@Shared");
     }
 
     @Test
@@ -175,7 +175,7 @@ public class MakeSharedTestDataTest {
         assertThat(shared).isNotNull();
         TestCase movedTc = shared.getTestCaseByName("TC1");
         assertThat(movedTc).isNotNull();
-        assertThat(firstInput(movedTc)).isEqualTo("[Shared] Basic:URL");
+        assertThat(firstInput(movedTc)).isEqualTo("Basic:URL@Shared");
         // The now-empty Test Plan scenario is cleaned up; only the Shared Reusable S1 remains.
         assertThat(project.getScenarios()).noneMatch(s -> s.getName().equals("S1"));
     }
@@ -273,7 +273,7 @@ public class MakeSharedTestDataTest {
     @Test
     public void registersAndListsProjectsThatUseSharedTestData() throws Exception {
         importSharedSheet("Common");
-        testPlanCaseReferencing("S1", "TC1", "[Shared] Common:URL");
+        testPlanCaseReferencing("S1", "TC1", "Common:URL@Shared");
 
         project.registerSharedTestDataUsage();
 
@@ -296,7 +296,7 @@ public class MakeSharedTestDataTest {
     public void savingATestCaseThatReferencesSharedDataRegistersTheProject() throws Exception {
         importSharedSheet("Common");
         // no explicit registerSharedTestDataUsage() call - TestCase.save() must do it
-        testPlanCaseReferencing("S1", "TC1", "[Shared] Common:URL");
+        testPlanCaseReferencing("S1", "TC1", "Common:URL@Shared");
 
         File items = new File(Project.getSharedTestDataPath(), "projects.items");
         assertThat(items).exists();
@@ -307,7 +307,7 @@ public class MakeSharedTestDataTest {
     @Test
     public void detectsSharedTestDataReferencedByAnEmbeddedToken() throws Exception {
         importSharedSheet("Common");
-        testPlanCaseReferencing("S1", "TC1", "{\"url\":\"{[Shared] Common:URL}\"}");
+        testPlanCaseReferencing("S1", "TC1", "{\"url\":\"{Common:URL@Shared}\"}");
 
         assertThat(project.usesSharedTestData()).isTrue();
         File items = new File(Project.getSharedTestDataPath(), "projects.items");
@@ -318,7 +318,7 @@ public class MakeSharedTestDataTest {
     @Test
     public void unregistersWhenProjectNoLongerReferencesSharedTestData() throws Exception {
         importSharedSheet("Common");
-        TestCase tc = testPlanCaseReferencing("S1", "TC1", "[Shared] Common:URL");
+        TestCase tc = testPlanCaseReferencing("S1", "TC1", "Common:URL@Shared");
         project.registerSharedTestDataUsage();
         File items = new File(Project.getSharedTestDataPath(), "projects.items");
         assertThat(new String(java.nio.file.Files.readAllBytes(items.toPath())))

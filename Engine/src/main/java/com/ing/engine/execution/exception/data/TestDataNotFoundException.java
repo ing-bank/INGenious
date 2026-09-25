@@ -53,22 +53,22 @@ public class TestDataNotFoundException extends DataNotFoundException {
 
     /**
      * "Shared" or "Project" - which Test Data location this sheet reference was resolved
-     * against, based on the [Shared]/[Project] scope tag the sheet reference carries (no tag
-     * defaults to Project). Included in every message so it's always clear where the lookup
+     * against, based on the trailing @Shared/@Project scope tag the sheet reference carries (no
+     * tag defaults to Project). Included in every message so it's always clear where the lookup
      * happened, not just when the sheet couldn't be found anywhere at all.
      */
     private String scopeLabel() {
         String s = sheet == null ? "" : sheet.trim();
-        return s.startsWith("[Shared]") ? "Shared" : "Project";
+        return s.endsWith("@Shared") ? "Shared" : "Project";
     }
 
     /**
-     * The environment the lookup used - {@code sharedRunEnv()} for a {@code [Shared]} sheet,
+     * The environment the lookup used - {@code sharedRunEnv()} for an {@code @Shared} sheet,
      * {@code runEnv()} otherwise - since the two scopes can run against different environments.
      */
     private Object envLabel() {
         String s = sheet == null ? "" : sheet.trim();
-        return s.startsWith("[Shared]")
+        return s.endsWith("@Shared")
             ? context.executor().sharedRunEnv()
             : context.executor().runEnv();
     }

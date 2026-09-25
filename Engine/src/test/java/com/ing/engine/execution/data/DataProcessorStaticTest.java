@@ -68,23 +68,23 @@ public class DataProcessorStaticTest {
 
     @Test
     public void testIsInputPatternDataSheetTrueForBracedSharedTag() {
-        assertThat(DataProcessor.isInputPatternDataSheet("{[Shared] Sheet1:Column1}")).isTrue();
+        assertThat(DataProcessor.isInputPatternDataSheet("{Sheet1:Column1@Shared}")).isTrue();
     }
 
     @Test
     public void testIsInputPatternDataSheetTrueForBracedProjectTag() {
-        assertThat(DataProcessor.isInputPatternDataSheet("{[Project] Sheet1:Column1}")).isTrue();
+        assertThat(DataProcessor.isInputPatternDataSheet("{Sheet1:Column1@Project}")).isTrue();
     }
 
     @Test
     public void testIsInputPatternDataSheetTrueForBareSharedTag() {
-        // A [Shared]/[Project] scope tag is carved out of the generic "starts with [" ->
-        // dynamic-value rule, so it resolves as a data sheet reference without braces.
-        assertThat(DataProcessor.isInputPatternDataSheet("[Shared] Sheet1:Column1")).isTrue();
+        // The trailing @Shared/@Project tag never starts with "[", so it's a plain
+        // Sheet:Column reference as far as the generic bare/braced patterns are concerned.
+        assertThat(DataProcessor.isInputPatternDataSheet("Sheet1:Column1@Shared")).isTrue();
     }
 
     @Test
     public void testIsInputPatternDataSheetTrueForBareProjectTag() {
-        assertThat(DataProcessor.isInputPatternDataSheet("[Project] Sheet1:Column1")).isTrue();
+        assertThat(DataProcessor.isInputPatternDataSheet("Sheet1:Column1@Project")).isTrue();
     }
 }

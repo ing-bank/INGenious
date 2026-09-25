@@ -19,8 +19,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
- * Real-file, real-Project regression test for "[Shared] Sheet:Column" vs "[Project] Sheet:Column"
- * resolution, reproducing a reported bug where a [Shared]-tagged reference printed the
+ * Real-file, real-Project regression test for "Sheet:Column@Shared" vs "Sheet:Column@Project"
+ * resolution, reproducing a reported bug where an @Shared-tagged reference printed the
  * project-level value instead of the shared one. Uses actual CSV files on disk and a real
  * Project instance (not mocks) since the reported bug was not reproducible by manual code
  * tracing alone.
@@ -113,9 +113,9 @@ public class SharedTestDataResolutionIntegrationTest {
     public void testSharedTaggedReferenceResolvesTheSharedSheet() {
         TestCaseRunner context = mockContext();
 
-        TestDataModel shared = DataAccessInternal.getModel(context, "[Shared] TestData0");
+        TestDataModel shared = DataAccessInternal.getModel(context, "TestData0@Shared");
 
-        assertThat(shared).as("[Shared] TestData0 should resolve to the shared sheet").isNotNull();
+        assertThat(shared).as("TestData0@Shared should resolve to the shared sheet").isNotNull();
         assertThat(shared.getName()).isEqualTo("TestData0");
     }
 
@@ -123,9 +123,9 @@ public class SharedTestDataResolutionIntegrationTest {
     public void testProjectTaggedReferenceResolvesTheProjectSheet() {
         TestCaseRunner context = mockContext();
 
-        TestDataModel proj = DataAccessInternal.getModel(context, "[Project] Basic");
+        TestDataModel proj = DataAccessInternal.getModel(context, "Basic@Project");
 
-        assertThat(proj).as("[Project] Basic should resolve to the project sheet").isNotNull();
+        assertThat(proj).as("Basic@Project should resolve to the project sheet").isNotNull();
         assertThat(proj.getName()).isEqualTo("Basic");
     }
 
@@ -133,8 +133,8 @@ public class SharedTestDataResolutionIntegrationTest {
     public void testSharedAndProjectTaggedReferencesResolveDistinctValues() {
         TestCaseRunner context = mockContext();
 
-        TestDataModel shared = DataAccessInternal.getModel(context, "[Shared] TestData0");
-        TestDataModel proj = DataAccessInternal.getModel(context, "[Project] Basic");
+        TestDataModel shared = DataAccessInternal.getModel(context, "TestData0@Shared");
+        TestDataModel proj = DataAccessInternal.getModel(context, "Basic@Project");
 
         String sharedVal = DataAccessInternal.getDataFromModelWithScope(
             shared,
@@ -161,12 +161,12 @@ public class SharedTestDataResolutionIntegrationTest {
 
     @Test
     public void testSharedRunEnvSelectsSharedEnvironmentIndependentlyOfProjectEnv() {
-        // Project env stays Default; Shared env is SIT. The [Shared] reference must resolve the
-        // SIT copy, while [Project] is unaffected and still resolves the project's Default value.
+        // Project env stays Default; Shared env is SIT. The @Shared reference must resolve the
+        // SIT copy, while @Project is unaffected and still resolves the project's Default value.
         TestCaseRunner context = mockContext("Default", "SIT");
 
-        TestDataModel shared = DataAccessInternal.getModel(context, "[Shared] TestData0");
-        TestDataModel proj = DataAccessInternal.getModel(context, "[Project] Basic");
+        TestDataModel shared = DataAccessInternal.getModel(context, "TestData0@Shared");
+        TestDataModel proj = DataAccessInternal.getModel(context, "Basic@Project");
 
         String sharedVal = DataAccessInternal.getDataFromModelWithScope(
             shared,
@@ -193,15 +193,12 @@ public class SharedTestDataResolutionIntegrationTest {
 
     @Test
     public void testGetIterationsForSharedSheetHonoursSharedRunEnvNotProjectEnv() {
-        // Regression: getIterations() gated the env lookup on validEnv() (project runEnv), so a
-        // [Shared] sheet with a Shared env selected but the Project env left on Default fell
+        // Regression: getIterations() gated the env lookup on validEnv() (project runEnv), so an
+        // @Shared sheet with a Shared env selected but the Project env left on Default fell
         // back to Shared Default and reported "Iteration 1 missing".
         TestCaseRunner context = mockContext("Default", "SIT");
 
-        java.util.Set<String> iters = DataAccessInternal.getIterations(
-            context,
-            "[Shared] TestData0"
-        );
+        java.util.Set<String> iters = DataAccessInternal.getIterations(context, "TestData0@Shared");
 
         assertThat(iters).contains("1");
     }
@@ -210,7 +207,7 @@ public class SharedTestDataResolutionIntegrationTest {
     public void testUnknownSharedRunEnvFallsBackToSharedDefault() {
         TestCaseRunner context = mockContext("Default", "NoSuchEnv");
 
-        TestDataModel shared = DataAccessInternal.getModel(context, "[Shared] TestData0");
+        TestDataModel shared = DataAccessInternal.getModel(context, "TestData0@Shared");
         String sharedVal = DataAccessInternal.getDataFromModelWithScope(
             shared,
             "URL",
@@ -226,20 +223,20 @@ public class SharedTestDataResolutionIntegrationTest {
 
     @Test
     public void testIsInputPatternDataSheetRecognizesExactUserInputStrings() {
-        assertThat(DataProcessor.isInputPatternDataSheet("[Shared] TestData0:URL")).isTrue();
-        assertThat(DataProcessor.isInputPatternDataSheet("[Project] Basic:URL")).isTrue();
+        assertThat(DataProcessor.isInputPatternDataSheet("TestData0:URL@Shared")).isTrue();
+        assertThat(DataProcessor.isInputPatternDataSheet("Basic:URL@Project")).isTrue();
     }
 
     @Test
     public void testTestDataTokenParseFeedsScopeAwareModelLookup() {
         TestCaseRunner context = mockContext();
 
-        // Untagged, {braced}, and [Project]-tagged all resolve to the same project sheet+value.
+        // Untagged, {braced}, and @Project-tagged all resolve to the same project sheet+value.
         for (String ref : new String[] {
             "Basic:URL",
             "{Basic:URL}",
-            "[Project] Basic:URL",
-            "{[Project] Basic:URL}"
+            "Basic:URL@Project",
+            "{Basic:URL@Project}"
         }) {
             String[] sc = TestDataToken.parse(ref);
             assertThat(sc).as(ref).isNotNull();
@@ -261,8 +258,8 @@ public class SharedTestDataResolutionIntegrationTest {
                 .isEqualTo("PROJECT_VALUE");
         }
 
-        // The [Shared] tag routes to the app-root Shared store instead.
-        String[] shared = TestDataToken.parse("{[Shared] TestData0:URL}");
+        // The @Shared tag routes to the app-root Shared store instead.
+        String[] shared = TestDataToken.parse("{TestData0:URL@Shared}");
         assertThat(DataAccessInternal.getModel(context, shared[0]).getName())
             .isEqualTo("TestData0");
     }

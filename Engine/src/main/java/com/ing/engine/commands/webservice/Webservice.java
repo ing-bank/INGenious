@@ -1309,7 +1309,7 @@ public class Webservice extends GeneralWebservice {
     )
     public void addHeader() {
         try {
-            // Resolves {Sheet:Column} / {[Project] Sheet:Column} / {[Shared] Sheet:Column} tokens
+            // Resolves {Sheet:Column} / {Sheet:Column@Project} / {Sheet:Column@Shared} tokens
             // in the header value; unknown tokens are left literal.
             Data = TestDataToken.resolveEmbeddedTokens(Data, userData);
 

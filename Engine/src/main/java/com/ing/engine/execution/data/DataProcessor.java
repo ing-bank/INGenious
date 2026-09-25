@@ -35,12 +35,12 @@ public class DataProcessor {
     }
 
     /**
-     * "[Shared] Sheet:Column" or "[Project] Sheet:Column" - an explicit Test Data scope tag,
-     * bare or braced. Mirrors ReusableRef.Scope's [Project]/[Shared] convention. Checked first so
-     * it can be carved out of the generic "starts with [" -> dynamic/literal-value rule below.
+     * "Sheet:Column@Shared" or "Sheet:Column@Project" - an explicit Test Data scope tag, bare or
+     * braced. Mirrors ReusableRef.Scope's [Project]/[Shared] convention (kept as a trailing tag
+     * here, unlike the reusable reference's leading one).
      */
     private static final String SCOPED_DATASHEET_PATTERN =
-        "^\\{?(\\[Shared\\]|\\[Project\\])\\s*[^}\\d:][^}:]*:[^}\\d:][^}:]*\\}?$";
+        "^\\{?[^}\\d:@][^}:@]*:[^}\\d:@][^}:@]*(@Shared|@Project)\\}?$";
 
     private static boolean isScopedDataSheetRef(String inp) {
         return inp.matches(SCOPED_DATASHEET_PATTERN);
@@ -50,7 +50,7 @@ public class DataProcessor {
         return (
             inp.matches("(^@|=|>|%)(.*)") || // check if Static string | addVar function | Dynamic Variable
             inp.startsWith("<") || //
-            (inp.startsWith("[") && !isScopedDataSheetRef(inp)) || //
+            inp.startsWith("[") || //
             inp.matches("^\\{[^:\\d\\s][^:]*\\}") || // check if starts with curly braces with no colon inside
             inp.startsWith("\"")
         ); // check if starts with double quote
@@ -64,10 +64,10 @@ public class DataProcessor {
                 !inp.matches("^\\{[^:\\d\\s][^:]*\\}")
             ) && // check if does not starts with curly braces with no colon inside
             (
-                inp.matches("^[A-Za-z].*:[A-Za-z].*") || // check if DataSheet:Data
-                inp.matches("^\\{[^}\\d:][^}:]*:[^}\\d:][^}:]*\\}") || // check if {DataSheet:Data}
+                inp.matches("^[A-Za-z].*:[A-Za-z].*") || // check if DataSheet:Data(@Scope)
+                inp.matches("^\\{[^}\\d:][^}:]*:[^}\\d:][^}:]*\\}") || // check if {DataSheet:Data(@Scope)}
                 isScopedDataSheetRef(inp)
-            ) // check if [Shared]/[Project] Sheet:Column, bare or braced
+            ) // check if Sheet:Column@Shared / Sheet:Column@Project, bare or braced
         );
     }
 
@@ -78,8 +78,13 @@ public class DataProcessor {
         if (isInputPatternDynamic(inp)) {
             inp = resolveDynamic(resolveIn(inp), context);
         } else if (isInputPatternDataSheet(inp)) {
-            String inp_string = inp.startsWith("{") ? inp.substring(1, inp.length() - 1) : inp;
-            String[] args = inp_string.split(":");
+            // Split via TestDataToken, not a naive split(":"), so a trailing @Shared/@Project
+            // scope tag (which sits after the column, not the sheet) doesn't end up corrupting
+            // the column value.
+            String[] args = TestDataToken.parse(inp);
+            if (args == null) {
+                return resolveKeyMapVars(inp, 2, context.getControl().getRunTimeVars());
+            }
             if (!context.isIterResolved(args[0])) {
                 context.setIter(args[0], DataAccess.getIterations(context, args[0]));
             }

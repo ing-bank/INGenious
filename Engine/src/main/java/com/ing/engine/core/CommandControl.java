@@ -347,10 +347,10 @@ public abstract class CommandControl {
 
     public String getDataSheetValue(String key) {
         String val = null;
-        // A reference carrying an explicit [Shared]/[Project] Test Data scope tag is resolved
+        // A reference carrying an explicit @Shared/@Project Test Data scope tag is resolved
         // through the scope-aware DataAccess pipeline: the project sheet-name scan below can't
         // see Shared sheets and never forwards the tag. UserDataAccess#getData ->
-        // DataAccess#getModel strips/honours the tag (untagged == [Project]).
+        // DataAccess#getModel strips/honours the tag (untagged == @Project).
         if (TestDataToken.hasScopeTag(key)) {
             String[] scoped = TestDataToken.parse(key);
             if (scoped == null) {
@@ -388,9 +388,9 @@ public abstract class CommandControl {
     }
 
     /**
-     * Splits a Test Data reference that carries an explicit {@code [Shared]} / {@code [Project]}
-     * scope tag - bare or wrapped in the {@code {...}} pattern, e.g. {@code "{[Shared] Sheet:Column}"}
-     * - into {@code [ "[Shared] Sheet", "Column" ]}, or {@code null} for an untagged/malformed ref.
+     * Splits a Test Data reference that carries an explicit {@code @Shared} / {@code @Project}
+     * scope tag - bare or wrapped in the {@code {...}} pattern, e.g. {@code "{Sheet:Column@Shared}"}
+     * - into {@code [ "Sheet@Shared", "Column" ]}, or {@code null} for an untagged/malformed ref.
      * Thin wrapper over {@link TestDataToken}; untagged refs return {@code null} so
      * {@link #getDataSheetValue(String)} keeps them on the legacy project-sheet path.
      */

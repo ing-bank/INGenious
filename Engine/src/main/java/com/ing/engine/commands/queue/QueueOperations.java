@@ -467,7 +467,7 @@ public class QueueOperations extends Command {
     }
 
     private String handleDataSheetVariables(String payloadstring) {
-        // Resolves {Sheet:Column} / {[Project] Sheet:Column} / {[Shared] Sheet:Column} tokens;
+        // Resolves {Sheet:Column} / {Sheet:Column@Project} / {Sheet:Column@Shared} tokens;
         // unknown tokens are left literal.
         return TestDataToken.resolveEmbeddedTokens(payloadstring, userData);
     }

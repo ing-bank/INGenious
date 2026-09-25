@@ -247,7 +247,7 @@ public class Database extends General {
             if (Condition != null && Input != null) {
                 int rowIndex = 1;
                 result.first();
-                // Accepts Sheet:Column, [Project] Sheet:Column and [Shared] Sheet:Column.
+                // Accepts Sheet:Column, Sheet:Column@Project and Sheet:Column@Shared.
                 String[] sheetDetail = TestDataToken.parse(Input);
                 if (sheetDetail == null) {
                     Report.updateTestLog(

@@ -3709,7 +3709,7 @@ final class MCPTools {
                         errors.add(where + ": referenced OR page '" + refPage + "' not found [E2]");
                     }
                     // E4 – data references must resolve. TestDataToken.parse keeps any
-                    // [Project]/[Shared] tag on the sheet name so dataRefExists can route.
+                    // trailing @Project/@Shared tag on the sheet name so dataRefExists can route.
                     if (ConventionCatalog.isDataRef(input)) {
                         String[] sc = TestDataToken.parse(input);
                         if (sc != null && !dataRefExists(p, sc[0], sc[1])) {
@@ -3914,16 +3914,16 @@ final class MCPTools {
     /** True when {@code sheet}/{@code column} exists in any environment's test data. */
     private boolean dataRefExists(Project p, String sheet, String column) {
         try {
-            // An explicit [Shared] tag routes to the app-root Shared Test Data; an untagged or
-            // [Project]-tagged reference resolves against the project's own Test Data.
+            // An explicit @Shared tag routes to the app-root Shared Test Data; an untagged or
+            // @Project-tagged reference resolves against the project's own Test Data.
             com.ing.datalib.component.EnvTestData env;
-            if (sheet != null && sheet.startsWith("[Shared]")) {
+            if (sheet != null && sheet.endsWith("@Shared")) {
                 env = p.getSharedTestData();
-                sheet = sheet.substring("[Shared]".length()).trim();
+                sheet = sheet.substring(0, sheet.length() - "@Shared".length()).trim();
             } else {
                 env = p.getTestData();
-                if (sheet != null && sheet.startsWith("[Project]")) {
-                    sheet = sheet.substring("[Project]".length()).trim();
+                if (sheet != null && sheet.endsWith("@Project")) {
+                    sheet = sheet.substring(0, sheet.length() - "@Project".length()).trim();
                 }
             }
             if (env == null) return false;

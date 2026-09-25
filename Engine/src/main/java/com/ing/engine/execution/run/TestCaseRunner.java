@@ -335,8 +335,8 @@ public class TestCaseRunner {
             String data = "";
             String testInput = testStep.getInput();
             TestCase parentTestCase = this.testCase.getParentTestCase();
-            // Split via TestDataToken so a braced and/or [Project]/[Shared]-tagged reference
-            // ("{[Shared] Sheet:Col}") yields a usable sheet name instead of "{[Shared] Sheet".
+            // Split via TestDataToken so a braced and/or @Project/@Shared-tagged reference
+            // ("{Sheet:Col@Shared}") yields a usable sheet name instead of "{Sheet".
             String[] ref = testInput.startsWith("@") ? null : TestDataToken.parse(testInput);
             if (ref != null && DataProcessor.isInputPatternDataSheet(testInput)) {
                 data =

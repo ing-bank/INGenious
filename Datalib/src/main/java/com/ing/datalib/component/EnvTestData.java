@@ -430,13 +430,13 @@ public class EnvTestData {
     }
 
     /**
-     * The "[Shared]"/"[Project]" scope token that references to <em>this</em> environment test
+     * The "@Shared"/"@Project" scope token that references to <em>this</em> environment test
      * data carry in test steps, so a rename/column-rename only rewrites references in the
      * matching scope. The Shared and Project test data share a flat sheet-name namespace, so
      * without this an untagged "{Sheet:Col}" step would be rewritten by a Shared rename too.
      */
     private String scopeToken() {
-        return shared ? "[Shared]" : "[Project]";
+        return shared ? "@Shared" : "@Project";
     }
 
     /**

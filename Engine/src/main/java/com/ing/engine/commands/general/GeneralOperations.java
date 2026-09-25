@@ -225,7 +225,7 @@ public class GeneralOperations extends General {
         if (Input != null && Condition != null) {
             if (!getVar(Condition).isEmpty()) {
                 System.out.println(Condition);
-                // Accepts Sheet:Column, [Project] Sheet:Column and [Shared] Sheet:Column;
+                // Accepts Sheet:Column, Sheet:Column@Project and Sheet:Column@Shared;
                 // the tag (if any) stays on the sheet so putData routes to the right store.
                 String[] sheetDetail = TestDataToken.parse(Input);
                 if (sheetDetail == null) {
@@ -651,11 +651,17 @@ public class GeneralOperations extends General {
                 );
                 return;
             }
-            // Keep any [Shared]/[Project] tag, inserting the '#' after it, so an explicitly
-            // scoped Global Data write routes to the matching store.
+            // Keep any trailing @Shared/@Project tag (Test Data's own convention), translating
+            // it to the [Shared]/[Project] prefix convention Global Data IDs use, so an
+            // explicitly scoped Global Data write routes to the matching store.
             String tag = TestDataToken.scopeTag(parsed[0]);
-            String bareId = tag.isEmpty() ? parsed[0] : parsed[0].substring(tag.length()).trim();
-            String globalDataID = tag.isEmpty() ? "#" + bareId : tag + " #" + bareId;
+            String bareId = tag.isEmpty()
+                ? parsed[0]
+                : parsed[0].substring(0, parsed[0].length() - tag.length()).trim();
+            String globalTag = TestDataToken.SHARED_TAG.equals(tag)
+                ? "[Shared]"
+                : TestDataToken.PROJECT_TAG.equals(tag) ? "[Project]" : "";
+            String globalDataID = globalTag.isEmpty() ? "#" + bareId : globalTag + " #" + bareId;
             String globalcolumnName = parsed[1];
             userData.putGlobalData(globalDataID, globalcolumnName, Data);
             Report.updateTestLog(

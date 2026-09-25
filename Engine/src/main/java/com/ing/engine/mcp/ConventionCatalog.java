@@ -153,23 +153,23 @@ public final class ConventionCatalog {
     // input grammar helpers
     // ==================================================================
 
-    /** Optional leading Test Data scope tag, e.g. {@code "[Project] "} / {@code "[Shared] "}. */
-    private static final String SCOPE_TAG = "(?:\\[(?:Shared|Project)\\]\\s+)?";
+    /** Optional trailing Test Data scope tag, e.g. {@code "@Project"} / {@code "@Shared"}. */
+    private static final String SCOPE_TAG = "(?:@(?:Shared|Project))?";
 
     /**
      * Whole-input data reference: {@code Sheet:Column}, optionally scope-tagged
-     * ({@code [Project] Sheet:Column} / {@code [Shared] Sheet:Column}). No scheme URLs.
+     * ({@code Sheet:Column@Project} / {@code Sheet:Column@Shared}). No scheme URLs.
      */
     private static final Pattern DATA_REF = Pattern.compile(
-        "^" + SCOPE_TAG + "[A-Za-z0-9_.\\-]+:[A-Za-z0-9_.\\-]+$"
+        "^[A-Za-z0-9_.\\-]+:[A-Za-z0-9_.\\-]+" + SCOPE_TAG + "$"
     );
 
     /**
      * Data reference embedded in a payload: {@code {Sheet:Column}}, optionally scope-tagged.
-     * Group 1 = sheet (tag stripped), group 2 = column.
+     * Group 1 = sheet, group 2 = column (tag stripped from group 2 automatically).
      */
     public static final Pattern PAYLOAD_TOKEN = Pattern.compile(
-        "\\{" + SCOPE_TAG + "([A-Za-z0-9_.\\-]+):([A-Za-z0-9_.\\-]+)\\}"
+        "\\{([A-Za-z0-9_.\\-]+):([A-Za-z0-9_.\\-]+)" + SCOPE_TAG + "\\}"
     );
 
     /** Engine directives that look like literals but must never be parameterized. */
@@ -238,9 +238,11 @@ public final class ConventionCatalog {
             "\n" +
             "STEP INPUT GRAMMAR\n" +
             "* Hard-coded values are @-prefixed: input=\"@200\", input=\"@https://site\".\n" +
-            "* Data-driven values reference a data sheet: input=\"Sheet:Column\".\n" +
-            "* Inside API payload bodies use embedded tokens: {Sheet:Column}. Payload bodies\n" +
-            "  (postRestRequest/putRestRequest/patchRestRequest) are NOT @-prefixed.\n" +
+            "* Data-driven values reference a data sheet: input=\"Sheet:Column\". Add a\n" +
+            "  trailing @Shared to read the app-root Shared Test Data instead of the\n" +
+            "  project's own: input=\"Sheet:Column@Shared\" (no tag / @Project = project data).\n" +
+            "* Inside API payload bodies use embedded tokens: {Sheet:Column} / {Sheet:Column@Shared}.\n" +
+            "  Payload bodies (postRestRequest/putRestRequest/patchRestRequest) are NOT @-prefixed.\n" +
             "* GlobalData environment ids (#dev, #test, ...) are data-sheet CELL VALUES only -\n" +
             "  never place them in a step input. Environment names come from the project's\n" +
             "  GlobalData sheet; never assume them.\n" +
@@ -319,6 +321,9 @@ public final class ConventionCatalog {
             )
             .append(
                 "| `{Sheet:Column}` | Data reference embedded in an API payload | `{Payment:AccountNumber}` |\n"
+            )
+            .append(
+                "| `Sheet:Column@Shared` | Reference the app-root Shared Test Data instead of the project's own (no tag / `@Project` = project data) | `LoginData:Username@Shared` |\n"
             )
             .append("| `#id` | GlobalData environment id - data-sheet cells ONLY | `#test` |\n")
             .append("| `%var%` | Runtime variable | `%orderId%` |\n\n")

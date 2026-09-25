@@ -26,15 +26,15 @@ import org.slf4j.LoggerFactory;
  * <ul>
  *   <li>{@code Sheet:Column} / {@code {Sheet:Column}} - the project's own Test Data (canonical,
  *       unchanged; no migration).</li>
- *   <li>{@code [Project] Sheet:Column} / {@code {[Project] Sheet:Column}} - the project's own Test
+ *   <li>{@code Sheet:Column@Project} / {@code {Sheet:Column@Project}} - the project's own Test
  *       Data, tag explicit (what the IDE writes for new entries).</li>
- *   <li>{@code [Shared] Sheet:Column} / {@code {[Shared] Sheet:Column}} - the app-root Shared Test
+ *   <li>{@code Sheet:Column@Shared} / {@code {Sheet:Column@Shared}} - the app-root Shared Test
  *       Data store.</li>
  * </ul>
  *
- * <p>The {@code [Shared]}/{@code [Project]} tag is kept attached to the sheet name in the parse
+ * <p>The {@code @Shared}/{@code @Project} tag is kept attached to the sheet name in the parse
  * result so the scope-aware pipeline ({@link DataAccess}/{@link DataAccessInternal}) can honour it -
- * {@code stripProjectScopeTag} treats an untagged name and a {@code [Project]}-tagged name
+ * {@code stripProjectSheetScopeTag} treats an untagged name and a {@code @Project}-tagged name
  * identically.</p>
  *
  * <p>Grammar deliberately mirrors {@code DataProcessor.SCOPED_DATASHEET_PATTERN} (engine, execution
@@ -46,40 +46,42 @@ public final class TestDataToken {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestDataToken.class);
 
-    public static final String SHARED_TAG = "[Shared]";
-    public static final String PROJECT_TAG = "[Project]";
+    public static final String SHARED_TAG = "@Shared";
+    public static final String PROJECT_TAG = "@Project";
 
     /**
-     * Leading scope tag, e.g. {@code "[Shared] "} / {@code "[Project] "}. {@code \s*} (not
-     * {@code \s+}) so it stays in step with {@code DataProcessor.SCOPED_DATASHEET_PATTERN}.
+     * Trailing scope tag, e.g. {@code "@Shared"} / {@code "@Project"}. Anchored to the end of the
+     * reference (after the column), not the sheet - stays in step with
+     * {@code DataProcessor.SCOPED_DATASHEET_PATTERN}.
      */
-    private static final String TAG = "(?:\\[Shared\\]|\\[Project\\])\\s*";
+    private static final String TAG = "(?:@Shared|@Project)";
 
     /**
      * A whole string that is a (optionally braced, optionally scope-tagged) {@code Sheet:Column}
-     * reference. Sheet and Column must start with a non-digit, non-space character so a bare
-     * {@code host:8080} / {@code 12:30} is not mistaken for a data reference.
+     * reference. Sheet and Column must start with a non-digit, non-space character and may not
+     * contain {@code @} (reserved for the trailing scope tag) so a bare {@code host:8080} /
+     * {@code 12:30} is not mistaken for a data reference.
      */
     private static final Pattern REFERENCE = Pattern.compile(
-        "^\\{?\\s*(?:" + TAG + ")?[^\\{\\}:\\d\\s][^\\{\\}:]*:[^\\{\\}:\\d\\s][^\\{\\}:]*\\s*\\}?$"
+        "^\\{?\\s*[^\\{\\}:@\\d\\s][^\\{\\}:@]*:[^\\{\\}:@\\d\\s][^\\{\\}:@]*" + TAG + "?\\s*\\}?$"
     );
 
     /**
      * One embedded {@code {Sheet:Column}} token inside a larger string. Strict on purpose: the
      * sheet name must start with a letter / {@code _} / {@code $} and neither part may contain a
-     * quote, so a JSON object literal such as {@code {"a":"b"}} is never matched.
+     * quote or {@code @}, so a JSON object literal such as {@code {"a":"b"}} is never matched.
      */
     private static final Pattern EMBEDDED_TOKEN = Pattern.compile(
-        "\\{\\s*(?:" + TAG + ")?[A-Za-z_$][^\\{\\}:\"]*:[^\\{\\}:\"]+\\s*\\}"
+        "\\{\\s*[A-Za-z_$][^\\{\\}:\"@]*:[^\\{\\}:\"@]+" + TAG + "?\\s*\\}"
     );
 
-    /** {@code "[Shared]"}, {@code "[Project]"}, or {@code ""} - the scope tag {@code ref} carries. */
+    /** {@code "@Shared"}, {@code "@Project"}, or {@code ""} - the scope tag {@code ref} carries. */
     public static String scopeTag(String ref) {
         String t = unwrapBraces(ref);
-        if (t.startsWith(SHARED_TAG)) {
+        if (t.endsWith(SHARED_TAG)) {
             return SHARED_TAG;
         }
-        if (t.startsWith(PROJECT_TAG)) {
+        if (t.endsWith(PROJECT_TAG)) {
             return PROJECT_TAG;
         }
         return "";
@@ -101,16 +103,21 @@ public final class TestDataToken {
 
     /**
      * Whole-input parse: splits a reference into {@code { taggedSheet, column }}. Braces are
-     * <b>optional</b> here - bare {@code Sheet:Column} / {@code [Project] Sheet:Column} is the
-     * normal form; a wrapping {@code {...}} is tolerated. The {@code [Shared]}/{@code [Project]}
-     * tag (if any) stays on the sheet, the split is on the first {@code ':'}, both parts are
-     * trimmed. Returns {@code null} when {@code ref} is not a usable {@code Sheet:Column}
-     * reference (no colon, empty sheet-name after the tag, or empty column).
+     * <b>optional</b> here - bare {@code Sheet:Column} / {@code Sheet:Column@Project} is the
+     * normal form; a wrapping {@code {...}} is tolerated. The trailing {@code @Shared}/
+     * {@code @Project} tag (if any) is stripped from the end first and re-attached to the sheet
+     * in the result, the split is on the first {@code ':'}, both parts are trimmed. Returns
+     * {@code null} when {@code ref} is not a usable {@code Sheet:Column} reference (no colon,
+     * empty sheet-name, or empty column after the tag is removed).
      */
     public static String[] parse(String ref) {
         String s = unwrapBraces(ref);
         if (s.isEmpty()) {
             return null;
+        }
+        String tag = scopeTag(s);
+        if (!tag.isEmpty()) {
+            s = s.substring(0, s.length() - tag.length()).trim();
         }
         int colon = s.indexOf(':');
         if (colon < 1) {
@@ -118,17 +125,10 @@ public final class TestDataToken {
         }
         String sheet = s.substring(0, colon).trim();
         String column = s.substring(colon + 1).trim();
-        if (column.isEmpty()) {
+        if (sheet.isEmpty() || column.isEmpty()) {
             return null;
         }
-        String tag = scopeTag(sheet);
-        if (!tag.isEmpty() && sheet.substring(tag.length()).trim().isEmpty()) {
-            return null; // "[Project]:Col" - tag but no sheet name
-        }
-        if (tag.isEmpty() && sheet.isEmpty()) {
-            return null;
-        }
-        return new String[] { sheet, column };
+        return new String[] { sheet + tag, column };
     }
 
     /**

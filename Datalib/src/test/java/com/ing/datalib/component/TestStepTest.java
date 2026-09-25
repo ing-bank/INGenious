@@ -211,55 +211,55 @@ public class TestStepTest {
         assertThat(data).containsExactly("Sheet1", "Column1");
     }
 
-    // ---- [Shared]/[Project] Test Data scope tags ----
+    // ---- @Shared/@Project Test Data scope tags ----
 
     @Test
     public void testIsTestDataStepTrueForBareSharedTag() {
         TestStep step = createEmptyStep();
-        step.setInput("[Shared] Sheet1:Column1");
+        step.setInput("Sheet1:Column1@Shared");
         assertThat(step.isTestDataStep()).isTrue();
     }
 
     @Test
     public void testIsTestDataStepTrueForBareProjectTag() {
         TestStep step = createEmptyStep();
-        step.setInput("[Project] Sheet1:Column1");
+        step.setInput("Sheet1:Column1@Project");
         assertThat(step.isTestDataStep()).isTrue();
     }
 
     @Test
     public void testIsTestDataStepTrueForBracedSharedTag() {
         TestStep step = createEmptyStep();
-        step.setInput("{[Shared] Sheet1:Column1}");
+        step.setInput("{Sheet1:Column1@Shared}");
         assertThat(step.isTestDataStep()).isTrue();
     }
 
     @Test
     public void testGetTestDataFromInputStripsSharedTag() {
         TestStep step = createEmptyStep();
-        step.setInput("[Shared] Sheet1:Column1");
+        step.setInput("Sheet1:Column1@Shared");
         assertThat(step.getTestDataFromInput()).containsExactly("Sheet1", "Column1");
     }
 
     @Test
     public void testGetTestDataFromInputStripsBracedSharedTag() {
         TestStep step = createEmptyStep();
-        step.setInput("{[Shared] Sheet1:Column1}");
+        step.setInput("{Sheet1:Column1@Shared}");
         assertThat(step.getTestDataFromInput()).containsExactly("Sheet1", "Column1");
     }
 
     @Test
     public void testGetTestDataScopeTagShared() {
         TestStep step = createEmptyStep();
-        step.setInput("[Shared] Sheet1:Column1");
-        assertThat(step.getTestDataScopeTag()).isEqualTo("[Shared]");
+        step.setInput("Sheet1:Column1@Shared");
+        assertThat(step.getTestDataScopeTag()).isEqualTo("@Shared");
     }
 
     @Test
     public void testGetTestDataScopeTagProject() {
         TestStep step = createEmptyStep();
-        step.setInput("[Project] Sheet1:Column1");
-        assertThat(step.getTestDataScopeTag()).isEqualTo("[Project]");
+        step.setInput("Sheet1:Column1@Project");
+        assertThat(step.getTestDataScopeTag()).isEqualTo("@Project");
     }
 
     @Test

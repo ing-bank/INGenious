@@ -285,7 +285,7 @@ public class DataAccessInternalTest {
         assertThat(result).isEqualTo("defValue");
     }
 
-    // ---- getModel / getDefModel: [Shared]/[Project] scope tag resolution ----
+    // ---- getModel / getDefModel: @Shared/@Project scope tag resolution ----
 
     @Test
     public void testGetModelUntaggedResolvesFromProjectOnlyAndNeverTouchesShared() {
@@ -323,7 +323,7 @@ public class DataAccessInternalTest {
         when(dataProvider.getTestDataFor("QA")).thenReturn(projectEnvTestData);
         when(projectEnvTestData.getByName("LoginData")).thenReturn(envModel);
 
-        TestDataModel result = DataAccessInternal.getModel(context, "[Project] LoginData");
+        TestDataModel result = DataAccessInternal.getModel(context, "LoginData@Project");
 
         assertThat(result).isSameAs(envModel);
         verifyNoInteractions(project);
@@ -338,10 +338,10 @@ public class DataAccessInternalTest {
         when(sharedDataProvider.getTestDataFor("QA")).thenReturn(sharedEnvTestData);
         when(sharedEnvTestData.getByName("LoginData")).thenReturn(envModel);
 
-        TestDataModel result = DataAccessInternal.getModel(context, "[Shared] LoginData");
+        TestDataModel result = DataAccessInternal.getModel(context, "LoginData@Shared");
 
         assertThat(result).isSameAs(envModel);
-        // A [Shared]-tagged reference must never consult the project's own test data.
+        // An @Shared-tagged reference must never consult the project's own test data.
         verify(executor, never()).dataProvider();
     }
 
@@ -355,7 +355,7 @@ public class DataAccessInternalTest {
         when(sharedDataProvider.defData()).thenReturn(sharedEnvTestData);
         when(sharedEnvTestData.getByName("LoginData")).thenReturn(envModel);
 
-        TestDataModel result = DataAccessInternal.getModel(context, "[Shared] LoginData");
+        TestDataModel result = DataAccessInternal.getModel(context, "LoginData@Shared");
 
         assertThat(result).isSameAs(envModel);
     }
@@ -367,7 +367,7 @@ public class DataAccessInternalTest {
         when(context.project()).thenReturn(project);
         when(project.getSharedTestData()).thenReturn(null);
 
-        TestDataModel result = DataAccessInternal.getModel(context, "[Shared] LoginData");
+        TestDataModel result = DataAccessInternal.getModel(context, "LoginData@Shared");
 
         assertThat(result).isNull();
     }
@@ -395,7 +395,7 @@ public class DataAccessInternalTest {
         when(sharedDataProvider.getTestDataFor("Default")).thenReturn(sharedEnvTestData);
         when(sharedEnvTestData.getByName("LoginData")).thenReturn(defModel);
 
-        TestDataModel result = DataAccessInternal.getDefModel(context, "[Shared] LoginData");
+        TestDataModel result = DataAccessInternal.getDefModel(context, "LoginData@Shared");
 
         assertThat(result).isSameAs(defModel);
     }
@@ -407,7 +407,7 @@ public class DataAccessInternalTest {
     public void testInheritSheetScopePromotesUntaggedGidWhenContainingSheetIsShared() {
         Object result = DataAccessInternal.inheritSheetScopeForGlobalDataRef(
             "#url",
-            "[Shared] TestData0"
+            "TestData0@Shared"
         );
         assertThat(result).isEqualTo("[Shared] #url");
     }
@@ -416,7 +416,7 @@ public class DataAccessInternalTest {
     public void testInheritSheetScopeLeavesUntaggedGidAloneWhenContainingSheetIsProject() {
         Object result = DataAccessInternal.inheritSheetScopeForGlobalDataRef(
             "#url",
-            "[Project] Basic"
+            "Basic@Project"
         );
         assertThat(result).isEqualTo("#url");
     }
@@ -432,7 +432,7 @@ public class DataAccessInternalTest {
         // The cell itself already opts out of the shared sheet's default - explicit wins.
         Object result = DataAccessInternal.inheritSheetScopeForGlobalDataRef(
             "[Project] #url",
-            "[Shared] TestData0"
+            "TestData0@Shared"
         );
         assertThat(result).isEqualTo("[Project] #url");
     }
@@ -441,7 +441,7 @@ public class DataAccessInternalTest {
     public void testInheritSheetScopeLeavesNonGlobalDataValueUnchanged() {
         Object result = DataAccessInternal.inheritSheetScopeForGlobalDataRef(
             "plain-literal-value",
-            "[Shared] TestData0"
+            "TestData0@Shared"
         );
         assertThat(result).isEqualTo("plain-literal-value");
     }
@@ -451,7 +451,7 @@ public class DataAccessInternalTest {
         Object nonString = 42;
         Object result = DataAccessInternal.inheritSheetScopeForGlobalDataRef(
             nonString,
-            "[Shared] TestData0"
+            "TestData0@Shared"
         );
         assertThat(result).isSameAs(nonString);
     }

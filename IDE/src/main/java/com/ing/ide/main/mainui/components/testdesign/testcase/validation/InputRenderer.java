@@ -88,7 +88,7 @@ public class InputRenderer extends AbstractRenderer {
 
     private Boolean isTestDataPresent(TestStep step) {
         String[] data = step.getTestDataFromInput();
-        com.ing.datalib.component.EnvTestData source = "[Shared]".equals(step.getTestDataScopeTag())
+        com.ing.datalib.component.EnvTestData source = "@Shared".equals(step.getTestDataScopeTag())
             ? step.getProject().getSharedTestData()
             : step.getProject().getTestData();
         return Boolean.valueOf(
@@ -106,14 +106,13 @@ public class InputRenderer extends AbstractRenderer {
     }
 
     /**
-     * Colors a [Shared]/[Project]-tagged Test Data reference the same way Shared/Project
-     * Reusable Component references are colored elsewhere (ActionRenderer/ReferenceRenderer).
+     * Colors an @Shared-tagged Test Data reference green; @Project/untagged keep whatever
+     * {@link #setDefault(JComponent)} already applied (the theme's normal text color), so a
+     * Project-scoped reference looks no different from a plain unscoped one.
      */
     private void applyTestDataScopeColor(JComponent comp, String scopeTag) {
-        if ("[Shared]".equals(scopeTag)) {
+        if ("@Shared".equals(scopeTag)) {
             comp.setForeground(new Color(0, 128, 0));
-        } else if ("[Project]".equals(scopeTag)) {
-            comp.setForeground(Color.BLACK);
         }
     }
 

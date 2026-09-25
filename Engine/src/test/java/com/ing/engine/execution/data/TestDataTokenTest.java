@@ -8,8 +8,8 @@ import org.testng.annotations.Test;
 
 /**
  * Unit tests for {@link TestDataToken} - the single parser/resolver for Test Data references and
- * embedded {@code {Sheet:Column}} tokens. Covers the "accept untagged and [Project]/[Shared]
- * tagged, braced or bare" contract.
+ * embedded {@code {Sheet:Column}} tokens. Covers the "accept untagged and trailing
+ * @Project/@Shared tagged, braced or bare" contract.
  */
 public class TestDataTokenTest {
 
@@ -23,22 +23,22 @@ public class TestDataTokenTest {
 
     @Test
     public void parsesProjectTaggedReferenceKeepingTagOnSheet() {
-        assertThat(TestDataToken.parse("[Project] Basic:URL"))
-            .containsExactly("[Project] Basic", "URL");
-        assertThat(TestDataToken.parse("{[Project] Basic:URL}"))
-            .containsExactly("[Project] Basic", "URL");
+        assertThat(TestDataToken.parse("Basic:URL@Project"))
+            .containsExactly("Basic@Project", "URL");
+        assertThat(TestDataToken.parse("{Basic:URL@Project}"))
+            .containsExactly("Basic@Project", "URL");
     }
 
     @Test
     public void parsesSharedTaggedReference() {
-        assertThat(TestDataToken.parse("{[Shared] TestData0:Data1}"))
-            .containsExactly("[Shared] TestData0", "Data1");
+        assertThat(TestDataToken.parse("{TestData0:Data1@Shared}"))
+            .containsExactly("TestData0@Shared", "Data1");
     }
 
     @Test
     public void toleratesWhitespaceAndSplitsOnFirstColon() {
-        assertThat(TestDataToken.parse("  { [Shared] Sheet A : a:b } "))
-            .containsExactly("[Shared] Sheet A", "a:b");
+        assertThat(TestDataToken.parse("  { Sheet A : a:b@Shared } "))
+            .containsExactly("Sheet A@Shared", "a:b");
     }
 
     @Test
@@ -48,8 +48,8 @@ public class TestDataTokenTest {
         assertThat(TestDataToken.parse("{Basic}")).isNull();
         assertThat(TestDataToken.parse(":URL")).isNull();
         assertThat(TestDataToken.parse("Basic:")).isNull();
-        assertThat(TestDataToken.parse("{[Project] :URL}")).isNull();
-        assertThat(TestDataToken.parse("{[Shared] TestData0:}")).isNull();
+        assertThat(TestDataToken.parse("{:URL@Project}")).isNull();
+        assertThat(TestDataToken.parse("{TestData0:@Shared}")).isNull();
     }
 
     // ---- scopeTag ----------------------------------------------------------
@@ -58,10 +58,10 @@ public class TestDataTokenTest {
     public void reportsScopeTag() {
         assertThat(TestDataToken.scopeTag("Basic:URL")).isEmpty();
         assertThat(TestDataToken.scopeTag("{Basic:URL}")).isEmpty();
-        assertThat(TestDataToken.scopeTag("[Project] Basic:URL")).isEqualTo("[Project]");
-        assertThat(TestDataToken.scopeTag("{[Shared] X:Y}")).isEqualTo("[Shared]");
+        assertThat(TestDataToken.scopeTag("Basic:URL@Project")).isEqualTo("@Project");
+        assertThat(TestDataToken.scopeTag("{X:Y@Shared}")).isEqualTo("@Shared");
         assertThat(TestDataToken.hasScopeTag("X:Y")).isFalse();
-        assertThat(TestDataToken.hasScopeTag("[Project] X:Y")).isTrue();
+        assertThat(TestDataToken.hasScopeTag("X:Y@Project")).isTrue();
     }
 
     // ---- isReference -----------------------------------------------------
@@ -70,8 +70,8 @@ public class TestDataTokenTest {
     public void recognisesWholeInputReferences() {
         assertThat(TestDataToken.isReference("Basic:URL")).isTrue();
         assertThat(TestDataToken.isReference("{Basic:URL}")).isTrue();
-        assertThat(TestDataToken.isReference("[Project] Basic:URL")).isTrue();
-        assertThat(TestDataToken.isReference("{[Shared] TestData0:Data1}")).isTrue();
+        assertThat(TestDataToken.isReference("Basic:URL@Project")).isTrue();
+        assertThat(TestDataToken.isReference("{TestData0:Data1@Shared}")).isTrue();
     }
 
     @Test
@@ -93,11 +93,11 @@ public class TestDataTokenTest {
     public void substitutesBareAndTaggedTokensInAPayload() {
         UserDataAccess ud = mock(UserDataAccess.class);
         when(ud.getData("ApiData", "UserId")).thenReturn("42");
-        when(ud.getData("[Project] ApiData", "Name")).thenReturn("alice");
-        when(ud.getData("[Shared] Common", "Token")).thenReturn("t-123");
+        when(ud.getData("ApiData@Project", "Name")).thenReturn("alice");
+        when(ud.getData("Common@Shared", "Token")).thenReturn("t-123");
 
         String body =
-            "{\"id\":{ApiData:UserId},\"name\":\"{[Project] ApiData:Name}\",\"tok\":\"{[Shared] Common:Token}\"}";
+            "{\"id\":{ApiData:UserId},\"name\":\"{ApiData:Name@Project}\",\"tok\":\"{Common:Token@Shared}\"}";
 
         assertThat(TestDataToken.resolveEmbeddedTokens(body, ud))
             .isEqualTo("{\"id\":42,\"name\":\"alice\",\"tok\":\"t-123\"}");

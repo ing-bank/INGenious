@@ -52,22 +52,22 @@ public class DataCommand implements Callable<Integer> {
     }
 
     /**
-     * Resolves a (possibly scope-tagged) sheet reference to its CSV file. {@code "[Shared] Foo"}
-     * -> {@code <workspace>/Shared/SharedTestData/Foo.csv}; {@code "[Project] Foo"} / {@code "Foo"}
+     * Resolves a (possibly scope-tagged) sheet reference to its CSV file. {@code "Foo@Shared"}
+     * -> {@code <workspace>/Shared/SharedTestData/Foo.csv}; {@code "Foo@Project"} / {@code "Foo"}
      * -> {@code <project>/TestData/Foo.csv}.
      */
     static File resolveSheetCsv(String projectPath, String taggedSheet) {
         String s = taggedSheet == null ? "" : taggedSheet.trim();
-        if (s.startsWith("[Shared]")) {
-            String name = s.substring("[Shared]".length()).trim();
+        if (s.endsWith("@Shared")) {
+            String name = s.substring(0, s.length() - "@Shared".length()).trim();
             File parent = new File(projectPath).getParentFile();
             File sharedRoot = parent != null
                 ? new File(new File(parent, "Shared"), "SharedTestData")
                 : sharedTestDataDir();
             return new File(sharedRoot, name + ".csv");
         }
-        if (s.startsWith("[Project]")) {
-            s = s.substring("[Project]".length()).trim();
+        if (s.endsWith("@Project")) {
+            s = s.substring(0, s.length() - "@Project".length()).trim();
         }
         return new File(new File(projectPath, "TestData"), s + ".csv");
     }
@@ -262,16 +262,24 @@ public class DataCommand implements Callable<Integer> {
                 return 1;
             }
 
-            // Parse reference: [ [Project]|[Shared] ] Sheet:Column:Row
-            String[] parts = reference.split(":");
+            // Parse reference: Sheet:Column:Row, optionally tagged with a trailing
+            // @Project/@Shared scope suffix.
+            String tag = "";
+            String ref = reference;
+            if (ref.endsWith("@Shared")) {
+                tag = "@Shared";
+                ref = ref.substring(0, ref.length() - tag.length());
+            } else if (ref.endsWith("@Project")) {
+                tag = "@Project";
+                ref = ref.substring(0, ref.length() - tag.length());
+            }
+            String[] parts = ref.split(":");
             if (parts.length != 3) {
-                cli.printError(
-                    "Invalid reference format. Use: [[Project]|[Shared]] Sheet:Column:Row"
-                );
+                cli.printError("Invalid reference format. Use: Sheet:Column:Row[@Project|@Shared]");
                 return 1;
             }
 
-            String sheet = parts[0].trim();
+            String sheet = parts[0].trim() + tag;
             String column = parts[1];
             int row;
             try {
@@ -364,15 +372,22 @@ public class DataCommand implements Callable<Integer> {
                 return 1;
             }
 
-            String[] parts = reference.split(":");
+            String tag = "";
+            String ref = reference;
+            if (ref.endsWith("@Shared")) {
+                tag = "@Shared";
+                ref = ref.substring(0, ref.length() - tag.length());
+            } else if (ref.endsWith("@Project")) {
+                tag = "@Project";
+                ref = ref.substring(0, ref.length() - tag.length());
+            }
+            String[] parts = ref.split(":");
             if (parts.length != 3) {
-                cli.printError(
-                    "Invalid reference format. Use: [[Project]|[Shared]] Sheet:Column:Row"
-                );
+                cli.printError("Invalid reference format. Use: Sheet:Column:Row[@Project|@Shared]");
                 return 1;
             }
 
-            String sheet = parts[0].trim();
+            String sheet = parts[0].trim() + tag;
             String column = parts[1];
             int targetRow;
             try {
