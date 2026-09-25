@@ -511,7 +511,7 @@ public class FXStartUp extends JDialog {
                     testDataTypeCombo.getSelectionModel().getSelectedItem()
                 );
                 closeWindow();
-                sMainFrame.adjustUI();
+                // adjustUI is called automatically via afterProjectChange
                 sMainFrame.setVisible(true);
             }
         );
@@ -523,7 +523,7 @@ public class FXStartUp extends JDialog {
                 () -> {
                     sMainFrame.loadProject(location);
                     closeWindow();
-                    sMainFrame.adjustUI();
+                    // adjustUI is called automatically via afterProjectChange
                     sMainFrame.setVisible(true);
                     if (recentChanged) {
                         AppSettings.store("Options Changed");
