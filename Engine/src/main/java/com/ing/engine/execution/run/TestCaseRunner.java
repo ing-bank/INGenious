@@ -522,113 +522,129 @@ public class TestCaseRunner {
             /*
              * caution: breaking the loop will stop the iteration
              */
-            boolean isLastData = false;
             this.breakSubIterationFlag = false;
             testCase.setExitParamLoop(false);
 
             TestCase parentTestCase = testCase.getParentTestCase();
-            for (int currStep = 0; canRunStep(currStep); currStep++) {
-                TestStep testStep = testCase.getTestSteps().get(currStep);
-                currentStepIndex = currStep;
+            // dynamicMaxIter is stored on the (shared/reused) TestCase model rather than on this
+            // runner, so a value discovered while resolving a dynamic sub-iteration count in a
+            // previous main Iteration would otherwise leak into this one - especially harmful
+            // when consecutive Iterations have differing SubIteration counts, or when the
+            // previous iteration exited via an exception/early-return that skipped the cleanup
+            // at the end of this method. Always start with a clean slate.
+            resetDynamicMaxIter(parentTestCase);
+            try {
+                runSteps(parentTestCase);
+            } finally {
+                resetDynamicMaxIter(parentTestCase);
+            }
+        }
+    }
 
-                if (!testStep.isCommented()) {
-                    checkForStartLoop(testStep, currStep);
-                    try {
-                        if (
+    private void resetDynamicMaxIter(TestCase parentTestCase) {
+        if (parentTestCase != null) {
+            parentTestCase.setDynamicMaxIter(null);
+        }
+        this.getRoot().getTestCase().setDynamicMaxIter(null);
+    }
+
+    private void runSteps(TestCase parentTestCase)
+        throws DriverClosedException, TestFailedException {
+        boolean isLastData = false;
+        for (int currStep = 0; canRunStep(currStep); currStep++) {
+            TestStep testStep = testCase.getTestSteps().get(currStep);
+            currentStepIndex = currStep;
+
+            if (!testStep.isCommented()) {
+                checkForStartLoop(testStep, currStep);
+                try {
+                    if (
+                        (
+                            Parameter.startParamRLoop(testStep.getCondition()) &&
                             (
-                                Parameter.startParamRLoop(testStep.getCondition()) &&
+                                parentTestCase != null &&
+                                parentTestCase.getDynamicMaxIter() != null &&
+                                (parentTestCase.getDynamicMaxIter() <= this.currentSubIteration) ||
                                 (
-                                    parentTestCase != null &&
-                                    parentTestCase.getDynamicMaxIter() != null &&
-                                    (
-                                        parentTestCase.getDynamicMaxIter() <=
-                                        this.currentSubIteration
-                                    ) ||
-                                    (
-                                        this.getRoot().getTestCase().getDynamicMaxIter() != null &&
-                                        this.getRoot().getTestCase().getDynamicMaxIter() <=
-                                        this.currentSubIteration
-                                    )
+                                    this.getRoot().getTestCase().getDynamicMaxIter() != null &&
+                                    this.getRoot().getTestCase().getDynamicMaxIter() <=
+                                    this.currentSubIteration
                                 )
                             )
-                        ) {
-                            //Skip to EndParam
-                            while (!Parameter.endParamRLoop(testStep.getCondition())) {
-                                currStep++;
-                                testStep = testCase.getTestSteps().get(currStep);
-                            }
-                            // Increment one more time to exit the Param block
+                        )
+                    ) {
+                        //Skip to EndParam
+                        while (!Parameter.endParamRLoop(testStep.getCondition())) {
                             currStep++;
                             testStep = testCase.getTestSteps().get(currStep);
-                            if (parentTestCase != null) {
-                                parentTestCase.setDynamicMaxIter(null);
-                            }
                         }
-
-                        runStep(testStep);
-                        if (testStep.isHardAssertion() && lastStepFailed()) {
-                            /*
-                             * Hard assertion failed: fail and stop the current
-                             * iteration. Setting stopCurrentIteration makes
-                             * canRunStep() false so the loop ends gracefully and
-                             * the outer Task loop continues with the next
-                             * iteration.
-                             */
-                            getReport()
-                                .updateTestLog(
-                                    testStep.getAction(),
-                                    "Hard assertion failed - stopping current iteration",
-                                    Status.DEBUG
-                                );
-                            SystemDefaults.stopCurrentIteration.set(true);
-                            return;
-                        }
-                        isLastData = checkIfLastData(testStep, currStep);
-                    } catch (DriverClosedException | TestFailedException | UnCaughtException ex) {
-                        throw ex;
-                    } catch (DataNotFoundException ex) {
-                        onDataNotFoundException(ex);
-                        currStep = breakSubIteration();
-                        if (currStep >= 0) {
-                            /**
-                             * break out of sub-iteration and continue the
-                             * execution
-                             */
-                            continue;
-                        } else {
-                            /**
-                             * error while breaking the execution
-                             */
-                            if (ex.cause.isEndData()) {
-                                throw new DataNotFoundException("End SubIteration");
-                            } else {
-                                throw new TestFailedException(scenario(), testcase(), ex);
-                            }
-                        }
-                    } catch (ForcedException | ElementException ex) {
-                        onRuntimeException(ex);
-                    } catch (ActionException ex) {
-                        onPlaywrightException(ex);
-                    } catch (Throwable ex) {
-                        onError(ex);
-                    }
-
-                    if (isLastData) {
-                        this.breakSubIterationFlag = false;
+                        // Increment one more time to exit the Param block
+                        currStep++;
+                        testStep = testCase.getTestSteps().get(currStep);
                         if (parentTestCase != null) {
-                            parentTestCase.setExitParamLoop(true);
-                        } else {
-                            // Normal flow: No reusable component
-                            checkForEndLoop(testStep, currStep);
-                            continue;
+                            parentTestCase.setDynamicMaxIter(null);
                         }
                     }
-                    currStep = checkForEndLoop(testStep, currStep);
+
+                    runStep(testStep);
+                    if (testStep.isHardAssertion() && lastStepFailed()) {
+                        /*
+                         * Hard assertion failed: fail and stop the current
+                         * iteration. Setting stopCurrentIteration makes
+                         * canRunStep() false so the loop ends gracefully and
+                         * the outer Task loop continues with the next
+                         * iteration.
+                         */
+                        getReport()
+                            .updateTestLog(
+                                testStep.getAction(),
+                                "Hard assertion failed - stopping current iteration",
+                                Status.DEBUG
+                            );
+                        SystemDefaults.stopCurrentIteration.set(true);
+                        return;
+                    }
+                    isLastData = checkIfLastData(testStep, currStep);
+                } catch (DriverClosedException | TestFailedException | UnCaughtException ex) {
+                    throw ex;
+                } catch (DataNotFoundException ex) {
+                    onDataNotFoundException(ex);
+                    currStep = breakSubIteration();
+                    if (currStep >= 0) {
+                        /**
+                         * break out of sub-iteration and continue the
+                         * execution
+                         */
+                        continue;
+                    } else {
+                        /**
+                         * error while breaking the execution
+                         */
+                        if (ex.cause.isEndData()) {
+                            throw new DataNotFoundException("End SubIteration");
+                        } else {
+                            throw new TestFailedException(scenario(), testcase(), ex);
+                        }
+                    }
+                } catch (ForcedException | ElementException ex) {
+                    onRuntimeException(ex);
+                } catch (ActionException ex) {
+                    onPlaywrightException(ex);
+                } catch (Throwable ex) {
+                    onError(ex);
                 }
-            }
-            if (parentTestCase != null) {
-                parentTestCase.setDynamicMaxIter(null);
-                this.getRoot().getTestCase().setDynamicMaxIter(null);
+
+                if (isLastData) {
+                    this.breakSubIterationFlag = false;
+                    if (parentTestCase != null) {
+                        parentTestCase.setExitParamLoop(true);
+                    } else {
+                        // Normal flow: No reusable component
+                        checkForEndLoop(testStep, currStep);
+                        continue;
+                    }
+                }
+                currStep = checkForEndLoop(testStep, currStep);
             }
         }
     }
