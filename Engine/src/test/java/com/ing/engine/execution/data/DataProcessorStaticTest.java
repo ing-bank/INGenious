@@ -63,4 +63,28 @@ public class DataProcessorStaticTest {
     public void testIsInputPatternDataSheetFalseForEmpty() {
         assertThat(DataProcessor.isInputPatternDataSheet("")).isFalse();
     }
+
+    // ---- isInputPatternDataSheet: Shared/Project Test Data scope tags ----
+
+    @Test
+    public void testIsInputPatternDataSheetTrueForBracedSharedTag() {
+        assertThat(DataProcessor.isInputPatternDataSheet("{Sheet1:Column1@Shared}")).isTrue();
+    }
+
+    @Test
+    public void testIsInputPatternDataSheetTrueForBracedProjectTag() {
+        assertThat(DataProcessor.isInputPatternDataSheet("{Sheet1:Column1@Project}")).isTrue();
+    }
+
+    @Test
+    public void testIsInputPatternDataSheetTrueForBareSharedTag() {
+        // The trailing @Shared/@Project tag never starts with "[", so it's a plain
+        // Sheet:Column reference as far as the generic bare/braced patterns are concerned.
+        assertThat(DataProcessor.isInputPatternDataSheet("Sheet1:Column1@Shared")).isTrue();
+    }
+
+    @Test
+    public void testIsInputPatternDataSheetTrueForBareProjectTag() {
+        assertThat(DataProcessor.isInputPatternDataSheet("Sheet1:Column1@Project")).isTrue();
+    }
 }

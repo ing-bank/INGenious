@@ -7,6 +7,7 @@ import static com.ing.datalib.component.TestStep.HEADERS.Input;
 import static com.ing.datalib.component.TestStep.HEADERS.ObjectName;
 import static com.ing.datalib.component.TestStep.HEADERS.Reference;
 
+import com.ing.datalib.component.EnvTestData;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
@@ -305,6 +306,10 @@ public class TestCaseAutoSuggest {
 
         inputAutoSuggest =
             (InputAutoSuggest) new InputAutoSuggest().withOnHide(stopEditingOnFocusLost());
+        // Test Data sheet suggestions are no longer scope-prefixed (the @Shared/@Project tag now
+        // trails the whole Sheet:Column reference, appended after the column is chosen), so the
+        // dedicated Project/Shared header-and-color renderer that used to live here is gone -
+        // the default renderer is used instead.
     }
 
     private boolean isStringOpsEditor() {
@@ -1130,16 +1135,35 @@ public class TestCaseAutoSuggest {
             return newFList;
         }
 
+        /**
+         * A sheet reference's scope tag ("@Shared"/"@Project") now trails the whole
+         * {@code Sheet:Column} reference (after the column), not the sheet name - see
+         * DataAccessInternal for the runtime-side parsing. Autosuggest triggers while the user
+         * is still typing the sheet/column, before the tag exists, so the sheet name offered
+         * here is always bare and column lookups are merged across both Test Data stores.
+         */
+        private String stripLeadingBrace(String s) {
+            return s.startsWith("{") ? s.substring(1) : s;
+        }
+
         private List setupTestData(String value) {
             if (value != null && value.contains(":")) {
                 prevText = value.substring(0, value.indexOf(':'));
                 isPending = true;
                 Set colList = new LinkedHashSet<>();
-                String tdName = value.substring(0, value.indexOf(':'));
-                for (TestData sTestData : sProject.getTestData().getAllEnvironments()) {
-                    for (TestDataModel stdList : sTestData.getTestDataList()) {
-                        if (stdList.getName().equals(tdName)) {
-                            colList.addAll(stdList.getColumns());
+                String tdName = stripLeadingBrace(prevText).trim();
+                for (EnvTestData source : Arrays.asList(
+                    sProject.getTestData(),
+                    sProject.getSharedTestData()
+                )) {
+                    if (source == null) {
+                        continue;
+                    }
+                    for (TestData sTestData : source.getAllEnvironments()) {
+                        for (TestDataModel stdList : sTestData.getTestDataList()) {
+                            if (stdList.getName().equals(tdName)) {
+                                colList.addAll(stdList.getColumns());
+                            }
                         }
                     }
                 }
@@ -1150,6 +1174,13 @@ public class TestCaseAutoSuggest {
                 for (TestData sTestData : sProject.getTestData().getAllEnvironments()) {
                     for (TestDataModel stdList : sTestData.getTestDataList()) {
                         tdList.add(stdList.getName());
+                    }
+                }
+                if (sProject.getSharedTestData() != null) {
+                    for (TestData sTestData : sProject.getSharedTestData().getAllEnvironments()) {
+                        for (TestDataModel stdList : sTestData.getTestDataList()) {
+                            tdList.add(stdList.getName());
+                        }
                     }
                 }
                 return new ArrayList<>(tdList);
@@ -1196,7 +1227,7 @@ public class TestCaseAutoSuggest {
                 !o.toString().contains(":")
             ) {
                 if (isPending && prevText != null && !isStringOpsEditor) {
-                    o = prevText + ":" + o.toString();
+                    o = stripLeadingBrace(prevText) + ":" + o.toString();
                 } else if (isPending && prevText != null && isStringOpsEditor) {
                     o = prevText + o.toString();
                 }
@@ -1207,7 +1238,8 @@ public class TestCaseAutoSuggest {
         @Override
         public String preReset(String val) {
             if (!val.isEmpty() && !val.equals(getText()) && !val.contains(":")) {
-                val = getText().split(":")[0] + ":" + val;
+                String prefix = stripLeadingBrace(getText().split(":")[0]);
+                val = prefix + ":" + val;
                 table.setValueAt(val, table.getSelectedRow(), table.getSelectedColumn());
                 return val;
             }
