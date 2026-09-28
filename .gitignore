@@ -49,6 +49,7 @@ Thumbs.db
 
 # other files
 recent.items
+.*/settings.json
 # INGenious AI CLI runtime state (session, history, undo journal)
 .ingenious/
 
