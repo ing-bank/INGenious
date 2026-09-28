@@ -402,6 +402,24 @@ public class TestCaseAutoSuggest {
         return newList;
     }
 
+    public List getKafkaProducerAliasList() {
+        List values = sProject.getProjectSettings().getKafkaProducerSettings().getProducerList();
+        List newList = new ArrayList<>();
+        for (Object string : values) {
+            newList.add("#" + string);
+        }
+        return newList;
+    }
+
+    public List getKafkaConsumerAliasList() {
+        List values = sProject.getProjectSettings().getKafkaConsumerSettings().getConsumerList();
+        List newList = new ArrayList<>();
+        for (Object string : values) {
+            newList.add("#" + string);
+        }
+        return newList;
+    }
+
     private void startEditing(final AutoSuggest suggest) {
         SwingUtilities.invokeLater(
             new Runnable() {
@@ -731,6 +749,19 @@ public class TestCaseAutoSuggest {
             );
             if ("Webservice".equals(objectName)) {
                 return getAPIAliasList();
+            } else if ("Kafka".equals(objectName)) {
+                List combined = new ArrayList<>();
+                for (Object alias : getKafkaProducerAliasList()) {
+                    if (!combined.contains(alias)) {
+                        combined.add(alias);
+                    }
+                }
+                for (Object alias : getKafkaConsumerAliasList()) {
+                    if (!combined.contains(alias)) {
+                        combined.add(alias);
+                    }
+                }
+                return combined;
             } else {
                 return getContextAliasList();
             }

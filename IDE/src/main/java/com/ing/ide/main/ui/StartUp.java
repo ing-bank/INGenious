@@ -579,7 +579,7 @@ public class StartUp extends javax.swing.JDialog {
                 testDataType.getSelectedItem().toString()
             );
             closeWindow();
-            sMainFrame.adjustUI();
+            // adjustUI is called automatically via afterProjectChange
             sMainFrame.setVisible(true);
         } else {
             error.setText(
@@ -592,7 +592,7 @@ public class StartUp extends javax.swing.JDialog {
         if (new File(location).exists()) {
             sMainFrame.loadProject(location);
             closeWindow();
-            sMainFrame.adjustUI();
+            // adjustUI is called automatically via afterProjectChange
             sMainFrame.setVisible(true);
             if (recentChanged) {
                 AppSettings.store("Options Changed");

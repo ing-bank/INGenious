@@ -26,6 +26,8 @@ public class ActionRenderer extends AbstractRenderer {
     final String reusableNotPresent = "Reusable is not available in the Project";
     final String reusableHasError = "Reusable has IDE validation error(s)";
     final String reusableNotPresentScoped = "Reusable is not available in %s scope";
+    final String deprecatedActionTooltip =
+        "This action is soon to be deprecated. Use a named Kafka Configuration (#alias) instead.";
 
     public ActionRenderer() {
         super("Action Shouldn't be empty.It should be either an action or Reusable");
@@ -62,7 +64,11 @@ public class ActionRenderer extends AbstractRenderer {
             } else if ((step.getObject().equals("Execute"))) {
                 setExecute(comp);
             } else if (isActionValid(step, value)) {
-                setDefault(comp);
+                if (isDeprecatedAction(value)) {
+                    setDeprecated(comp, deprecatedActionTooltip);
+                } else {
+                    setDefault(comp);
+                }
             } else {
                 setNotPresent(comp, actionNotPresent);
             }
@@ -116,6 +122,17 @@ public class ActionRenderer extends AbstractRenderer {
     private String getDesc(Object value) {
         String val = MethodInfoManager.getDescriptionFor(value.toString());
         return val.isEmpty() ? null : val;
+    }
+
+    /**
+     * Checks whether the given action is annotated {@code deprecated = true},
+     * meaning it has been superseded (e.g. by a named Kafka Configuration) and
+     * is scheduled for removal in a future release.
+     */
+    private boolean isDeprecatedAction(Object value) {
+        String action = Objects.toString(value, "").trim();
+        com.ing.ingenious.api.annotation.Action annotation = MethodInfoManager.getActionFor(action);
+        return annotation != null && annotation.deprecated();
     }
 
     /**

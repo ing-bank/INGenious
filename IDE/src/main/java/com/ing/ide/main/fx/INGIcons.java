@@ -167,6 +167,7 @@ public final class INGIcons {
         register("summary", MaterialDesignC.CHART_BAR, CLR_CREATE);
         register("detailedSummary", MaterialDesignC.CHART_BOX, CLR_DATA);
         register("latestSummary", MaterialDesignF.FILE_CHART, CLR_CREATE);
+        register("importReports", MaterialDesignF.FILE_DOCUMENT_MULTIPLE, CLR_DATA);
 
         // ── Panel Header Actions ──
         register("up", MaterialDesignA.ARROW_UP, CLR_SEARCH);
@@ -181,6 +182,7 @@ public final class INGIcons {
         register("testexecution", MaterialDesignP.PLAY_BOX, CLR_RUN);
         register("dashboard", MaterialDesignV.VIEW_DASHBOARD, CLR_CREATE);
         register("apidock", MaterialDesignS.SERVER_NETWORK, CLR_TOOL);
+        register("dbdock", MaterialDesignD.DATABASE, CLR_DATA);
         register("perfstudio", MaterialDesignS.SPEEDOMETER, CLR_RUN);
 
         // ── Table ──
