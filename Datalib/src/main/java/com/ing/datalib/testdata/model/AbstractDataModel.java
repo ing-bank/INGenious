@@ -11,6 +11,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.event.TableModelEvent;
 
 /**
@@ -353,23 +355,43 @@ public abstract class AbstractDataModel<T extends List<String>> extends UndoRedo
     }
 
     public final void load() {
-        loadMColumns();
-        loadMRecords();
+        boolean columnsRead = loadMColumns();
+        boolean recordsRead = loadMRecords();
         fireTableStructureChanged();
-        setSaved(true);
+        // Only treat the model as "in sync with disk" if something was actually read back.
+        // A Reload whose backing file is missing must not mark unsaved edits as saved.
+        if (columnsRead || recordsRead) {
+            setSaved(true);
+        }
         super.clearUndoRedo();
     }
 
-    private void loadMRecords() {
-        records.clear();
+    private boolean loadMRecords() {
+        boolean read = false;
         if (isFromFile) {
-            if (new File(getLocation()).exists()) {
-                loadRecords(new File(getLocation()));
+            File file = new File(getLocation());
+            if (file.exists()) {
+                records.clear();
+                loadRecords(file);
+                read = true;
+            } else {
+                // No persisted file to reload from - keep the current in-memory rows rather
+                // than silently emptying the sheet. "Reload" must never destroy unsaved data.
+                Logger
+                    .getLogger(AbstractDataModel.class.getName())
+                    .log(
+                        Level.WARNING,
+                        "Reload skipped for ''{0}'': backing file not found; keeping current rows",
+                        getLocation()
+                    );
             }
         } else {
+            records.clear();
             loadRecords();
+            read = true;
         }
         super.clearUndoRedo();
+        return read;
     }
 
     public void removeEmptyRecords() {
@@ -392,22 +414,30 @@ public abstract class AbstractDataModel<T extends List<String>> extends UndoRedo
         }
     }
 
-    private void loadMColumns() {
+    private boolean loadMColumns() {
+        boolean read = false;
         if (isFromFile) {
-            if (new File(getLocation()).exists()) {
+            File file = new File(getLocation());
+            if (file.exists()) {
                 // Load columns from file
-                java.util.Set<String> fileCols = loadColumns(new File(getLocation()));
+                java.util.Set<String> fileCols = loadColumns(file);
                 java.util.List<String> colsList = new java.util.ArrayList<>(fileCols);
 
                 // Allow subclasses to perform column migration (e.g., TestDataModel adds Scope column)
                 colsList = migrateColumnsIfNeeded(colsList);
 
                 setColumns(colsList);
+                read = true;
             }
+            // Missing file: keep the current columns rather than blanking the header.
         } else {
             setColumns(loadColumns());
+            read = true;
         }
-        setSaved(true);
+        if (read) {
+            setSaved(true);
+        }
+        return read;
     }
 
     /**
