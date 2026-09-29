@@ -123,14 +123,15 @@ public class AppActionListener implements ActionListener {
             case "Mobile Spy":
                 sMainFrame.getSpyHealReco().showMobileSpy();
                 break;
-            case "Mobile Recorder":
-                if (sMainFrame.getProject() == null) {
-                    Notification.show("Open a project before starting the Mobile Recorder.");
-                } else {
-                    new com.ing.ide.main.mobilerecorder.MobileRecorderFrame(sMainFrame)
-                    .setVisible(true);
-                }
-                break;
+            /**** Mobile Recorder is disabled ****/
+            // case "Mobile Recorder":
+            //     if (sMainFrame.getProject() == null) {
+            //         Notification.show("Open a project before starting the Mobile Recorder.");
+            //     } else {
+            //         new com.ing.ide.main.mobilerecorder.MobileRecorderFrame(sMainFrame)
+            //         .setVisible(true);
+            //     }
+            //     break;
             case "Exploratory":
                 {
                     try {

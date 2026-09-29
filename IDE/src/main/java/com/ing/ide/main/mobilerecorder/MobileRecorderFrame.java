@@ -736,8 +736,10 @@ public final class MobileRecorderFrame extends JFrame {
 
     private TestCase resolveTarget(Project project, RecordingTargetDialog.Selection selection) {
         switch (selection.getMode()) {
-            case CURRENT_OPEN_TEST_CASE:
-                return mainFrame.getTestDesign().getTestCaseComp().getCurrentTestCase();
+            /**** Mobile Recorder is disabled; RecordingTargetDialog no longer exposes
+                  CURRENT_OPEN_TEST_CASE / EXISTING_TEST_CASE. ****/
+            // case CURRENT_OPEN_TEST_CASE:
+            //     return mainFrame.getTestDesign().getTestCaseComp().getCurrentTestCase();
             case NEW_TEST_SCENARIO:
                 return createOrResolve(
                     project,
@@ -752,13 +754,13 @@ public final class MobileRecorderFrame extends JFrame {
                     selection.getTestCaseName(),
                     true
                 );
-            case EXISTING_TEST_CASE:
-                return findExisting(
-                    project,
-                    selection.getExistingScenarioName(),
-                    selection.getTestCaseName(),
-                    selection.isExistingReusable()
-                );
+            // case EXISTING_TEST_CASE:
+            //     return findExisting(
+            //         project,
+            //         selection.getExistingScenarioName(),
+            //         selection.getTestCaseName(),
+            //         selection.isExistingReusable()
+            //     );
             default:
                 return null;
         }

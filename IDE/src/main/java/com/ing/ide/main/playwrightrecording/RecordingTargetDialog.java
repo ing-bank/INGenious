@@ -1,7 +1,6 @@
 package com.ing.ide.main.playwrightrecording;
 
 import com.ing.datalib.component.Project;
-import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -12,12 +11,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
-import java.util.ArrayList;
-import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -29,9 +25,7 @@ public class RecordingTargetDialog extends JDialog {
 
     public enum Mode {
         NEW_TEST_SCENARIO,
-        NEW_REUSABLE_SCENARIO,
-        CURRENT_OPEN_TEST_CASE,
-        EXISTING_TEST_CASE
+        NEW_REUSABLE_SCENARIO
     }
 
     public static class Selection {
@@ -83,16 +77,11 @@ public class RecordingTargetDialog extends JDialog {
 
     private JRadioButton newScenarioRadio;
     private JRadioButton newReusableRadio;
-    private JRadioButton currentOpenRadio;
-    private JRadioButton existingRadio;
 
     private javax.swing.JTextField newScenarioNameField;
     private javax.swing.JTextField newScenarioTestCaseField;
     private javax.swing.JTextField newReusableNameField;
     private javax.swing.JTextField newReusableTestCaseField;
-
-    private JComboBox<ScenarioWrapper> existingScenarioCombo;
-    private JComboBox<String> existingTestCaseCombo;
 
     private RecordingTargetDialog(Frame owner, Project project, TestCase currentTestCase) {
         super(owner, "Choose Recording Target", true);
@@ -129,13 +118,9 @@ public class RecordingTargetDialog extends JDialog {
         ButtonGroup group = new ButtonGroup();
         newScenarioRadio = new JRadioButton("New test case under Test Scenario", true);
         newReusableRadio = new JRadioButton("New test case under Reusable Scenario");
-        currentOpenRadio = new JRadioButton("Use currently open test case");
-        existingRadio = new JRadioButton("Use an existing test case");
 
         group.add(newScenarioRadio);
         group.add(newReusableRadio);
-        group.add(currentOpenRadio);
-        group.add(existingRadio);
 
         content.add(newScenarioRadio, gbc);
         gbc.gridy++;
@@ -157,27 +142,11 @@ public class RecordingTargetDialog extends JDialog {
                 "Reusable scenario",
                 newReusableNameField = new javax.swing.JTextField("LiveRecordingReusable"),
                 "Test case",
-                newReusableTestCaseField = new javax.swing.JTextField("LiveRecordingTestCase")
+                newReusableTestCaseField =
+                    new javax.swing.JTextField("LiveRecordingReusableTestCase")
             ),
             gbc
         );
-
-        gbc.gridy++;
-        content.add(currentOpenRadio, gbc);
-
-        gbc.gridy++;
-        content.add(existingRadio, gbc);
-        gbc.gridy++;
-        existingScenarioCombo = new JComboBox<>();
-        existingTestCaseCombo = new JComboBox<>();
-        populateScenarioCombo();
-        JPanel existingPanel = formPanel(
-            "Scenario",
-            existingScenarioCombo,
-            "Test case",
-            existingTestCaseCombo
-        );
-        content.add(existingPanel, gbc);
 
         add(content, BorderLayout.CENTER);
 
@@ -196,13 +165,6 @@ public class RecordingTargetDialog extends JDialog {
         java.awt.event.ActionListener listener = e -> updateEnabledState();
         newScenarioRadio.addActionListener(listener);
         newReusableRadio.addActionListener(listener);
-        currentOpenRadio.addActionListener(listener);
-        existingRadio.addActionListener(listener);
-        existingScenarioCombo.addActionListener(e -> populateTestCaseCombo());
-
-        if (currentTestCase == null) {
-            currentOpenRadio.setEnabled(false);
-        }
 
         updateEnabledState();
         pack();
@@ -243,45 +205,15 @@ public class RecordingTargetDialog extends JDialog {
         return panel;
     }
 
-    private void populateScenarioCombo() {
-        existingScenarioCombo.removeAllItems();
-        List<ScenarioWrapper> wrappers = new ArrayList<>();
-        for (Scenario scenario : project.getScenarios()) {
-            wrappers.add(new ScenarioWrapper(scenario, false));
-        }
-        for (Scenario scenario : project.getReusableScenarios()) {
-            wrappers.add(new ScenarioWrapper(scenario, true));
-        }
-        for (ScenarioWrapper wrapper : wrappers) {
-            existingScenarioCombo.addItem(wrapper);
-        }
-        populateTestCaseCombo();
-    }
-
-    private void populateTestCaseCombo() {
-        existingTestCaseCombo.removeAllItems();
-        ScenarioWrapper wrapper = (ScenarioWrapper) existingScenarioCombo.getSelectedItem();
-        if (wrapper == null) {
-            return;
-        }
-        for (TestCase testCase : wrapper.scenario.getTestCases()) {
-            existingTestCaseCombo.addItem(testCase.getName());
-        }
-    }
-
     private void updateEnabledState() {
         boolean newScenario = newScenarioRadio.isSelected();
         boolean newReusable = newReusableRadio.isSelected();
-        boolean existing = existingRadio.isSelected();
 
         newScenarioNameField.setEnabled(newScenario);
         newScenarioTestCaseField.setEnabled(newScenario);
 
         newReusableNameField.setEnabled(newReusable);
         newReusableTestCaseField.setEnabled(newReusable);
-
-        existingScenarioCombo.setEnabled(existing);
-        existingTestCaseCombo.setEnabled(existing);
     }
 
     private void onOk(ActionEvent e) {
@@ -313,44 +245,6 @@ public class RecordingTargetDialog extends JDialog {
             }
             selection =
                 new Selection(Mode.NEW_REUSABLE_SCENARIO, scenarioName, testCaseName, null, true);
-        } else if (currentOpenRadio.isSelected()) {
-            if (currentTestCase == null) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "No test case is currently open.",
-                    "Validation",
-                    JOptionPane.WARNING_MESSAGE
-                );
-                return;
-            }
-            selection =
-                new Selection(
-                    Mode.CURRENT_OPEN_TEST_CASE,
-                    currentTestCase.getScenario().getName(),
-                    currentTestCase.getName(),
-                    currentTestCase.getScenario().getName(),
-                    currentTestCase.getScenario().isReusableScenario()
-                );
-        } else {
-            ScenarioWrapper wrapper = (ScenarioWrapper) existingScenarioCombo.getSelectedItem();
-            String selectedTestCase = (String) existingTestCaseCombo.getSelectedItem();
-            if (wrapper == null || selectedTestCase == null || selectedTestCase.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Please choose an existing scenario and test case.",
-                    "Validation",
-                    JOptionPane.WARNING_MESSAGE
-                );
-                return;
-            }
-            selection =
-                new Selection(
-                    Mode.EXISTING_TEST_CASE,
-                    wrapper.scenario.getName(),
-                    selectedTestCase,
-                    wrapper.scenario.getName(),
-                    wrapper.reusable
-                );
         }
 
         dispose();
@@ -358,22 +252,5 @@ public class RecordingTargetDialog extends JDialog {
 
     private String safeTrim(String text) {
         return text == null ? "" : text.trim();
-    }
-
-    private static class ScenarioWrapper {
-        private final Scenario scenario;
-        private final boolean reusable;
-
-        private ScenarioWrapper(Scenario scenario, boolean reusable) {
-            this.scenario = scenario;
-            this.reusable = reusable;
-        }
-
-        @Override
-        public String toString() {
-            return reusable
-                ? "[Reusable] " + scenario.getName()
-                : "[Scenario] " + scenario.getName();
-        }
     }
 }

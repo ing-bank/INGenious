@@ -47,7 +47,7 @@ public class AppToolBar extends JToolBar {
         //addSeparator();
         //add(createButton("Mobile Spy")); /**** This is disabled to ensure that the mobile capabilities are captured from Appium Inspector ****/
         addSeparator();
-        add(createButton("Mobile Recorder"));
+        // add(createButton("Mobile Recorder")); /**** Mobile Recorder is disabled ****/
         addSeparator();
         add(createButton("Settings"));
         add(createButton("Archetype Configurations"));
