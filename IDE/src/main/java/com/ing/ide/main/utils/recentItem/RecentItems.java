@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -19,7 +20,11 @@ import javax.swing.JMenuItem;
 public class RecentItems extends JMenu implements ActionListener {
     private static final Logger LOG = Logger.getLogger(RecentItems.class.getName());
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final File RECENT_FILE = new File("recent.items");
+    // Absolute path: a relative "recent.items" resolves against the process cwd,
+    // which can be a read-only location (e.g. "/" for a packaged macOS app).
+    private static final File RECENT_FILE = Path
+        .of(System.getProperty("user.home"), ".ingenious", "recent.items")
+        .toFile();
 
     private List<RecentItem> RECENT_ITEMS = new ArrayList<>();
 
@@ -102,6 +107,7 @@ public class RecentItems extends JMenu implements ActionListener {
 
     public void save() {
         try {
+            RECENT_FILE.getParentFile().mkdirs();
             MAPPER.writeValue(RECENT_FILE, RECENT_ITEMS);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error saving recent items", ex);
