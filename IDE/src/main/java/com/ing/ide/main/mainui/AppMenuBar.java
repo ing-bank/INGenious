@@ -289,6 +289,7 @@ public class AppMenuBar extends JMenuBar {
         );
 
         tools.addSeparator();
+        tools.add(withMnemonics(Utils.createMenuItem("Mobile Recorder", sActionListener), 'R'));
         tools.add(withMnemonics(Utils.createMenuItem("Project Health", sActionListener), 'P'));
 
         return tools;
@@ -338,13 +339,14 @@ public class AppMenuBar extends JMenuBar {
 
         window.add(createAPIWorkbenchMenuItem());
 
-        // window.add(
-        //     withMnemonics(
-        //         withShortCut(withCopilotIcon(Utils.createMenuItem("INGenie", sActionListener))),
-        //         'I'
-        //     )
-        // );
         window.add(createDBWorkbenchMenuItem());
+
+        window.add(
+            withMnemonics(
+                withShortCut(withCopilotIcon(Utils.createMenuItem("INGenie", sActionListener))),
+                'I'
+            )
+        );
 
         window.add(
             withMnemonics(withShortCut(Utils.createMenuItem("AdjustUI", sActionListener)), 'A')

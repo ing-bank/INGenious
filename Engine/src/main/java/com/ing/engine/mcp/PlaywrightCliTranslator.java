@@ -73,7 +73,7 @@ public final class PlaywrightCliTranslator {
         switch (verb) {
             case "open":
             case "goto":
-                steps.add(new Step("NavigateTo", "", a1));
+                steps.add(new Step("Open", "Browser", a1));
                 break;
             case "click":
                 steps.add(new Step("Click", a1, "", a1));
@@ -82,10 +82,10 @@ public final class PlaywrightCliTranslator {
                 steps.add(new Step("DoubleClick", a1, "", a1));
                 break;
             case "fill":
-                steps.add(new Step("SetText", a1, restFrom2, a1));
+                steps.add(new Step("Fill", a1, restFrom2, a1));
                 break;
             case "type":
-                steps.add(new Step("Type", "", rest));
+                steps.add(new Step("PressSequentially", a1, restFrom2, a1));
                 break;
             case "check":
                 steps.add(new Step("Check", a1, "", a1));
@@ -94,29 +94,29 @@ public final class PlaywrightCliTranslator {
                 steps.add(new Step("Uncheck", a1, "", a1));
                 break;
             case "select":
-                steps.add(new Step("SelectByValue", a1, restFrom2, a1));
+                steps.add(new Step("SelectSingleByText", a1, restFrom2, a1));
                 break;
             case "hover":
-                steps.add(new Step("Hover", a1, "", a1));
+                steps.add(new Step("MouseHover", a1, "", a1));
                 break;
             case "press":
-                steps.add(new Step("PressKey", "", rest));
+                steps.add(new Step("KeyPress", "", rest));
                 break;
             case "upload":
-                // upload <file> (per Playwright CLI docs, no ref)
-                steps.add(new Step("UploadFile", "", rest));
+                // upload <ref> <file> (per Playwright CLI docs)
+                steps.add(new Step("SetInputFiles", a1, restFrom2, a1));
                 break;
             case "screenshot":
-                steps.add(new Step("CaptureScreenshot", a1, ""));
+                steps.add(new Step("TakePageScreenshot", a1, ""));
                 break;
             case "go-back":
-                steps.add(new Step("NavigateBack", "", ""));
+                steps.add(new Step("GoBack", "", ""));
                 break;
             case "go-forward":
-                steps.add(new Step("NavigateForward", "", ""));
+                steps.add(new Step("GoForward", "", ""));
                 break;
             case "reload":
-                steps.add(new Step("Refresh", "", ""));
+                steps.add(new Step("Reload", "", ""));
                 break;
             default:
                 // snapshot, console, tracing-*, video-*, tab-*, network, etc.

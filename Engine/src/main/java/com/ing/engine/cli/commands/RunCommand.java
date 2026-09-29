@@ -208,8 +208,18 @@ public class RunCommand implements Callable<Integer> {
         args.add("-browser");
         args.add(com.ing.engine.cli.lib.BrowserNames.normalize(browser));
         if (headless) {
-            args.add("-op_setHeadless");
-            args.add("true");
+            // -op_setHeadless is not a legacy option; apply headless via the
+            // working capability override that ProjectRunner.overrideWithEnv reads.
+            com.ing.engine.constants.SystemDefaults.EnvVars.put(
+                "capability." +
+                com.ing.engine.cli.lib.BrowserNames.normalize(browser) +
+                ".setHeadless",
+                "true"
+            );
+        }
+        if (recordHar) {
+            args.add("-setEnv");
+            args.add("run.enableHAR=true");
         }
         if (recordHar) {
             args.add("-setEnv");
@@ -455,8 +465,12 @@ public class RunCommand implements Callable<Integer> {
             args.add("-browser");
             args.add(com.ing.engine.cli.lib.BrowserNames.normalize(browser));
             if (headless) {
-                args.add("-op_setHeadless");
-                args.add("true");
+                com.ing.engine.constants.SystemDefaults.EnvVars.put(
+                    "capability." +
+                    com.ing.engine.cli.lib.BrowserNames.normalize(browser) +
+                    ".setHeadless",
+                    "true"
+                );
             }
             try {
                 com.ing.engine.core.Control.main(args.toArray(new String[0]));
@@ -595,8 +609,14 @@ public class RunCommand implements Callable<Integer> {
             args.add(config.get("browser").toString());
 
             if ((boolean) config.getOrDefault("headless", false)) {
-                args.add("-op_setHeadless");
-                args.add("true");
+                com.ing.engine.constants.SystemDefaults.EnvVars.put(
+                    "capability." +
+                    com.ing.engine.cli.lib.BrowserNames.normalize(
+                        config.get("browser").toString()
+                    ) +
+                    ".setHeadless",
+                    "true"
+                );
             }
 
             try {
@@ -695,8 +715,12 @@ public class RunCommand implements Callable<Integer> {
                 }
 
                 if (headless) {
-                    args.add("-op_setHeadless");
-                    args.add("true");
+                    com.ing.engine.constants.SystemDefaults.EnvVars.put(
+                        "capability." +
+                        com.ing.engine.cli.lib.BrowserNames.normalize(browser) +
+                        ".setHeadless",
+                        "true"
+                    );
                 }
 
                 com.ing.engine.core.Control.main(args.toArray(new String[0]));
@@ -780,8 +804,12 @@ public class RunCommand implements Callable<Integer> {
                 args.add(String.join(",", tags));
 
                 if (headless) {
-                    args.add("-op_setHeadless");
-                    args.add("true");
+                    com.ing.engine.constants.SystemDefaults.EnvVars.put(
+                        "capability." +
+                        com.ing.engine.cli.lib.BrowserNames.normalize(browser) +
+                        ".setHeadless",
+                        "true"
+                    );
                 }
 
                 com.ing.engine.core.Control.main(args.toArray(new String[0]));

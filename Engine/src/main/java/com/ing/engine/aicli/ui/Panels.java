@@ -1,5 +1,6 @@
 package com.ing.engine.aicli.ui;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /** Boxed panels with rounded corners (Claude-Code-style) for the AI CLI. */
@@ -8,6 +9,32 @@ public final class Panels {
 
     public Panels(Theme theme) {
         this.t = theme;
+    }
+
+    /**
+     * Word-wraps {@code line} to at most {@code maxWidth} visible (ANSI-stripped)
+     * characters, splitting on spaces so embedded colour escapes never get cut.
+     * Lines already within the limit are returned unchanged.
+     */
+    public static List<String> wrap(String line, int maxWidth) {
+        if (Theme.visibleLength(line) <= maxWidth) {
+            return List.of(line);
+        }
+        List<String> out = new ArrayList<>();
+        StringBuilder cur = new StringBuilder();
+        for (String word : line.split(" ", -1)) {
+            String candidate = cur.length() == 0 ? word : cur + " " + word;
+            if (Theme.visibleLength(candidate) > maxWidth && cur.length() > 0) {
+                out.add(cur.toString());
+                cur = new StringBuilder(word);
+            } else {
+                cur = new StringBuilder(candidate);
+            }
+        }
+        if (cur.length() > 0) {
+            out.add(cur.toString());
+        }
+        return out;
     }
 
     /** Render a rounded box; title may be null. */

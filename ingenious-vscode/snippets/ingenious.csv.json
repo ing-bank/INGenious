@@ -1,0 +1,37 @@
+{
+  "INGenious step - browser action": {
+    "prefix": "ing-step",
+    "body": "${1:1},${2:Page.element},${3:Description},${4:Click},${5:@value},${6:},${7:}",
+    "description": "A generic INGenious test step row (Step,Object,Description,Action,Input,Condition,Reference)"
+  },
+  "INGenious step - open browser": {
+    "prefix": "ing-open",
+    "body": "${1:1},@Browser,Open the site,Open,@${2:https://example.com},,",
+    "description": "Open a browser to a URL"
+  },
+  "INGenious step - fill": {
+    "prefix": "ing-fill",
+    "body": "${1:1},${2:Page.field},Enter ${3:value},Fill,@${4:value},,",
+    "description": "Fill a form field"
+  },
+  "INGenious step - assert visible": {
+    "prefix": "ing-assert-visible",
+    "body": "${1:1},${2:Page.element},Assert element visible,assertElementIsVisible,,,",
+    "description": "Assert an element is visible"
+  },
+  "INGenious step - API GET": {
+    "prefix": "ing-api-get",
+    "body": "${1:1},Webservice,Send GET,getRestRequest,@${2:/path},,",
+    "description": "Send an API GET request"
+  },
+  "INGenious step - assert response code": {
+    "prefix": "ing-assert-code",
+    "body": "${1:1},Webservice,Assert HTTP status,assertResponseCode,@${2:200},,",
+    "description": "Assert the API response code"
+  },
+  "INGenious step - reusable call": {
+    "prefix": "ing-reuse",
+    "body": "${1:1},Execute,Run reusable,${2:ReusableScenario}:${3:ReusableName},,,[${4:Project}]",
+    "description": "Call a reusable component"
+  }
+}

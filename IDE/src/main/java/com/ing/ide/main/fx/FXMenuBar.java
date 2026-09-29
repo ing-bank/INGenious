@@ -172,6 +172,13 @@ public class FXMenuBar extends JFXPanel {
         );
         bindAccelerator(
             KeyStroke.getKeyStroke(
+                KeyEvent.VK_I,
+                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+            ),
+            "INGenie"
+        );
+        bindAccelerator(
+            KeyStroke.getKeyStroke(
                 KeyEvent.VK_A,
                 InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
             ),
@@ -342,6 +349,7 @@ public class FXMenuBar extends JFXPanel {
             );
 
         tools.getItems().add(new SeparatorMenuItem());
+        tools.getItems().add(menuItem("Mobile Recorder", "recorder"));
         tools.getItems().add(menuItem("Project Health", "dashboard"));
 
         return tools;
