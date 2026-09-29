@@ -213,7 +213,8 @@ public class TestCaseTableDnD extends TransferHandler {
             if (row > table.getRowCount() - 1) {
                 testCase.addNewStep();
             }
-            table.setValueAt(td.getSheetName() + ":" + col, row++, inputColumn);
+            String scopeTag = td.isShared() ? "[Shared] " : "[Project] ";
+            table.setValueAt(scopeTag + td.getSheetName() + ":" + col, row++, inputColumn);
         }
         testCase.stopGroupEdit();
     }

@@ -34,6 +34,18 @@ public class DataProcessor {
         return resolveKeyMapVars(inp, 2);
     }
 
+    /**
+     * "Sheet:Column@Shared" or "Sheet:Column@Project" - an explicit Test Data scope tag, bare or
+     * braced. Mirrors ReusableRef.Scope's [Project]/[Shared] convention (kept as a trailing tag
+     * here, unlike the reusable reference's leading one).
+     */
+    private static final String SCOPED_DATASHEET_PATTERN =
+        "^\\{?[^}\\d:@][^}:@]*:[^}\\d:@][^}:@]*(@Shared|@Project)\\}?$";
+
+    private static boolean isScopedDataSheetRef(String inp) {
+        return inp.matches(SCOPED_DATASHEET_PATTERN);
+    }
+
     private static boolean isInputPatternDynamic(String inp) {
         return (
             inp.matches("(^@|=|>|%)(.*)") || // check if Static string | addVar function | Dynamic Variable
@@ -52,10 +64,11 @@ public class DataProcessor {
                 !inp.matches("^\\{[^:\\d\\s][^:]*\\}")
             ) && // check if does not starts with curly braces with no colon inside
             (
-                inp.matches("^[A-Za-z].*:[A-Za-z].*") || // check if DataSheet:Data
-                inp.matches("^\\{[^}\\d:][^}:]*:[^}\\d:][^}:]*\\}")
-            )
-        ); // check if {DataSheet:Data}
+                inp.matches("^[A-Za-z].*:[A-Za-z].*") || // check if DataSheet:Data(@Scope)
+                inp.matches("^\\{[^}\\d:][^}:]*:[^}\\d:][^}:]*\\}") || // check if {DataSheet:Data(@Scope)}
+                isScopedDataSheetRef(inp)
+            ) // check if Sheet:Column@Shared / Sheet:Column@Project, bare or braced
+        );
     }
 
     public static synchronized String resolve(String raw, TestCaseRunner context, String subIter)
@@ -65,8 +78,13 @@ public class DataProcessor {
         if (isInputPatternDynamic(inp)) {
             inp = resolveDynamic(resolveIn(inp), context);
         } else if (isInputPatternDataSheet(inp)) {
-            String inp_string = inp.startsWith("{") ? inp.substring(1, inp.length() - 1) : inp;
-            String[] args = inp_string.split(":");
+            // Split via TestDataToken, not a naive split(":"), so a trailing @Shared/@Project
+            // scope tag (which sits after the column, not the sheet) doesn't end up corrupting
+            // the column value.
+            String[] args = TestDataToken.parse(inp);
+            if (args == null) {
+                return resolveKeyMapVars(inp, 2, context.getControl().getRunTimeVars());
+            }
             if (!context.isIterResolved(args[0])) {
                 context.setIter(args[0], DataAccess.getIterations(context, args[0]));
             }
@@ -99,6 +117,27 @@ public class DataProcessor {
         return data;
     }
 
+    /**
+     * A Global Data reference, e.g. "#url" or the explicitly-scoped "[Shared] #url"/"[Project]
+     * #url" (mirrors DataAccessInternal's [Shared]/[Project] scope tag convention).
+     */
+    private static boolean isGlobalDataRef(String inp) {
+        String t = Objects.toString(inp, "").trim();
+        if (t.startsWith("#")) {
+            return true;
+        }
+        if (t.startsWith(DataAccessInternal.SHARED_SCOPE_TAG)) {
+            return t.substring(DataAccessInternal.SHARED_SCOPE_TAG.length()).trim().startsWith("#");
+        }
+        if (t.startsWith(DataAccessInternal.PROJECT_SCOPE_TAG)) {
+            return t
+                .substring(DataAccessInternal.PROJECT_SCOPE_TAG.length())
+                .trim()
+                .startsWith("#");
+        }
+        return false;
+    }
+
     public static String resolveDynamicData(Object raw, TestCaseRunner context, String field)
         throws DataNotFoundException {
         String inp = resolveKeyMapVars(
@@ -107,7 +146,7 @@ public class DataProcessor {
             context.getControl().getRunTimeVars()
         );
         inp = resolveDynamic(resolveIn(inp), context);
-        if (inp.startsWith("#")) {
+        if (isGlobalDataRef(inp)) {
             inp = DataAccess.getGlobalData(context, inp, field);
         }
 
@@ -122,7 +161,7 @@ public class DataProcessor {
             context.getControl().getRunTimeVars()
         );
         inp = resolveDynamic(resolveIn(inp), context);
-        if (inp.startsWith("#")) {
+        if (isGlobalDataRef(inp)) {
             inp = DataAccess.getGlobalData(context, inp, field);
         }
 

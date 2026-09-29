@@ -75,6 +75,8 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
         buttonGroup1 = new javax.swing.ButtonGroup();
         jLabel4 = new javax.swing.JLabel();
         testEnv = new javax.swing.JComboBox<>();
+        sharedEnvLabel = new javax.swing.JLabel();
+        sharedTestEnv = new javax.swing.JComboBox<>();
         qsParrelExelabel = new javax.swing.JLabel();
         threadCount = new javax.swing.JSpinner();
         jLabel1 = new javax.swing.JLabel();
@@ -102,6 +104,24 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
 
                 public void itemStateChanged(java.awt.event.ItemEvent evt) {
                     testEnvItemStateChanged(evt);
+                }
+            }
+        );
+
+        sharedEnvLabel.setFont(UIManager.getFont("Table.font"));
+        sharedEnvLabel.setText("Shared Environment");
+
+        sharedTestEnv.setFont(UIManager.getFont("Table.font"));
+        sharedTestEnv.setForeground(new java.awt.Color(0, 0, 255));
+        sharedTestEnv.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Default" }));
+        sharedTestEnv.setToolTipText(
+            "Environment for [Shared] test data - independent of the Environment above"
+        );
+        sharedTestEnv.addItemListener(
+            new java.awt.event.ItemListener() {
+
+                public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                    sharedTestEnvItemStateChanged(evt);
                 }
             }
         );
@@ -224,6 +244,25 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
                                                         )
                                                         .addComponent(
                                                             testEnv,
+                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                            111,
+                                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                                        )
+                                                )
+                                                .addGroup(
+                                                    layout
+                                                        .createSequentialGroup()
+                                                        .addComponent(
+                                                            sharedEnvLabel,
+                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                            111,
+                                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                                        )
+                                                        .addPreferredGap(
+                                                            javax.swing.LayoutStyle.ComponentPlacement.RELATED
+                                                        )
+                                                        .addComponent(
+                                                            sharedTestEnv,
                                                             javax.swing.GroupLayout.PREFERRED_SIZE,
                                                             111,
                                                             javax.swing.GroupLayout.PREFERRED_SIZE
@@ -367,6 +406,23 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
                             layout
                                 .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                 .addComponent(
+                                    sharedTestEnv,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    29,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(
+                                    sharedEnvLabel,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    29,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addGap(18, 18, 18)
+                        .addGroup(
+                            layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(
                                     qsParrelExelabel,
                                     javax.swing.GroupLayout.PREFERRED_SIZE,
                                     29,
@@ -472,6 +528,12 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
         runSettings.setTestEnv(testEnv.getSelectedItem().toString());
     } //GEN-LAST:event_testEnvItemStateChanged
 
+    private void sharedTestEnvItemStateChanged(java.awt.event.ItemEvent evt) {
+        if (sharedTestEnv.getSelectedItem() != null) {
+            runSettings.setSharedTestEnv(sharedTestEnv.getSelectedItem().toString());
+        }
+    }
+
     private void gridModeItemStateChanged(java.awt.event.ItemEvent evt) { //GEN-FIRST:event_gridModeItemStateChanged
         gridUrl.setEnabled(evt.getStateChange() == ItemEvent.SELECTED);
         if (gridMode.isSelected()) {
@@ -493,6 +555,8 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
         reRunNo.setValue(runSettings.getRerunTimes());
         testEnv.setModel(new DefaultComboBoxModel(getEnvList()));
         testEnv.setSelectedItem(runSettings.getTestEnv());
+        sharedTestEnv.setModel(new DefaultComboBoxModel(getSharedEnvList()));
+        sharedTestEnv.setSelectedItem(runSettings.getSharedTestEnv());
         if (runSettings.getExecutionMode().equalsIgnoreCase("grid")) {
             gridUrl.setText(runSettings.getRemoteGridURL());
             gridMode.setSelected(true);
@@ -577,6 +641,10 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
         testEnv.setForeground(panelFg);
         testEnv.setOpaque(true);
 
+        sharedTestEnv.setBackground(panelBg);
+        sharedTestEnv.setForeground(panelFg);
+        sharedTestEnv.setOpaque(true);
+
         gridUrl.setBackground(panelBg);
         gridUrl.setForeground(panelFg);
         gridUrl.setCaretColor(panelFg);
@@ -629,6 +697,9 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
 
     public abstract Object[] getEnvList();
 
+    /** Environment names defined in the app-root Shared Test Data. */
+    public abstract Object[] getSharedEnvList();
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JLabel exeModeLabel;
@@ -644,6 +715,8 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
     private javax.swing.JLabel qsParrelExelabel;
     private javax.swing.JLabel qsRetryExeLabel;
     private javax.swing.JSpinner reRunNo;
+    private javax.swing.JLabel sharedEnvLabel;
+    private javax.swing.JComboBox<String> sharedTestEnv;
     private javax.swing.JComboBox<String> testEnv;
     private javax.swing.JSpinner threadCount;
     // End of variables declaration//GEN-END:variables

@@ -3,6 +3,7 @@ package com.ing.engine.commands.browser;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.LiveRecordingHook;
 import com.ing.engine.core.LiveRecordingService;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.engine.execution.run.TestCaseRunner;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.annotation.Args;
@@ -479,10 +480,9 @@ public class Basic extends General {
         try {
             text = Locator.textContent();
 
-            if (strObj.matches(".*:.*")) {
-                String sheetName = strObj.split(":", 2)[0];
-                String columnName = strObj.split(":", 2)[1];
-                userData.putData(sheetName, columnName, text);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
+                userData.putData(sheetDetail[0], sheetDetail[1], text);
                 Report.updateTestLog(
                     Action,
                     "Element text [" + text + "] is stored in " + strObj,
@@ -553,10 +553,9 @@ public class Basic extends General {
         try {
             text = Locator.innerHTML();
 
-            if (strObj.matches(".*:.*")) {
-                String sheetName = strObj.split(":", 2)[0];
-                String columnName = strObj.split(":", 2)[1];
-                userData.putData(sheetName, columnName, text);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
+                userData.putData(sheetDetail[0], sheetDetail[1], text);
                 Report.updateTestLog(
                     Action,
                     "Element's inner HTML [" + text + "] is stored in " + strObj,
@@ -627,10 +626,9 @@ public class Basic extends General {
         try {
             text = Locator.innerText();
 
-            if (strObj.matches(".*:.*")) {
-                String sheetName = strObj.split(":", 2)[0];
-                String columnName = strObj.split(":", 2)[1];
-                userData.putData(sheetName, columnName, text);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
+                userData.putData(sheetDetail[0], sheetDetail[1], text);
                 Report.updateTestLog(
                     Action,
                     "Element's inner Text [" + text + "] is stored in " + strObj,
@@ -701,10 +699,9 @@ public class Basic extends General {
         try {
             text = Locator.inputValue();
 
-            if (strObj.matches(".*:.*")) {
-                String sheetName = strObj.split(":", 2)[0];
-                String columnName = strObj.split(":", 2)[1];
-                userData.putData(sheetName, columnName, text);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
+                userData.putData(sheetDetail[0], sheetDetail[1], text);
                 Report.updateTestLog(
                     Action,
                     "Element's input Value [" + text + "] is stored in " + strObj,
@@ -809,10 +806,9 @@ public class Basic extends General {
                     Condition +
                     "')"
                 );
-            if (strObj.matches(".*:.*")) {
-                String sheetName = strObj.split(":", 2)[0];
-                String columnName = strObj.split(":", 2)[1];
-                userData.putData(sheetName, columnName, cssValue);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
+                userData.putData(sheetDetail[0], sheetDetail[1], cssValue);
                 Report.updateTestLog(
                     Action,
                     "Element's '" + Condition + "' value [" + cssValue + "] is stored in " + strObj,
