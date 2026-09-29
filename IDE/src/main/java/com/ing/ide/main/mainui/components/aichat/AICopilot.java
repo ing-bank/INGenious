@@ -230,13 +230,11 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         new Thread(
             () -> {
                 try {
-                    ensureCopilotSdkProvider().warmUp();
+                    com.ing.engine.aicli.ai.CopilotSdkProvider provider = ensureCopilotSdkProvider();
+                    provider.warmUp();
                     SwingUtilities.invokeLater(
                         () -> {
-                            ui.setConnected(
-                                true,
-                                "Copilot CLI (SDK) \u00b7 " + credentials.getCopilotSdkModel()
-                            );
+                            ui.setConnected(true, "Copilot CLI (SDK) \u00b7 " + provider.model());
                             ui.showTemporaryMessage("\u2713 Copilot CLI ready");
                             ui.setFooter(creditSummary());
                         }
@@ -378,6 +376,15 @@ public class AICopilot implements SlideShow.SlideChangeListener {
 
     private boolean copilotSdkEnabled() {
         return credentials.isCopilotSdkEnabled();
+    }
+
+    /** Whether the assistant should pause at checkpoints (and on the first failure) for input. */
+    public boolean isAttendedMode() {
+        return credentials.isAttendedMode();
+    }
+
+    public void setAttendedMode(boolean attended) {
+        credentials.setAttendedMode(attended);
     }
 
     public void toggleSignIn() {
@@ -539,6 +546,15 @@ public class AICopilot implements SlideShow.SlideChangeListener {
             "\nWhen the user refers to \"this\"/\"current\" project, scenario, or " +
             "test case, use the values above. Pass the project path to tools."
         );
+        sb
+            .append("\n\n")
+            .append(
+                com
+                    .ing.engine.aicli.ai.OperatingMode.fromString(
+                        isAttendedMode() ? "attended" : "unattended"
+                    )
+                    .policyText()
+            );
         return sb.toString();
     }
 
@@ -648,7 +664,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         String wanted = credentials.getCopilotSdkModel();
         if (
             copilotSdkProvider == null ||
-            !java.util.Objects.equals(copilotSdkProvider.model(), wanted)
+            !java.util.Objects.equals(copilotSdkProvider.configuredModel(), wanted)
         ) {
             copilotSdkProvider =
                 new com.ing.engine.aicli.ai.CopilotSdkProvider(
@@ -718,9 +734,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                         ui.getChatWebView().addMessage(assistantMessage);
                     }
                     if (!activities.isEmpty()) {
-                        ui
-                            .getChatWebView()
-                            .addMessage(ChatMessage.assistant(toolReportMarkdown(activities)));
+                        ui.getChatWebView().appendActivityReport(activityReport(activities));
                         triggerLiveReloadNow();
                     }
                     com.ing.engine.aicli.ai.TurnStats stats = provider.lastTurnStats();
@@ -753,62 +767,21 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         turn.start();
     }
 
-    /** Renders the turn's tool activity as a Markdown table with emoji status badges. */
-    private String toolReportMarkdown(List<Object[]> activities) {
-        StringBuilder sb = new StringBuilder("**Tools used (" + activities.size() + ")**\n\n");
-        sb.append("| Status | Tool | Result |\n|---|---|---|\n");
-        int ok = 0;
-        int info = 0;
-        int warn = 0;
-        int fail = 0;
+    /** Summarizes the turn's raw tool calls into a user-facing activity report. */
+    private com.ing.engine.aicli.ai.ActivityReport.Result activityReport(
+        List<Object[]> activities
+    ) {
+        List<com.ing.engine.aicli.ai.ActivityReport.Call> calls = new ArrayList<>();
         for (Object[] a : activities) {
-            String name = (String) a[0];
-            boolean success = (Boolean) a[1];
-            String summary = (String) a[2];
-            String kind = com.ing.engine.aicli.ai.ToolReportUtil.classify(
-                name,
-                success,
-                summary,
-                null
+            calls.add(
+                new com.ing.engine.aicli.ai.ActivityReport.Call(
+                    (String) a[0],
+                    (Boolean) a[1],
+                    (String) a[2]
+                )
             );
-            String badge;
-            switch (kind) {
-                case "FAIL":
-                    badge = "\u274c FAIL";
-                    fail++;
-                    break;
-                case "WARN":
-                    badge = "\u26a0\ufe0f WARN";
-                    warn++;
-                    break;
-                case "INFO":
-                    badge = "\u2139\ufe0f INFO";
-                    info++;
-                    break;
-                default:
-                    badge = "\u2705 OK";
-                    ok++;
-            }
-            sb
-                .append("| ")
-                .append(badge)
-                .append(" | `")
-                .append(name)
-                .append("` | ")
-                .append(oneLine(summary, 90).replace("|", "\\|"))
-                .append(" |\n");
         }
-        sb.append("\n").append(ok).append(" OK");
-        if (info > 0) {
-            sb.append("  \u00b7  ").append(info).append(" INFO");
-        }
-        if (warn > 0) {
-            sb.append("  \u00b7  ").append(warn).append(" WARN");
-        }
-        if (fail > 0) {
-            sb.append("  \u00b7  ").append(fail).append(" FAIL");
-        }
-        return sb.toString();
+        return com.ing.engine.aicli.ai.ActivityReport.summarize(calls);
     }
 
     // ── Agent turn (tool-calling) ─────────────────────────────────────────

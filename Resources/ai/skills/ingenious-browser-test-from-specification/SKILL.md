@@ -21,6 +21,11 @@ tools deterministically — never to hand-write `TestPlan/**`, `ObjectRepository
 
 ## Non-negotiable rules
 
+- **One discovery pass only.** Walk the flow with the Playwright CLI exactly once,
+  export it, and import it. After `ingenious_import_playwright` succeeds the test
+  EXISTS — do NOT discover again, do NOT call `ingenious_browser_session_save`, and
+  do NOT create a V2/V3 copy. Re-running discovery is the biggest waste of time and
+  credits. If a locator is wrong, fix that one object — never redo the whole journey.
 - **Tool-first.** Every artifact mutation goes through an `ingenious_*` tool. Do NOT
   create or edit test/OR/data/project files with file-edit tools.
 - **Discover, don't derive.** Get valid actions from `ingenious_action_search` /
@@ -34,6 +39,33 @@ tools deterministically — never to hand-write `TestPlan/**`, `ObjectRepository
 - **Ask only for genuinely missing inputs.** One concise plan up front, then execute.
   No per-step narration.
 
+## Attended vs. unattended mode
+
+The calling client (AI CLI / IDE assistant) declares `OPERATING MODE: ATTENDED` or
+`OPERATING MODE: UNATTENDED` in its system prompt for this session — check it before
+the smoke run (step 7):
+
+- **UNATTENDED** — behave exactly as step 7 describes: on failure, read
+  `ingenious_report_failures`, fix everything at once, and run **once** more before
+  reporting.
+- **ATTENDED** — the user is watching this turn. Still finish discovery + import (they
+  are cheap, deterministic, and not worth interrupting for), but treat the FIRST smoke
+  run as a hard checkpoint: attempt `ingenious_run` **once**. If it fails, STOP — do not
+  fix-and-rerun, do not re-discover, do not try a second run. End the turn with the
+  **need-help report** below instead of continuing to iterate; the user usually knows
+  the app/project better than you do and can point you at the real cause in seconds.
+
+### Need-help report (attended mode, on run failure)
+
+Reply in plain text (no further tool calls) with:
+1. What you attempted (scenario/testcase name, the flow in one line).
+2. The test case as it stands — steps, objects, and reference used per step.
+3. The relevant Object Repository entries — page name + locator for every object the
+   failing step(s) touch.
+4. The data/sheet rows involved, if any.
+5. What `ingenious_report_failures` said, and a specific question about what might be
+   wrong (e.g. "is this locator/label still correct in the app?").
+
 ## Inputs (ask only if missing)
 
 1. Project (if absent, `ingenious_project_list` → let the user pick, or offer create)
@@ -44,6 +76,11 @@ tools deterministically — never to hand-write `TestPlan/**`, `ObjectRepository
 
 ## Deterministic playbook
 
+The standard technique is **import-first**: let Playwright produce a Java recording,
+import it so the engine builds the Page-Object-Model, steps, and locators
+deterministically, then refine on top. This is far more deterministic and far less
+token-intensive than hand-authoring steps and locators.
+
 Run these tool calls in order. Fill slots from the inputs; do not reorder.
 
 1. **Project**
@@ -52,49 +89,91 @@ Run these tool calls in order. Fill slots from the inputs; do not reorder.
 2. **Scenario**
    - `ingenious_scenario_create` `{project, scenario}` (idempotent; ignore "exists").
 
-3. **Object Repository coverage**
-   - `ingenious_object_list` `{project}` and `ingenious_object_search` for the pages/
-     elements the flow needs.
-   - **If coverage is missing**, discover with the bounded browser session (no manual
-     snapshots, no hand-written selectors):
-     1. `ingenious_browser_session_start` `{project, url, scenario, testcase, page}`
-     2. `ingenious_browser_session_do` for each UI action (click/fill/select …),
-        walking the user's flow.
-     3. `ingenious_browser_session_snapshot` only if you need to confirm refs.
-     4. `ingenious_browser_session_save` — materializes discovered elements as **YAML OR**
-        objects under `ObjectRepository/Web/<Page>.yaml` AND rewrites recorded steps to
-        reference `Page.objName`. (Returns `objectsCreated`.)
-     5. `ingenious_browser_session_close`.
-   - For elements you already know, add them explicitly with `ingenious_object_add`
-     `{project, page, name, locator}` (locator strategy = role/text/label/css/xpath/…).
+3. **Obtain a Playwright Java recording of the flow** (the discovery step)
+   - **If the user already has a Playwright Java script** (from
+     `playwright codegen --target java`), use its path directly — skip to step 4.
+   - **Otherwise discover with the Playwright CLI**, then export it to Java:
+     1. `ingenious_browser_discover` `{project, url, prompt, scenario, testcase, page}`
+        — opens the flow and returns a ref'd snapshot + a fixed protocol.
+     2. `ingenious_browser_session_do` for each UI action (fill/click/select …),
+        walking the user's flow. Use only the refs from the latest snapshot; never
+        invent refs or locators. Each call blocks until the CLI finishes.
+     3. `ingenious_browser_session_export` `{name}` — writes the recorded actions as a
+        **Playwright Java** recording file and returns its `file` path.
+     4. `ingenious_browser_session_close` `{name}`.
 
-4. **Reusable components** (cohesive 2–8 step flows: login, search, checkout …)
-   - Prefer `ingenious_gen_testcase` with a browser archetype (`browser-login`,
-     `browser-flow`, `browser-search`) `{project, scenario, name, reusable:true, params}`.
-   - Otherwise `ingenious_testcase_create` `{reusable:true}` then
-     `ingenious_testcase_add_step` per step. Object refs use `Page.objName` from step 3.
+4. **Import the recording deterministically** (POM + steps + locators)
+   - `ingenious_import_playwright` `{project, file, scenario, testcase}` — the engine
+     parses the Java into an Object-Repository page (YAML) + a test case with standard
+     locators. No hand-authored steps or locators. This is the deterministic base.
+   - **Commit to this one path.** Once the recording is exported and imported, the test
+     exists — do NOT also run `ingenious_browser_session_save`, and do NOT re-run the
+     whole discovery. `ingenious_browser_session_close` is best-effort: if it errors
+     (e.g. "No such session"), ignore it and continue; never restart discovery over it.
+     If `ingenious_browser_session_export` fails, retry the export once — do not
+     re-discover from scratch.
 
-5. **Main test case** (orchestrates reusables with `Execute` steps)
-   - `ingenious_testcase_create` `{project, scenario, name}`.
-   - One `Execute` step per reusable via `ingenious_testcase_add_step`
-     (`object:Execute`, `action:<ReusableScenario>:<ReusableName>`, input blank).
-   - Add at least one business-outcome assertion step (discover the action name with
+5. **Refine on top of the imported test** (this is the AI's value-add)
+   - **Split into reusable components by user intent.** Group cohesive 2–8 step blocks
+     (e.g. "Create Account", "Add Bank Account", "Make Payment") into reusables:
+     `ingenious_testcase_create` `{reusable:true}` (+ `ingenious_testcase_add_step`, or
+     move the imported steps), then replace them in the main test with `Execute` steps
+     (`object:Execute`, `action:<ReusableScenario>:<ReusableName>`).
+   - **Distribute Object-Repository objects across per-screen pages.** The import lands
+     objects on one page; move them onto per-screen pages with `ingenious_object_add` /
+     `ingenious_object_update` (and update step references) so each page maps to a screen.
+     **Batch this**: `ingenious_object_add` accepts an `objects` array — collect every
+     object for a target page and add them with ONE call
+     (`{page, objects:[{name, locator, value}, ...]}`), not one call per object.
+     Likewise, `ingenious_testcase_edit_step` accepts an `edits` array — retarget every
+     affected step's `object`/`reference` in ONE call per test case
+     (`{scenario, testcase, edits:[{index, object, reference}, ...]}`), not one call
+     per step.
+   - **Parameterize data into sheets.** Run `ingenious_testcase_parameterize`
+     (mode=scan → apply), or create sheets with `ingenious_data_sheet_create` /
+     `ingenious_data_column_add` / `ingenious_data_row_add`; reference as `Sheet:Column`.
+   - **Dynamic / unique / random data** (spec says "dynamic email", "unique username",
+     "random order id", "for repeatability", etc.): never hardcode or hand-invent the
+     value. Insert a synthetic-data step (`object: Data`; find it with
+     `ingenious_action_search "email"` / `"uuid"` / `"random"` / `"number"` etc., e.g.
+     `emailAddress`, `internetUUID`, `randomNumberWithNoOfDigits`) immediately before the
+     step that first needs the value, with `Input` set to the `Sheet:Column` where the
+     generated value is stored — then reference that same `Sheet:Column` in the steps
+     that consume it. This generates a fresh value every run, so re-running the test
+     never collides with data from a prior run.
+   - **Add at least one business-outcome assertion** (discover the action with
      `ingenious_action_search assert`).
 
-6. **Data (only if data-driven)**
-   - `ingenious_data_sheet_create` → `ingenious_data_column_add` →
-     `ingenious_data_row_add` (or `ingenious_data_generate` for synthetic values).
-   - Reference from steps as `Sheet:Column`.
-
-7. **Validate**
+6. **Validate**
    - `ingenious_testcase_validate` `{project, scenario, testcase}` → must return
      `valid:true`. Fix reported `errors`/`warnings` by re-calling the relevant tool.
 
-8. **Smoke run**
+7. **Smoke run (once — then triage, don't loop; see Attended vs. unattended mode above)**
    - `ingenious_run_dry` then `ingenious_run` `{project, scenario, testcase, browser}`
-     (default browser Chromium).
-   - `ingenious_report_latest` / `ingenious_report_failures` to confirm the outcome
-     assertion passed.
+     (default browser Chromium). Leave `headless` unset — it defaults to `false` so the
+     run is headed (visible); only pass `headless:true` if the user explicitly asks for it.
+   - **UNATTENDED**: on failure, do NOT re-run the whole journey per fix. Read
+     `ingenious_report_failures`, fix **all** reported issues at once (verify a
+     suspect locator fast with `ingenious_browser_inspect` or the still-open
+     discovery session), then run **once** more. Running a multi-reusable journey
+     repeatedly to debug one locator is the main time sink — avoid it.
+   - **ATTENDED**: on failure, stop after this one attempt and produce the
+     need-help report above instead of retrying.
+
+## Locator rules (avoid the run→fix loop)
+
+- **Role locators use `Role;Name` with a SEMICOLON** — e.g. `button;Create a new account`.
+  The colon in `Sheet:Column` is the **data** separator; never put a `:` in a role
+  locator (it crashes `AriaRole.valueOf` at run time).
+- **Prefer import-first locators.** The import path produces working locators; don't
+  hand-edit them unless a step actually fails.
+- **Dynamic option text** (e.g. a generated account label like
+  `Current account · NL •••• 4300 — €1,000.00`): select by **index** or **partial
+  text**, or store the value from a prior step — never hardcode volatile exact text.
+
+> Fallback (only if the Playwright CLI is unavailable): author objects and steps
+> directly with `ingenious_browser_session_save` or `ingenious_object_add` +
+> `ingenious_testcase_add_step`. Prefer the import-first flow whenever possible.
 
 ## Naming conventions (fixed — do not vary)
 

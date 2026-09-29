@@ -17,6 +17,10 @@ public enum ConditionKind {
     ALIAS_API,
     /** A {@code #contextAlias} selecting a context. */
     ALIAS_CONTEXT,
+    /** A {@code #producerAlias} selecting the Kafka producer config. */
+    ALIAS_KAFKA_PRODUCER,
+    /** A {@code #consumerAlias} selecting the Kafka consumer config. */
+    ALIAS_KAFKA_CONSUMER,
     /** One of a fixed set of values supplied by {@code conditionValues}. */
     ENUM,
     /** Viewport target ({@code screen} / {@code viewport}). */

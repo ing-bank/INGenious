@@ -815,6 +815,10 @@ public class TestCaseAutoSuggest {
                     return getAPIAliasList();
                 case ALIAS_CONTEXT:
                     return getContextAliasList();
+                case ALIAS_KAFKA_PRODUCER:
+                    return getKafkaProducerAliasList();
+                case ALIAS_KAFKA_CONSUMER:
+                    return getKafkaConsumerAliasList();
                 case VIEWPORT:
                     list.add("screen");
                     list.add("viewport");
