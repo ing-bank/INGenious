@@ -91,9 +91,11 @@ public class ReusableImportEngine {
         for (NormalizedRequest nr : nc.getRequests()) {
             try {
                 String scenarioName = resolveScenarioName(nc, nr, opts);
+                // Must be scope-specific: getScenarioByName() also matches reusable scenarios,
+                // which would place Test Case imports under an existing reusable scenario.
                 Scenario scn = toReusable
                     ? project.getReusableScenarioByName(scenarioName)
-                    : project.getScenarioByName(scenarioName);
+                    : project.getTestPlanScenarioByName(scenarioName);
                 if (scn == null) {
                     scn =
                         toReusable
@@ -631,10 +633,9 @@ public class ReusableImportEngine {
             opts.getNamingConvention()
         );
 
-        if (
-            project.hasTestCaseInAnyScenario(scn.getName(), candidate) ||
-            scn.getTestCaseByName(candidate) != null
-        ) {
+        // Conflicts are resolved within the target scope only; a same-named reusable
+        // must not force a rename of a Test Plan test case (and vice versa).
+        if (scn.getTestCaseByName(candidate) != null) {
             switch (opts.getConflictPolicy()) {
                 case SKIP:
                     return null;
@@ -647,10 +648,7 @@ public class ReusableImportEngine {
                     do {
                         renamed = candidate + "_" + n;
                         n++;
-                    } while (
-                        project.hasTestCaseInAnyScenario(scn.getName(), renamed) ||
-                        scn.getTestCaseByName(renamed) != null
-                    );
+                    } while (scn.getTestCaseByName(renamed) != null);
                     return renamed;
             }
         }
