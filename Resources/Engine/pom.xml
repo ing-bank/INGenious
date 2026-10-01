@@ -51,8 +51,6 @@
         <mac.version>mac-aarch64</mac.version>
         <setupDir>../Dist/release</setupDir>
         <resourceDir>../Resources</resourceDir>
-        <bridgeDir>${project.basedir}/../vscode-ingenious-bridge</bridgeDir>
-        <bridgeVsixDir>${project.basedir}/${resourceDir}/vscode-extensions</bridgeVsixDir>
         <ingenious-api.version>3.1</ingenious-api.version>
 
         <flatlaf.version>3.5.4</flatlaf.version>

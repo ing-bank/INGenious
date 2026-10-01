@@ -52,13 +52,6 @@ public class AICopilot implements SlideShow.SlideChangeListener {
     private final ChatHistoryStore historyStore = new ChatHistoryStore();
     private String currentConversationId;
 
-    /**
-     * OpenAI-compatible base URL of a running VS Code Copilot bridge, or
-     * {@code null} to use the direct GitHub Models auth flow. When set, the
-     * assistant works without a GitHub token. Re-evaluated by {@link #connectToVsCode()}.
-     */
-    private volatile String bridgeBaseUrl;
-
     private volatile Thread activeTurn;
     private volatile GitHubDeviceAuthService activeAuth;
     private volatile AgentOrchestrator activeAgent;
@@ -80,32 +73,13 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         this.toolServer = new MCPToolBridge(mainFrame);
         this.toolServer.addRefreshListener((toolName, result) -> scheduleLiveReload());
         this.ui = new AICopilotUI(this);
-        // Prefer a locally running VS Code Copilot bridge over direct GitHub auth.
-        this.bridgeBaseUrl =
-            com.ing.ide.main.mainui.components.aichat.client.BridgeDiscovery.detect();
-        if (bridgeBaseUrl != null) {
-            client.useLocalBridge(bridgeBaseUrl);
-            LOG.log(Level.INFO, "Using VS Code Copilot bridge at {0}", bridgeBaseUrl);
-        }
         refreshAuthState();
     }
 
-    /** True when the assistant is backed by a local VS Code Copilot bridge. */
-    private boolean bridgeActive() {
-        return bridgeBaseUrl != null;
-    }
-
-    /**
-     * The token to send with requests: the real GitHub token when present, a
-     * non-null placeholder when the bridge is active (so token gates pass and
-     * the client simply omits the {@code Authorization} header), else null.
-     */
+    /** The GitHub token to send with requests, or {@code null} when not signed in. */
     private String effectiveToken() {
         String token = credentials.getToken();
-        if (token != null && !token.isEmpty()) {
-            return token;
-        }
-        return bridgeActive() ? "local-bridge" : null;
+        return token != null && !token.isEmpty() ? token : null;
     }
 
     public AICopilotUI getAICopilotUI() {
@@ -151,13 +125,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
             loadCopilotSdkModelsAsync();
             return;
         }
-        if (bridgeActive()) {
-            ui.setConnected(
-                true,
-                "Connected \u00b7 port " + bridgePort() + " \u00b7 " + toolCount() + " tools"
-            );
-            loadCatalogAsync();
-        } else if (credentials.isSignedIn()) {
+        if (credentials.isSignedIn()) {
             String login = credentials.getLogin();
             ui.setConnected(true, login != null && !login.isEmpty() ? login : "Connected");
             loadCatalogAsync();
@@ -169,55 +137,18 @@ public class AICopilot implements SlideShow.SlideChangeListener {
     /**
      * Connects the assistant. When the Copilot SDK backend is active this
      * validates the Copilot CLI session (green bulb on success); otherwise it
-     * (re)detects a running VS Code Copilot bridge.
+     * signs in to GitHub (or refreshes the model catalog if already signed in).
      */
     public void connectToVsCode() {
         if (copilotSdkEnabled()) {
             probeCopilotSdk();
             return;
         }
-        ui.setStatus("Connecting to VS Code\u2026");
-        new Thread(
-            () -> {
-                String url = com.ing.ide.main.mainui.components.aichat.client.BridgeDiscovery.detect();
-                if (url == null) {
-                    SwingUtilities.invokeLater(
-                        () -> {
-                            ui.setConnected(false, "Not connected");
-                            showError(
-                                "VS Code bridge not found. In VS Code, install and run the " +
-                                "'VSCode INGenious Bridge' extension (it starts automatically), " +
-                                "then click Connect to VS Code."
-                            );
-                        }
-                    );
-                    return;
-                }
-                bridgeBaseUrl = url;
-                client.useLocalBridge(url);
-                int port = bridgePort();
-                LOG.log(Level.INFO, "Connected to VS Code Copilot bridge at {0}", url);
-                SwingUtilities.invokeLater(
-                    () -> {
-                        int tools = toolCount();
-                        ui.setConnected(
-                            true,
-                            "Connected \u00b7 port " + port + " \u00b7 " + tools + " tools"
-                        );
-                        ui.showTemporaryMessage(
-                            "\u2713 Connected on port " +
-                            port +
-                            " \u2014 " +
-                            tools +
-                            " tools available"
-                        );
-                    }
-                );
-                loadCatalogAsync();
-            },
-            "aichat-connect"
-        )
-        .start();
+        if (credentials.isSignedIn()) {
+            refreshAuthState();
+            return;
+        }
+        toggleSignIn();
     }
 
     /**
@@ -281,15 +212,6 @@ public class AICopilot implements SlideShow.SlideChangeListener {
             return " ";
         }
         return "AI credits: " + total.summary();
-    }
-
-    /** Port of the currently connected bridge, or -1 when unknown. */
-    private int bridgePort() {
-        try {
-            return bridgeBaseUrl == null ? -1 : URI.create(bridgeBaseUrl).getPort();
-        } catch (Exception ex) {
-            return -1;
-        }
     }
 
     /** Number of INGenious tools currently exposed to the model (diagnostic). */
@@ -472,10 +394,10 @@ public class AICopilot implements SlideShow.SlideChangeListener {
     // ── Chat turn ─────────────────────────────────────────────────────────
 
     public void sendUserMessage(String text) {
-        if (!copilotSdkEnabled() && !credentials.isSignedIn() && !bridgeActive()) {
+        if (!copilotSdkEnabled() && !credentials.isSignedIn()) {
             showError(
                 "Not connected. Enable \"Copilot SDK\" to use the GitHub Copilot CLI, or click " +
-                "\"Connect to VS Code\" to use GitHub Copilot via the bridge."
+                "\"Connect\" to sign in with GitHub."
             );
             return;
         }
