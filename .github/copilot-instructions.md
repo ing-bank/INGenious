@@ -52,8 +52,8 @@ round-trips the full context through the model. To keep runs cheap and determini
 
 > For heavy, multi-request orchestration (e.g. a full API suite), the **`ingenious ai`
 > CLI** does the same work at a fraction of the credits because its ReAct loop keeps a
-> lean context. Prefer it for large jobs; it can even use your VS Code Copilot models via
-> the INGenious bridge extension (no API key). See `docs/VS-CODE-RUN-AND-DEBUG.md`.
+> lean context. Prefer it for large jobs; with the `copilot-sdk` provider it drives the
+> GitHub Copilot CLI directly (no API key). See `Engine/docs/MCP-GETTING-STARTED.md`.
 
 ## Authoring conventions (enforced by the engine)
 
