@@ -81,49 +81,10 @@ public final class ProviderConfig {
             // exposed to the CLI so the model can call the ingenious_* tools.
             return new CopilotSdkProvider(model, projectDir);
         }
-        if ("bridge".equalsIgnoreCase(provider)) {
-            // VS Code Copilot LLM Bridge: OpenAI-compatible, no key, no GitHub auth.
-            String url = discoverBridgeBaseUrl();
-            if (url == null || url.isBlank()) {
-                url = baseUrl; // fall back to the configured baseUrl
-            }
-            return new OpenAiCompatProvider(url, null, model);
-        }
         if ("openai".equalsIgnoreCase(provider)) {
             String key = System.getenv(apiKeyEnv);
             return new OpenAiCompatProvider(baseUrl, key, model);
         }
         return new CopilotProvider(store, model);
-    }
-
-    /**
-     * Locate a running VS Code Copilot bridge. Honours {@code INGENIOUS_AI_BASE_URL},
-     * then the discovery file {@code ~/.ingenious/bridge.json} written by the
-     * bridge extension. Returns {@code null} when none is available.
-     */
-    public static String discoverBridgeBaseUrl() {
-        String override = System.getenv("INGENIOUS_AI_BASE_URL");
-        if (override != null && !override.isBlank()) {
-            return override.trim();
-        }
-        try {
-            Path file = Path.of(System.getProperty("user.home"), ".ingenious", "bridge.json");
-            if (!Files.exists(file)) {
-                return null;
-            }
-            JsonNode n = M.readTree(file.toFile());
-            String url = n.path("baseUrl").asText(null);
-            if (url != null && !url.isBlank()) {
-                return url.trim();
-            }
-            int port = n.path("port").asInt(0);
-            if (port > 0) {
-                String host = n.path("host").asText("127.0.0.1");
-                return "http://" + host + ":" + port + "/v1";
-            }
-        } catch (IOException ignored) {
-            // no usable bridge
-        }
-        return null;
     }
 }

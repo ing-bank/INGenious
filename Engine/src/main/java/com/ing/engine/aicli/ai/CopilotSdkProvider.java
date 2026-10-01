@@ -31,8 +31,7 @@ import java.util.function.Supplier;
 
 /**
  * GitHub Copilot provider that drives the official Copilot CLI through the
- * {@code copilot-sdk-java} SDK, instead of talking to any HTTP endpoint or the
- * VS Code bridge.
+ * {@code copilot-sdk-java} SDK, instead of talking to any HTTP endpoint.
  *
  * <p><strong>Option B ("delegate agency"):</strong> the Copilot CLI runs its own
  * agentic loop and is given the existing INGenious MCP server
