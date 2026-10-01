@@ -46,7 +46,3 @@ npm run compile
 | `ingenious.headless` | `false` | Run headless by default. |
 | `ingenious.mcp.autoStart` | `true` | Auto-start the MCP server. |
 | `ingenious.report.openOnRunEnd` | `true` | Open the report when a run ends. |
-
-> This is the authoring/execution/reporting client. It is complementary to the
-> separate `vscode-ingenious-bridge` extension (which bridges Copilot models into
-> INGenious's own AI assistant).

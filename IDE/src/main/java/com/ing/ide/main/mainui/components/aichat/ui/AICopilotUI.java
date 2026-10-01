@@ -45,7 +45,7 @@ public class AICopilotUI extends JPanel {
     private final JCheckBox attendedModeToggle = new JCheckBox("Attended");
     private final JToggleButton promptsToggle = new JToggleButton("Prompts");
     private final JButton historyButton = new JButton("History");
-    private final JButton connectButton = new JButton("Connect to VS Code");
+    private final JButton connectButton = new JButton("Connect");
     private final JLabel connectionBulb = new JLabel(YELLOW_DOT);
     private final JButton sendButton = new JButton("Send");
     private final JButton stopButton = new JButton("Stop");
@@ -419,7 +419,7 @@ public class AICopilotUI extends JPanel {
     /**
      * Updates the connection indicator: a green bulb + status when connected,
      * a yellow bulb + "Not connected" otherwise. The action button label adapts
-     * to the active backend (Copilot SDK vs. VS Code bridge).
+     * to the active backend (Copilot SDK vs. direct GitHub sign-in).
      */
     public void setConnected(boolean connected, String status) {
         SwingUtilities.invokeLater(
@@ -428,17 +428,17 @@ public class AICopilotUI extends JPanel {
                 boolean sdk = controller.isCopilotSdkEnabled();
                 connectionBulb.setToolTipText(
                     connected
-                        ? (sdk ? "Copilot CLI ready" : "Connected to VS Code")
+                        ? (sdk ? "Copilot CLI ready" : "Signed in to GitHub")
                         : (
                             sdk
                                 ? "Copilot CLI not ready \u2014 click to check"
-                                : "Not connected \u2014 click Connect to VS Code"
+                                : "Not connected \u2014 click Connect"
                         )
                 );
                 if (sdk) {
                     connectButton.setText(connected ? "Recheck" : "Check Copilot CLI");
                 } else {
-                    connectButton.setText(connected ? "Reconnect" : "Connect to VS Code");
+                    connectButton.setText(connected ? "Reconnect" : "Connect");
                 }
                 persistentStatus =
                     status != null ? status : (connected ? "Connected" : "Not connected");

@@ -44,9 +44,6 @@ nb-configuration.xml
 .DS_Store
 Thumbs.db
 
-# Packaged VS Code extension artifacts
-/vscode-ingenious-bridge/*.vsix
-
 # Local VS Code MCP configuration
 /.vscode/mcp.json
 
