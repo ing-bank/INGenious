@@ -15,11 +15,12 @@ import java.util.function.Supplier;
  */
 public final class ProviderConfig {
     private static final ObjectMapper M = new ObjectMapper();
+    private static final String DEFAULT_BASE_URL = "https://api.openai.com/v1";
 
     private final Path file;
     public String provider = "copilot";
     public String model = "gpt-4o";
-    public String baseUrl = "https://api.openai.com/v1";
+    public String baseUrl = DEFAULT_BASE_URL;
     public String apiKeyEnv = "OPENAI_API_KEY";
     /** "attended" or "unattended"; see {@link OperatingMode}. Remembered as the next session's default. */
     public String mode = OperatingMode.UNATTENDED.label();
@@ -46,7 +47,26 @@ public final class ProviderConfig {
         } catch (IOException ignored) {
             // defaults apply
         }
+        c.migrateLegacyBridge();
         return c;
+    }
+
+    /**
+     * Rewrites configs saved by older builds that used the removed VS Code
+     * "bridge" provider, which would otherwise keep pointing at a dead
+     * localhost endpoint.
+     */
+    private void migrateLegacyBridge() {
+        if (!"bridge".equalsIgnoreCase(provider)) {
+            return;
+        }
+        provider = "copilot-sdk";
+        baseUrl = DEFAULT_BASE_URL;
+        try {
+            save();
+        } catch (IOException ignored) {
+            // in-memory migration still applies for this session
+        }
     }
 
     public void save() throws IOException {
