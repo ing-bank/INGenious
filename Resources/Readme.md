@@ -1,5 +1,8 @@
 # INGenious - Test Automation for Everyone
 
+> Want the AI assistant to write and run your tests for you?
+> See [**Getting Started with INGenious AI + MCP**](./AI-GETTING-STARTED.md).
+
 ## **Getting Started**
 
 ### **Prerequisites**
