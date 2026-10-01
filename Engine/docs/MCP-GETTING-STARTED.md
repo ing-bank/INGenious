@@ -6,7 +6,111 @@
 
 ---
 
-## Connect the server (one-time)
+## Pick your surface
+
+The same `ingenious_*` tools are reachable three ways. Pick one — the prompts in
+this guide work identically in all of them.
+
+| Surface | How tools are reached | Best for |
+|---|---|---|
+| **`ingenious ai` CLI** | **In-process** — no MCP server needed | Long, multi-step jobs. Cheapest and most deterministic. |
+| **IDE AI assistant** (INGenie) | **In-process** | Authoring while you work in the INGenious IDE. |
+| **External MCP client** (VS Code Copilot, Claude Desktop, Cursor, Continue) | Over stdio via `ingenious server mcp` | Working inside an editor you already use. |
+
+> There is **no VS Code "bridge" extension** — it was removed. The CLI and IDE talk
+> to GitHub Copilot directly through the Copilot CLI/SDK.
+
+---
+
+## Option A — The `ingenious ai` CLI (recommended)
+
+### 1. Build once
+
+```bash
+# From the repo root
+mvn -DskipTests install
+```
+
+### 2. Choose an AI provider
+
+Configuration lives in `~/.ingenious/ai.json` and is managed entirely from inside
+the REPL — you rarely need to edit it by hand.
+
+| Provider | What it uses | Auth |
+|---|---|---|
+| `copilot-sdk` | The official **GitHub Copilot CLI** driven through the Copilot SDK. Runs its own agentic loop with the INGenious MCP server attached, so the model can call every `ingenious_*` tool. | `copilot auth login` in your shell |
+| `copilot` | GitHub Models API | `/login` (device flow) |
+| `openai` | Any OpenAI-compatible endpoint (OpenAI, Azure OpenAI, Ollama, a corporate gateway) | API key from the env var in `apiKeyEnv` |
+
+For `copilot-sdk`, make sure the CLI is installed and authenticated first:
+
+```bash
+copilot --version     # must be on PATH
+copilot auth login
+```
+
+### 3. Start the REPL
+
+```bash
+cd Dist/release
+./ingenious ai
+```
+
+On first start it asks how autonomously you want it to work:
+
+- **unattended** — works your request to completion on its own, self-correcting on failure.
+- **attended** — same, but pauses at logical checkpoints (and on the first failure) to ask you.
+
+Change it anytime with `/mode attended` or `/mode unattended`.
+
+### 4. Point it at a project and go
+
+```
+/project CLIDemo
+What scenarios and test cases are in this project?
+```
+
+Anything that isn't a `/command` is treated as a request.
+
+### 5. Essential slash commands
+
+| Command | What it does |
+|---|---|
+| `/help` | Overview of every command |
+| `/model` | Show the current provider and model |
+| `/model list` | **Fetch the live model list and pick one.** For `copilot`/`copilot-sdk` this comes straight from the GitHub Copilot CLI — no HTTP endpoint involved. |
+| `/model provider openai\|copilot\|copilot-sdk` | Switch backend |
+| `/model url <baseUrl>` | Set the endpoint for the `openai` provider |
+| `/mode attended\|unattended` | Switch how autonomously it works |
+| `/login` | GitHub device-flow sign-in (the `copilot` provider) |
+| `/project <name>` | Set the active project |
+| `/tools [category]` | List tools; `/tools run <tool> {json}` invokes one directly |
+| `/workflows` | Deterministic workflows that need no AI at all |
+| `/plan` · `/approve` | Review then execute a pending plan |
+| `/undo` · `/redo` | Revert / re-apply the last plan's file changes |
+| `/context` · `/history` · `/status` | Session memory, recent turns, current state |
+| `/clear [--all]` | Clear the conversation (`--all` also clears session facts) |
+
+> **Upgrading from an older build?** Configs that still say `"provider": "bridge"`
+> are migrated to `copilot-sdk` automatically on first load.
+
+---
+
+## Option B — The IDE AI assistant (INGenie)
+
+Open the INGenious IDE and click **INGenie** in the toolbar. The assistant has the
+full tool surface in-process.
+
+- Toggle **Copilot SDK** in settings to drive the GitHub Copilot CLI (as above), or
+  leave it off and click **Connect** to sign in to GitHub Models with the device flow.
+- The **Attended** checkbox mirrors the CLI's `/mode`.
+- The bulb next to the model selector is green once the backend is ready.
+
+---
+
+## Option C — An external MCP client
+
+Start the server and wire your client to that process:
 
 ```bash
 # From the repo root — build once
@@ -17,7 +121,17 @@ cd Dist/release
 ./ingenious server mcp --project CLIDemo
 ```
 
-Then wire your AI client to that process (see [Wiring guide](./MCP-USER-MANUAL.md#5-wiring-an-ai-client)). Once connected, every prompt below should just work.
+Client-specific configuration (Claude Desktop, VS Code, Cursor, Continue) is in the
+[Wiring guide](./MCP-USER-MANUAL.md#5-wiring-an-ai-client). In this repository
+VS Code Copilot is already wired through `.vscode/mcp.json` and **auto-starts on
+demand**.
+
+> Conventions (step-input syntax, naming, object references) are delivered to MCP
+> clients automatically via the `initialize.instructions` handshake, and the full
+> reference is readable at the `ingenious://docs/conventions` resource. For AI
+> tooling *not* connected over MCP, copy the assets in `Resources/ai/`.
+
+Once connected, every prompt below should just work.
 
 ---
 
