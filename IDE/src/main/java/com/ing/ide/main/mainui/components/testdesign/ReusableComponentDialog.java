@@ -77,8 +77,8 @@ public final class ReusableComponentDialog {
      */
     public static Result prompt(Component parent, Project project) {
         // Scope selection radio buttons
-        JRadioButton projectRadio = new JRadioButton("Project Reusable", true);
-        JRadioButton sharedRadio = new JRadioButton("Shared Reusable", false);
+        JRadioButton projectRadio = new JRadioButton("Project User Intent", true);
+        JRadioButton sharedRadio = new JRadioButton("Shared User Intent", false);
         ButtonGroup scopeGroup = new ButtonGroup();
         scopeGroup.add(projectRadio);
         scopeGroup.add(sharedRadio);
