@@ -242,10 +242,10 @@ public class TestCaseAutoSuggest {
                         return "Mobile / WebView Actions";
                     }
                     if (current.startsWith("[Project]")) {
-                        return "Project Reusables";
+                        return "Project User Intent";
                     }
                     if (current.startsWith("[Shared]")) {
-                        return "Shared Reusables";
+                        return "Shared User Intent";
                     }
                     return "";
                 }
