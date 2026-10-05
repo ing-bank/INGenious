@@ -168,6 +168,7 @@ public class ReusableTree extends ProjectTree {
                     getTreeModel().reload(scenarioNode);
                     renameScenario(scenarioNode.getScenario());
                     super.getTestDesign().getScenarioComp().refreshTitle();
+                    super.getTestDesign().getTestDatacomp().refreshOpenTestData();
                     return true;
                 } else {
                     Notification.show("Scenario " + name + " Already present");
@@ -234,6 +235,7 @@ public class ReusableTree extends ProjectTree {
                 getProject().save();
                 getTestDesign().getProjectTree().load();
                 load();
+                getTestDesign().getTestDatacomp().load();
                 showImpactedReferenceNotification("Moved to Test Plan", impactedUpdates);
             } else {
                 Notification.showWarning("No reusable test cases were moved to Test Plan.");
@@ -257,6 +259,7 @@ public class ReusableTree extends ProjectTree {
             getProject().save();
             getTestDesign().getProjectTree().load();
             load();
+            getTestDesign().getTestDatacomp().load();
             showImpactedReferenceNotification("Moved to Test Plan", impactedUpdates);
         } catch (TestCaseConversionException e) {
             Notification.show(e.getMessage());
@@ -396,6 +399,7 @@ public class ReusableTree extends ProjectTree {
                 getProject().reload();
                 getTestDesign().getProjectTree().load();
                 load();
+                getTestDesign().getTestDatacomp().load();
             }
         }
     }
@@ -521,6 +525,7 @@ public class ReusableTree extends ProjectTree {
             getProject().reload();
             getTestDesign().getReusableTree().load();
             getTestDesign().getSharedReusableTree().load();
+            getTestDesign().getTestDatacomp().load();
             showImpactedReferenceNotification("Moved to Shared Reusable", impactedUpdates);
         } else {
             Notification.showWarning("No reusable test cases were moved to Shared Reusable.");

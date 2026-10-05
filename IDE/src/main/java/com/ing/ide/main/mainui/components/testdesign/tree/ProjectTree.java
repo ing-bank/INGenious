@@ -649,6 +649,7 @@ public class ProjectTree implements ActionListener {
                     getTreeModel().reload(scenarioNode);
                     renameScenario(scenarioNode.getScenario());
                     testDesign.getScenarioComp().refreshTitle();
+                    testDesign.getTestDatacomp().refreshOpenTestData();
                     persistSortOrder(scenarioNode.getParent());
                     return true;
                 } else {
@@ -1020,6 +1021,7 @@ public class ProjectTree implements ActionListener {
                 getProject().save();
                 load();
                 getTestDesign().getReusableTree().load();
+                getTestDesign().getTestDatacomp().load();
                 showImpactedReferenceNotification("Moved to Project Reusable", impactedUpdates);
             } else {
                 Notification.showWarning("No test cases were moved to Project Reusable.");
@@ -1091,6 +1093,7 @@ public class ProjectTree implements ActionListener {
                 getProject().save();
                 load();
                 getTestDesign().getSharedReusableTree().load();
+                getTestDesign().getTestDatacomp().load();
                 showImpactedReferenceNotification("Moved to Shared Reusable", impactedUpdates);
             } else {
                 Notification.showWarning("No test cases were moved to Shared Reusable.");

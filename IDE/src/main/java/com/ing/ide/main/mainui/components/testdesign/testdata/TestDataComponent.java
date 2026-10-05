@@ -134,9 +134,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
             @Override
             public void actionPerformed(ActionEvent ae) {
-                String newName = getValue("newValue").toString();
+                String newName = getValue("newValue").toString().trim();
                 Boolean returnVal = false;
-                if (Validator.isValidName(newName)) {
+                if (newName.isEmpty()) {
+                    Notification.show("Environment name is required.");
+                } else if (!Validator.isValidName(newName)) {
+                    Notification.show("'" + newName + "' is not a valid environment name.");
+                } else {
                     returnVal = renameEnvironment(newName);
                 }
                 putValue("rename", returnVal);
@@ -772,13 +776,16 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     private void addNewEnvironment(TestData sTestData) {
+        int index = envTab.getTabCount() - 1;
         envTab.insertTab(
             sTestData.getEnviroment(),
             null,
             createNewTestDataTab(sTestData),
             null,
-            envTab.getTabCount() - 1
+            index
         );
+        // Switch focus to the new tab, otherwise the "+" tab stays selected and creation looks like a no-op.
+        envTab.setSelectedIndex(index);
     }
 
     private void addInAllEnvironement() {
@@ -844,6 +851,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                         globalDataAsWell
                     );
             }
+            // Persist immediately: an unsaved environment is lost if a sheet reload (e.g. after a
+            // rename elsewhere) re-reads test data from disk before the project is next saved.
+            testDesign.getProject().getTestData().save();
             addNewEnvironment(testDesign.getProject().getTestData().getTestDataFor(envName));
             return true;
         } else {
@@ -930,37 +940,45 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     private Boolean renameEnvironment(String newName) {
         String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-        if (!envName.equals("Default") && !envName.equals(newName.trim())) {
-            boolean renamed = testDesign
+        if (envName.equals("Default")) {
+            Notification.show("The 'Default' environment cannot be renamed.");
+            return false;
+        }
+        if (envName.equals(newName)) {
+            return false;
+        }
+        if (testDesign.getProject().getTestData().getTestDataFor(newName) != null) {
+            Notification.show("An Environment with name '" + newName + "' is already present");
+            return false;
+        }
+        boolean renamed = testDesign.getProject().getTestData().renameEnvironment(envName, newName);
+        if (!renamed) {
+            Notification.show("Couldn't rename Environment '" + envName + "' to '" + newName + "'");
+        }
+        if (renamed) {
+            String oldKey = getTestDataTabOrderKey(envName);
+            String newKey = getTestDataTabOrderKey(newName);
+            String oldValue = testDesign
                 .getProject()
-                .getTestData()
-                .renameEnvironment(envName, newName);
-            if (renamed) {
-                String oldKey = getTestDataTabOrderKey(envName);
-                String newKey = getTestDataTabOrderKey(newName);
-                String oldValue = testDesign
+                .getProjectSettings()
+                .getUserDefinedSettings()
+                .getProperty(oldKey);
+            if (oldValue != null) {
+                testDesign
                     .getProject()
                     .getProjectSettings()
                     .getUserDefinedSettings()
-                    .getProperty(oldKey);
-                if (oldValue != null) {
-                    testDesign
-                        .getProject()
-                        .getProjectSettings()
-                        .getUserDefinedSettings()
-                        .setProperty(newKey, oldValue);
-                    testDesign
-                        .getProject()
-                        .getProjectSettings()
-                        .getUserDefinedSettings()
-                        .remove(oldKey);
-                    testDesign.getProject().getProjectSettings().getUserDefinedSettings().save();
-                }
-                persistEnvironmentTabOrder();
+                    .setProperty(newKey, oldValue);
+                testDesign
+                    .getProject()
+                    .getProjectSettings()
+                    .getUserDefinedSettings()
+                    .remove(oldKey);
+                testDesign.getProject().getProjectSettings().getUserDefinedSettings().save();
             }
-            return renamed;
+            persistEnvironmentTabOrder();
         }
-        return false;
+        return renamed;
     }
 
     private void deleteEnvironment() {
@@ -1021,6 +1039,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
      * Reloads every currently-open TestData sheet view across all environments so that
      * Scenario/TestCase names already displayed (e.g. rows referencing a Project or Shared
      * reusable TestCase) reflect a rename performed elsewhere in the project.
+     *
+     * <p>Sheets with unsaved edits are skipped: reloading re-reads from disk and would
+     * otherwise discard in-progress changes (e.g. a just-created, not-yet-saved environment).</p>
      */
     public void refreshOpenTestData() {
         for (int i = 0; i < envTab.getTabCount(); i++) {
@@ -1029,7 +1050,10 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 JTabbedPane tab = (JTabbedPane) envComponent;
                 for (int j = 0; j < tab.getTabCount(); j++) {
                     if (tab.getComponentAt(j) instanceof TestDataTablePanel) {
-                        ((TestDataTablePanel) tab.getComponentAt(j)).reload();
+                        TestDataTablePanel panel = (TestDataTablePanel) tab.getComponentAt(j);
+                        if (panel.std.isSaved()) {
+                            panel.reload();
+                        }
                     }
                 }
             }
@@ -1271,7 +1295,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
                 @Override
                 public void actionPerformed(ActionEvent ae) {
-                    String newValue = getValue("newvalue").toString();
+                    String newValue = getValue("newvalue").toString().trim();
                     if (!Validator.isValidTestDataName(newValue)) {
                         showInvalidTestDataNameNotification();
                         putValue("rename", false);

@@ -564,6 +564,7 @@ public class SharedReusableTree extends ProjectTree {
                     getTreeModel().reload(scenarioNode);
                     renameScenario(scenarioNode.getScenario());
                     super.getTestDesign().getScenarioComp().refreshTitle();
+                    super.getTestDesign().getTestDatacomp().refreshOpenTestData();
                     LOGGER.log(
                         Level.INFO,
                         "Scenario successfully renamed from ''{0}'' to ''{1}''",
@@ -842,6 +843,7 @@ public class SharedReusableTree extends ProjectTree {
                 getProject().save();
                 getTestDesign().getProjectTree().load();
                 load();
+                getTestDesign().getTestDatacomp().load();
                 showImpactedReferenceNotification("Moved to Test Plan", impactedUpdates);
             } else {
                 Notification.showWarning("No shared reusable test cases were moved to Test Plan.");
@@ -875,6 +877,7 @@ public class SharedReusableTree extends ProjectTree {
             getProject().save();
             getTestDesign().getProjectTree().load();
             load();
+            getTestDesign().getTestDatacomp().load();
             showImpactedReferenceNotification("Moved to Test Plan", impactedUpdates);
         } catch (TestCaseConversionException e) {
             Notification.show(e.getMessage());
@@ -997,6 +1000,7 @@ public class SharedReusableTree extends ProjectTree {
                 getProject().reload();
                 getTestDesign().getProjectTree().load();
                 load();
+                getTestDesign().getTestDatacomp().load();
             }
         }
     }
@@ -1103,6 +1107,7 @@ public class SharedReusableTree extends ProjectTree {
             getProject().reload();
             getTestDesign().getReusableTree().load();
             getTestDesign().getSharedReusableTree().load();
+            getTestDesign().getTestDatacomp().load();
             showImpactedReferenceNotification("Moved to Project Reusable", impactedUpdates);
         } else {
             Notification.showWarning(
