@@ -102,4 +102,44 @@ public class GeneralOperationsActionTest {
         verify(report)
             .updateTestLog(eq("assertNumericValue"), contains("is not numeric"), eq(Status.FAILNS));
     }
+
+    @Test
+    public void assertFileExistsPassesWhenFilePresent() throws Exception {
+        java.io.File temp = java.io.File.createTempFile("assertFileExistsTest", ".txt");
+        temp.deleteOnExit();
+        try {
+            setCommandFields(temp.getAbsolutePath(), null);
+            generalOps.assertFileExists();
+            verify(report).updateTestLog(anyString(), contains("exists"), eq(Status.PASS));
+        } finally {
+            temp.delete();
+        }
+    }
+
+    @Test
+    public void assertFileExistsFailsWhenFileMissing() throws Exception {
+        setCommandFields("/no/such/path/definitely-missing.pdf", null);
+        generalOps.assertFileExists();
+        verify(report).updateTestLog(anyString(), contains("does not exist"), eq(Status.FAIL));
+    }
+
+    @Test
+    public void waitForFileExistsPassesOnceFileAppears() throws Exception {
+        java.io.File temp = java.io.File.createTempFile("waitForFileExistsTest", ".txt");
+        temp.deleteOnExit();
+        try {
+            setCommandFields(temp.getAbsolutePath(), "2000");
+            generalOps.waitForFileExists();
+            verify(report).updateTestLog(anyString(), contains("found"), eq(Status.PASS));
+        } finally {
+            temp.delete();
+        }
+    }
+
+    @Test
+    public void waitForFileExistsFailsAfterTimeout() throws Exception {
+        setCommandFields("/no/such/path/definitely-missing.pdf", "300");
+        generalOps.waitForFileExists();
+        verify(report).updateTestLog(anyString(), contains("not found within"), eq(Status.FAIL));
+    }
 }

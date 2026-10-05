@@ -1,6 +1,6 @@
 # SAP fake mode — running the real app without SAP GUI
 
-Companion to `SAP-Connections-Redesign.md` §"Testing without a SAP environment", which
+Companion to `01-SAP-Connections-Redesign.md` §"Testing without a SAP environment", which
 covers the **unit-test** fake seam. This doc covers the separate, build-time toggle that
 lets you run the **actual INGenious app** (the real IDE/UI, or a CLI run) against that same
 fake — no SAP GUI, no COM, no JACOB — so you can exercise SAP test cases end-to-end on a
@@ -90,7 +90,7 @@ Once running against the fake:
   `SapGuiSession.raw()`), not the new interface. `FakeSap.Session.raw()` returns `null`, so
   any of these under fake mode fail with a null-Dispatch error (caught, reported as
   `FAILNS`, but not a pass). They have not been migrated onto the interface seam yet — see
-  `SAP-Connections-Redesign.md`'s "Effort" note under "Testing without a SAP environment".
+  `01-SAP-Connections-Redesign.md`'s "Effort" note under "Testing without a SAP environment".
   A fake-mode test case should stick to the lifecycle actions above; see
   `Resources/Projects/SAPDemo/README.md` for a worked example.
 - By default the fake's `Locator.rotPresent = false` and no elements are preset, so
@@ -118,7 +118,7 @@ Once running against the fake:
 
 ## See also
 
-- `SAP-Enhancement/SAP-Connections-Redesign.md` — "Testing without a SAP environment" (unit
+- `SAP-Enhancement/01-SAP-Connections-Redesign.md` — "Testing without a SAP environment" (unit
   tests), "Dependency — JACOB", "Known limitation — environment prerequisites".
 - `Engine/src/test/java/com/ing/engine/drivers/sap/SapSessionManagerTest.java` and
   `Engine/src/test/java/com/ing/engine/core/CommandControlSapGuardrailTest.java` — the unit

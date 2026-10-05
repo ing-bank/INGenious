@@ -6,14 +6,14 @@
 |---|---|
 | **Branch** | `task/sap-multi-conn-session-win` |
 | **Status** | Proposal only — deliberately not implemented. Needs team input before work starts. |
-| **Depends on** | [SAP-Connections-Redesign.md](SAP-Connections-Redesign.md) (Phases 1–4, delivered) |
+| **Depends on** | [01-SAP-Connections-Redesign.md](01-SAP-Connections-Redesign.md) (Phases 1–4, delivered) |
 | **Scope** | Datalib · Engine · IDE/CLI |
 
 ---
 
 ## Why this is a separate doc
 
-[SAP-Connections-Redesign.md](SAP-Connections-Redesign.md) turned SAP from a per-iteration
+[01-SAP-Connections-Redesign.md](01-SAP-Connections-Redesign.md) turned SAP from a per-iteration
 "driver" into a named, explicit connection (`SAP.initConnection`). Every existing project that
 still has `Browser = "SAP"` on a test case keeps working today through a **runtime shim** —
 nothing on disk changes; the shim translates `"SAP"` to `"No Browser"` + an implicit

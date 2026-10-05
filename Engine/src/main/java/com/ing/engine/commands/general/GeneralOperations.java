@@ -812,4 +812,84 @@ public class GeneralOperations extends General {
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
         }
     }
+
+    /**
+     * NEW: Assert that a file exists at the given path - addresses the "validate downloaded
+     * file" gap shared by SAP's {@code sapSaveDialogConfirm} and the browser's
+     * {@code DownloadFiles.DownloadandSaveAs()}, neither of which has any way to confirm the
+     * saved file actually landed on disk.
+     * Data format: full file path
+     */
+    @Action(
+        object = ObjectType.GENERAL,
+        desc = "Assert that file [<Data>] exists",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.FILE_PATH,
+        inputExample = "C:\\Downloads\\report.pdf",
+        inputHelp = "full file path to check for existence"
+    )
+    public void assertFileExists() {
+        try {
+            boolean exists = java.nio.file.Files.exists(java.nio.file.Path.of(Data));
+            if (exists) {
+                Report.updateTestLog(Action, "File [" + Data + "] exists.", Status.PASS);
+            } else {
+                Report.updateTestLog(Action, "File [" + Data + "] does not exist.", Status.FAIL);
+            }
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to check file existence. Error: " + e.getMessage(),
+                Status.FAIL
+            );
+        }
+    }
+
+    /**
+     * NEW: Poll for a file to exist, up to a timeout - a save can take a moment to land on disk
+     * after a download/save dialog is confirmed, so an immediate {@link #assertFileExists()}
+     * check can be too eager.
+     * Data format: full file path | Condition: timeout in ms (optional, default 10000)
+     */
+    @Action(
+        object = ObjectType.GENERAL,
+        desc = "Wait up to [<Condition>] ms for file [<Data>] to exist",
+        input = InputType.YES,
+        condition = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.FILE_PATH,
+        inputExample = "C:\\Downloads\\report.pdf",
+        inputHelp = "full file path to poll for",
+        condition = ConditionKind.TEXT,
+        conditionExample = "10000",
+        conditionHelp = "milliseconds to poll before failing; blank defaults to 10000"
+    )
+    public void waitForFileExists() {
+        long timeoutMillis = 10000;
+        if (Condition != null && !Condition.trim().isEmpty()) {
+            timeoutMillis = Long.parseLong(Condition.trim());
+        }
+        long deadline = System.currentTimeMillis() + timeoutMillis;
+        java.nio.file.Path path = java.nio.file.Path.of(Data);
+        try {
+            while (System.currentTimeMillis() < deadline) {
+                if (java.nio.file.Files.exists(path)) {
+                    Report.updateTestLog(Action, "File [" + Data + "] found.", Status.PASS);
+                    return;
+                }
+                Thread.sleep(200);
+            }
+            Report.updateTestLog(
+                Action,
+                "File [" + Data + "] not found within " + timeoutMillis + "ms.",
+                Status.FAIL
+            );
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            Report.updateTestLog(Action, "Wait interrupted. Error: " + e.getMessage(), Status.FAIL);
+        }
+    }
 }

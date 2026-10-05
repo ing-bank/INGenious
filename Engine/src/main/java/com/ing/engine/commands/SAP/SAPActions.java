@@ -3,6 +3,7 @@ package com.ing.engine.commands.SAP;
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.AutomationObject;
+import com.ing.engine.drivers.WindowsSaveDialogController;
 import com.ing.engine.drivers.sap.SapConnectionException;
 import com.ing.engine.drivers.sap.SapSessionManager;
 import com.ing.engine.execution.run.TestCaseRunner;
@@ -28,7 +29,7 @@ import java.util.Map;
  * This class provides comprehensive SAP GUI automation actions organized by element type.
  * Actions are grouped into logical sections for better maintainability and discoverability.
  *
- * Total Actions: 99 (17 Existing + 82 New)
+ * Total Actions: 100 (17 Existing + 83 New)
  *
  * Sections:
  * 1. Session & Transaction Management
@@ -46,6 +47,7 @@ import java.util.Map;
  * 13. Status Bar Actions
  * 14. General Element Actions
  * 15. Execution Evidence
+ * 16. File Download / Save Dialog
  */
 public class SAPActions extends General {
 
@@ -3336,6 +3338,155 @@ public class SAPActions extends General {
     }
 
     /**
+     * NEW: Assert a control's icon identity (e.g. a colored status box/LED) equals an expected
+     * value - JACOB exposes no bitmap/color API, so {@code IconName} is the semantic stand-in
+     * for a rendered color, the same substitution {@link #sapAssertStatusBarType()} already
+     * makes for the status bar's {@code MessageType}. Mirrors {@link #sapAssertElementTextEquals()}.
+     * SAP API: element.IconName
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert that [<Object>] icon equals [<Data>]",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "ICON_LED_GREEN",
+        inputHelp = "expected icon resource name, e.g. ICON_LED_GREEN/ICON_LED_RED"
+    )
+    public void sapAssertElementIconEquals() {
+        try {
+            String actualIcon = Dispatch.get(SAPElement, "IconName").toString();
+            if (actualIcon.equals(Data)) {
+                Report.updateTestLog(
+                    Action,
+                    "[" +
+                    ObjectName +
+                    "] actual icon [" +
+                    actualIcon +
+                    "] equals expected icon [" +
+                    Data +
+                    "].",
+                    Status.PASS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "[" +
+                    ObjectName +
+                    "] actual icon [" +
+                    actualIcon +
+                    "] does not equal expected icon [" +
+                    Data +
+                    "].",
+                    Status.FAIL
+                );
+            }
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Fails to get Element icon. Error : " + e.getMessage(),
+                Status.FAIL
+            );
+        }
+    }
+
+    /**
+     * NEW: Assert a control's tooltip contains an expected substring - for screens where the
+     * status/color semantic is only exposed through hover text (e.g. "Green"/"OK") rather than a
+     * distinct icon resource name. Mirrors {@link #sapAssertElementTextContains()}.
+     * SAP API: element.Tooltip
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert that [<Object>] tooltip contains [<Data>]",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "Green",
+        inputHelp = "expected substring of the control's tooltip/hover text"
+    )
+    public void sapAssertElementTooltipContains() {
+        try {
+            String actualTooltip = Dispatch.get(SAPElement, "Tooltip").toString();
+            if (actualTooltip.contains(Data)) {
+                Report.updateTestLog(
+                    Action,
+                    "[" +
+                    ObjectName +
+                    "] actual tooltip [" +
+                    actualTooltip +
+                    "] contains expected text [" +
+                    Data +
+                    "].",
+                    Status.PASS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "[" +
+                    ObjectName +
+                    "] actual tooltip [" +
+                    actualTooltip +
+                    "] does not contain expected text [" +
+                    Data +
+                    "].",
+                    Status.FAIL
+                );
+            }
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Fails to get Element tooltip. Error : " + e.getMessage(),
+                Status.FAIL
+            );
+        }
+    }
+
+    /**
+     * NEW: Capture a control's icon identity into a variable, generalizing
+     * {@link #sapStoreElementTextInVariable()} for icons - lets a captured icon identifier feed
+     * into {@code GeneralOperations.assertVariable}/{@code assertVariableFromDataSheet} instead
+     * of hard-coding the expected icon name in every step.
+     * SAP API: element.IconName
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Get icon from [<Object>] and store into variable [<Condition>]",
+        input = InputType.NO,
+        condition = InputType.YES
+    )
+    @Args(
+        condition = ConditionKind.TEXT,
+        conditionExample = "%filterIcon%",
+        conditionHelp = "destination variable in %var% format to store the captured icon name"
+    )
+    public void sapStoreElementIconInVariable() {
+        try {
+            String icon = Dispatch.get(SAPElement, "IconName").toString();
+            addVar(Condition, icon);
+            Report.updateTestLog(
+                Action,
+                "Captured icon [" +
+                icon +
+                "] from [" +
+                ObjectName +
+                "] into variable [" +
+                Condition +
+                "]",
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to get icon from [" + ObjectName + "]. Error: " + e.getMessage(),
+                Status.FAIL
+            );
+        }
+    }
+
+    /**
      * NEW: Assert element text numerically against an operator + expected value
      * expression, e.g. {@code <>0}, {@code >=100}.
      * SAP API: element.Text (with numeric assertion logic)
@@ -3492,6 +3643,62 @@ public class SAPActions extends General {
     @Action(object = ObjectType.SAP, desc = "Capture a screenshot of the active SAP window")
     public void sapCaptureScreenshot() {
         Report.updateTestLog(Action, "SAP screenshot captured", Status.SCREENSHOT);
+    }
+
+    // ============================================================================
+    // SECTION 16: FILE DOWNLOAD / SAVE DIALOG
+    // ============================================================================
+
+    /**
+     * NEW: Confirms the native Windows "Save As" dialog that SAP's PDF export opens outside the
+     * SAP GUI Scripting object model - not a {@code GuiComponent}, so it can't be addressed via
+     * {@code SAPElement}/JACOB. Waits for the dialog (window class {@code #32770}) to appear,
+     * then types the destination path and confirms - see {@link WindowsSaveDialogController}.
+     * Data format: full destination file path (including filename) | Condition: timeout in ms
+     * (optional, default 10000)
+     */
+    @Action(
+        object = ObjectType.SAP,
+        desc = "Confirm the native Windows Save dialog with path [<Data>]",
+        input = InputType.YES,
+        condition = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.FILE_PATH,
+        inputExample = "C:\\Downloads\\report.pdf",
+        inputHelp = "full destination file path (including filename) to type into the Save dialog",
+        condition = ConditionKind.TEXT,
+        conditionExample = "10000",
+        conditionHelp = "milliseconds to wait for the dialog to appear before failing; blank defaults to 10000"
+    )
+    public void sapSaveDialogConfirm() {
+        long timeoutMillis = 10000;
+        try {
+            if (Condition != null && !Condition.trim().isEmpty()) {
+                timeoutMillis = Long.parseLong(Condition.trim());
+            }
+            boolean confirmed = new WindowsSaveDialogController()
+            .confirmSaveDialog(Data, timeoutMillis);
+            if (confirmed) {
+                Report.updateTestLog(
+                    Action,
+                    "Save dialog confirmed with path [" + Data + "]",
+                    Status.PASS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "Save dialog did not appear within " + timeoutMillis + "ms",
+                    Status.FAIL
+                );
+            }
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to confirm save dialog. Error: " + e.getMessage(),
+                Status.FAIL
+            );
+        }
     }
 
     /**
