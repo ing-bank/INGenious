@@ -147,7 +147,7 @@ public final class ReusableComponentDialog {
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.weightx = 0;
-        panel.add(new JLabel("Reusable Scenario Name:"), gbc);
+        panel.add(new JLabel("User Intent Scenario Name:"), gbc);
         gbc.gridx = 1;
         gbc.weightx = 1;
         panel.add(scenarioBox, gbc);
@@ -156,7 +156,7 @@ public final class ReusableComponentDialog {
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.weightx = 0;
-        panel.add(new JLabel("Reusable Name:"), gbc);
+        panel.add(new JLabel("User Intent Name:"), gbc);
         gbc.gridx = 1;
         gbc.weightx = 1;
         panel.add(nameField, gbc);
@@ -166,7 +166,7 @@ public final class ReusableComponentDialog {
             JOptionPane.PLAIN_MESSAGE,
             JOptionPane.OK_CANCEL_OPTION
         );
-        JDialog dialog = optionPane.createDialog(parent, "Create Reusable");
+        JDialog dialog = optionPane.createDialog(parent, "Create User Intent");
 
         // Hitting Enter inside the name field confirms the dialog.
         nameField.addActionListener(

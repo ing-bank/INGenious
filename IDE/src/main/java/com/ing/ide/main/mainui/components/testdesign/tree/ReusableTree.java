@@ -209,7 +209,9 @@ public class ReusableTree extends ProjectTree {
     @Override
     protected void makeAsReusableRTestCase() {
         if (getSelectedTestCaseNodes().isEmpty()) {
-            Notification.showWarning("Select at least one reusable test case to make as TestCase.");
+            Notification.showWarning(
+                "Select at least one user intent test case to make as TestCase."
+            );
             return;
         }
         if (!getSelectedTestCaseNodes().isEmpty()) {
@@ -235,7 +237,7 @@ public class ReusableTree extends ProjectTree {
                 load();
                 showImpactedReferenceNotification("Moved to Test Plan", impactedUpdates);
             } else {
-                Notification.showWarning("No reusable test cases were moved to Test Plan.");
+                Notification.showWarning("No user intent test cases were moved to Test Plan.");
             }
         }
     }
@@ -279,7 +281,7 @@ public class ReusableTree extends ProjectTree {
             Notification.showWarning(
                 "Scenario '" +
                 scenarioName +
-                "' already exists in Project Reusables. Please choose a different Project Reusable scenario name."
+                "' already exists in Project User Intents. Please choose a different Project User Intent scenario name."
             );
             return;
         }
@@ -314,7 +316,7 @@ public class ReusableTree extends ProjectTree {
                 );
                 persistSortOrder(scenarioNode);
             } else {
-                Notification.show("Reusable test case already exists");
+                Notification.show("User Intent test case already exists");
             }
         }
     }
@@ -360,7 +362,7 @@ public class ReusableTree extends ProjectTree {
             messagePanel.add(scrollPane, java.awt.BorderLayout.CENTER);
 
             JCheckBox confirmBox = new JCheckBox(
-                "Move Reusables inside Group to TestPlan instead of deleting"
+                "Move User Intents inside Group to TestPlan instead of deleting"
             );
 
             int option = JOptionPane.showConfirmDialog(
@@ -482,7 +484,7 @@ public class ReusableTree extends ProjectTree {
         List<TestCase> selected = collectSelectedReusableTestCases();
         if (selected.isEmpty()) {
             Notification.showWarning(
-                "Select at least one reusable test case to make as Shared User Intent."
+                "Select at least one user intent test case to make as Shared User Intent."
             );
             return;
         }
@@ -493,7 +495,7 @@ public class ReusableTree extends ProjectTree {
         // First confirm the high-level intent to make selected reusables Shared
         int option = JOptionPane.showConfirmDialog(
             null,
-            "Move selected reusable test case(s) to Shared User Intent?",
+            "Move selected user intent test case(s) to Shared User Intent?",
             "Make As Shared User Intent",
             JOptionPane.YES_NO_OPTION
         );
@@ -522,7 +524,7 @@ public class ReusableTree extends ProjectTree {
             getTestDesign().getSharedReusableTree().load();
             showImpactedReferenceNotification("Moved to Shared User Intent", impactedUpdates);
         } else {
-            Notification.showWarning("No reusable test cases were moved to Shared User Intent.");
+            Notification.showWarning("No user intent test cases were moved to Shared User Intent.");
         }
     }
 

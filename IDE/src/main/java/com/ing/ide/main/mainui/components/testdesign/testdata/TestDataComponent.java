@@ -1283,7 +1283,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     /**
      * Re-reads the project from disk and rebuilds every Test Design view so the scenario /
      * test case / Test Data auto-suggests pick up test cases that were also promoted to
-     * Shared Reusables - mirroring what the tree "Make As Shared Reusable" flow does
+     * Shared User Intents - mirroring what the tree "Make As Shared User Intent" flow does
      * ({@code getProject().reload(); load();}).
      */
     private void refreshAfterMakeShared() {
@@ -1371,7 +1371,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
      * After referencing test cases have been promoted to Shared Reusables, reuse the Project
      * tree's helper to detect the project-scoped Object Repository items those test cases use
      * and prompt to move them to the Shared OR as well - the same second step the normal
-     * "Make As Shared Reusable" flow runs.
+     * "Make As Shared User Intent" flow runs.
      */
     private void offerToMovePromotedTestCaseObjectsToShared(List<TestCase> promoted) {
         if (promoted == null || promoted.isEmpty()) {
@@ -1387,8 +1387,8 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     /**
-     * Asks whether the Test Plan / Project-Reusable test cases tied to the datasheet(s) being
-     * moved (they use it, or hold its data rows) should also be converted to Shared Reusables
+     * Asks whether the Test Plan / Project-User Intent test cases tied to the datasheet(s) being
+     * moved (they use it, or hold its data rows) should also be converted to Shared User Intents
      * so other consumers of the shared data can run them.
      *
      * <p>Yes converts them and rewrites their references to {@code [Shared]}; No moves only the
@@ -1437,7 +1437,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             new JLabel(
                 "<html>" +
                 distinct.size() +
-                " impacted Test Plan / Project Reusable test case(s) use the Test Data being " +
+                " impacted Test Plan / Project User Intent test case(s) use the Test Data being " +
                 "moved:</html>"
             ),
             BorderLayout.NORTH
@@ -1445,7 +1445,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         panel.add(scroll, BorderLayout.CENTER);
         panel.add(
             new JLabel(
-                "<html><br>Also move these test case(s) to <b>Shared Reusables</b> (their " +
+                "<html><br>Also move these test case(s) to <b>Shared User Intents</b> (their " +
                 "references updated to [Shared])?<br>" +
                 "Choosing <b>No</b> moves only the Test Data &mdash; other users of the shared " +
                 "data may not be able to run the test case(s) above.<br>" +
@@ -1485,7 +1485,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             m
                 .append("; ")
                 .append(result.promoted.size())
-                .append(" test case(s) converted to Shared Reusables");
+                .append(" test case(s) converted to Shared User Intents");
         }
         m.append('.');
         Notification.showSuccess(m.toString());
@@ -1497,7 +1497,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             }
             Notification.showWarning(
                 leftBehind.size() +
-                " test case(s) were NOT moved to Shared Reusables - other users of the shared " +
+                " test case(s) were NOT moved to Shared User Intents - other users of the shared " +
                 "Test Data may not be able to run them: " +
                 String.join(", ", names)
             );

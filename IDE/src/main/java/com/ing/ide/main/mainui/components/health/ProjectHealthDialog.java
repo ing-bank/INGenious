@@ -123,7 +123,7 @@ public class ProjectHealthDialog extends JDialog {
         sb.append("<div class='cards'>");
         card(sb, r.scenarios, "Scenarios");
         card(sb, r.testCases, "Test Cases");
-        card(sb, r.reusableComponents, "Reusable Intents");
+        card(sb, r.reusableComponents, "User Intents");
         card(sb, r.releases, "Releases");
         card(sb, r.testSets, "Test Sets");
         card(sb, r.taggedTestCases, "Tagged");

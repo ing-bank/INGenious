@@ -995,7 +995,9 @@ public class ProjectTree implements ActionListener {
      */
     protected void makeAsReusableRTestCase() {
         if (getSelectedTestCaseNodes().isEmpty()) {
-            Notification.showWarning("Select at least one test case to make as Project User Intent.");
+            Notification.showWarning(
+                "Select at least one test case to make as Project User Intent."
+            );
             return;
         }
         if (!getSelectedTestCaseNodes().isEmpty()) {
@@ -1039,7 +1041,9 @@ public class ProjectTree implements ActionListener {
      */
     private void moveTestCaseToSharedReusable() {
         if (getSelectedTestCaseNodes().isEmpty()) {
-            Notification.showWarning("Select at least one test case to make as Shared User Intent.");
+            Notification.showWarning(
+                "Select at least one test case to make as Shared User Intent."
+            );
             return;
         }
         if (!getSelectedTestCaseNodes().isEmpty()) {

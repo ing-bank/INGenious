@@ -31,7 +31,7 @@ import org.fife.ui.rtextarea.RTextScrollPane;
  */
 public class QueryEditorPanel extends JPanel {
     private static final String TYPE_TEST_CASE = "Test Case";
-    private static final String TYPE_USER_INTENT = "User Intent (Reusable)";
+    private static final String TYPE_USER_INTENT = "User Intent";
 
     private final DBWorkbenchUI parent;
     private final JComboBox<String> connectionCombo = new JComboBox<>();
@@ -122,7 +122,7 @@ public class QueryEditorPanel extends JPanel {
         bar.add(rollbackBtn);
 
         JButton automationBtn = new JButton("⇢ Automation");
-        automationBtn.setToolTipText("Convert to INGenious Test Case or User Intent (Reusable)");
+        automationBtn.setToolTipText("Convert to INGenious Test Case or User Intent");
         automationBtn.addActionListener(e -> showConvertToAutomationDialog());
         bar.add(automationBtn);
 

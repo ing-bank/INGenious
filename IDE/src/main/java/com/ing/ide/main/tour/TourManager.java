@@ -120,7 +120,7 @@ public class TourManager {
                 TourStep.ViewToShow.TEST_DESIGN
             ),
             new TourStep(
-                "Reusable Components",
+                "User Intent",
                 "Define common step sequences once and call them from any Test Case \u2014 " +
                 "ideal for login flows, shared setup steps, and teardown routines.",
                 TourStep.TargetComponent.REUSABLES,
