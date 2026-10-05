@@ -128,7 +128,7 @@ public class RecordingTargetDialog extends JDialog {
 
         ButtonGroup group = new ButtonGroup();
         newScenarioRadio = new JRadioButton("New test case under Test Scenario", true);
-        newReusableRadio = new JRadioButton("New test case under Reusable Scenario");
+        newReusableRadio = new JRadioButton("New test case under User Intent Scenario");
         currentOpenRadio = new JRadioButton("Use currently open test case");
         existingRadio = new JRadioButton("Use an existing test case");
 
@@ -154,7 +154,7 @@ public class RecordingTargetDialog extends JDialog {
         gbc.gridy++;
         content.add(
             formPanel(
-                "Reusable scenario",
+                "User Intent scenario",
                 newReusableNameField = new javax.swing.JTextField("LiveRecordingReusable"),
                 "Test case",
                 newReusableTestCaseField = new javax.swing.JTextField("LiveRecordingTestCase")
@@ -305,7 +305,7 @@ public class RecordingTargetDialog extends JDialog {
             if (scenarioName.isEmpty() || testCaseName.isEmpty()) {
                 JOptionPane.showMessageDialog(
                     this,
-                    "Reusable scenario and test case names are required.",
+                    "User Intent scenario and test case names are required.",
                     "Validation",
                     JOptionPane.WARNING_MESSAGE
                 );
