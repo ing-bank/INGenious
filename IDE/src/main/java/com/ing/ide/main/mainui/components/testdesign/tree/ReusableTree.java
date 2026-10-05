@@ -131,7 +131,7 @@ public class ReusableTree extends ProjectTree {
             case "Add TestCase":
                 addReusableTestCase();
                 break;
-            case "Make As Shared Reusable":
+            case "Make As Shared User Intent":
                 moveToSharedReusable();
                 break;
             // case "Rename Group":
@@ -482,7 +482,7 @@ public class ReusableTree extends ProjectTree {
         List<TestCase> selected = collectSelectedReusableTestCases();
         if (selected.isEmpty()) {
             Notification.showWarning(
-                "Select at least one reusable test case to make as Shared Reusable."
+                "Select at least one reusable test case to make as Shared User Intent."
             );
             return;
         }
@@ -493,8 +493,8 @@ public class ReusableTree extends ProjectTree {
         // First confirm the high-level intent to make selected reusables Shared
         int option = JOptionPane.showConfirmDialog(
             null,
-            "Move selected reusable test case(s) to Shared Reusable Components?",
-            "Make As Shared Reusable",
+            "Move selected reusable test case(s) to Shared User Intent?",
+            "Make As Shared User Intent",
             JOptionPane.YES_NO_OPTION
         );
         if (option != JOptionPane.YES_OPTION) {
@@ -520,9 +520,9 @@ public class ReusableTree extends ProjectTree {
             getProject().reload();
             getTestDesign().getReusableTree().load();
             getTestDesign().getSharedReusableTree().load();
-            showImpactedReferenceNotification("Moved to Shared Reusable", impactedUpdates);
+            showImpactedReferenceNotification("Moved to Shared User Intent", impactedUpdates);
         } else {
-            Notification.showWarning("No reusable test cases were moved to Shared Reusable.");
+            Notification.showWarning("No reusable test cases were moved to Shared User Intent.");
         }
     }
 

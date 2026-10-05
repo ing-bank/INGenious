@@ -482,10 +482,10 @@ public class ProjectTree implements ActionListener {
             case "Make As TestCase":
                 makeAsReusableRTestCase();
                 break;
-            case "Make As Project Reusable":
+            case "Make As Project User Intent":
                 makeAsReusableRTestCase();
                 break;
-            case "Make As Shared Reusable":
+            case "Make As Shared User Intent":
                 moveTestCaseToSharedReusable();
                 break;
             case "Details":
@@ -995,7 +995,7 @@ public class ProjectTree implements ActionListener {
      */
     protected void makeAsReusableRTestCase() {
         if (getSelectedTestCaseNodes().isEmpty()) {
-            Notification.showWarning("Select at least one test case to make as Project Reusable.");
+            Notification.showWarning("Select at least one test case to make as Project User Intent.");
             return;
         }
         if (!getSelectedTestCaseNodes().isEmpty()) {
@@ -1019,9 +1019,9 @@ public class ProjectTree implements ActionListener {
                 getProject().save();
                 load();
                 getTestDesign().getReusableTree().load();
-                showImpactedReferenceNotification("Moved to Project Reusable", impactedUpdates);
+                showImpactedReferenceNotification("Moved to Project User Intent", impactedUpdates);
             } else {
-                Notification.showWarning("No test cases were moved to Project Reusable.");
+                Notification.showWarning("No test cases were moved to Project User Intent.");
             }
         }
     }
@@ -1039,14 +1039,14 @@ public class ProjectTree implements ActionListener {
      */
     private void moveTestCaseToSharedReusable() {
         if (getSelectedTestCaseNodes().isEmpty()) {
-            Notification.showWarning("Select at least one test case to make as Shared Reusable.");
+            Notification.showWarning("Select at least one test case to make as Shared User Intent.");
             return;
         }
         if (!getSelectedTestCaseNodes().isEmpty()) {
             int option = JOptionPane.showConfirmDialog(
                 null,
-                "Move selected test case(s) to Shared Reusable Components?",
-                "Make As Shared Reusable",
+                "Move selected test case(s) to Shared User Intent?",
+                "Make As Shared User Intent",
                 JOptionPane.YES_NO_OPTION
             );
             if (option != JOptionPane.YES_OPTION) {
@@ -1090,9 +1090,9 @@ public class ProjectTree implements ActionListener {
                 getProject().save();
                 load();
                 getTestDesign().getSharedReusableTree().load();
-                showImpactedReferenceNotification("Moved to Shared Reusable", impactedUpdates);
+                showImpactedReferenceNotification("Moved to Shared User Intent", impactedUpdates);
             } else {
-                Notification.showWarning("No test cases were moved to Shared Reusable.");
+                Notification.showWarning("No test cases were moved to Shared User Intent.");
             }
         }
     }
@@ -1790,11 +1790,11 @@ public class ProjectTree implements ActionListener {
             add(toggleTestCase = create("Make As TestCase", null));
             toggleTestCase.setText("Make As TestCase");
             toggleTestCase.setVisible(false);
-            add(toggleProjectReusable = create("Make As Project Reusable", null));
-            toggleProjectReusable.setText("Make As Project Reusable");
+            add(toggleProjectReusable = create("Make As Project User Intent", null));
+            toggleProjectReusable.setText("Make As Project User Intent");
             toggleProjectReusable.setVisible(true);
-            add(toggleSharedReusable = create("Make As Shared Reusable", null));
-            toggleSharedReusable.setText("Make As Shared Reusable");
+            add(toggleSharedReusable = create("Make As Shared User Intent", null));
+            toggleSharedReusable.setText("Make As Shared User Intent");
             toggleSharedReusable.setVisible(true);
             addSeparator();
             setCCP();
