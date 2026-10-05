@@ -121,7 +121,7 @@ public class RequestPanel extends JPanel {
         JButton convertButton = new JButton("⇢ Automation");
         convertButton.setFont(convertButton.getFont().deriveFont(11f));
         convertButton.setPreferredSize(new Dimension(110, 36));
-        convertButton.setToolTipText("Convert to INGenious Test Case or User Intent (Reusable)");
+        convertButton.setToolTipText("Convert to INGenious Test Case or User Intent");
         convertButton.addActionListener(e -> showConvertToTestDialog());
 
         // Layout
@@ -259,7 +259,7 @@ public class RequestPanel extends JPanel {
 
         // Automation target options
         final String TYPE_TEST_CASE = "Test Case";
-        final String TYPE_USER_INTENT = "User Intent (Reusable)";
+        final String TYPE_USER_INTENT = "User Intent";
 
         // Create dialog
         javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.GridLayout(4, 2, 10, 10));
@@ -373,7 +373,7 @@ public class RequestPanel extends JPanel {
                 return;
             }
 
-            // User Intent (Reusable) path: create a reusable component and finish
+            // User Intent path: create a reusable component and finish
             if (reusable) {
                 com.ing.datalib.component.TestCase reusableCase = parent
                     .getApiTester()
@@ -384,7 +384,7 @@ public class RequestPanel extends JPanel {
                         this,
                         "Successfully created user intent '" +
                         testCaseName +
-                        "' in reusable scenario '" +
+                        "' in user intent scenario '" +
                         selectedScenario.getName() +
                         "'.\n\nWould you like to open it in Test Design?",
                         "Conversion Successful",

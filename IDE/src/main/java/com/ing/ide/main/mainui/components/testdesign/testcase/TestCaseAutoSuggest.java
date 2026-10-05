@@ -1313,7 +1313,7 @@ public class TestCaseAutoSuggest {
                 }
             }
             // Double-click on reusable steps allows editing; navigation is disabled
-            // Use context menu "Go To Reusable" for navigation instead
+            // Use context menu "Go To User Intent" for navigation instead
         }
     }
 

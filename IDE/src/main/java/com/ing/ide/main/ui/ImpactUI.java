@@ -46,12 +46,12 @@ public class ImpactUI extends javax.swing.JDialog {
                     testCase.getScenario().getSource() ==
                     com.ing.datalib.component.Scenario.Source.SHARED_REUSABLE_COMPONENTS
                 ) {
-                    sourceIndicator = "[Shared Reusable] ";
+                    sourceIndicator = "[Shared User Intent] ";
                 } else if (
                     testCase.getScenario().getSource() ==
                     com.ing.datalib.component.Scenario.Source.REUSABLE_COMPONENTS
                 ) {
-                    sourceIndicator = "[Project Reusable] ";
+                    sourceIndicator = "[Project User Intent] ";
                 } else {
                     sourceIndicator = "[Test Plan] ";
                 }

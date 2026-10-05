@@ -102,8 +102,8 @@ public final class ImportReportWriter {
 
         // Determine dynamic labels based on target type
         boolean isTestCase = options.getTargetType() == ImportOptions.TargetType.TEST_CASE;
-        String assetTypeLabel = isTestCase ? "TestCases" : "Reusables";
-        String assetTypeSingular = isTestCase ? "TestCase" : "Reusable";
+        String assetTypeLabel = isTestCase ? "TestCases" : "User Intents";
+        String assetTypeSingular = isTestCase ? "TestCase" : "User Intent";
 
         // Import Summary Section
         sb.append("    <section class=\"card\">\n");
