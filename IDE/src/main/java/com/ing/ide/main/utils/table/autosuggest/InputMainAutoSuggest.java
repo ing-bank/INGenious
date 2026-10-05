@@ -193,6 +193,16 @@ public class InputMainAutoSuggest extends JComboBox<String> {
         handler.keyTyped(null);
     }
 
+    /**
+     * Marks the popup as still mid-interaction, so an ActionEvent fired by a selection
+     * made within {@code setSelectedItem} doesn't let the owning cell editor's
+     * stopCellEditing() commit and close the cell before the override is done composing
+     * the next stage of a multi-step pick (e.g. sheet, then column).
+     */
+    public final void keepPopupOpen() {
+        handler.shouldHide = false;
+    }
+
     public final Boolean isEditing() {
         return !handler.shouldHide;
     }

@@ -289,12 +289,11 @@ public class InlinePropertyDialog extends JDialog {
                                 DataFlavors.TESTDATA_FLAVOR
                             );
                             if (!td.getColumnNames().isEmpty()) {
-                                // New references carry an explicit scope tag, matching
-                                // TestCaseTableDnD ([Project] for project sheets, [Shared] for
-                                // Shared Test Data). Untagged references still resolve too.
-                                String scopeTag = td.isShared() ? "[Shared] " : "[Project] ";
+                                // Scope tag trails the whole reference (untagged == @Project);
+                                // see TestStep#isScopedTestDataRef / TestCaseTableDnD#putTestData.
+                                String scopeTag = td.isShared() ? "@Shared" : "";
                                 combo.setSelectedItem(
-                                    scopeTag + td.getSheetName() + ":" + td.getColumnNames().get(0)
+                                    td.getSheetName() + ":" + td.getColumnNames().get(0) + scopeTag
                                 );
                                 return true;
                             }
