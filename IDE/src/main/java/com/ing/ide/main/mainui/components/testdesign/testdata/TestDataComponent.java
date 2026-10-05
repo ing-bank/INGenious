@@ -540,7 +540,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             model.addRecord();
             model.getRecords().get(0).setScenario(testcase.getScenario().getName());
             model.getRecords().get(0).setTestcase(testcase.getName());
-            model.getRecords().get(0).setScope(scopeFor(testcase.getScenario()));
+            model.getRecords().get(0).setScope(scopeTokenFor(testcase.getScenario()));
             model.getRecords().get(0).setIteration("1");
             model.getRecords().get(0).setSubIteration("1");
         }
@@ -548,16 +548,18 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     /**
-     * Resolves the TestData "Scope" value matching the scope of the given scenario, so a newly
-     * added datasheet row correctly reflects Project/Shared reusable scenarios instead of always
-     * defaulting to Test Plan scope.
+     * Maps a scenario's scope to the raw Scope token stored against Test Data records:
+     * "" for Test Plan, "[Project]" for Project Reusables, "[Shared]" for Shared Reusables.
      */
-    private String scopeFor(Scenario scenario) {
-        if (scenario != null && scenario.isReusableScenario()) {
-            return "[Project]";
+    private String scopeTokenFor(Scenario scenario) {
+        if (scenario == null) {
+            return "";
         }
-        if (scenario != null && scenario.isSharedReusableScenario()) {
+        if (scenario.isSharedReusableScenario()) {
             return "[Shared]";
+        }
+        if (scenario.isReusableScenario()) {
+            return "[Project]";
         }
         return "";
     }
