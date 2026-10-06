@@ -1,5 +1,21 @@
 package com.ing.engine.commands.SAP;
 
+import java.awt.AWTException;
+import java.awt.Robot;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.io.StringReader;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.AutomationObject;
@@ -20,8 +36,6 @@ import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.jacob.com.Dispatch;
 import com.jacob.com.Variant;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * SAP GUI Scripting Actions for INGenious Test Automation Framework
@@ -875,6 +889,148 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to Enter Text. Error : " + e.getMessage(),
+                Status.FAIL
+            );
+        }
+    }
+
+    /**
+     * NEW: Write a full XML document into an element's Text, validating well-formedness first -
+     * covers the SAP XML-entry gap (see SAP-Enhancement/10-SAP-DMEE-XML-Tree-Editing.md). Fails
+     * fast on malformed XML instead of silently writing bad text, unlike plain {@link #sapFill()}.
+     * IDE renders {@code Data} with the XML/raw-body editor per {@code ArgType.XML_BODY}.
+     * SAP API: element.Text = value
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Set XML [<Data>] into the field [<Object>]",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.XML_BODY,
+        inputExample = "<root/>",
+        inputHelp = "A well-formed XML document to validate and write into the element."
+    )
+    public void sapSetElementXMLEditor() {
+        try {
+            validateSAPElement();
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            dbFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            dbFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            dbFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            dbFactory.setXIncludeAware(false);
+            dbFactory.setExpandEntityReferences(false);
+            dbFactory.newDocumentBuilder().parse(new InputSource(new StringReader(Data)));
+
+            Dispatch.put(SAPElement, "Text", Data);
+            Report.updateTestLog(Action, "Entered XML into '" + ObjectName + "'", Status.DONE);
+        } catch (ElementException ex) {
+            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAIL);
+            throw ex;
+        } catch (ParserConfigurationException | SAXException | IOException ex) {
+            Report.updateTestLog(
+                Action,
+                "Invalid XML in Data. Error: " + ex.getMessage(),
+                Status.FAIL
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to set XML. Error : " + e.getMessage(),
+                Status.FAIL
+            );
+        }
+    }
+
+    /**
+     * Strips the collapse/expand glyphs ("-"/"+") that IE/Trident's default no-stylesheet XML
+     * tree view prefixes to container-element lines - confirmed against a real captured sample:
+     * these are rendering artifacts of the viewer, not part of the XML, and are carried along
+     * verbatim by a plain select-all + copy off the screen. Also drops the blank lines the same
+     * viewer inserts for spacing, which a parser doesn't need.
+     */
+    private String stripXmlTreeViewArtifacts(String raw) {
+        StringBuilder cleaned = new StringBuilder();
+        for (String line : raw.split("\\r?\\n")) {
+            String trimmed = line.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            if (
+                (trimmed.charAt(0) == '-' || trimmed.charAt(0) == '+') &&
+                trimmed.length() > 1 &&
+                trimmed.charAt(1) == '<'
+            ) {
+                trimmed = trimmed.substring(1);
+            }
+            cleaned.append(trimmed).append('\n');
+        }
+        return cleaned.toString();
+    }
+
+    /**
+     * NEW: Fallback capture of an element's on-screen text via native select-all + copy, for
+     * controls (e.g. a GuiHTMLViewer-rendered XML tree) whose content isn't reliably reachable
+     * through the ordinary Text property - see SAP-Enhancement/10-SAP-DMEE-XML-Tree-Editing.md.
+     * Runs the result through {@link #stripXmlTreeViewArtifacts(String)} before storing, so the
+     * captured text is usable as well-formed XML for downstream XPath assertions, not just a
+     * literal screen dump. Complements {@link #sapStoreElementTextInVariable()}, which reads the
+     * SAP GUI Scripting {@code Text} property directly instead of going through the clipboard.
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Capture [<Object>] on-screen text via copy and store into variable [<Condition>]",
+        input = InputType.NO,
+        condition = InputType.YES
+    )
+    @Args(
+        condition = ConditionKind.TEXT,
+        conditionExample = "%capturedXml%",
+        conditionHelp = "destination variable in %var% format to store the captured, cleaned text"
+    )
+    public void sapCaptureElementTextViaClipboard() {
+        try {
+            validateSAPElement();
+            Dispatch.call(SAPElement, "setFocus");
+            Robot robot = new Robot();
+            robot.delay(200);
+            robot.keyPress(KeyEvent.VK_CONTROL);
+            robot.keyPress(KeyEvent.VK_A);
+            robot.keyRelease(KeyEvent.VK_A);
+            robot.keyRelease(KeyEvent.VK_CONTROL);
+            robot.delay(200);
+            robot.keyPress(KeyEvent.VK_CONTROL);
+            robot.keyPress(KeyEvent.VK_C);
+            robot.keyRelease(KeyEvent.VK_C);
+            robot.keyRelease(KeyEvent.VK_CONTROL);
+            robot.delay(300);
+
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            String raw = (String) clipboard.getData(DataFlavor.stringFlavor);
+            String cleaned = stripXmlTreeViewArtifacts(raw);
+            addVar(Condition, cleaned);
+            Report.updateTestLog(
+                Action,
+                "Captured text from [" +
+                ObjectName +
+                "] via copy into variable [" +
+                Condition +
+                "]",
+                Status.DONE
+            );
+        } catch (ElementException ex) {
+            Report.updateTestLog(Action, "Element [" + ObjectName + "] not found", Status.FAIL);
+            throw ex;
+        } catch (AWTException | UnsupportedFlavorException | IOException e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to capture element text via clipboard. Error: " + e.getMessage(),
+                Status.FAIL
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to capture element text via clipboard. Error: " + e.getMessage(),
                 Status.FAIL
             );
         }
