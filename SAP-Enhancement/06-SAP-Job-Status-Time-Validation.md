@@ -34,6 +34,17 @@ behavior.
 
 **Then** the test execution fails
 
+### Scenario 4: Health-check the first N rows of a job table
+
+**Given** a job status table/grid showing multiple job runs, and a configured row count, status
+column, expected status, time column and interval
+
+**When** the row health-check assertion is executed
+
+**Then** it fails if any of the first N rows' status column does not equal the expected status
+(e.g. a "Failed" job among "Finished" ones), or if the time gap between any two consecutive
+rows' time column exceeds the configured interval (e.g. jobs expected every 2, 3 or 5 minutes)
+
 ## Related SAP Request Items
 
 ### Item #12
@@ -129,6 +140,41 @@ Timestamp/duration plumbing exists but isn't exposed as a reusable action:
    general-purpose time actions above, which slot in after job details are captured via the
    existing row/cell actions from item 1.
 
+5. **`sapAssertTableRowsHealthy` / `sapAssertGridRowsHealthy`** (new, implemented) — a combined
+   health check over the first N rows that resolves Scenario 4 directly, built from a request
+   refinement during this session (compare the first 10 rows' status, and flag a run-time gap
+   larger than a configurable interval):
+   - `Data` = `statusColumn,expectedStatus,timeColumn,rowCount` — e.g.
+     `Status,Finished,Last Run Time,10`. Columns are addressed by name via the existing
+     `GetCellValue(row, column)` pattern, so differently-named or differently-ordered columns
+     across SAP systems still resolve correctly, per the explicit requirement that column
+     names/order aren't guaranteed to match.
+   - `Condition` = `intervalMinutes` — e.g. `3`; a single value, consistent with how `Condition`
+     is used everywhere else in this file. User-configurable (2, 3, 5 minutes, or any value), not
+     hard-coded to the "3 minutes" in Item #12's wording. (`rowCount` moved from `Condition` into
+     `Data` during refinement so `Condition` stays single-valued.)
+   - Checks every row's status column against the expected value (a mismatch anywhere - e.g. a
+     "Failed" row among "Finished" ones - fails the whole assertion, per "if there is failed in
+     between then it should fail the assert"), and separately checks that the gap between each
+     consecutive pair of rows' time column does not exceed the configured interval. All
+     mismatches/gap violations are collected and reported together, not just the first one.
+   - Time values are parsed trying `HH:mm:ss` then `HH:mm` (SAP's typical time-only column
+     display, no date) - **confirmed against a real sample**: a job monitor screen (custom
+     `ZF_GRID2SAP` report, not standard `SM37`) shows a `Start Time` column formatted exactly
+     as `HH:MM:SS` (e.g. `00:00:55`), a separate `Start date` column, and a `Status` column with
+     the literal values `Finished` (green)/`Released` - all matching this design's assumptions
+     exactly, no changes needed.
+   - This action reuses existing building blocks only (`RowCount`/`GetCellValue`, the
+     `parseIntSafely` helper, `java.time.Duration`) - no change to the generic store actions from
+     item 1.
+   - **Report-specific shortcut spotted in the same sample**: that particular custom report
+     already pre-computes a `Delay (sec.)` column per row (how far off each run was from its
+     expected schedule). Where such a column exists, reading it directly via the existing
+     `sapStoreCellValueByIndexInVariable`/`assertNumericValue` is cheaper than recomputing gaps
+     - but standard `SM37` has no equivalent column, so `sapAssertTableRowsHealthy`/
+     `sapAssertGridRowsHealthy`'s own gap computation remains the general-purpose path that
+     works on any job table regardless of whether it happens to pre-compute delay itself.
+
 ## Open Questions
 
 - What timestamp format(s) should `storeTimeDifferenceInVariable` accept - SAP's default
@@ -138,3 +184,16 @@ Timestamp/duration plumbing exists but isn't exposed as a reusable action:
   action, or does the two-jobs case need its own action to keep the `Data` format simple?
 - Should a negative/zero duration (end time before start time, e.g. crossing midnight) be treated
   as a data error (`FAILNS`) or handled by wrapping the calculation into the next day?
+- **`sapAssertTableRowsHealthy`/`sapAssertGridRowsHealthy` interval semantics** - implemented as
+  "gap must not exceed the configured interval" (a maximum-allowed-gap health check). Not
+  confirmed against a real screen whether "3 minutes interval" should instead mean an *exact*
+  match (e.g. `== 3`, flagging gaps that are too small as well as too large) rather than a
+  maximum - needs a real SM37-style sample to validate against.
+- **Time format assumption** - **resolved for at least one real screen**: a sample `ZF_GRID2SAP`
+  job monitor confirms `HH:mm:ss` (no date, no locale variation) for the time column. Still not
+  confirmed whether every SAP job table (including standard `SM37` itself) uses the same format,
+  so the `HH:mm`/`HH:mm:ss` fallback pair is kept rather than assuming only one.
+- **Midnight rollover** - `Duration.between(previous, current)` on two `LocalTime` values doesn't
+  account for a run crossing midnight (e.g. `23:59` → `00:01` would compute a large negative/huge
+  gap, not a small one); not yet handled - same class of edge case flagged for
+  `storeTimeDifferenceInVariable` above.

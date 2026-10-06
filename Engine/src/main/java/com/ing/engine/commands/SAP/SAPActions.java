@@ -1,21 +1,5 @@
 package com.ing.engine.commands.SAP;
 
-import java.awt.AWTException;
-import java.awt.Robot;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.KeyEvent;
-import java.io.IOException;
-import java.io.StringReader;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.AutomationObject;
@@ -36,6 +20,25 @@ import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.jacob.com.Dispatch;
 import com.jacob.com.Variant;
+import java.awt.AWTException;
+import java.awt.Robot;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.io.StringReader;
+import java.time.Duration;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * SAP GUI Scripting Actions for INGenious Test Automation Framework
@@ -64,6 +67,14 @@ import com.jacob.com.Variant;
  * 16. File Download / Save Dialog
  */
 public class SAPActions extends General {
+    /**
+     * A handful of SAP's own display formats for a time-only column (job overview screens such
+     * as SM37 show Start/End time without a date) - tried in order until one parses.
+     */
+    private static final DateTimeFormatter[] TIME_COLUMN_FORMATS = {
+        DateTimeFormatter.ofPattern("HH:mm:ss"),
+        DateTimeFormatter.ofPattern("HH:mm")
+    };
 
     public SAPActions(CommandControl cc) {
         super(cc);
@@ -354,6 +365,141 @@ public class SAPActions extends General {
             Report.updateTestLog(
                 Action,
                 "Failed to assert row count on [" + ObjectName + "]. Error: " + e.getMessage(),
+                Status.FAIL
+            );
+        }
+    }
+
+    private LocalTime parseTimeColumnValue(String raw) {
+        for (DateTimeFormatter formatter : TIME_COLUMN_FORMATS) {
+            try {
+                return LocalTime.parse(raw.trim(), formatter);
+            } catch (DateTimeParseException ignored) {
+                // try the next format
+            }
+        }
+        throw new DateTimeParseException("Unrecognised time format: " + raw, raw, 0);
+    }
+
+    /**
+     * Shared body for {@code sapAssertTableRowsHealthy} / {@code sapAssertGridRowsHealthy} -
+     * a combined SM37-style job health check over the first N rows of a table/grid: every
+     * checked row's status column must equal the expected status (e.g. a "Failed" job among
+     * the first 10 rows fails the whole assertion), and the time gap between each consecutive
+     * pair of rows' time column must not exceed the configured interval (e.g. jobs expected to
+     * run every 3 minutes). Columns are addressed by name (via {@code GetCellValue(row, column)}),
+     * not position, so differently-named or differently-ordered columns across SAP systems
+     * still resolve correctly.
+     * Data format: statusColumn,expectedStatus,timeColumn,rowCount
+     * Condition: intervalMinutes
+     */
+    private void assertRowsHealthy() {
+        try {
+            String[] dataParts = Data.split(",", 4);
+            if (dataParts.length < 4) {
+                Report.updateTestLog(
+                    Action,
+                    "Invalid data format. Expected: statusColumn,expectedStatus,timeColumn,rowCount",
+                    Status.FAIL
+                );
+                return;
+            }
+            String statusColumn = dataParts[0].trim();
+            String expectedStatus = dataParts[1].trim();
+            String timeColumn = dataParts[2].trim();
+            int requestedRows = parseIntSafely(dataParts[3].trim(), "row count");
+            int intervalMinutes = parseIntSafely(Condition.trim(), "interval minutes");
+
+            int actualRowCount = Integer.parseInt(Dispatch.get(SAPElement, "RowCount").toString());
+            int limit = Math.min(requestedRows, actualRowCount);
+
+            List<String> issues = new ArrayList<>();
+            List<LocalTime> times = new ArrayList<>();
+            for (int row = 0; row < limit; row++) {
+                String actualStatus = Dispatch
+                    .call(SAPElement, "GetCellValue", row, statusColumn)
+                    .toString();
+                if (!actualStatus.equalsIgnoreCase(expectedStatus)) {
+                    issues.add("row " + row + ": [" + statusColumn + "] = [" + actualStatus + "]");
+                }
+
+                String rawTime = Dispatch
+                    .call(SAPElement, "GetCellValue", row, timeColumn)
+                    .toString();
+                try {
+                    times.add(parseTimeColumnValue(rawTime));
+                } catch (DateTimeParseException ex) {
+                    issues.add(
+                        "row " +
+                        row +
+                        ": [" +
+                        timeColumn +
+                        "] value [" +
+                        rawTime +
+                        "] is not a recognised time"
+                    );
+                    times.add(null);
+                }
+            }
+
+            for (int i = 1; i < times.size(); i++) {
+                LocalTime previous = times.get(i - 1);
+                LocalTime current = times.get(i);
+                if (previous == null || current == null) {
+                    continue;
+                }
+                long gapSeconds = Math.abs(Duration.between(previous, current).getSeconds());
+                if (gapSeconds > intervalMinutes * 60L) {
+                    issues.add(
+                        "rows " +
+                        (i - 1) +
+                        "-" +
+                        i +
+                        ": [" +
+                        timeColumn +
+                        "] gap of " +
+                        (gapSeconds / 60) +
+                        "m" +
+                        (gapSeconds % 60) +
+                        "s exceeds the " +
+                        intervalMinutes +
+                        " min interval"
+                    );
+                }
+            }
+
+            String scopeNote = limit < requestedRows
+                ? " (only " + limit + " of the requested " + requestedRows + " rows exist)"
+                : "";
+
+            if (issues.isEmpty()) {
+                Report.updateTestLog(
+                    Action,
+                    "All " +
+                    limit +
+                    " checked rows have [" +
+                    statusColumn +
+                    "] = [" +
+                    expectedStatus +
+                    "] and [" +
+                    timeColumn +
+                    "] gaps within " +
+                    intervalMinutes +
+                    " min" +
+                    scopeNote,
+                    Status.PASS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "Row health check failed: " + String.join("; ", issues) + scopeNote,
+                    Status.FAIL
+                );
+            }
+        } catch (Exception e) {
+            Report.updateTestLog(
+                Action,
+                "Failed to assert row health. Error: " + e.getMessage(),
                 Status.FAIL
             );
         }
@@ -2055,6 +2201,33 @@ public class SAPActions extends General {
         assertRowCount();
     }
 
+    /**
+     * NEW: Combined job-health check over the first N rows of a table - every checked row's
+     * status column must equal the expected status (e.g. a "Failed" job fails the whole
+     * assertion), and the gap between each consecutive pair of rows' time column must not
+     * exceed the configured interval (e.g. jobs expected to run every 3 minutes). Addresses
+     * columns by name, not position, so column naming/order differences across SAP systems
+     * don't matter. See SAP-Enhancement/06-SAP-Job-Status-Time-Validation.md.
+     * SAP API: table.RowCount / table.GetCellValue(row, column)
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert table [<Object>] rows status [<Data>] within interval [<Condition>] (Data: statusColumn,expectedStatus,timeColumn,rowCount | Condition: intervalMinutes)",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "Status,Finished,Last Run Time,10",
+        inputHelp = "status column, expected status, time column, number of rows to check (format: statusColumn,expectedStatus,timeColumn,rowCount)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "3",
+        conditionHelp = "max allowed interval in minutes between consecutive rows' time column"
+    )
+    public void sapAssertTableRowsHealthy() {
+        assertRowsHealthy();
+    }
+
     // ============================================================================
     // SECTION 9: GRID/ALV ACTIONS (GuiGridView)
     // ============================================================================
@@ -2687,6 +2860,30 @@ public class SAPActions extends General {
     )
     public void sapAssertGridRowCount() {
         assertRowCount();
+    }
+
+    /**
+     * NEW: Combined job-health check over the first N rows of an ALV grid - same as
+     * {@link #sapAssertTableRowsHealthy()}, for grid controls (both expose the same
+     * RowCount/GetCellValue API).
+     * SAP API: grid.RowCount / grid.GetCellValue(row, column)
+     */
+    @Action(
+        object = ObjectType.SAP_OBJECT,
+        desc = "Assert grid [<Object>] rows status [<Data>] within interval [<Condition>] (Data: statusColumn,expectedStatus,timeColumn,rowCount | Condition: intervalMinutes)",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "Status,Finished,Last Run Time,10",
+        inputHelp = "status column, expected status, time column, number of rows to check (format: statusColumn,expectedStatus,timeColumn,rowCount)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "3",
+        conditionHelp = "max allowed interval in minutes between consecutive rows' time column"
+    )
+    public void sapAssertGridRowsHealthy() {
+        assertRowsHealthy();
     }
 
     // ============================================================================
