@@ -14,6 +14,8 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -33,7 +35,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class MCPServer {
     static final String PROTOCOL_VERSION = "2024-11-05";
     static final String SERVER_NAME = "ingenious-mcp-server";
-    static final String SERVER_VERSION = "2.0.0";
+    // Human-facing semantic version. The reported serverInfo.version also carries
+    // an auto-computed tool-surface hash suffix (see reportedVersion()), so cache
+    // identity updates itself when tools change — no manual bump needed here.
+    static final String SERVER_VERSION = "2.1.0";
 
     private final String defaultProject;
     private final boolean verbose;
@@ -43,6 +48,24 @@ public class MCPServer {
     private final MCPTools tools;
     private final MCPPrompts prompts;
     private final MCPResources resources;
+
+    // Each JSON-RPC request is dispatched onto this pool so a slow tools/call
+    // (e.g. a synchronous ingenious_run that can block for up to 30 minutes)
+    // never blocks the stdin read loop or other in-flight requests such as
+    // ingenious_run_status/ingenious_run_async, which previously queued behind
+    // it and timed out client-side (-32001) even though they do near-instant work.
+    private final ExecutorService requestExecutor = Executors.newCachedThreadPool(
+        r -> {
+            Thread t = new Thread(r, "mcp-request-worker");
+            t.setDaemon(true);
+            return t;
+        }
+    );
+    /** Guards stdout writes since multiple worker threads may respond concurrently. */
+    private final Object writeLock = new Object();
+
+    /** Lazily computed fingerprint of the tool surface; part of the reported version. */
+    private String toolSurfaceHash;
 
     public MCPServer(String defaultProject, boolean verbose) {
         this.defaultProject = defaultProject;
@@ -70,6 +93,7 @@ public class MCPServer {
                 new Thread(
                     () -> {
                         running.set(false);
+                        requestExecutor.shutdownNow();
                         log("Shutting down");
                     },
                     "mcp-shutdown"
@@ -92,13 +116,20 @@ public class MCPServer {
                 if (line.isEmpty()) continue;
 
                 log("RX: " + line);
-                String response = handleMessage(line);
-                if (response != null) {
-                    // notifications get no response
-                    out.println(response);
-                    out.flush();
-                    log("TX: " + response);
-                }
+                String msg = line;
+                requestExecutor.submit(
+                    () -> {
+                        String response = handleMessage(msg);
+                        if (response != null) {
+                            // notifications get no response
+                            synchronized (writeLock) {
+                                out.println(response);
+                                out.flush();
+                            }
+                            log("TX: " + response);
+                        }
+                    }
+                );
             }
         }
 
@@ -177,7 +208,7 @@ public class MCPServer {
 
         ObjectNode info = json.createObjectNode();
         info.put("name", SERVER_NAME);
-        info.put("version", SERVER_VERSION);
+        info.put("version", reportedVersion());
         info.put("title", "INGenious Test Automation");
 
         ObjectNode result = json.createObjectNode();
@@ -188,6 +219,41 @@ public class MCPServer {
         // front-ends (IDE chat, REPL, external MCP clients) behave the same.
         result.put("instructions", ConventionCatalog.condensedInstructions());
         return result;
+    }
+
+    /**
+     * The value reported as {@code serverInfo.version}: the semantic
+     * {@link #SERVER_VERSION} plus a short hash of the advertised tool surface.
+     *
+     * <p>Caching MCP clients (e.g. the GitHub Copilot CLI) key their on-disk
+     * tool snapshot on server identity. Folding a tool-surface fingerprint into
+     * the version means that identity changes automatically whenever a tool is
+     * added, removed, renamed, or its schema/description changes — so the client
+     * never reconciles a stale catalog mid-turn ("cached tool no longer
+     * available"), and no one has to remember to bump the version by hand.
+     */
+    private String reportedVersion() {
+        String hash = toolSurfaceHash();
+        return hash == null ? SERVER_VERSION : SERVER_VERSION + "+" + hash;
+    }
+
+    /** Short, stable hash of the tools/list payload (computed once per session). */
+    private String toolSurfaceHash() {
+        if (toolSurfaceHash == null) {
+            try {
+                byte[] bytes = json.writeValueAsBytes(tools.list(json));
+                byte[] digest = java.security.MessageDigest.getInstance("SHA-256").digest(bytes);
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < 4; i++) {
+                    sb.append(String.format("%02x", digest[i]));
+                }
+                toolSurfaceHash = sb.toString();
+            } catch (Exception e) {
+                log("Could not fingerprint tool surface: " + e.getMessage());
+                toolSurfaceHash = "";
+            }
+        }
+        return toolSurfaceHash.isEmpty() ? null : toolSurfaceHash;
     }
 
     // ------------------------------------------------------------------

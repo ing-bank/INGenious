@@ -6,7 +6,6 @@ import com.ing.engine.aicli.ai.AiProvider;
 import com.ing.engine.aicli.ai.ChatMessage;
 import com.ing.engine.aicli.ai.CopilotProvider;
 import com.ing.engine.aicli.ai.CopilotSdkProvider;
-import com.ing.engine.aicli.ai.ProviderConfig;
 import com.ing.engine.aicli.planning.WorkflowCatalog;
 import com.ing.engine.aicli.tools.Tool;
 import com.ing.engine.aicli.ui.Theme;
@@ -32,6 +31,7 @@ final class SlashCommands {
         "/clear",
         "/context",
         "/model",
+        "/mode",
         "/login",
         "/undo",
         "/redo",
@@ -87,6 +87,9 @@ final class SlashCommands {
             case "/model":
                 model(rest);
                 return true;
+            case "/mode":
+                mode(rest);
+                return true;
             case "/login":
                 login();
                 return true;
@@ -134,6 +137,10 @@ final class SlashCommands {
             "        show/set AI model; " +
             t.dim("/model list") +
             " to pick from available"
+        );
+        lines.add(
+            t.bold("/mode [...]") +
+            "         show/set attended|unattended (pause at checkpoints vs. fully autonomous)"
         );
         lines.add(t.bold("/login") + "              sign in with GitHub Copilot (device flow)");
         lines.add(t.bold("/config [get|set]") + "   project configuration");
@@ -257,7 +264,7 @@ final class SlashCommands {
             System.out.println(
                 t.dim(
                     "Change with /model list (pick from available), /model <name>, " +
-                    "/model provider bridge|openai|copilot|copilot-sdk, /model url <baseUrl>"
+                    "/model provider openai|copilot|copilot-sdk, /model url <baseUrl>"
                 )
             );
             return;
@@ -272,16 +279,9 @@ final class SlashCommands {
             if ("provider".equals(selector)) {
                 if (
                     p.length < 2 ||
-                    !(
-                        p[1].equals("openai") ||
-                        p[1].equals("copilot") ||
-                        p[1].equals("copilot-sdk") ||
-                        p[1].equals("bridge")
-                    )
+                    !(p[1].equals("openai") || p[1].equals("copilot") || p[1].equals("copilot-sdk"))
                 ) {
-                    System.out.println(
-                        t.fail("Usage: /model provider bridge|openai|copilot|copilot-sdk")
-                    );
+                    System.out.println(t.fail("Usage: /model provider openai|copilot|copilot-sdk"));
                     return;
                 }
                 repl.aiConfig.provider = p[1];
@@ -304,9 +304,35 @@ final class SlashCommands {
         }
     }
 
+    private void mode(String rest) {
+        com.ing.engine.aicli.ai.OperatingMode current = repl.aiConfig.operatingMode();
+        if (rest.isBlank()) {
+            System.out.println("  Mode: " + t.bold(current.label()));
+            System.out.println(t.dim("Change with /mode attended or /mode unattended."));
+            return;
+        }
+        String selector = rest.trim().toLowerCase();
+        if (!selector.equals("attended") && !selector.equals("unattended")) {
+            System.out.println(t.fail("Usage: /mode attended|unattended"));
+            return;
+        }
+        repl.aiConfig.mode = selector;
+        try {
+            repl.aiConfig.save();
+            System.out.println(t.ok("Mode set to " + selector + "."));
+        } catch (Exception e) {
+            System.out.println(t.fail("Could not save AI config: " + e.getMessage()));
+        }
+    }
+
     /** Lists models from the current provider's endpoint and lets the user pick one. */
     private void modelList() {
-        if ("copilot-sdk".equalsIgnoreCase(repl.aiConfig.provider)) {
+        // Both Copilot providers list models straight from the GitHub Copilot CLI
+        // SDK — no HTTP endpoint or VS Code bridge involved.
+        if (
+            "copilot-sdk".equalsIgnoreCase(repl.aiConfig.provider) ||
+            "copilot".equalsIgnoreCase(repl.aiConfig.provider)
+        ) {
             List<String> ids;
             try {
                 ids = CopilotSdkProvider.listAvailableModels();
@@ -322,7 +348,7 @@ final class SlashCommands {
                 return;
             }
             String chosen = repl.selectFrom(
-                "Available models (copilot-sdk)",
+                "Available models (Copilot)",
                 ids,
                 false,
                 repl.aiConfig.model
@@ -331,18 +357,13 @@ final class SlashCommands {
             return;
         }
 
-        String base = modelsBaseUrl();
+        String base = repl.aiConfig.baseUrl;
         if (base == null || base.isBlank()) {
             System.out.println(
                 t.fail(
                     "No models endpoint available for provider '" + repl.aiConfig.provider + "'."
                 )
             );
-            if ("copilot".equalsIgnoreCase(repl.aiConfig.provider)) {
-                System.out.println(
-                    t.dim("Switch to the bridge with /model provider bridge (VS Code Copilot).")
-                );
-            }
             return;
         }
         List<String> ids;
@@ -352,9 +373,6 @@ final class SlashCommands {
             System.out.println(
                 t.fail("Could not fetch models from " + base + "/models: " + e.getMessage())
             );
-            if ("bridge".equalsIgnoreCase(repl.aiConfig.provider)) {
-                System.out.println(t.dim("Is VS Code open with the INGenious bridge running?"));
-            }
             return;
         }
         if (ids.isEmpty()) {
@@ -368,22 +386,6 @@ final class SlashCommands {
             repl.aiConfig.model
         );
         if (chosen != null) applyModel(chosen);
-    }
-
-    /** Resolves the base URL (…/v1) whose /models endpoint should be queried. */
-    private String modelsBaseUrl() {
-        if ("bridge".equalsIgnoreCase(repl.aiConfig.provider)) {
-            String u = ProviderConfig.discoverBridgeBaseUrl();
-            if (u != null && !u.isBlank()) {
-                return u;
-            }
-        }
-        if ("copilot".equalsIgnoreCase(repl.aiConfig.provider)) {
-            // Copilot has no HTTP /models endpoint of its own; fall back to the
-            // bridge if one is running.
-            return ProviderConfig.discoverBridgeBaseUrl();
-        }
-        return repl.aiConfig.baseUrl;
     }
 
     /** GET {base}/models and return the sorted list of model ids. */

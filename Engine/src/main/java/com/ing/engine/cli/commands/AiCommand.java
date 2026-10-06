@@ -22,8 +22,15 @@ public class AiCommand implements Callable<Integer> {
     @Option(names = { "--no-banner" }, description = "Don't show the welcome banner")
     private boolean noBanner;
 
+    @Option(
+        names = { "--mode" },
+        description = "Operating mode: attended (pause at checkpoints for input) or unattended " +
+        "(work autonomously). Skips the startup prompt when set."
+    )
+    private String mode;
+
     @Override
     public Integer call() {
-        return new Repl(project, noBanner).run();
+        return new Repl(project, noBanner, mode).run();
     }
 }
