@@ -732,11 +732,32 @@
                     <groupId>org.apache.kafka</groupId>
                     <artifactId>kafka-clients</artifactId>
                     <version>${kafka-clients.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.lz4</groupId>
+                            <artifactId>lz4-java</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>io.confluent</groupId>
                     <artifactId>kafka-avro-serializer</artifactId>
                     <version>${kafka-avro-serializer.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.github.luben</groupId>
+                    <artifactId>zstd-jni</artifactId>
+                    <version>${zstd-jni.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>at.yawk.lz4</groupId>
+                    <artifactId>lz4-java</artifactId>
+                    <version>${lz4-java.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.xerial.snappy</groupId>
+                    <artifactId>snappy-java</artifactId>
+                    <version>${snappy-java.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -790,11 +811,32 @@
                     <groupId>org.apache.kafka</groupId>
                     <artifactId>kafka-clients</artifactId>
                     <version>${kafka-clients.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.lz4</groupId>
+                            <artifactId>lz4-java</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>io.confluent</groupId>
                     <artifactId>kafka-avro-serializer</artifactId>
                     <version>${kafka-avro-serializer.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.github.luben</groupId>
+                    <artifactId>zstd-jni</artifactId>
+                    <version>${zstd-jni.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>at.yawk.lz4</groupId>
+                    <artifactId>lz4-java</artifactId>
+                    <version>${lz4-java.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.xerial.snappy</groupId>
+                    <artifactId>snappy-java</artifactId>
+                    <version>${snappy-java.version}</version>
                 </dependency>
             </dependencies>
         </profile>

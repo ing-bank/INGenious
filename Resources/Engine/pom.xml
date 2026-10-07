@@ -29,7 +29,7 @@
         <extentreport.version>5.1.2</extentreport.version>
         <playwright.axe.version>4.11.1</playwright.axe.version>
         <testng.version>7.7.1</testng.version>
-        <freemarker.version>2.3.32</freemarker.version>
+        <freemarker.version>2.3.35</freemarker.version>
         <stax-api.version>1.0.1</stax-api.version>
         <xmlbeans.version>3.0.2</xmlbeans.version>
         <json-path.version>2.9.0</json-path.version>
@@ -44,9 +44,12 @@
         <guava.version>32.0.1-jre</guava.version>
         <appium.version>10.1.1</appium.version>
         <javafaker.version>1.0.2</javafaker.version>
-        <kafka-clients.version>3.9.0</kafka-clients.version>
+        <kafka-clients.version>3.9.2</kafka-clients.version>
         <avro.version>1.12.0</avro.version>
         <kafka-avro-serializer.version>7.8.0</kafka-avro-serializer.version>
+        <zstd-jni.version>1.5.7-18</zstd-jni.version>
+        <lz4-java.version>1.11.1</lz4-java.version>
+        <snappy-java.version>1.1.10.11</snappy-java.version>
         <ibmmq.version>9.4.5.0</ibmmq.version>
         <mac.version>mac-aarch64</mac.version>
         <setupDir>../Dist/release</setupDir>
@@ -63,7 +66,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <githubcopilotCLI.release>1.0.11</githubcopilotCLI.release>
 
-        <bouncycastle.version>1.85</bouncycastle.version>
+        <bouncycastle.version>1.86</bouncycastle.version>
     </properties>
     <dependencyManagement>
         <dependencies>
