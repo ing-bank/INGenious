@@ -55,7 +55,7 @@ public class TestDataNotFoundExceptionTest {
             Cause.Iteration,
             "1"
         );
-        assertThat(ex.toString()).contains("Scope : Project");
+        assertThat(ex.toString()).contains("Scope : Project").contains("Sheet : Basic ");
     }
 
     @Test
@@ -68,6 +68,25 @@ public class TestDataNotFoundExceptionTest {
             Cause.Iteration,
             "1"
         );
-        assertThat(ex.toString()).contains("Scope : Shared");
+        assertThat(ex.toString())
+            .contains("Scope : Shared")
+            .contains("Sheet : TestData1 ")
+            .doesNotContain("TestData1@Shared");
+    }
+
+    @Test
+    public void testToStringStripsProjectTagFromSheetName() {
+        TestCaseRunner context = mockContext();
+        TestDataNotFoundException ex = new TestDataNotFoundException(
+            context,
+            "Basic@Project",
+            "URL",
+            Cause.Iteration,
+            "1"
+        );
+        assertThat(ex.toString())
+            .contains("Scope : Project")
+            .contains("Sheet : Basic ")
+            .doesNotContain("Basic@Project");
     }
 }

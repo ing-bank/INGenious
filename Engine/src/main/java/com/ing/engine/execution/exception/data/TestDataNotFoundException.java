@@ -32,7 +32,7 @@ public class TestDataNotFoundException extends DataNotFoundException {
                 getMessage(),
                 envLabel(),
                 scopeLabel(),
-                sheet,
+                sheetNameLabel(),
                 field,
                 context.getRoot().scenario(),
                 context.getRoot().testcase(),
@@ -63,8 +63,23 @@ public class TestDataNotFoundException extends DataNotFoundException {
     }
 
     /**
+     * Sheet name without its trailing @Shared/@Project scope tag - the tag is already surfaced
+     * separately via {@link #scopeLabel()}, so repeating it in the Sheet field is redundant.
+     */
+    private String sheetNameLabel() {
+        String s = sheet == null ? "" : sheet.trim();
+        if (s.endsWith("@Shared")) {
+            return s.substring(0, s.length() - "@Shared".length()).trim();
+        }
+        if (s.endsWith("@Project")) {
+            return s.substring(0, s.length() - "@Project".length()).trim();
+        }
+        return s;
+    }
+
+    /**
      * The environment the lookup used - {@code sharedRunEnv()} for an {@code @Shared} sheet,
-     * {@code runEnv()} otherwise - since the two scopes can run against different environments.
+     * {@code runEnv()} otherwise (both resolve to the same Project Environment).
      */
     private Object envLabel() {
         String s = sheet == null ? "" : sheet.trim();

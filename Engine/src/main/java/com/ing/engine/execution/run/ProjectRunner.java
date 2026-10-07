@@ -80,15 +80,12 @@ public class ProjectRunner implements TestRunner {
     }
 
     /**
-     * Environment for {@code [Shared]}-scoped data. Uses the dedicated {@code SharedTestEnv}
-     * run setting (defaults to {@code Default}); never derived from {@link #runEnv()}, so a
-     * change to the Project environment does not move Shared data resolution and vice versa.
+     * Environment for {@code [Shared]}-scoped data. Always follows the Project's Environment
+     * ({@link #runEnv()}) - Shared Test Data no longer has its own run-time environment setting.
      */
     @Override
     public String sharedRunEnv() {
-        EnvTestData shared = getProject().getSharedTestData();
-        String fallback = shared != null ? shared.defEnv() : "Default";
-        return Objects.toString(getExecSettings().getRunSettings().getSharedTestEnv(), fallback);
+        return runEnv();
     }
 
     @Override

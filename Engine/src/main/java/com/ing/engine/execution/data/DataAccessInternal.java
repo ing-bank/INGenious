@@ -696,9 +696,10 @@ public class DataAccessInternal {
     }
 
     /**
-     * Whether {@code sharedRunEnv()} names a real, non-default environment in the Shared Test
-     * Data - the Shared-scope counterpart of {@link #validEnv(TestCaseRunner)}. When false, a
-     * {@code @Shared} reference resolves against the Shared {@code Default} environment.
+     * Whether {@code sharedRunEnv()} (the Project's Environment) names a real, non-default
+     * environment in the Shared Test Data - the Shared-scope counterpart of
+     * {@link #validEnv(TestCaseRunner)}. When false, a {@code @Shared} reference resolves against
+     * the Shared {@code Default} environment instead.
      */
     protected static boolean validSharedEnv(TestCaseRunner context) {
         EnvTestData shared = context.project().getSharedTestData();
@@ -711,10 +712,9 @@ public class DataAccessInternal {
 
     /**
      * Environment-validity check for the given sheet reference: {@link #validSharedEnv} for a
-     * {@code @Shared}-tagged sheet (it resolves against {@code sharedRunEnv()}), otherwise
-     * {@link #validEnv} (project {@code runEnv()}). A run can select a Shared environment while
-     * leaving the Project environment on Default - and vice versa - so the two scopes must be
-     * checked independently rather than letting the project env gate Shared data lookups.
+     * {@code @Shared}-tagged sheet, otherwise {@link #validEnv} (project {@code runEnv()}). Both
+     * resolve against the same Project Environment - {@code validSharedEnv} additionally checks
+     * that environment exists in the Shared Test Data, falling back to Shared Default otherwise.
      */
     protected static boolean validEnvFor(TestCaseRunner context, String sheet) {
         return isSharedScopeSheet(sheet) ? validSharedEnv(context) : validEnv(context);
