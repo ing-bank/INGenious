@@ -69,7 +69,7 @@ steps:
     object: sbar
     description: "Also archive the open message into the audit datasheet"
     action: sapStoreStatusBarTextInDataSheet
-    input: '@OrderAudit:OpenMessage'
+    condition: '@OrderAudit:OpenMessage'
     reference: "[Project] SM37_JobStatusValidation"
 
   - step: 11
@@ -105,7 +105,8 @@ steps:
     object: lineItemsTable
     description: "Archive row 0's Material into the audit datasheet"
     action: sapStoreCellValueByIndexInDataSheet
-    input: '@0,Material,OrderAudit:FirstMaterial'
+    input: '@0,Material'
+    condition: '@OrderAudit:FirstMaterial'
     reference: "[Project] VA03_LineItemAuditAndNavigation"
 
   - step: 16
@@ -142,14 +143,16 @@ steps:
     object: lineItemsTable
     description: "Archive the MAT-1000 line's net value into the audit datasheet"
     action: sapStoreCellValueByMatchInDataSheet
-    input: '@Material,MAT-1000,NetValue,OrderAudit:NetValue'
+    input: '@Material,MAT-1000,NetValue'
+    condition: '@OrderAudit:NetValue'
     reference: "[Project] VA03_LineItemAuditAndNavigation"
 
   - step: 21
     object: lineItemsTable
     description: "Archive any MAT-10 line's net value into the audit datasheet (Contains match)"
     action: sapStoreCellValueByMatchInDataSheetContains
-    input: '@Material,MAT-10,NetValue,OrderAudit:AnyNetValue'
+    input: '@Material,MAT-10,NetValue'
+    condition: '@OrderAudit:AnyNetValue'
     reference: "[Project] VA03_LineItemAuditAndNavigation"
 
   - step: 22
@@ -195,7 +198,7 @@ steps:
     object: wnd0
     description: "Also archive the window title into the audit datasheet"
     action: sapStoreElementTextInDataSheet
-    input: '@OrderAudit:WindowTitle'
+    condition: '@OrderAudit:WindowTitle'
     reference: "[Project] VA01_CreateSalesOrder"
 
   - step: 29

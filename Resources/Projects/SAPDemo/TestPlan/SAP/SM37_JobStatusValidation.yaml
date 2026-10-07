@@ -91,14 +91,16 @@ steps:
     object: jobOverviewGrid
     description: "Archive the job's status into the results datasheet for audit"
     action: sapStoreGridValueByMatchInDataSheet
-    input: '@JobName,BATCH_DAILY_CLOSE,Status,JobResults:Status'
+    input: '@JobName,BATCH_DAILY_CLOSE,Status'
+    condition: '@JobResults:Status'
     reference: "[Project] SM37_JobStatusValidation"
 
   - step: 14
     object: jobOverviewGrid
     description: "Capture the status of any other BATCH_ job for the audit report, regardless of the exact name"
     action: sapStoreGridValueByMatchInDataSheetContains
-    input: '@JobName,BATCH_,Status,JobResults:OtherBatchJobStatus'
+    input: '@JobName,BATCH_,Status'
+    condition: '@JobResults:OtherBatchJobStatus'
     reference: "[Project] SM37_JobStatusValidation"
 
   - step: 15
@@ -135,7 +137,8 @@ steps:
     object: jobOverviewGrid
     description: "Archive which job name ended up in row 0"
     action: sapStoreGridValueByIndexInDataSheet
-    input: '@0,JobName,JobResults:FirstRowJobName'
+    input: '@0,JobName'
+    condition: '@JobResults:FirstRowJobName'
     reference: "[Project] SM37_JobStatusValidation"
 
   - step: 20

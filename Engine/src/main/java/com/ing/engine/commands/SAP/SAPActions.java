@@ -46,7 +46,8 @@ import org.xml.sax.SAXException;
  * This class provides comprehensive SAP GUI automation actions organized by element type.
  * Actions are grouped into logical sections for better maintainability and discoverability.
  *
- * Total Actions: 100 (17 Existing + 83 New)
+ * Total Actions: 114 (17 Existing + 97 New) - see SAP-Enhancement/SAP-Actions-Catalog.md for the
+ * full inventory and change history.
  *
  * Sections:
  * 1. Session & Transaction Management
@@ -247,15 +248,15 @@ public class SAPActions extends General {
 
     /**
      * Shared body for the exact/contains, table/grid variants of storing a matched row's cell
-     * into a datasheet cell. Data format: matchColumn,matchText,targetColumn,Sheet:Column
+     * into a datasheet cell. Data format: matchColumn,matchText,targetColumn | Condition: Sheet:Column
      */
     private void storeCellValueByMatchInDataSheet(RowMatcher.MatchMode mode) {
         try {
-            String[] parts = Data.split(",", 4);
-            if (parts.length < 4) {
+            String[] parts = Data.split(",", 3);
+            if (parts.length < 3) {
                 Report.updateTestLog(
                     Action,
-                    "Invalid data format. Expected: matchColumn,matchText,targetColumn,Sheet:Column",
+                    "Invalid data format. Expected: matchColumn,matchText,targetColumn",
                     Status.FAIL
                 );
                 return;
@@ -263,7 +264,7 @@ public class SAPActions extends General {
             String matchColumn = parts[0].trim();
             String matchText = parts[1].trim();
             String targetColumn = parts[2].trim();
-            String[] sheetRef = parts[3].trim().split(":", 2);
+            String[] sheetRef = Condition.split(":", 2);
             if (sheetRef.length < 2) {
                 Report.updateTestLog(
                     Action,
@@ -1937,32 +1938,36 @@ public class SAPActions extends General {
      * NEW: Store a table cell's value into a datasheet cell, complementing
      * {@link #sapStoreCellValueByIndexInVariable()} which stores into a variable instead.
      * SAP API: table.GetCellValue(row, column)
-     * Data format: row,column,Sheet:Column
+     * Data format: row,column | Condition: Sheet:Column
      */
     @Action(
         object = ObjectType.SAP_OBJECT,
-        desc = "Get cell value and store into datasheet [<Data>] (format: row,column,Sheet:Column)",
-        input = InputType.YES
+        desc = "Get cell value [<Data>] (format: row,column) and store into datasheet [<Condition>]",
+        input = InputType.YES,
+        condition = InputType.YES
     )
     @Args(
         input = ArgType.TEXT,
-        inputExample = "2,VendorName,SapResults:Vendor",
-        inputHelp = "row + column + destination datasheet reference (format: row,column,Sheet:Column)"
+        inputExample = "2,VendorName",
+        inputHelp = "row + column (format: row,column)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "SapResults:Vendor",
+        conditionHelp = "destination datasheet reference in Sheet:Column format"
     )
     public void sapStoreCellValueByIndexInDataSheet() {
         try {
-            String[] parts = Data.split(",", 3);
-            if (parts.length < 3) {
+            String[] parts = Data.split(",", 2);
+            if (parts.length < 2) {
                 Report.updateTestLog(
                     Action,
-                    "Invalid data format. Expected: row,column,Sheet:Column",
+                    "Invalid data format. Expected: row,column",
                     Status.FAIL
                 );
                 return;
             }
             int row = Integer.parseInt(parts[0].trim());
             String column = parts[1].trim();
-            String[] sheetRef = parts[2].trim().split(":", 2);
+            String[] sheetRef = Condition.split(":", 2);
             if (sheetRef.length < 2) {
                 Report.updateTestLog(
                     Action,
@@ -2045,17 +2050,21 @@ public class SAPActions extends General {
     /**
      * NEW: Locate a table row by one column's text and store a *different* column's value from
      * that same row into a datasheet cell instead of a variable - exact match.
-     * Data format: matchColumn,matchText,targetColumn,Sheet:Column
+     * Data format: matchColumn,matchText,targetColumn | Condition: Sheet:Column
      */
     @Action(
         object = ObjectType.SAP_OBJECT,
-        desc = "Store column and row matched by another column, into datasheet [<Data>] (format: matchColumn,matchText,targetColumn,Sheet:Column)",
-        input = InputType.YES
+        desc = "Store column from row matched by another column, into datasheet [<Condition>] (Data: matchColumn,matchText,targetColumn)",
+        input = InputType.YES,
+        condition = InputType.YES
     )
     @Args(
         input = ArgType.TEXT,
-        inputExample = "JobName,BATCH_JOB_1,Status,SapResults:JobStatus",
-        inputHelp = "match column, match text, target column, destination datasheet reference (format: matchColumn,matchText,targetColumn,Sheet:Column)"
+        inputExample = "JobName,BATCH_JOB_1,Status",
+        inputHelp = "match column, match text, target column (format: matchColumn,matchText,targetColumn)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "SapResults:JobStatus",
+        conditionHelp = "destination datasheet reference in Sheet:Column format"
     )
     public void sapStoreCellValueByMatchInDataSheet() {
         storeCellValueByMatchInDataSheet(RowMatcher.MatchMode.EQUALS);
@@ -2064,13 +2073,17 @@ public class SAPActions extends General {
     /** NEW: {@link #sapStoreCellValueByMatchInDataSheet()} with a substring match column. */
     @Action(
         object = ObjectType.SAP_OBJECT,
-        desc = "Store column and row matched (contains) by another column, into datasheet [<Data>] (format: matchColumn,matchText,targetColumn,Sheet:Column)",
-        input = InputType.YES
+        desc = "Store column from row matched (contains) by another column, into datasheet [<Condition>] (Data: matchColumn,matchText,targetColumn)",
+        input = InputType.YES,
+        condition = InputType.YES
     )
     @Args(
         input = ArgType.TEXT,
-        inputExample = "JobName,BATCH_JOB,Status,SapResults:JobStatus",
-        inputHelp = "match column, match text, target column, destination datasheet reference (format: matchColumn,matchText,targetColumn,Sheet:Column)"
+        inputExample = "JobName,BATCH_JOB,Status",
+        inputHelp = "match column, match text, target column (format: matchColumn,matchText,targetColumn)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "SapResults:JobStatus",
+        conditionHelp = "destination datasheet reference in Sheet:Column format"
     )
     public void sapStoreCellValueByMatchInDataSheetContains() {
         storeCellValueByMatchInDataSheet(RowMatcher.MatchMode.CONTAINS);
@@ -2415,32 +2428,36 @@ public class SAPActions extends General {
      * NEW: Store an ALV grid cell's value into a datasheet cell, complementing
      * {@link #sapStoreGridValueByIndexInVariable()} which stores into a variable instead.
      * SAP API: grid.GetCellValue(row, column)
-     * Data format: row,column,Sheet:Column
+     * Data format: row,column | Condition: Sheet:Column
      */
     @Action(
         object = ObjectType.SAP_OBJECT,
-        desc = "Get grid cell value and store into datasheet [<Data>] (format: row,column,Sheet:Column)",
-        input = InputType.YES
+        desc = "Get grid cell value [<Data>] (format: row,column) and store into datasheet [<Condition>]",
+        input = InputType.YES,
+        condition = InputType.YES
     )
     @Args(
         input = ArgType.TEXT,
-        inputExample = "2,VendorName,SapResults:Vendor",
-        inputHelp = "row + column + destination datasheet reference (format: row,column,Sheet:Column)"
+        inputExample = "2,VendorName",
+        inputHelp = "row + column (format: row,column)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "SapResults:Vendor",
+        conditionHelp = "destination datasheet reference in Sheet:Column format"
     )
     public void sapStoreGridValueByIndexInDataSheet() {
         try {
-            String[] parts = Data.split(",", 3);
-            if (parts.length < 3) {
+            String[] parts = Data.split(",", 2);
+            if (parts.length < 2) {
                 Report.updateTestLog(
                     Action,
-                    "Invalid data format. Expected: row,column,Sheet:Column",
+                    "Invalid data format. Expected: row,column",
                     Status.FAIL
                 );
                 return;
             }
             int row = Integer.parseInt(parts[0].trim());
             String column = parts[1].trim();
-            String[] sheetRef = parts[2].trim().split(":", 2);
+            String[] sheetRef = Condition.split(":", 2);
             if (sheetRef.length < 2) {
                 Report.updateTestLog(
                     Action,
@@ -2523,17 +2540,21 @@ public class SAPActions extends General {
     /**
      * NEW: Locate an ALV grid row by one column's text and store a *different* column's value
      * from that same row into a datasheet cell instead of a variable - exact match.
-     * Data format: matchColumn,matchText,targetColumn,Sheet:Column
+     * Data format: matchColumn,matchText,targetColumn | Condition: Sheet:Column
      */
     @Action(
         object = ObjectType.SAP_OBJECT,
-        desc = "Store column and grid row matched by another column, into datasheet [<Data>] (format: matchColumn,matchText,targetColumn,Sheet:Column)",
-        input = InputType.YES
+        desc = "Store column from grid row matched by another column, into datasheet [<Condition>] (Data: matchColumn,matchText,targetColumn)",
+        input = InputType.YES,
+        condition = InputType.YES
     )
     @Args(
         input = ArgType.TEXT,
-        inputExample = "JobName,BATCH_JOB_1,Status,SapResults:JobStatus",
-        inputHelp = "match column, match text, target column, destination datasheet reference (format: matchColumn,matchText,targetColumn,Sheet:Column)"
+        inputExample = "JobName,BATCH_JOB_1,Status",
+        inputHelp = "match column, match text, target column (format: matchColumn,matchText,targetColumn)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "SapResults:JobStatus",
+        conditionHelp = "destination datasheet reference in Sheet:Column format"
     )
     public void sapStoreGridValueByMatchInDataSheet() {
         storeCellValueByMatchInDataSheet(RowMatcher.MatchMode.EQUALS);
@@ -2542,13 +2563,17 @@ public class SAPActions extends General {
     /** NEW: {@link #sapStoreGridValueByMatchInDataSheet()} with a substring match column. */
     @Action(
         object = ObjectType.SAP_OBJECT,
-        desc = "Store column and grid row matched (contains) by another column, into datasheet [<Data>] (format: matchColumn,matchText,targetColumn,Sheet:Column)",
-        input = InputType.YES
+        desc = "Store column from grid row matched (contains) by another column, into datasheet [<Condition>] (Data: matchColumn,matchText,targetColumn)",
+        input = InputType.YES,
+        condition = InputType.YES
     )
     @Args(
         input = ArgType.TEXT,
-        inputExample = "JobName,BATCH_JOB,Status,SapResults:JobStatus",
-        inputHelp = "match column, match text, target column, destination datasheet reference (format: matchColumn,matchText,targetColumn,Sheet:Column)"
+        inputExample = "JobName,BATCH_JOB,Status",
+        inputHelp = "match column, match text, target column (format: matchColumn,matchText,targetColumn)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "SapResults:JobStatus",
+        conditionHelp = "destination datasheet reference in Sheet:Column format"
     )
     public void sapStoreGridValueByMatchInDataSheetContains() {
         storeCellValueByMatchInDataSheet(RowMatcher.MatchMode.CONTAINS);
@@ -3284,25 +3309,26 @@ public class SAPActions extends General {
      * NEW: Store the status bar text into a datasheet cell, complementing
      * {@link #sapStoreStatusBarTextInVariable()} which stores into a variable instead.
      * SAP API: statusBar.Text
-     * Data format: Sheet:Column
+     * Condition format: Sheet:Column
      */
     @Action(
         object = ObjectType.SAP_OBJECT,
-        desc = "Get status bar text from [<Object>] and store into datasheet [<Data>] (format: Sheet:Column)",
-        input = InputType.YES
+        desc = "Get status bar text from [<Object>] and store into datasheet [<Condition>]",
+        input = InputType.NO,
+        condition = InputType.YES
     )
     @Args(
-        input = ArgType.DATA_REF,
-        inputExample = "SapResults:StatusText",
-        inputHelp = "destination datasheet reference in Sheet:Column format"
+        condition = ConditionKind.TEXT,
+        conditionExample = "SapResults:StatusText",
+        conditionHelp = "destination datasheet reference in Sheet:Column format"
     )
     public void sapStoreStatusBarTextInDataSheet() {
         try {
-            String[] parts = Data.split(":", 2);
+            String[] parts = Condition.split(":", 2);
             if (parts.length < 2) {
                 Report.updateTestLog(
                     Action,
-                    "Invalid data format. Expected: Sheet:Column",
+                    "Invalid condition format. Expected: Sheet:Column",
                     Status.FAIL
                 );
                 return;
@@ -3314,7 +3340,7 @@ public class SAPActions extends General {
             userData.putData(sheetName, columnName, statusText);
             Report.updateTestLog(
                 Action,
-                "Status bar text [" + statusText + "] stored into datasheet [" + Data + "]",
+                "Status bar text [" + statusText + "] stored into datasheet [" + Condition + "]",
                 Status.DONE
             );
         } catch (Exception e) {
@@ -3594,25 +3620,26 @@ public class SAPActions extends General {
     /**
      * NEW: Capture the text of any SAP element into a datasheet cell, complementing
      * {@link #sapStoreElementTextInVariable()} which stores into a variable instead.
-     * Data format: Sheet:Column
+     * Condition format: Sheet:Column
      */
     @Action(
         object = ObjectType.SAP_OBJECT,
-        desc = "Get text from [<Object>] and store into datasheet [<Data>] (format: Sheet:Column)",
-        input = InputType.YES
+        desc = "Get text from [<Object>] and store into datasheet [<Condition>]",
+        input = InputType.NO,
+        condition = InputType.YES
     )
     @Args(
-        input = ArgType.DATA_REF,
-        inputExample = "SapResults:ErrorText",
-        inputHelp = "destination datasheet reference in Sheet:Column format"
+        condition = ConditionKind.TEXT,
+        conditionExample = "SapResults:ErrorText",
+        conditionHelp = "destination datasheet reference in Sheet:Column format"
     )
     public void sapStoreElementTextInDataSheet() {
         try {
-            String[] parts = Data.split(":", 2);
+            String[] parts = Condition.split(":", 2);
             if (parts.length < 2) {
                 Report.updateTestLog(
                     Action,
-                    "Invalid data format. Expected: Sheet:Column",
+                    "Invalid condition format. Expected: Sheet:Column",
                     Status.FAIL
                 );
                 return;
@@ -3629,7 +3656,7 @@ public class SAPActions extends General {
                 "] from [" +
                 ObjectName +
                 "] into datasheet [" +
-                Data +
+                Condition +
                 "]",
                 Status.DONE
             );

@@ -14,6 +14,24 @@ keep it tracked alongside the other SAP enhancements.
 > (originally `10-SAP-DMEE-XML-Tree-Editing.md`) have been corrected to match once this became
 > clear; the underlying ask (assert/edit XML shown in SAP's "document tree" view) is unchanged.
 
+> **Toggle modes - final confirmed state, after several back-and-forth corrections.** The
+> Request tab has two toolbar buttons: **"XML Editor" (Ctrl+F2)** and **"HTML Control"
+> (Ctrl+F3)**. Confirmed directly, across multiple screenshots:
+> - **"XML Editor"** = the **editable** mode ("Change Request") - a plain multi-line text box
+>   with ordinary line numbers (`Ln`/`Col` status bar), no tree, no collapse/fold markers.
+> - **"HTML Control"** = the **read-only** mode ("Display Request"/"Display Response") - the
+>   collapsible `-`/`+` tree view analyzed earlier in this doc (the one carrying the
+>   confirmed collapse-glyph copy artifact). This restores this doc's very first hypothesis
+>   that the tree/document view is the `GuiHTMLViewer`-style control - it's just reached via
+>   "HTML Control" specifically, not whichever button happened to be highlighted at the time.
+>
+> Net effect: **edit via "XML Editor"** (plain text box, good match for
+> `sapSetElementXMLEditor`'s existing `Text`-property write), **capture/read via "HTML
+> Control"** (tree view, needs `stripXmlTreeViewArtifacts()`-style cleanup, and remains the
+> target for the still-blocked `GetHTMLDocument()`-based read). This superseded two earlier,
+> contradictory intermediate guesses in this doc (that "HTML Control" was editable; that "XML
+> Editor" had code-folding) - both retracted.
+
 ## User Story
 
 As an INGenious engineer, I want to assert and edit the XML content shown in SAP's embedded Web
@@ -73,25 +91,37 @@ directly during this session.
 
 ## Context
 
-The actual target screen (per the provided screenshot) is SAP's **Web Service Test Tool** -
-"Test Service Provider: Display Response" - reached from `SOAMANAGER`/`WSADMIN`/`SPROXY`'s Test
-function. Its Response tab renders the raw SOAP/XML payload using a browser control's default,
-unstyled XML view (the "document tree is shown below" message is literally the browser's own
-fallback renderer, not a SAP-authored control). This is very likely a `GuiHTMLViewer` - SAP GUI
-Scripting's embedded-browser object type - hosting an IE/Trident `HTMLDocument`, which is a
-different automation surface entirely from the plain parent/child `GuiTree` already scripted
-elsewhere in this codebase (tree navigation by node key/text, see
-`SAP-Enhancement/05-SAP-Dynamic-Object-Selection-Tables-Tree.md`) and from DMEE's Format
-Builder column tree originally assumed. No code in this repo references `GuiHTMLViewer` today.
+The actual target screen (per the provided screenshots) is SAP's **Web Service Test Tool** -
+"Test Service Provider: Display Response"/"Display Request" - reached from
+`SOAMANAGER`/`WSADMIN`/`SPROXY`'s Test function. Both its Request and Response tabs can show
+either of two toggled views, confirmed via toolbar buttons:
 
-The same test tool's **Request tab** is the editable counterpart raised for Scenario 3 -
-unlike Response, it must accept a user-typed or pasted SOAP/XML body before the test call is
-sent, so it is far more likely implemented as a plain multi-line `GuiTextEdit` (standard SAP
-GUI Scripting text-entry control) rather than a `GuiHTMLViewer` - embedded browsers are a
-presentation surface, not an input one, so SAP would not normally use one for free-form typed
-input. This distinction matters: reading (Response tab) and writing (Request tab) are most
-likely two different control types requiring two different automation approaches, even though
-both hold "XML" conceptually.
+| Mode | Toolbar button | Shortcut | What it shows | Editable? |
+|---|---|---|---|---|
+| Collapsible tree view | "HTML Control" | Ctrl+F3 | The `-`/`+` collapsible document-tree rendering (the "document tree is shown below" no-stylesheet XML view) | **No - read-only**, used in "Display Request"/"Display Response" |
+| Plain line-numbered text editor | "XML Editor" | Ctrl+F2 | A simple multi-line text box showing the raw XML with line numbers (`Ln`/`Col` status bar) - no collapse/fold markers | **Yes - this is the editable mode**, used in "Change Request" |
+
+This confirms this doc's original hypothesis about the tree/document view: it's reached via
+**"HTML Control"** specifically, and is very likely a `GuiHTMLViewer` - SAP GUI Scripting's
+embedded-browser object type - hosting an IE/Trident `HTMLDocument`, a different automation
+surface entirely from the plain parent/child `GuiTree` already scripted elsewhere in this
+codebase (tree navigation by node key/text, see
+`SAP-Enhancement/05-SAP-Dynamic-Object-Selection-Tables-Tree.md`). No code in this repo
+references `GuiHTMLViewer` today.
+
+**"XML Editor"**, confirmed by direct screenshot, is a plain multi-line text box with ordinary
+line numbers - no tree, no fold/collapse markers, nothing more exotic. This is the closest
+match yet to a standard `GuiTextEdit`, so it's very likely to expose a single whole-buffer
+`Text` property - meaning `sapSetElementXMLEditor`'s existing flat `Text`-property write
+(`Dispatch.put(SAPElement, "Text", Data)`) is expected to work directly against it.
+
+Practically: **capture/read via "HTML Control"** (tree view - needs the confirmed
+collapse-glyph cleanup, `stripXmlTreeViewArtifacts()`), **edit via "XML Editor"** (plain text
+box, the confirmed target for Scenario 3, via the already-implemented `sapSetElementXMLEditor`).
+This reading/writing split through two different controls, reached by clicking the
+corresponding toolbar button first, replaces this doc's earlier assumption that Request and
+Response were simply two different fixed controls - both tabs can toggle between the same two
+modes.
 
 ## Goal
 
@@ -150,9 +180,10 @@ string is obtained from the screen by whatever means, **this existing engine is 
 reusable with zero new XML-parsing code** — the entire gap is in getting the string out of the
 `GuiHTMLViewer`, not in asserting against it afterward.
 
-**The Response tab itself is read-only** — there is no visible edit affordance for the XML
-shown there. Scenario 3 instead targets the Request tab's editable XML entry field, which is a
-separate control from the one analyzed for Scenario 1/2 above.
+**The Response tab is read-only regardless of mode** — there is no edit affordance there at
+all. Scenario 3 targets the Request tab specifically, and within it, the "XML Editor" mode
+specifically (see Context) — a separate control from the "HTML Control" tree view analyzed for
+Scenario 1/2 above.
 
 **Confirmed: a plain select-all + copy off the Response tree view does not yield clean XML as-is.**
 A real captured sample (SAP `PaymentTransactionOrderFSCreateRequest` payload) copied from this
@@ -165,14 +196,30 @@ viable, but only once that cleanup step runs on the captured text — a plain cl
 alone is not safe to feed straight into an XML parser or write back into a request field.
 
 **Writing a whole field's content already has a direct precedent: `sapFill`.**
-`sapFill` (`Dispatch.put(SAPElement, "Text", Data)`) already replaces an entire element's
-`Text` property in one call and is control-agnostic — it works on any `GuiVComponent` exposing
-a writable `Text`, which a multi-line `GuiTextEdit` does. If the Request tab is indeed a plain
-`GuiTextEdit`, **`sapFill` may already satisfy Scenario 3 with zero new code**, the same
-conclusion reached for DMEE-style node editing elsewhere in this doc. The one thing `sapFill`
-does *not* do is validate that `Data` is well-formed XML before writing it — it will happily
-write malformed text into the field and let the failure surface later (SAP GUI error, or a
-confusing downstream test-call failure) instead of failing fast at the edit step itself.
+`sapFill` (`Dispatch.put(SAPElement, "Text", Data)`) already replaces an entire element's `Text`
+property in one call and is control-agnostic - it works on any `GuiVComponent` exposing a
+writable `Text`. The editable mode, **"XML Editor"**, is confirmed by screenshot to be a plain
+multi-line text box with ordinary line numbers (no tree, no fold/collapse markers) - the
+closest match yet to a standard `GuiTextEdit`-style control, so `sapSetElementXMLEditor`'s
+existing whole-field `Text`-property write is expected to apply directly, the same conclusion
+reached for DMEE-style editing elsewhere in this doc. Still not proven against a real session
+(see Open Questions), but no longer expected to need per-node or structural interaction.
+
+**No new action needed to switch modes - the existing generic click actions already cover it.**
+Once the "XML Editor"/"HTML Control" toggle buttons are captured as ordinary toolbar buttons in
+the SAP Object Repository (they're regular `GuiButton`-family toolbar icons, not XML-specific),
+the already-existing `sapClick`/`sapPressButton` actions (`SAPActions.java`) can switch modes
+before running any read/write step - no new SAP action code required for this part. The
+recommended sequence becomes: click **"HTML Control"** → run a capture action (read, off the
+tree view) against that now-active read-only control; separately, click **"XML Editor"** → run
+`sapSetElementXMLEditor` (write) against that now-active editable text box.
+
+**The fallback-capture gap targets the correct mode.** `sapCaptureElementTextViaClipboard`'s
+`stripXmlTreeViewArtifacts()` cleanup exists for copying out of the **"HTML Control"** tree
+view, where the `-`/`+` glyphs are confirmed present - that remains unchanged by the mode-naming
+correction. What's corrected is simply which button reaches which behavior: capture/read via
+"HTML Control" (tree view, needs the glyph cleanup), edit via "XML Editor" (plain text box, no
+cleanup needed since it was never written to from captured/stripped text).
 
 ## Proposed Actions
 
@@ -208,19 +255,32 @@ session (per the recording-blocked note above) versus what remains blocked on it
 ## Open Questions
 
 - **Does `GuiHTMLViewer.GetHTMLDocument()` actually work against this SAP GUI version/build?**
-  Not resolved — this is the single blocking unknown. Needs a SAP GUI Scripting Recorder session
-  against the real "Test Service Provider: Display Response" screen (or equivalent) to confirm
-  the method exists, returns a usable COM object, and isn't blocked by security policy.
+  Partially de-risked, still not proven: "HTML Control" mode being explicitly SAP-labeled (and
+  confirmed read-only, consistent with a passive rendering control) makes it a much stronger
+  candidate for actually being a scriptable `GuiHTMLViewer` than this doc's original guess - but
+  the method call itself is still unverified against a real session. Needs a SAP GUI Scripting
+  Recorder session, specifically **after** switching to "HTML Control" mode (used for capture,
+  not editing).
 - **What COM interface does the returned document expose** — classic Trident `IHTMLDocument2`
   (`.xml` on a selected/root XML node) or something else if the SAP GUI build uses a
   WebView2/Edge-based viewer instead? Determines the exact property/method chain for proposed
   action #1.
-- **Is there an editable counterpart screen this request also needs to cover?** Assumed to be
-  the same test tool's Request tab, not yet screenshotted/confirmed.
-- **Is the Request tab a plain `GuiTextEdit`/`GuiTextField`, or also a `GuiHTMLViewer`-style
-  control?** Determines whether proposed action #4 is genuinely new work (`GetHTMLDocument()`
-  write path) or mostly validation layered on the existing `sapFill` write path. Not confirmed
-  — needs a recorder session against the actual Request tab.
+- **Is there an editable counterpart screen this request also needs to cover?** — ✅ resolved:
+  confirmed to be the same test tool's Request tab, specifically its **"XML Editor"** mode (a
+  plain line-numbered text box) - corrected from this doc's earlier guesses of "HTML Control",
+  then "a tree control", then "a folding text editor".
+- **Does `sapSetElementXMLEditor`'s whole-field `Text`-property write actually work against the
+  "XML Editor" text box?** — the central open question for Scenario 3, now the **least**
+  uncertain it's been across this doc's several corrections: a plain multi-line text box with
+  simple line numbers is the closest match yet to a standard `GuiTextEdit`, so it's expected to
+  expose a single whole-buffer `Text` property compatible with the existing write approach.
+  Still not proven against a real session - needs a recorder session against the real "XML
+  Editor" mode to confirm the property name/behavior.
+- **Which toolbar button is "HTML Control" vs "XML Editor" in the Object Repository, and does
+  clicking it reliably toggle the same underlying element, or does the element itself change
+  identity between modes** (i.e. does the OR need two separate captured objects, one per mode,
+  rather than one element whose view just changes)? Not confirmed - affects whether the
+  "click to switch, then act" workflow described above needs one OR object or two.
 - **Is there a practical size limit** on how much XML can be written via `Text`/`sapFill` for
   very large SOAP payloads (multi-line control scrolling/performance), or does it need to be
   chunked/typed incrementally instead of set in one call? Not confirmed.
