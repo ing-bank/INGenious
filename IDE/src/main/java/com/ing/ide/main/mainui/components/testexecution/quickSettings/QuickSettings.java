@@ -35,11 +35,6 @@ public class QuickSettings implements PropertyListener {
                 public Object[] getEnvList() {
                     return view.getProject().getTestData().getEnvironments().toArray();
                 }
-
-                @Override
-                public Object[] getSharedEnvList() {
-                    return view.getProject().getSharedTestData().getEnvironments().toArray();
-                }
             };
         setListeners();
     }

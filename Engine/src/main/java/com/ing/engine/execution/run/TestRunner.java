@@ -8,9 +8,9 @@ public interface TestRunner {
     public Object runEnv();
 
     /**
-     * Environment name to resolve {@code [Shared]}-scoped test data against. Distinct from
-     * {@link #runEnv()} so Shared Test Data can be targeted at an environment the project does
-     * not define (and vice versa).
+     * Environment name to resolve {@code [Shared]}-scoped test data against. Mirrors
+     * {@link #runEnv()} - Shared Test Data always runs against the same Environment selected
+     * for the Project.
      */
     public Object sharedRunEnv();
 

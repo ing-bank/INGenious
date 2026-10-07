@@ -45,6 +45,17 @@ public class SharedTestDataResolutionIntegrationTest {
             "Scenario,Flow,Scope,Iteration,SubIteration,URL",
             "MortgageCalculation-Browser,High Income,,1,1,PROJECT_VALUE"
         );
+        // A named Project environment with its own copy of the sheet, plus the environment
+        // registration file, so selecting it moves the Project's own data too (used to prove
+        // Shared Test Data now follows the same Environment selection as the Project).
+        File projectSitDir = new File(projectTestDataDir, "SIT");
+        projectSitDir.mkdirs();
+        writeCsv(
+            new File(projectSitDir, "Basic.csv"),
+            "Scenario,Flow,Scope,Iteration,SubIteration,URL",
+            "MortgageCalculation-Browser,High Income,,1,1,PROJECT_SIT_VALUE"
+        );
+        writeCsv(new File(projectTestDataDir, "environment.properties"), "Environment=SIT");
 
         File sharedDir = appRoot.resolve("Shared/SharedTestData").toFile();
         sharedDir.mkdirs();
@@ -89,18 +100,22 @@ public class SharedTestDataResolutionIntegrationTest {
     }
 
     private TestCaseRunner mockContext() {
-        return mockContext("Default", "Default");
+        return mockContext("Default");
     }
 
-    private TestCaseRunner mockContext(String projectEnv, String sharedEnv) {
+    /**
+     * {@code sharedRunEnv()} is mocked to the same value as {@code runEnv()} to mirror
+     * {@code ProjectRunner}, where Shared Test Data always follows the Project's Environment.
+     */
+    private TestCaseRunner mockContext(String env) {
         TestCaseRunner context = mock(TestCaseRunner.class);
         ProjectRunner executor = mock(ProjectRunner.class);
         when(context.executor()).thenReturn(executor);
         when(context.project()).thenReturn(project);
         when(executor.getProject()).thenReturn(project);
         when(executor.dataProvider()).thenReturn(project.getTestData());
-        when(executor.runEnv()).thenReturn(projectEnv);
-        when(executor.sharedRunEnv()).thenReturn(sharedEnv);
+        when(executor.runEnv()).thenReturn(env);
+        when(executor.sharedRunEnv()).thenReturn(env);
         // Enough wiring for getIterations()/getIter() on a Test Plan (unscoped) test case.
         when(context.getRoot()).thenReturn(context);
         when(context.scenario()).thenReturn("MortgageCalculation-Browser");
@@ -160,10 +175,11 @@ public class SharedTestDataResolutionIntegrationTest {
     }
 
     @Test
-    public void testSharedRunEnvSelectsSharedEnvironmentIndependentlyOfProjectEnv() {
-        // Project env stays Default; Shared env is SIT. The @Shared reference must resolve the
-        // SIT copy, while @Project is unaffected and still resolves the project's Default value.
-        TestCaseRunner context = mockContext("Default", "SIT");
+    public void testSharedTaggedReferenceFollowsTheProjectEnvironmentSelection() {
+        // Selecting "SIT" for the Project must move both scopes together: @Shared resolves the
+        // Shared SIT copy and @Project resolves the Project's own SIT copy - a single Environment
+        // selector now drives both, there is no separate Shared environment setting any more.
+        TestCaseRunner context = mockContext("SIT");
 
         TestDataModel shared = DataAccessInternal.getModel(context, "TestData0@Shared");
         TestDataModel proj = DataAccessInternal.getModel(context, "Basic@Project");
@@ -188,15 +204,15 @@ public class SharedTestDataResolutionIntegrationTest {
         );
 
         assertThat(sharedVal).isEqualTo("SHARED_SIT_VALUE");
-        assertThat(projVal).isEqualTo("PROJECT_VALUE");
+        assertThat(projVal).isEqualTo("PROJECT_SIT_VALUE");
     }
 
     @Test
-    public void testGetIterationsForSharedSheetHonoursSharedRunEnvNotProjectEnv() {
+    public void testGetIterationsForSharedSheetHonoursTheSelectedEnvironment() {
         // Regression: getIterations() gated the env lookup on validEnv() (project runEnv), so an
-        // @Shared sheet with a Shared env selected but the Project env left on Default fell
-        // back to Shared Default and reported "Iteration 1 missing".
-        TestCaseRunner context = mockContext("Default", "SIT");
+        // @Shared sheet with environment "SIT" selected reported "Iteration 1 missing" instead of
+        // resolving the SIT copy.
+        TestCaseRunner context = mockContext("SIT");
 
         java.util.Set<String> iters = DataAccessInternal.getIterations(context, "TestData0@Shared");
 
@@ -204,8 +220,8 @@ public class SharedTestDataResolutionIntegrationTest {
     }
 
     @Test
-    public void testUnknownSharedRunEnvFallsBackToSharedDefault() {
-        TestCaseRunner context = mockContext("Default", "NoSuchEnv");
+    public void testUnknownSelectedEnvironmentFallsBackToSharedDefault() {
+        TestCaseRunner context = mockContext("NoSuchEnv");
 
         TestDataModel shared = DataAccessInternal.getModel(context, "TestData0@Shared");
         String sharedVal = DataAccessInternal.getDataFromModelWithScope(

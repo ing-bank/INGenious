@@ -41,7 +41,7 @@ public class GlobalDataNotFoundException extends DataNotFoundException {
 
     /**
      * The environment the lookup used - {@code sharedRunEnv()} for a {@code [Shared]} GID,
-     * {@code runEnv()} otherwise.
+     * {@code runEnv()} otherwise (both resolve to the same Project Environment).
      */
     private Object envLabel() {
         String g = gid == null ? "" : gid.trim();
