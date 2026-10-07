@@ -8,10 +8,10 @@ steps:
     action: sapInitConnection
 
   - step: 2
-    object: SAP_SYSTEM
+    object: SAP
     description: Execute Transaction VA01
     action: sapExecuteTransaction
-    input: VA01
+    input: '@VA01'
 
   - step: 3
     object: ctxtVBAK_AUART
@@ -86,16 +86,16 @@ steps:
     reference: "[Project] VA01_MultiWindowMultiSession"
 
   - step: 14
-    object: SAP_SYSTEM
-    description: Execute Transaction VA02
-    action: sapExecuteTransaction
-    input: VA02
-
-  - step: 15
     object: SAP
     description: "Open SAP session [s1]"
     action: sapOpenSession
     input: '@s1'
+
+  - step: 15
+    object: SAP
+    description: Execute Transaction VA02
+    action: sapExecuteTransaction
+    input: '@VA02'
 
   - step: 16
     object: sess_s1_ctxtVBAK_VBELN

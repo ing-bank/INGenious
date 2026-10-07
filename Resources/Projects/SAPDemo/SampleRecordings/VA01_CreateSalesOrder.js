@@ -1,0 +1,60 @@
+// =====================================================================
+// SAP GUI Scripting Tracker recording
+// Recorded via: SAP Logon -> Customize Local Layout (Alt+F12) ->
+//               Script Recording and Playback -> Record
+//
+// Sample: VA01 (Create Sales Order), cross-checked in a second,
+// parallel session with VA03 (Display Sales Order). Same scenario as
+// VA01_CreateSalesOrder.vbs/.ps1/.jsh, in JavaScript - the SAP GUI
+// Scripting Tracker's other native output format.
+//
+// For testing INGenious's Tools -> Import SAP Recording -> JavaScript
+// (.js) feature - see SapParserLangJavaScript.java.
+// =====================================================================
+
+if (!application) {
+    var SapGuiAuto = GetObject("SAPGUI");
+    var application = SapGuiAuto.GetScriptingEngine;
+}
+if (!connection) {
+    var connection = application.Children(0);
+}
+if (!session) {
+    var session = connection.Children(0);
+}
+
+session.findById("wnd[0]").maximize();
+session.findById("wnd[0]/tbar[0]/okcd").text = "VA01";
+session.findById("wnd[0]").sendVKey(0);
+
+session.startTransaction("VA01");
+
+session.findById("wnd[0]/usr/ctxtVBAK-AUART").text = "OR";
+session.findById("wnd[0]/usr/ctxtVBAK-VKORG").text = "1000";
+session.findById("wnd[0]/usr/ctxtVBAK-VTWEG").text = "10";
+session.findById("wnd[0]/usr/ctxtVBAK-SPART").text = "00";
+session.findById("wnd[0]/tbar[0]/btn[0]").press();
+
+session.findById("wnd[0]/usr/ctxtKUAGV-KUNNR").text = "0000100032";
+session.findById("wnd[0]/usr/ctxtVBKD-BSTKD").text = "PO-2026-0917";
+session.findById("wnd[0]/usr/tblSAPMV45ATCTRL_U_ERF_AUFTRAG/ctxtRV45A-MABNR[1,0]").text = "MATERIAL-100";
+session.findById("wnd[0]/usr/tblSAPMV45ATCTRL_U_ERF_AUFTRAG/txtRV45A-KWMENG[3,0]").text = "10";
+session.findById("wnd[0]/usr/tblSAPMV45ATCTRL_U_ERF_AUFTRAG/txtRV45A-KWMENG[3,0]").setFocus();
+session.findById("wnd[0]").sendVKey(0);
+
+session.findById("wnd[0]/usr/tblSAPMV45ATCTRL_U_ERF_AUFTRAG/chkRV45A-SELKZ[6,0]").selected = true;
+
+session.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\11").select();
+
+// --- Cross-check the order in a second, parallel session --------------
+session2.findById("wnd[0]/tbar[0]/okcd").text = "VA03";
+session2.findById("wnd[0]").sendVKey(0);
+
+session2.startTransaction("VA03");
+
+session2.findById("wnd[0]/usr/ctxtVBAK-VBELN").text = "0000012345";
+session2.findById("wnd[0]").sendVKey(0);
+session2.findById("wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\02").select();
+
+// --- Back to the primary session to save the order ---------------------
+session.findById("wnd[0]/tbar[0]/btn[11]").press();

@@ -1,27 +1,43 @@
 page: VA01_CreateSalesOrder
 scope: PROJECT
 elements:
+  wnd0:
+    id: "wnd[0]"
+  okcd:
+    id: "wnd[0]/tbar[0]/okcd"
   ctxtVBAK_AUART:
     id: "wnd[0]/usr/ctxtVBAK-AUART"
   ctxtVBAK_VKORG:
     id: "wnd[0]/usr/ctxtVBAK-VKORG"
   ctxtVBAK_VTWEG:
     id: "wnd[0]/usr/ctxtVBAK-VTWEG"
+  ctxtVBAK_SPART:
+    id: "wnd[0]/usr/ctxtVBAK-SPART"
   btn0:
     id: "wnd[0]/tbar[0]/btn[0]"
   ctxtKUAGV_KUNNR:
     id: "wnd[0]/usr/ctxtKUAGV-KUNNR"
+  ctxtVBKD_BSTKD:
+    id: "wnd[0]/usr/ctxtVBKD-BSTKD"
+  ctxtRV45A_MABNR10:
+    id: "wnd[0]/usr/tblSAPMV45ATCTRL_U_ERF_AUFTRAG/ctxtRV45A-MABNR[1,0]"
   txtRV45A_KWMENG30:
     id: "wnd[0]/usr/tblSAPMV45ATCTRL_U_ERF_AUFTRAG/txtRV45A-KWMENG[3,0]"
-  wnd0:
-    id: "wnd[0]"
   chkRV45A_SELKZ60:
     id: "wnd[0]/usr/tblSAPMV45ATCTRL_U_ERF_AUFTRAG/chkRV45A-SELKZ[6,0]"
-  sess_s1_ctxtVBAK_VBELN:
-    id: "wnd[0]/usr/ctxtVBAK-VBELN"
+  tabpT11:
+    id: "wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\\11"
+  sess_s1_okcd:
+    id: "wnd[0]/tbar[0]/okcd"
     session: s1
   sess_s1_wnd0:
     id: "wnd[0]"
+    session: s1
+  sess_s1_ctxtVBAK_VBELN:
+    id: "wnd[0]/usr/ctxtVBAK-VBELN"
+    session: s1
+  sess_s1_tabpT02:
+    id: "wnd[0]/usr/tabsTAXI_TABSTRIP_OVERVIEW/tabpT\\02"
     session: s1
   btn11:
     id: "wnd[0]/tbar[0]/btn[11]"

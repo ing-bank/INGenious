@@ -39,17 +39,17 @@ steps:
     reference: "[Project] VA03_LineItemAuditAndNavigation"
 
   - step: 6
-    object: SAP_SYSTEM
+    object: SAP
     description: Execute Transaction VA03 (Display Sales Order)
     action: sapExecuteTransaction
-    input: VA03
+    input: '@VA03'
 
   - step: 7
     object: ctxtVBAK_VBELN
     description: "Set [<Object>] to the order created by VA01_CreateSalesOrder"
     action: sapFill
     input: '@0000012345'
-    reference: "[Project] VA01_CreateSalesOrder"
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
 
   - step: 8
     object: wnd0
@@ -213,20 +213,20 @@ steps:
     description: "Assert the displayed order number exactly equals the one requested"
     action: sapAssertElementTextEquals
     input: '@0000012345'
-    reference: "[Project] VA01_CreateSalesOrder"
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
 
   - step: 31
     object: ctxtVBAK_VBELN
     description: "Assert the order number field's numeric text is greater than zero"
     action: sapAssertElementNumericValue
     input: '@>0'
-    reference: "[Project] VA01_CreateSalesOrder"
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
 
   - step: 32
     object: ctxtVBAK_VBELN
     description: "Assert the order number field is read-only in display mode"
     action: sapAssertElementNotEnabled
-    reference: "[Project] VA01_CreateSalesOrder"
+    reference: "[Project] VA03_LineItemAuditAndNavigation"
 
   - step: 33
     object: informationPopup

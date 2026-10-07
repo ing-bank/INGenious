@@ -12,10 +12,10 @@ steps:
     input: "#DEMO"
 
   - step: 2
-    object: SAP_SYSTEM
+    object: SAP
     description: Execute Transaction SM37 (Job Overview)
     action: sapExecuteTransaction
-    input: SM37
+    input: '@SM37'
 
   - step: 3
     object: ctxtJobName

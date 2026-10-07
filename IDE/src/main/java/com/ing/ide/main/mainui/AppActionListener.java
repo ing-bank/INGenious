@@ -388,12 +388,13 @@ public class AppActionListener implements ActionListener {
             // Use language-specific file dialog or all languages
             if (language != null) {
                 switch (language) {
-                    // case "VBScript":
-                    //     sapScriptFile = Utils.openDialog("VBScript SAP Files (*.vbs, *.vba)", "vbs", "vba");
-                    //     break;
-                    // case "JavaScript":
-                    //     sapScriptFile = Utils.openDialog("JavaScript SAP Files (*.js)", "js");
-                    //     break;
+                    case "VBScript":
+                        sapScriptFile =
+                            Utils.openDialog("VBScript SAP Files (*.vbs, *.vba)", "vbs", "vba");
+                        break;
+                    case "JavaScript":
+                        sapScriptFile = Utils.openDialog("JavaScript SAP Files (*.js)", "js");
+                        break;
                     case "PowerShell":
                         sapScriptFile = Utils.openDialog("PowerShell SAP Files (*.ps1)", "ps1");
                         break;
@@ -416,16 +417,27 @@ public class AppActionListener implements ActionListener {
                     default:
                         sapScriptFile =
                             Utils.openDialog(
-                                "SAP GUI Script Files (PS1, JAVA)",
+                                "SAP GUI Script Files (PS1, VBS, VBA, JAVA, JSH, JS)",
                                 "ps1",
+                                "vbs",
+                                "vba",
                                 "java",
-                                "jsh"
+                                "jsh",
+                                "js"
                             );
                 }
             } else {
-                // All languages (only PowerShell and Java supported)
+                // All languages (PowerShell, VBScript, Java, JavaScript supported)
                 sapScriptFile =
-                    Utils.openDialog("SAP GUI Script Files (PS1, JAVA)", "ps1", "java", "jsh");
+                    Utils.openDialog(
+                        "SAP GUI Script Files (PS1, VBS, VBA, JAVA, JSH, JS)",
+                        "ps1",
+                        "vbs",
+                        "vba",
+                        "java",
+                        "jsh",
+                        "js"
+                    );
             }
 
             System.out.println(

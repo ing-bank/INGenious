@@ -333,16 +333,19 @@ public class SapScriptParser {
                         )
                     );
                 } else if (action.actionType.equals("Transaction")) {
-                    // Transaction action - no object reference needed
+                    // Transaction action - session-level, object literal is "SAP" (ObjectType.SAP),
+                    // not "SAP_SYSTEM" (not a registered object type - would fail validation)
                     String stepName = "Execute Transaction " + action.value;
                     writer.println(
                         String.format(
                             "%d,%s,%s,%s,%s,%s,%s",
                             stepNo++,
-                            "SAP_SYSTEM",
+                            "SAP",
                             stepName,
                             "sapExecuteTransaction",
-                            action.value,
+                            // Bare literal input must be @-prefixed per the step input grammar
+                            // (see StepNormalizer) - "VA01" alone is ambiguous, "@VA01" isn't.
+                            "@" + action.value,
                             "",
                             ""
                         )

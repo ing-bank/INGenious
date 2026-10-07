@@ -14,11 +14,11 @@ public class SapParserFactory {
 
     static {
         // Register VBScript parser
-        // PARSER_MAP.put("vbs", SapParserLangVBScript.class);
-        // PARSER_MAP.put("vba", SapParserLangVBScript.class);
+        PARSER_MAP.put("vbs", SapParserLangVBScript.class);
+        PARSER_MAP.put("vba", SapParserLangVBScript.class);
 
         // Register JavaScript parser
-        // PARSER_MAP.put("js", SapParserLangJavaScript.class);
+        PARSER_MAP.put("js", SapParserLangJavaScript.class);
 
         // Register PowerShell parser
         PARSER_MAP.put("ps1", SapParserLangPowerShell.class);

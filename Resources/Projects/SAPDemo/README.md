@@ -65,8 +65,8 @@ migration happens — see `SAP-Enhancement/SAP-Connections-Redesign.md`, "Effort
 
 ## `SampleRecordings/` — testing the SAP recording importer
 
-Two hand-authored recordings of the same VA01 (Create Sales Order) scenario, cross-checked
-in a second session with VA03 (Display Sales Order), in the two formats INGenious's SAP
+Hand-authored recordings of the same VA01 (Create Sales Order) scenario, cross-checked
+in a second session with VA03 (Display Sales Order), in the four formats INGenious's SAP
 import parses:
 
 - `VA01_CreateSalesOrder.ps1` — importable **today** through the running app: Tools ->
@@ -81,11 +81,8 @@ import parses:
 - `VA01_CreateSalesOrder.vbs` — the classic, authentic SAP GUI Scripting Tracker output
   format (same boilerplate `If Not IsObject(application)...` header a real recording has).
   Verified: parses into 18 objects / 25 actions, including the tab-selection steps (no gap
-  here — `SapParserLangVBScript`'s equivalent case is unconditional). **Not yet reachable
-  through the IDE's Import menu** — `.vbs`/`.vba` registration is commented out in
-  `SapParserFactory.java` (only `.ps1` and `.java`/`.jsh` are wired up today). It parses
-  correctly if driven directly against `SapParserLangVBScript` (e.g. from a test or script);
-  use the `.ps1` file to exercise the actual menu-driven import.
+  here — `SapParserLangVBScript`'s equivalent case is unconditional). Importable **today**
+  through the running app: Tools -> Import SAP Recording -> VBScript (.vbs, .vba).
 - `VA01_CreateSalesOrder.jsh` — importable **today** via Tools -> Import SAP Recording ->
   Java (.java, .jsh), using the JACOB `ActiveXComponent`/`.invoke(...)`/`.setProperty(...)`
   idiom from `SapParserLangJava`'s own Javadoc example. Verified: parses into 11 objects /
@@ -94,6 +91,12 @@ import parses:
   `"select"` case has the identical gap as PowerShell's (only fires with a non-empty
   parameter), so a parameterless `.invoke("select")` would silently import as nothing —
   no point including a step that doesn't do anything.
+- `VA01_CreateSalesOrder.js` — the same scenario translated to JavaScript, the Scripting
+  Tracker's other native output format (required parens/semicolons instead of VBScript's
+  optional ones). Shares `SapParserLangVBScript`'s unconditional tab-selection handling (both
+  extend `SapLanguageParser` without overriding `parse()`), so it parses identically to the
+  `.vbs` sample: 18 objects / 25 actions, tab-selection steps included. Importable **today**
+  through the running app: Tools -> Import SAP Recording -> JavaScript (.js).
 - `VA01_MultiWindowMultiSession.ps1` — a denser stress test: **two SAP GUI windows per
   session** (`wnd[0]` main screen + a `wnd[1]` popup), in **two sessions**, including a
   *nested* popup (`wnd[1]` -> `wnd[2]`) in the second session. Session 1 runs VA01 with an
@@ -110,8 +113,16 @@ import parses:
   either collide with or duplicate the `.ps1` version's `VA01_MultiWindowMultiSession` scenario
   and OR page) — it exists purely as an alternate-format sample for testing the Java import
   path specifically.
+- `VA01_MultiWindowMultiSession.vbs` / `.js` — the same multi-window/multi-session scenario
+  again, translated to VBScript and JavaScript respectively. Both go through the shared
+  `SapLanguageParser` engine (same as the single-scenario `.vbs`/`.js` samples above), so both
+  parse into the identical 16 objects / 22 actions as the `.ps1`/`.jsh` versions — same
+  `OpenSession`/`SwitchSession` pair at the session-2 boundary, same `w1_`/`w2_`/`sess_s1_`
+  name-prefix combining. Importable **today** via Tools -> Import SAP Recording -> VBScript
+  (.vbs, .vba) / JavaScript (.js). Not separately imported into this project, same reasoning as
+  the `.jsh` sample above — alternate-format samples for exercising each import path.
 
-All five were verified against the real parser classes (not just eyeballed) before being
+All eight were verified against the real parser classes (not just eyeballed) before being
 added here — see the parse breakdown above for each.
 
 ### The imported test cases are already in this project
@@ -121,22 +132,57 @@ isolation — they were run through the real import pipeline (`SapParserLang*` +
 `Project`/`ObjectRepository`/`SapOR`, the same classes `SapScriptParser.java` uses) against
 this project, exactly as if imported via the IDE menu. That produced, and left in place:
 
-- `ObjectRepository/SAP/VA01_CreateSalesOrder.yaml` (11 elements) and
+- `ObjectRepository/SAP/VA01_CreateSalesOrder.yaml` (18 elements) and
   `ObjectRepository/SAP/VA01_MultiWindowMultiSession.yaml` (16 elements, session/window
   scoped).
-- `TestPlan/VA01_CreateSalesOrder/VA01_CreateSalesOrder.yaml` (18 steps) and
+- `TestPlan/VA01_CreateSalesOrder/VA01_CreateSalesOrder.yaml` (27 steps) and
   `TestPlan/VA01_MultiWindowMultiSession/VA01_MultiWindowMultiSession.yaml` (24 steps) —
   auto-migrated from the generator's CSV output on the next project load (original CSVs kept
   under `.migration-backup/`).
 
-Both were then actually executed under fake mode (`ingenious run
+**Regenerated from the complete scenario / fixed parser output.** The `VA01_CreateSalesOrder`
+artifacts above were originally generated from the sparse `.jsh` sample (11 elements / 16
+actions — the `.jsh`/`.ps1`-only subset documented above), which left `ctxtVBAK-SPART`,
+`ctxtVBKD-BSTKD`, `ctxtRV45A-MABNR[1,0]`, both tab-select steps, and the initial
+`okcd`/`sendVKey` pair out of the imported test case entirely even though they exist in the
+`.vbs`/`.js` samples of the same scenario. Both files have since been regenerated by hand from
+the verified, real parser output (`SapParserLangVBScript` against `VA01_CreateSalesOrder.vbs` —
+the full 18 objects / 25 actions), so the project's actual test case now matches what importing
+the complete recording produces, not the earlier partial one. The `VA01_MultiWindowMultiSession`
+test case has also been corrected: steps 14/15 (`sapExecuteTransaction VA02` /
+`sapOpenSession @s1`) were swapped to put the session switch **before** the transaction it
+actually belongs to — fixing the `Transaction`/`OpenSession` ordering bug found in
+`SapParserLangPowerShell`/`SapParserLangJava` (now fixed in both parsers; see their `parse()`
+methods' `trackSessionVariable()` call).
+
+**`sapExecuteTransaction` steps' object literal was also wrong, project-wide.** Every
+`Transaction` step the importer generated (`SapScriptParser.generateTestCase()`) used
+`SAP_SYSTEM` as the step's `object` — but that string is not a registered object type anywhere
+(`ObjectType.SAP = "SAP"` is the only literal registered for session-level, object-less actions
+like `sapExecuteTransaction`; see the table in `SAP-Enhancement/01-SAP-Connections-Redesign.md`
+and `CommandControlSapGuardrailTest`'s `object("SAP")` usage), so every imported transaction
+step failed design-time object validation. Fixed at the source in `SapScriptParser.java`, and
+in every fixture that had copied the wrong convention: `VA01_CreateSalesOrder.yaml`,
+`VA01_MultiWindowMultiSession.yaml`, `VA03_LineItemAuditAndNavigation.yaml`, and
+`SM37_JobStatusValidation.yaml` now all use `object: SAP` for their transaction steps.
+
+**The same `sapExecuteTransaction` steps' input was also missing its `@` prefix** — bare
+literal inputs like `VA01` must be `@`-prefixed per the step input grammar (see
+`StepNormalizer`'s doc comment: "a bare literal input ... is `@`-prefixed"); `VA01` alone is
+ambiguous, `@VA01` isn't. Fixed in `SapScriptParser.generateTestCase()`'s `Transaction` branch
+and in the same four fixtures above (`input: VA01` → `input: '@VA01'`, etc.).
+
+Both VA01 test cases were previously executed under fake mode (`ingenious run
 SAPDemo/VA01_CreateSalesOrder/VA01_CreateSalesOrder` /
-`.../VA01_MultiWindowMultiSession/VA01_MultiWindowMultiSession`). Both **fail overall**, by
+`.../VA01_MultiWindowMultiSession/VA01_MultiWindowMultiSession`) and **failed overall**, by
 design: only the `sapInitConnection`/`sapOpenSession`/`sapSwitchSession`/`sapCloseConnection`
-steps pass (4 of 28 and 4 of 39 steps respectively) — every `sapFill`/`sapClick`/
-`sapExecuteTransaction`/etc. step fails, because those still use the legacy raw-Dispatch path
-(see "Scope" above). That's expected and correct: it demonstrates the import produces a
-genuinely valid, runnable test case, not that fake mode can run arbitrary recordings.
+steps pass — every `sapFill`/`sapClick`/`sapExecuteTransaction`/etc. step fails, because those
+still use the legacy raw-Dispatch path (see "Scope" above). That's expected and correct: it
+demonstrates the import produces a genuinely valid, runnable test case, not that fake mode can
+run arbitrary recordings. **The exact pass/fail step counts quoted in an earlier version of this
+section are stale** following the regeneration above and haven't been re-captured by an actual
+`ingenious run` yet — re-run both under fake mode to get current counts before quoting them
+again.
 
 ## Running against a real SAP system instead
 

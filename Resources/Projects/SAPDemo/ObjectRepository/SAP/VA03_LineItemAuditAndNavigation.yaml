@@ -4,6 +4,11 @@ elements:
   # SAP Easy Access screen (before any transaction is started)
   easyAccessTree:
     id: "wnd[0]/shellcont/shell"
+  # Order number field on VA03's initial selection screen (own primary session - NOT the
+  # sess_s1_ctxtVBAK_VBELN object in VA01_CreateSalesOrder's OR page, which only exists because
+  # that recording touched this field under its secondary "s1" session cross-check)
+  ctxtVBAK_VBELN:
+    id: "wnd[0]/usr/ctxtVBAK-VBELN"
   # VA03 line items (same tblSAPMV45ATCTRL_U_ERF_AUFTRAG table already verified in VA01_CreateSalesOrder)
   lineItemsTable:
     id: "wnd[0]/usr/tblSAPMV45ATCTRL_U_ERF_AUFTRAG"

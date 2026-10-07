@@ -93,6 +93,31 @@ public class SapParserLangPowerShellSessionTest {
         assertNull(parser.getSapActions().get(0).sessionLabel);
     }
 
+    @Test
+    public void startTransactionOnNewSessionVariable_opensSessionBeforeTransaction()
+        throws Exception {
+        // Regression: a line that is BOTH the first reference to a new session variable AND a
+        // startTransaction call must open/tag the new session before the Transaction action is
+        // recorded, not after - otherwise the transaction runs against the still-current (old)
+        // session instead of the one it was actually recorded against.
+        File f = scriptFile(
+            "$session.startTransaction(\"VA01\")",
+            "$session2.startTransaction(\"VA02\")"
+        );
+        SapParserLangPowerShell parser = new SapParserLangPowerShell();
+        parser.parse(f);
+
+        assertEquals(actionTypes(parser), List.of("Transaction", "OpenSession", "Transaction"));
+        List<SapLanguageParser.SapAction> actions = parser.getSapActions();
+        assertNull(actions.get(0).sessionLabel, "VA01 recorded on the primary session");
+        assertEquals(actions.get(1).objectId, "s1");
+        assertEquals(
+            actions.get(2).sessionLabel,
+            "s1",
+            "VA02 must be tagged to the new session, not the old one"
+        );
+    }
+
     private static List<String> actionTypes(SapParserLangPowerShell parser) {
         List<String> types = new ArrayList<>();
         for (SapLanguageParser.SapAction action : parser.getSapActions()) {

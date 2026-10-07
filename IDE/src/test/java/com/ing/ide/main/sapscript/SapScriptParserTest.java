@@ -152,4 +152,40 @@ public class SapScriptParserTest {
         assertTrue(lastStep.contains("sapCloseConnection"), lastStep);
         assertTrue(lastStep.matches("3,SAP,[^,]*,sapCloseConnection,,,"), lastStep);
     }
+
+    @Test
+    public void transactionStepUsesSapObjectLiteralNotSapSystem() throws Exception {
+        // Regression: ObjectType.SAP ("SAP") is the only registered object type for session-level
+        // actions like sapExecuteTransaction - "SAP_SYSTEM" isn't registered anywhere and fails
+        // design-time object validation.
+        Map<String, String> testCase = new HashMap<>();
+        String scenarioDir = new File(tempDir, "TestPlan/SapImport").getAbsolutePath();
+        new File(scenarioDir).mkdirs();
+        testCase.put("testScenarioName", scenarioDir);
+        testCase.put("pageName", "SapImport");
+        setPrivateField("testCase", testCase);
+
+        List<SapLanguageParser.SapAction> actions = new ArrayList<>();
+        actions.add(new SapLanguageParser.SapAction("Transaction", "SAP_SYSTEM", "VA01", 1));
+        setPrivateField("sapActions", actions);
+
+        Method generateTestCase = SapScriptParser.class.getDeclaredMethod("generateTestCase");
+        generateTestCase.setAccessible(true);
+        generateTestCase.invoke(parser);
+
+        File csv = new File(scenarioDir, "SapImport.csv");
+        List<String> lines = Files.readAllLines(csv.toPath());
+        String transactionStep = lines.get(2); // line 0 header, line 1 initConnection
+        assertTrue(transactionStep.contains("sapExecuteTransaction"), transactionStep);
+        assertTrue(transactionStep.startsWith("2,SAP,"), transactionStep);
+        assertTrue(
+            !transactionStep.contains("SAP_SYSTEM"),
+            "transaction step must not use the unregistered SAP_SYSTEM object literal: " +
+            transactionStep
+        );
+        assertTrue(
+            transactionStep.contains(",@VA01,"),
+            "bare literal input must be @-prefixed per the step input grammar: " + transactionStep
+        );
+    }
 }

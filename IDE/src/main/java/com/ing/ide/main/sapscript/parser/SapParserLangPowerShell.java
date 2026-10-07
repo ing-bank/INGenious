@@ -99,6 +99,12 @@ public class SapParserLangPowerShell extends SapLanguageParser {
                     continue;
                 }
 
+                // Keep session context in sync before interpreting the line - matches the base
+                // class's own ordering, so a line that both switches session AND starts a
+                // transaction (e.g. "$session2.startTransaction(...)") tags the Transaction to
+                // the new session instead of emitting it against the old one first.
+                trackSessionVariable(trimmedLine, lineNumber, getSessionPrefix());
+
                 // Extract transaction using base class method
                 String transaction = extractTransaction(trimmedLine);
                 if (transaction != null) {

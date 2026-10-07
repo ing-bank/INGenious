@@ -6,13 +6,8 @@
 ' Sample: VA01 (Create Sales Order), cross-checked in a second,
 ' parallel session with VA03 (Display Sales Order).
 '
-' For testing INGenious's SAP recording importer end-to-end. Note: as
-' of this build, .vbs is not yet wired into the IDE's
-' Tools -> Import SAP Recording menu (only .ps1 and .java/.jsh are) -
-' see SapParserFactory.java. This file parses correctly against
-' SapParserLangVBScript directly (as SapLanguageParserSessionTest does);
-' use VA01_CreateSalesOrder.ps1 to test the import through the running
-' app's menu today.
+' For testing INGenious's Tools -> Import SAP Recording -> VBScript
+' (.vbs, .vba) feature - see SapParserLangVBScript.java.
 ' =====================================================================
 
 If Not IsObject(application) Then

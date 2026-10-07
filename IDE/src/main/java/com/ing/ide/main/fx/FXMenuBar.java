@@ -309,7 +309,12 @@ public class FXMenuBar extends JFXPanel {
         Menu sapRecording = new Menu("Import SAP Recording");
         sapRecording
             .getItems()
-            .addAll(createSapImportItem("Java (.java, .jsh)", "recorder", "Java"));
+            .addAll(
+                createSapImportItem("PowerShell (.ps1)", "recorder", "PowerShell"),
+                createSapImportItem("VBScript (.vbs, .vba)", "recorder", "VBScript"),
+                createSapImportItem("Java (.java, .jsh)", "recorder", "Java"),
+                createSapImportItem("JavaScript (.js)", "recorder", "JavaScript")
+            );
         tools.getItems().add(sapRecording);
 
         Menu importCollection = new Menu("Import Collection");
