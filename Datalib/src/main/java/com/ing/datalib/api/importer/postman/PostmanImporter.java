@@ -269,14 +269,13 @@ public class PostmanImporter implements CollectionImporter {
         req.setUrl(parseUrl(requestNode.path("url"), req, warnings, location));
 
         for (JsonNode h : requestNode.path("header")) {
-            if (h.path("disabled").asBoolean(false)) continue;
             req
                 .getHeaders()
                 .add(
                     new KeyValuePair(
                         ImportUtils.rewriteVariables(h.path("key").asText()),
                         ImportUtils.rewriteVariables(h.path("value").asText("")),
-                        true
+                        !h.path("disabled").asBoolean(false)
                     )
                 );
         }

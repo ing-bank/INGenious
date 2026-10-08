@@ -301,9 +301,10 @@ public class ImportCommand implements Callable<Integer> {
     }
 
     private static Scenario ensureScenario(Project project, String name, boolean reusable) {
+        // Scope-specific lookup: getScenarioByName() also matches reusable scenarios.
         Scenario s = reusable
             ? project.getReusableScenarioByName(name)
-            : project.getScenarioByName(name);
+            : project.getTestPlanScenarioByName(name);
         if (s == null) {
             s = reusable ? project.addReusableScenario(name) : project.addScenario(name);
             new File(s.getLocation()).mkdirs();

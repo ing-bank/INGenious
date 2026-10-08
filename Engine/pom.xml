@@ -13,6 +13,8 @@
         <timestamp>${maven.build.timestamp} UTC</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
         <app.root>../</app.root>
+        <!-- Kafka sources are skipped unless the 'kafka' or 'full' profile is active. -->
+        <kafka.source.exclude>com/ing/engine/commands/kafka/**</kafka.source.exclude>
     </properties>
     <dependencies> 
         <!-- <dependency>
@@ -443,6 +445,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>${kafka.source.exclude}</exclude>
+                    </excludes>
+                </configuration>
             </plugin>   
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -625,11 +632,12 @@
 
         Only the database (JDBC drivers, loaded reflectively at runtime) and kafka
         archetypes can be fully gated today, so those profiles strip real
-        dependencies from the default build. As of the Kafka Configurations
-        enhancement, KafkaOperations.java is compiled unconditionally (it is no
-        longer commented out), so building the Engine module now REQUIRES
-        -P kafka (or -P full) — a plain `mvn clean package` will fail to
-        resolve org.apache.kafka classes without one of those profiles.
+        dependencies from the default build. The Kafka sources under
+        com/ing/engine/commands/kafka are excluded from compilation via the
+        ${kafka.source.exclude} property; the 'kafka' and 'full' profiles clear
+        that exclusion and add the kafka-clients / avro-serializer dependencies.
+        Kafka classes are only referenced reflectively (DriverSettings), so their
+        absence degrades gracefully at runtime.
 
         The mobile (Appium), api (Apache HttpClient), sap (JACOB) and axe (axe-core)
         archetypes currently ship inside the core <dependencies> block because engine
@@ -721,6 +729,9 @@
 
         <profile>
             <id>kafka</id>
+            <properties>
+                <kafka.source.exclude>no-sources-excluded/**</kafka.source.exclude>
+            </properties>
             <repositories>
                 <repository>
                     <id>confluent</id>
@@ -764,6 +775,9 @@
 
         <profile>
             <id>full</id>
+            <properties>
+                <kafka.source.exclude>no-sources-excluded/**</kafka.source.exclude>
+            </properties>
             <repositories>
                 <repository>
                     <id>confluent</id>
