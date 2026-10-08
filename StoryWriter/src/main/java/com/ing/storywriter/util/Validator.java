@@ -5,7 +5,13 @@ import java.util.regex.Pattern;
 public class Validator {
     static String excluList = "\\S*[,|#|$|{|}|^|\\[|\\]|%]\\S*";
 
+    // Keep in sync with com.ing.ide.util.Validator.MAX_NAME_LENGTH
+    public static final int MAX_NAME_LENGTH = 100;
+
     public static boolean isValidName(String text) {
+        if (text == null || text.length() > MAX_NAME_LENGTH) {
+            return false;
+        }
         return PATTERN.matcher(text).matches() && !text.matches(excluList);
     }
 

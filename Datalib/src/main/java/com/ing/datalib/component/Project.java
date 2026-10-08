@@ -494,17 +494,14 @@ public class Project {
     }
 
     /**
-     * Finds a reusable scenario by name, excluding deleted scenarios.
+     * Finds a reusable scenario by name.
      * @param name scenario name to search for (case-insensitive)
-     * @return the reusable scenario if found and active, null otherwise
+     * @return the reusable scenario if found, null otherwise
      */
     public Scenario getReusableScenarioByName(String name) {
         for (Scenario scenario : reusableScenarios) {
             if (scenario.getName().equalsIgnoreCase(name)) {
-                // Verify the scenario folder still exists on disk
-                if (new File(scenario.getLocation()).exists()) {
-                    return scenario;
-                }
+                return scenario;
             }
         }
         return null;
@@ -533,17 +530,14 @@ public class Project {
     }
 
     /**
-     * Finds a shared reusable scenario by name, excluding deleted scenarios.
+     * Finds a shared reusable scenario by name.
      * @param name scenario name to search for (case-insensitive)
-     * @return the shared reusable scenario if found and active, null otherwise
+     * @return the shared reusable scenario if found, null otherwise
      */
     public Scenario getSharedReusableScenarioByName(String name) {
         for (Scenario scenario : sharedReusableScenarios) {
             if (scenario.getName().equalsIgnoreCase(name)) {
-                // Verify the scenario folder still exists on disk
-                if (new File(scenario.getLocation()).exists()) {
-                    return scenario;
-                }
+                return scenario;
             }
         }
         return null;
