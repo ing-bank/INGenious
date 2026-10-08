@@ -28,7 +28,7 @@
         <jackson.version>2.22.3</jackson.version>
         <commonscsv.version>1.10.0</commonscsv.version>
         <commons-codec.version>1.16.0</commons-codec.version>
-        <commons-io.version>2.15.0</commons-io.version>
+        <commons-io.version>2.21.0</commons-io.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
         <annon.detect>3.0.5</annon.detect>
         <jetty.version>12.0.38</jetty.version>
