@@ -698,7 +698,10 @@ public class TestCaseRunner {
     //<editor-fold defaultstate="collapsed" desc="iteration & sub iteration">
     public boolean isIterResolved(String sheet) {
         if (this == getRoot()) {
-            return iter > 0 || iterater.isIterResolved(sheet);
+            // Deliberately not short-circuited on an explicit iteration count: the sheet still
+            // has to register its bound so getMaxIter() can clamp a count or range that runs
+            // past the data that exists.
+            return iterater.isIterResolved(sheet);
         } else {
             return getRoot().isIterResolved(sheet);
         }
@@ -709,11 +712,15 @@ public class TestCaseRunner {
     }
 
     public Integer getMaxIter() {
-        if (this == getRoot()) {
-            return iter > 0 ? iter : iterater.getMaxIter();
-        } else {
+        if (this != getRoot()) {
             return getRoot().getMaxIter();
         }
+        if (iter <= 0) {
+            return iterater.getMaxIter();
+        }
+        // An explicit count or range still must not run past the available iterations; without
+        // a resolved data bound (a test case that reads no data sheet) honour it as given.
+        return iterater.isResolved() ? Math.min(iter, iterater.getMaxIter()) : iter;
     }
 
     public boolean isRoot() {

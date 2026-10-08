@@ -24,6 +24,18 @@ public class DataIterator {
         return dataIter.containsKey(sheet);
     }
 
+    /**
+     * Whether any sheet has registered its iteration count yet.
+     *
+     * <p>Callers need this to tell "no data sheet has been read" apart from "the data bound
+     * really is 1" - {@link #getMaxIter()} reports 1 for both.
+     *
+     * @return {@code true} once at least one sheet has been registered
+     */
+    public boolean isResolved() {
+        return !dataIter.isEmpty();
+    }
+
     public synchronized void setIter(String sheet, Set<String> iter) {
         dataIter.put(sheet, iter.size());
         // Use the highest numeric Iteration value actually present rather than the set's size:
