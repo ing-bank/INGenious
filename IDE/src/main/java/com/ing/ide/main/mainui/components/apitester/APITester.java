@@ -1069,16 +1069,21 @@ public class APITester implements SlideShow.SlideChangeListener {
             setEndpointStep.setCondition("#" + apiConfigAlias.trim());
         }
 
-        // Step 2: Add headers if present
+        // Step 2: Add headers if present. Disabled headers are still emitted but
+        // commented out so the user can re-enable them in the test case.
         if (request.getHeaders() != null && !request.getHeaders().isEmpty()) {
             for (KeyValuePair header : request.getHeaders()) {
-                if (header.isEnabled()) {
-                    TestStep headerStep = testCase.addNewStep();
-                    headerStep.setObject("Webservice");
-                    headerStep.setDescription("Add Header: " + header.getKey());
-                    headerStep.setAction("addHeader");
-                    headerStep.setInput("@" + header.getKey() + "=" + header.getValue());
-                    headerStep.setCondition("");
+                if (header == null || header.getKey() == null || header.getKey().isEmpty()) {
+                    continue;
+                }
+                TestStep headerStep = testCase.addNewStep();
+                headerStep.setObject("Webservice");
+                headerStep.setDescription("Add Header: " + header.getKey());
+                headerStep.setAction("addHeader");
+                headerStep.setInput("@" + header.getKey() + "=" + header.getValue());
+                headerStep.setCondition("");
+                if (!header.isEnabled()) {
+                    headerStep.toggleComment();
                 }
             }
         }
@@ -1098,19 +1103,19 @@ public class APITester implements SlideShow.SlideChangeListener {
             case POST:
                 requestStep.setAction("postRestRequest");
                 if (request.getBody() != null && request.getBody().getRawContent() != null) {
-                    requestStep.setInput(request.getBody().getRawContent());
+                    requestStep.setInput(literalPayload(request.getBody().getRawContent()));
                 }
                 break;
             case PUT:
                 requestStep.setAction("putRestRequest");
                 if (request.getBody() != null && request.getBody().getRawContent() != null) {
-                    requestStep.setInput(request.getBody().getRawContent());
+                    requestStep.setInput(literalPayload(request.getBody().getRawContent()));
                 }
                 break;
             case PATCH:
                 requestStep.setAction("patchRestRequest");
                 if (request.getBody() != null && request.getBody().getRawContent() != null) {
-                    requestStep.setInput(request.getBody().getRawContent());
+                    requestStep.setInput(literalPayload(request.getBody().getRawContent()));
                 }
                 break;
             case DELETE:
@@ -1120,7 +1125,7 @@ public class APITester implements SlideShow.SlideChangeListener {
                     !request.getBody().getRawContent().isEmpty()
                 ) {
                     requestStep.setAction("deleteWithPayload");
-                    requestStep.setInput(request.getBody().getRawContent());
+                    requestStep.setInput(literalPayload(request.getBody().getRawContent()));
                 } else {
                     requestStep.setAction("deleteRestRequest");
                 }
@@ -1131,6 +1136,29 @@ public class APITester implements SlideShow.SlideChangeListener {
 
         // Step 5: Add assertions
         addAssertionSteps(testCase, request);
+    }
+
+    /**
+     * Prefixes a request payload with {@code @} so the engine treats it as a literal.
+     * Without the prefix a JSON/text body containing a colon matches the
+     * {@code DataSheet:Column} pattern and is wrongly resolved as test data.
+     *
+     * @param payload the raw request body
+     * @return the payload marked as a literal, or unchanged when it is already an
+     *         engine-directive value (e.g. {@code @}, {@code =}, {@code >}) or a
+     *         whole-value datasheet reference such as {@code {Sheet:Column}}
+     */
+    private static String literalPayload(String payload) {
+        if (payload == null || payload.isEmpty()) {
+            return payload;
+        }
+        if (payload.startsWith("@") || payload.startsWith("=") || payload.startsWith(">")) {
+            return payload;
+        }
+        if (payload.matches("^\\{[^{}:\\d\\s][^{}:]*:[^{}:]+\\}$")) {
+            return payload;
+        }
+        return "@" + payload;
     }
 
     private String resolveUrl(APIRequest request) {

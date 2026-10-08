@@ -109,7 +109,7 @@ public class InputRenderer extends AbstractRenderer {
             return true;
         }
 
-        if (val.matches("(@.+)|(=.+)|(%.+%)|(#.+)")) {
+        if (val.matches("(?s)(@.+)|(=.+)|(%.+%)|(#.+)")) {
             return true;
         }
 
