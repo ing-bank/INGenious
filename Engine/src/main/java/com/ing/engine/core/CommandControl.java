@@ -15,6 +15,7 @@ import com.ing.engine.drivers.StructuredDataObject;
 //Added For Mobile
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.execution.data.DataProcessor;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.execution.run.TestCaseRunner;
@@ -345,28 +346,22 @@ public abstract class CommandControl {
     }
 
     public String getDataSheetValue(String key) {
-        String val = null;
-        key = key.matches("\\{(\\S)+\\}") ? key.substring(1, key.length() - 1) : key;
-        List<String> sheetlist = Control
-            .getCurrentProject()
-            .getTestData()
-            .getTestDataFor(Control.exe.runEnv())
-            .getTestDataNames();
-        for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
-            if (key.contains(sheetlist.get(sheet) + ":")) {
-                com.ing.datalib.testdata.model.TestDataModel tdModel = Control
-                    .getCurrentProject()
-                    .getTestData()
-                    .getTestDataByName(sheetlist.get(sheet));
-                List<String> columns = tdModel.getColumns();
-                for (int col = 0; col < columns.size(); col++) {
-                    if (key.contains(sheetlist.get(sheet) + ":" + columns.get(col))) {
-                        val = userData.getData(sheetlist.get(sheet), columns.get(col));
-                    }
-                }
-            }
+        // Both tagged (@Shared/@Project) and untagged Sheet:Column references resolve through
+        // the same scope-aware DataAccess pipeline (untagged == @Project), which tries the
+        // selected Environment first and falls back to Default when the sheet isn't defined
+        // there. A hand-rolled sheet-name scan used to handle the untagged case separately and
+        // skipped that fallback entirely, so a sheet only present under Default - and not the
+        // currently selected Environment - resolved to nothing instead of the Default value.
+        String[] scoped = TestDataToken.parse(key);
+        if (scoped == null) {
+            return null;
         }
-        return val;
+        try {
+            return userData.getData(scoped[0], scoped[1]);
+        } catch (RuntimeException ex) {
+            // Quiet: getDatasheet(key) is the single place that reports the failure.
+            return null;
+        }
     }
 
     public String getUserDefinedData(String key) {

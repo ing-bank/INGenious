@@ -3,6 +3,7 @@ package com.ing.engine.commands.general;
 import com.ing.engine.commands.browser.CommonMethods;
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ForcedException;
@@ -225,7 +226,17 @@ public class GeneralOperations extends General {
         if (Input != null && Condition != null) {
             if (!getVar(Condition).isEmpty()) {
                 System.out.println(Condition);
-                String[] sheetDetail = Input.split(":");
+                // Accepts Sheet:Column, Sheet:Column@Project and Sheet:Column@Shared;
+                // the tag (if any) stays on the sheet so putData routes to the right store.
+                String[] sheetDetail = TestDataToken.parse(Input);
+                if (sheetDetail == null) {
+                    Report.updateTestLog(
+                        Action,
+                        "Incorrect input format; expected Sheet:Column",
+                        Status.DEBUG
+                    );
+                    return;
+                }
                 String sheetName = sheetDetail[0];
                 String columnName = sheetDetail[1];
                 userData.putData(sheetName, columnName, getVar(Condition));
@@ -507,13 +518,19 @@ public class GeneralOperations extends General {
             String sourceSubIteration = prevSubIterationVar != null
                 ? prevSubIterationVar
                 : userData.getSubIteration();
-            String sourceDataSheet = Condition;
-            String sourceSheetName = sourceDataSheet.split(":", 2)[0];
-            String sourceColumnName = sourceDataSheet.split(":", 2)[1];
+            String[] sourceSheetDetail = TestDataToken.parse(Condition);
+            if (sourceSheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect Condition format; expected Sheet:Column",
+                    Status.FAIL
+                );
+                return;
+            }
             String reportDescription = "";
             String value = userData.getData(
-                sourceSheetName,
-                sourceColumnName,
+                sourceSheetDetail[0],
+                sourceSheetDetail[1],
                 sourceScenario,
                 sourceTestCase,
                 sourceIteration,
@@ -524,13 +541,19 @@ public class GeneralOperations extends General {
                 addVar(Input, value);
                 reportDescription = Input.replaceAll("%", "");
             } else {
-                String targetDataSheet = Input;
-                String targetSheetName = targetDataSheet.split(":", 2)[0];
-                String targetColumnName = targetDataSheet.split(":", 2)[1];
-                reportDescription = targetColumnName;
+                String[] targetSheetDetail = TestDataToken.parse(Input);
+                if (targetSheetDetail == null) {
+                    Report.updateTestLog(
+                        Action,
+                        "Incorrect Input format; expected Sheet:Column",
+                        Status.FAIL
+                    );
+                    return;
+                }
+                reportDescription = targetSheetDetail[1];
                 userData.putData(
-                    targetSheetName,
-                    targetColumnName,
+                    targetSheetDetail[0],
+                    targetSheetDetail[1],
                     value,
                     userData.getScenario(),
                     userData.getTestCase(),
@@ -620,9 +643,28 @@ public class GeneralOperations extends General {
     )
     public void storeInGlobalDataSheet() {
         if (Condition != null) {
-            String globalDataID = Condition.split(":")[0];
-            String globalcolumnName = Condition.split(":")[1];
-            userData.putGlobalData("#" + globalDataID, globalcolumnName, Data);
+            String[] parsed = TestDataToken.parse(Condition);
+            if (parsed == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected GlobalDataID:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            // Keep any trailing @Shared/@Project tag (Test Data's own convention), translating
+            // it to the [Shared]/[Project] prefix convention Global Data IDs use, so an
+            // explicitly scoped Global Data write routes to the matching store.
+            String tag = TestDataToken.scopeTag(parsed[0]);
+            String bareId = tag.isEmpty()
+                ? parsed[0]
+                : parsed[0].substring(0, parsed[0].length() - tag.length()).trim();
+            String globalTag = TestDataToken.SHARED_TAG.equals(tag)
+                ? "[Shared]"
+                : TestDataToken.PROJECT_TAG.equals(tag) ? "[Project]" : "";
+            String globalDataID = globalTag.isEmpty() ? "#" + bareId : globalTag + " #" + bareId;
+            String globalcolumnName = parsed[1];
+            userData.putGlobalData(globalDataID, globalcolumnName, Data);
             Report.updateTestLog(
                 Action,
                 "Global Value: " + Data + " has been stored into " + "the Global data sheet",

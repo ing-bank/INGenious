@@ -185,4 +185,54 @@ public class CsvTestDataTest {
         String content = new String(Files.readAllBytes(csvFile.toPath()));
         assertThat(content).contains("Col1");
     }
+
+    /**
+     * Reload (AbstractDataModel.load()) against a model whose backing file does not exist must
+     * NOT wipe the in-memory rows/columns - that turned the "Reload" button into "clear sheet"
+     * for a never-saved (or mislocated) datasheet.
+     */
+    @Test
+    public void testReloadDoesNotClearWhenBackingFileMissing() {
+        String location = tempDir.resolve("never-saved.csv").toString();
+        CsvTestData td = new CsvTestData(location);
+        td.setColumns(
+            java.util.Arrays.asList(
+                "Scenario",
+                "Flow",
+                "Scope",
+                "Iteration",
+                "SubIteration",
+                "Data1"
+            )
+        );
+        td.addRecord();
+        td.setValueAt("scn", 0, 0);
+        td.setValueAt("typed-but-unsaved", 0, 5);
+
+        td.load();
+
+        assertThat(td.getRowCount()).isEqualTo(1);
+        assertThat(td.getValueAt(0, 5)).isEqualTo("typed-but-unsaved");
+        assertThat(td.getColumnCount()).isEqualTo(6);
+    }
+
+    @Test
+    public void testReloadRestoresLastSavedStateWhenFileExists() throws IOException {
+        File csvFile = tempDir.resolve("reload.csv").toFile();
+        try (FileWriter fw = new FileWriter(csvFile)) {
+            fw.write("Scenario,Flow,Scope,Iteration,SubIteration,Data1\n");
+            fw.write("scn,flw,,1,1,SAVED\n");
+        }
+
+        CsvTestData td = new CsvTestData(csvFile.getAbsolutePath());
+        td.loadTableModel();
+        assertThat(td.getValueAt(0, 5)).isEqualTo("SAVED");
+
+        // Unsaved edit, then Reload -> back to the on-disk value.
+        td.setValueAt("EDITED", 0, 5);
+        td.load();
+
+        assertThat(td.getRowCount()).isEqualTo(1);
+        assertThat(td.getValueAt(0, 5)).isEqualTo("SAVED");
+    }
 }
