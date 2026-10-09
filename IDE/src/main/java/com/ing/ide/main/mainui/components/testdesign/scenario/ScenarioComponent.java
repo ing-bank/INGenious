@@ -193,7 +193,7 @@ public class ScenarioComponent extends JPanel implements ActionListener {
             case "Paste":
                 ccp(ae.getActionCommand());
                 break;
-            case "Create Reusable":
+            case "Create User Intent":
                 createAsReusable();
                 break;
             default:
@@ -270,7 +270,7 @@ public class ScenarioComponent extends JPanel implements ActionListener {
                         Notification.show(
                             "Scenario [" +
                             ref.getScenarioName() +
-                            "] not present in selected reusable scope"
+                            "] not present in selected user intent scope"
                         );
                     }
                 } else {
@@ -341,7 +341,9 @@ public class ScenarioComponent extends JPanel implements ActionListener {
                         }
                         getCurrentScenario().fireTableStructureChanged();
                     } else {
-                        Notification.show("Couldn't Create Reusable - " + result.getReusableName());
+                        Notification.show(
+                            "Couldn't Create User Intent - " + result.getReusableName()
+                        );
                     }
                 }
             }

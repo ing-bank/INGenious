@@ -20,7 +20,7 @@ import javax.swing.UIManager;
  */
 public class ObjectRenderer extends AbstractRenderer {
     String objNotPresent = "Object is not present in the Object Repository";
-    String reusableHasError = "Reusable has IDE validation error(s)";
+    String reusableHasError = "User Intent has IDE validation error(s)";
 
     public ObjectRenderer() {
         super("Object Shouldn't be empty.It should be one of[Execute,App,Browser or Object]");

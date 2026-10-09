@@ -242,10 +242,10 @@ public class TestCaseAutoSuggest {
                         return "Mobile / WebView Actions";
                     }
                     if (current.startsWith("[Project]")) {
-                        return "Project Reusables";
+                        return "Project User Intent";
                     }
                     if (current.startsWith("[Shared]")) {
-                        return "Shared Reusables";
+                        return "Shared User Intent";
                     }
                     return "";
                 }
@@ -1313,7 +1313,7 @@ public class TestCaseAutoSuggest {
                 }
             }
             // Double-click on reusable steps allows editing; navigation is disabled
-            // Use context menu "Go To Reusable" for navigation instead
+            // Use context menu "Go To User Intent" for navigation instead
         }
     }
 

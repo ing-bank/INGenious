@@ -186,16 +186,15 @@ public class SharedReusableTree extends ProjectTree {
                 }
 
                 message =
-                    "The following shared reusable components will be deleted:\n\n" +
+                    "The following shared user intents will be deleted:\n\n" +
                     itemsList.toString() +
                     "\n\n" +
                     "These components are referenced by the following projects:\n\n" +
                     String.join("\n", referencingProjects) +
-                    "\n\nAre you sure you want to delete these shared reusable component(s)?";
+                    "\n\nAre you sure you want to delete these shared user intent(s)?";
                 LOGGER.log(Level.INFO, "Showing delete confirmation with detailed project list");
             } else {
-                message =
-                    "Are you sure you want to delete the selected Shared Reusable component(s)?";
+                message = "Are you sure you want to delete the selected Shared User Intent(s)?";
                 LOGGER.log(
                     Level.WARNING,
                     "No referencing projects found - showing generic warning"
@@ -205,7 +204,7 @@ public class SharedReusableTree extends ProjectTree {
             int warning = JOptionPane.showConfirmDialog(
                 null,
                 message,
-                "Delete Shared Reusable Components",
+                "Delete Shared User Intents",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE
             );
@@ -290,8 +289,8 @@ public class SharedReusableTree extends ProjectTree {
             case "Delete TestCase":
                 handleDeleteTestCaseWithReferences();
                 break;
-            case "Make As Project Reusable":
-            case "Move to Project Reusable":
+            case "Make As Project User Intent":
+            case "Move to Project User Intent":
                 moveToProjectReusable();
                 break;
             default:
@@ -348,21 +347,22 @@ public class SharedReusableTree extends ProjectTree {
             }
 
             message =
-                "The following shared reusable components will be deleted:\n\n" +
+                "The following shared user intents will be deleted:\n\n" +
                 itemsList.toString() +
                 "\n\nThese components are referenced by the following projects:\n\n" +
                 String.join("\n", referencingProjects) +
-                "\n\nAre you sure you want to delete these shared reusable scenario(s)?";
+                "\n\nAre you sure you want to delete these shared user intent scenario(s)?";
             LOGGER.log(Level.INFO, "Showing delete scenario confirmation with projects list");
         } else {
-            message = "Are you sure you want to delete the selected shared reusable scenario(s)?";
+            message =
+                "Are you sure you want to delete the selected shared user intent scenario(s)?";
             LOGGER.log(Level.WARNING, "No referencing projects found for scenarios");
         }
 
         int option = JOptionPane.showConfirmDialog(
             null,
             message,
-            "Delete Shared Reusable Scenarios",
+            "Delete Shared User Intent Scenarios",
             JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE
         );
@@ -452,21 +452,22 @@ public class SharedReusableTree extends ProjectTree {
             }
 
             message =
-                "The following shared reusable components will be deleted:\n\n" +
+                "The following shared user intents will be deleted:\n\n" +
                 itemsList.toString() +
                 "\n\nThese components are referenced by the following projects:\n\n" +
                 String.join("\n", referencingProjects) +
-                "\n\nAre you sure you want to delete these shared reusable test case(s)?";
+                "\n\nAre you sure you want to delete these shared user intent test case(s)?";
             LOGGER.log(Level.INFO, "Showing delete test case confirmation with projects list");
         } else {
-            message = "Are you sure you want to delete the selected shared reusable test case(s)?";
+            message =
+                "Are you sure you want to delete the selected shared user intent test case(s)?";
             LOGGER.log(Level.WARNING, "No referencing projects found for test cases");
         }
 
         int option = JOptionPane.showConfirmDialog(
             null,
             message,
-            "Delete Shared Reusable Test Cases",
+            "Delete Shared User Intent Test Cases",
             JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE
         );
@@ -530,7 +531,7 @@ public class SharedReusableTree extends ProjectTree {
 
                 if (!projects.isEmpty()) {
                     String msg =
-                        "The shared reusable scenario '" +
+                        "The shared user intent scenario '" +
                         oldScenarioName +
                         "'\n" +
                         "is referenced by the following projects:\n\n" +
@@ -541,7 +542,7 @@ public class SharedReusableTree extends ProjectTree {
                     int opt = javax.swing.JOptionPane.showConfirmDialog(
                         null,
                         msg,
-                        "Rename Shared Reusable - References Found",
+                        "Rename Shared User Intent - References Found",
                         javax.swing.JOptionPane.YES_NO_OPTION,
                         javax.swing.JOptionPane.WARNING_MESSAGE
                     );
@@ -596,7 +597,7 @@ public class SharedReusableTree extends ProjectTree {
 
                 if (!projects.isEmpty()) {
                     String msg =
-                        "The shared reusable test case '" +
+                        "The shared user intent test case '" +
                         oldTestCaseName +
                         "'\n" +
                         "(scenario: '" +
@@ -609,7 +610,7 @@ public class SharedReusableTree extends ProjectTree {
                     int opt = javax.swing.JOptionPane.showConfirmDialog(
                         null,
                         msg,
-                        "Rename Shared Reusable - References Found",
+                        "Rename Shared User Intent - References Found",
                         javax.swing.JOptionPane.YES_NO_OPTION,
                         javax.swing.JOptionPane.WARNING_MESSAGE
                     );
@@ -806,14 +807,14 @@ public class SharedReusableTree extends ProjectTree {
     protected void makeAsReusableRTestCase() {
         if (getSelectedTestCaseNodes().isEmpty()) {
             Notification.showWarning(
-                "Select at least one shared reusable test case to make as TestCase."
+                "Select at least one shared user intent test case to make as TestCase."
             );
             return;
         }
         if (!getSelectedTestCaseNodes().isEmpty()) {
             int option = JOptionPane.showConfirmDialog(
                 null,
-                "Move selected Shared Reusable test case(s) to Test Plan?",
+                "Move selected Shared User Intent test case(s) to Test Plan?",
                 "Make As TestCase",
                 JOptionPane.YES_NO_OPTION
             );
@@ -843,7 +844,9 @@ public class SharedReusableTree extends ProjectTree {
                 load();
                 showImpactedReferenceNotification("Moved to Test Plan", impactedUpdates);
             } else {
-                Notification.showWarning("No shared reusable test cases were moved to Test Plan.");
+                Notification.showWarning(
+                    "No shared user intent test cases were moved to Test Plan."
+                );
             }
         }
     }
@@ -856,7 +859,7 @@ public class SharedReusableTree extends ProjectTree {
     void makeAsReusableRTestCase(TestCase testCase) {
         int option = JOptionPane.showConfirmDialog(
             null,
-            "Move selected Shared Reusable test case to Test Plan?",
+            "Move selected Shared User Intent test case to Test Plan?",
             "Make As TestCase",
             JOptionPane.YES_NO_OPTION
         );
@@ -890,7 +893,7 @@ public class SharedReusableTree extends ProjectTree {
             Notification.showWarning(
                 "Scenario '" +
                 scenarioName +
-                "' already exists in Shared Reusables. Please choose a different Shared Reusable scenario name."
+                "' already exists in Shared User Intents. Please choose a different Shared User Intent scenario name."
             );
             return;
         }
@@ -914,7 +917,7 @@ public class SharedReusableTree extends ProjectTree {
                     new TreePath(getTreeModel().addTestCase(scenarioNode, testcase).getPath())
                 );
             } else {
-                Notification.show("Shared reusable test case already exists");
+                Notification.show("Shared user intent test case already exists");
             }
         }
     }
@@ -961,7 +964,7 @@ public class SharedReusableTree extends ProjectTree {
             messagePanel.add(scrollPane, java.awt.BorderLayout.CENTER);
 
             JCheckBox confirmBox = new JCheckBox(
-                "Move Shared Reusables inside Group to TestPlan instead of deleting"
+                "Move Shared User Intents inside Group to TestPlan instead of deleting"
             );
 
             int option = JOptionPane.showConfirmDialog(
@@ -1070,15 +1073,15 @@ public class SharedReusableTree extends ProjectTree {
         List<TestCase> selected = collectSelectedSharedReusableTestCases();
         if (selected.isEmpty()) {
             Notification.showWarning(
-                "Select at least one shared reusable test case to make as Project Reusable."
+                "Select at least one shared user intent test case to make as Project User Intent."
             );
             return;
         }
 
         int warning = JOptionPane.showConfirmDialog(
             null,
-            "Move selected Shared Reusable test case(s) to Project Reusable Components?",
-            "Move to Project Reusable",
+            "Move selected Shared User Intent test case(s) to Project User Intent?",
+            "Move to Project User Intent",
             JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE
         );
@@ -1102,10 +1105,10 @@ public class SharedReusableTree extends ProjectTree {
             getProject().reload();
             getTestDesign().getReusableTree().load();
             getTestDesign().getSharedReusableTree().load();
-            showImpactedReferenceNotification("Moved to Project Reusable", impactedUpdates);
+            showImpactedReferenceNotification("Moved to Project User Intent", impactedUpdates);
         } else {
             Notification.showWarning(
-                "No shared reusable test cases were moved to Project Reusable."
+                "No shared user intent test cases were moved to Project User Intent."
             );
         }
     }

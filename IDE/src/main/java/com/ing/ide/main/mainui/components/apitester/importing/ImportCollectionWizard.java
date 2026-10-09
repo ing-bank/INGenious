@@ -93,10 +93,7 @@ public class ImportCollectionWizard extends JDialog {
     private final JRadioButton postmanRadio = new JRadioButton("Postman");
     private final JRadioButton brunoRadio = new JRadioButton("Bruno");
 
-    private final JRadioButton targetReusableRadio = new JRadioButton(
-        "Reusable (User Intent)",
-        true
-    );
+    private final JRadioButton targetReusableRadio = new JRadioButton("User Intent", true);
     private final JRadioButton targetTestCaseRadio = new JRadioButton("Test Case");
 
     private boolean confirmed;

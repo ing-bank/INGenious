@@ -1002,7 +1002,7 @@ public class APITester implements SlideShow.SlideChangeListener {
         TestCase testCase = reusableScenario.addTestCase(testCaseName);
         if (testCase == null) {
             LOG.warning(
-                "Reusable '" + testCaseName + "' could not be created (likely already exists)"
+                "User Intent '" + testCaseName + "' could not be created (likely already exists)"
             );
             return null;
         }
