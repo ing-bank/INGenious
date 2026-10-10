@@ -1,6 +1,3 @@
 {
-  // The INGenious Bridge is not published to the Marketplace, so it cannot be
-  // recommended here. Install the bundled build instead:
-  //   code --install-extension vscode-extensions/vscode-ingenious-bridge-<version>.vsix
   "recommendations": []
 }
