@@ -13,6 +13,8 @@
         <timestamp>${maven.build.timestamp} UTC</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
         <app.root>../</app.root>
+        <!-- Kafka sources are skipped unless the 'kafka' or 'full' profile is active. -->
+        <kafka.source.exclude>com/ing/engine/commands/kafka/**</kafka.source.exclude>
     </properties>
     <dependencies> 
         <!-- <dependency>
@@ -443,6 +445,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>${kafka.source.exclude}</exclude>
+                    </excludes>
+                </configuration>
             </plugin>   
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -720,6 +727,9 @@
 
         <profile>
             <id>kafka</id>
+            <properties>
+                <kafka.source.exclude>no-sources-excluded/**</kafka.source.exclude>
+            </properties>
             <repositories>
                 <repository>
                     <id>confluent</id>
@@ -788,6 +798,9 @@
 
         <profile>
             <id>full</id>
+            <properties>
+                <kafka.source.exclude>no-sources-excluded/**</kafka.source.exclude>
+            </properties>
             <repositories>
                 <repository>
                     <id>confluent</id>

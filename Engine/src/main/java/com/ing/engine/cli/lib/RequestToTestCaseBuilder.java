@@ -57,16 +57,19 @@ public final class RequestToTestCaseBuilder {
         ep.setAction("setEndPoint");
         ep.setInput("@" + resolveUrl(req));
 
-        // 2. headers
+        // 2. headers (disabled ones are emitted commented out)
         if (req.getHeaders() != null) {
             for (KeyValuePair h : req.getHeaders()) {
-                if (h == null || !h.isEnabled()) continue;
+                if (h == null) continue;
                 if (h.getKey() == null || h.getKey().isEmpty()) continue;
                 TestStep s = tc.addNewStep();
                 s.setObject("Webservice");
                 s.setDescription("Add Header: " + h.getKey());
                 s.setAction("addHeader");
                 s.setInput("@" + h.getKey() + "=" + safe(h.getValue()));
+                if (!h.isEnabled()) {
+                    s.toggleComment();
+                }
             }
         }
 
@@ -86,20 +89,20 @@ public final class RequestToTestCaseBuilder {
                 break;
             case POST:
                 call.setAction("postRestRequest");
-                if (!body.isEmpty()) call.setInput(body);
+                if (!body.isEmpty()) call.setInput(literalPayload(body));
                 break;
             case PUT:
                 call.setAction("putRestRequest");
-                if (!body.isEmpty()) call.setInput(body);
+                if (!body.isEmpty()) call.setInput(literalPayload(body));
                 break;
             case PATCH:
                 call.setAction("patchRestRequest");
-                if (!body.isEmpty()) call.setInput(body);
+                if (!body.isEmpty()) call.setInput(literalPayload(body));
                 break;
             case DELETE:
                 if (!body.isEmpty()) {
                     call.setAction("deleteWithPayload");
-                    call.setInput(body);
+                    call.setInput(literalPayload(body));
                 } else {
                     call.setAction("deleteRestRequest");
                 }
@@ -237,5 +240,25 @@ public final class RequestToTestCaseBuilder {
     private static String prefixAt(String v) {
         if (v == null || v.isEmpty()) return "";
         return v.startsWith("@") ? v : "@" + v;
+    }
+
+    /**
+     * Prefixes a request payload with {@code @} so the engine treats it as a literal.
+     * Without the prefix a JSON/text body containing a colon matches the
+     * {@code DataSheet:Column} pattern and is wrongly resolved as test data.
+     *
+     * @param payload the raw request body
+     * @return the payload marked as a literal, or unchanged when it is already an
+     *         engine-directive value or a whole-value datasheet reference
+     */
+    private static String literalPayload(String payload) {
+        if (payload == null || payload.isEmpty()) return payload;
+        if (payload.startsWith("@") || payload.startsWith("=") || payload.startsWith(">")) {
+            return payload;
+        }
+        if (payload.matches("^\\{[^{}:\\d\\s][^{}:]*:[^{}:]+\\}$")) {
+            return payload;
+        }
+        return "@" + payload;
     }
 }
