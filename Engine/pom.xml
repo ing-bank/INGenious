@@ -13,8 +13,13 @@
         <timestamp>${maven.build.timestamp} UTC</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
         <app.root>../</app.root>
-        <!-- Kafka sources are skipped unless the 'kafka' or 'full' profile is active. -->
+        <!-- Kafka sources are skipped unless the 'kafka' or 'full' profile is active.
+             Those profiles flip both properties: the exclude is disarmed and the
+             extra source root is pointed at the real directory. The default value
+             below is a path that does not exist, so no Kafka sources are compiled. -->
         <kafka.source.exclude>com/ing/engine/commands/kafka/**</kafka.source.exclude>
+        <kafka.source.dir>${project.basedir}/src/kafka/disabled</kafka.source.dir>
+        <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
     </properties>
     <dependencies> 
         <!-- <dependency>
@@ -451,6 +456,28 @@
                     </excludes>
                 </configuration>
             </plugin>   
+            <!-- Kafka command sources live in src/kafka/java and are only compiled
+                 when the 'kafka' or 'full' profile points ${kafka.source.dir} at them
+                 (kafka-clients present). -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>${build-helper-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>add-kafka-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${kafka.source.dir}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-eclipse-plugin</artifactId>
@@ -729,6 +756,7 @@
             <id>kafka</id>
             <properties>
                 <kafka.source.exclude>no-sources-excluded/**</kafka.source.exclude>
+                <kafka.source.dir>${project.basedir}/src/kafka/java</kafka.source.dir>
             </properties>
             <repositories>
                 <repository>
@@ -748,31 +776,6 @@
                     <version>${kafka-avro-serializer.version}</version>
                 </dependency>
             </dependencies>
-            <build>
-                <plugins>
-                    <!-- Kafka command sources live in src/kafka/java and are only
-                         compiled when this profile is active (kafka-clients present). -->
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>3.4.0</version>
-                        <executions>
-                            <execution>
-                                <id>add-kafka-source</id>
-                                <phase>generate-sources</phase>
-                                <goals>
-                                    <goal>add-source</goal>
-                                </goals>
-                                <configuration>
-                                    <sources>
-                                        <source>${project.basedir}/src/kafka/java</source>
-                                    </sources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
 
         <profile>
@@ -800,6 +803,7 @@
             <id>full</id>
             <properties>
                 <kafka.source.exclude>no-sources-excluded/**</kafka.source.exclude>
+                <kafka.source.dir>${project.basedir}/src/kafka/java</kafka.source.dir>
             </properties>
             <repositories>
                 <repository>
@@ -834,29 +838,6 @@
                     <version>${kafka-avro-serializer.version}</version>
                 </dependency>
             </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>3.4.0</version>
-                        <executions>
-                            <execution>
-                                <id>add-kafka-source</id>
-                                <phase>generate-sources</phase>
-                                <goals>
-                                    <goal>add-source</goal>
-                                </goals>
-                                <configuration>
-                                    <sources>
-                                        <source>${project.basedir}/src/kafka/java</source>
-                                    </sources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
     </profiles>
 </project>

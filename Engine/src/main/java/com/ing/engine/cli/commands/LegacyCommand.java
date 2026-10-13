@@ -199,14 +199,7 @@ public class LegacyCommand implements Callable<Integer> {
             }
         }
 
-        if (headlessRequested) {
-            com.ing.engine.constants.SystemDefaults.EnvVars.put(
-                "capability." +
-                com.ing.engine.cli.lib.BrowserNames.normalize(browserName) +
-                ".setHeadless",
-                "true"
-            );
-        }
+        com.ing.engine.cli.lib.HeadlessOverride.applyIf(headlessRequested, browserName);
 
         return legacyArgs.toArray(new String[0]);
     }
