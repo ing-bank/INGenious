@@ -711,7 +711,7 @@ public class Scenario extends DataModel {
                 // Update name before refactoring so getLocation() resolves to the
                 // already-renamed directory when this scenario's own test cases are loaded.
                 name = newName;
-                getProject().refactorScenario(oldName, newName);
+                getProject().refactorScenario(oldName, newName, source);
                 return true;
             }
         }
@@ -743,7 +743,7 @@ public class Scenario extends DataModel {
                 // Update name before refactoring so getLocation() resolves to the
                 // already-renamed directory when this scenario's own test cases are loaded.
                 name = newName;
-                p.refactorScenario(oldName, newName);
+                p.refactorScenario(oldName, newName, source);
                 return true;
             }
         }
@@ -771,7 +771,7 @@ public class Scenario extends DataModel {
                 // Update name before refactoring so getLocation() resolves to the
                 // already-renamed directory when this scenario's own test cases are loaded.
                 name = newName;
-                p.refactorScenario(oldName, newName);
+                p.refactorScenario(oldName, newName, source);
                 return true;
             }
         }
