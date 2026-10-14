@@ -650,6 +650,7 @@ public class ProjectTree implements ActionListener {
                     renameScenario(scenarioNode.getScenario());
                     testDesign.getScenarioComp().refreshTitle();
                     testDesign.getTestDatacomp().refreshOpenTestData();
+                    testDesign.getSharedTestDataComp().refreshOpenTestData();
                     persistSortOrder(scenarioNode.getParent());
                     return true;
                 } else {
@@ -676,6 +677,7 @@ public class ProjectTree implements ActionListener {
                     getTreeModel().reload(testCaseNode);
                     testDesign.getTestCaseComp().refreshTitle();
                     testDesign.getTestDatacomp().refreshOpenTestData();
+                    testDesign.getSharedTestDataComp().refreshOpenTestData();
                     persistSortOrder(testCaseNode.getParent());
                     return true;
                 } else {
@@ -1024,6 +1026,7 @@ public class ProjectTree implements ActionListener {
                 load();
                 getTestDesign().getReusableTree().load();
                 getTestDesign().getTestDatacomp().load();
+                getTestDesign().getSharedTestDataComp().load();
                 showImpactedReferenceNotification("Moved to Project User Intent", impactedUpdates);
             } else {
                 Notification.showWarning("No test cases were moved to Project User Intent.");
@@ -1098,6 +1101,7 @@ public class ProjectTree implements ActionListener {
                 load();
                 getTestDesign().getSharedReusableTree().load();
                 getTestDesign().getTestDatacomp().load();
+                getTestDesign().getSharedTestDataComp().load();
                 showImpactedReferenceNotification("Moved to Shared User Intent", impactedUpdates);
             } else {
                 Notification.showWarning("No test cases were moved to Shared User Intent.");
