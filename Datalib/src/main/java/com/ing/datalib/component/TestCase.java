@@ -1576,7 +1576,13 @@ public class TestCase extends DataModel {
                 // Update name before refactoring so getLocation() resolves to the
                 // already-renamed file when this test case's own steps are (re)loaded.
                 name = newName;
-                getProject().refactorTestCase(getScenario().getName(), oldName, newName);
+                getProject()
+                    .refactorTestCase(
+                        getScenario().getName(),
+                        oldName,
+                        newName,
+                        getScenario().getSource()
+                    );
                 return true;
             }
         }
@@ -1591,7 +1597,13 @@ public class TestCase extends DataModel {
                 // Update name before refactoring so getLocation() resolves to the
                 // already-renamed file when this test case's own steps are (re)loaded.
                 name = newName;
-                getProject().refactorTestCase(getScenario().getName(), oldName, newName);
+                getProject()
+                    .refactorTestCase(
+                        getScenario().getName(),
+                        oldName,
+                        newName,
+                        getScenario().getSource()
+                    );
                 return true;
             }
         }
@@ -1611,7 +1623,13 @@ public class TestCase extends DataModel {
                 // Update name before refactoring so getLocation() resolves to the
                 // already-renamed file when this test case's own steps are (re)loaded.
                 name = newName;
-                getProject().refactorTestCase(getScenario().getName(), oldName, newName);
+                getProject()
+                    .refactorTestCase(
+                        getScenario().getName(),
+                        oldName,
+                        newName,
+                        getScenario().getSource()
+                    );
                 return true;
             }
         }

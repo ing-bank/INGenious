@@ -2,6 +2,7 @@ package com.ing.ide.main.mainui.components.testdesign;
 
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
+import com.ing.ide.util.Notification;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -168,13 +169,9 @@ public final class ReusableComponentDialog {
         );
         JDialog dialog = optionPane.createDialog(parent, "Create Reusable");
 
-        // Hitting Enter inside the name field confirms the dialog.
-        nameField.addActionListener(
-            e -> {
-                optionPane.setValue(JOptionPane.OK_OPTION);
-                dialog.dispose();
-            }
-        );
+        // Hitting Enter inside the name field confirms the dialog; the pane's own
+        // listener hides it, validation below decides whether to dispose or re-show it.
+        nameField.addActionListener(e -> optionPane.setValue(JOptionPane.OK_OPTION));
 
         SwingUtilities.invokeLater(
             () -> {
@@ -186,25 +183,38 @@ public final class ReusableComponentDialog {
             }
         );
 
-        dialog.setVisible(true);
-        dialog.dispose();
+        // Keep the dialog open on invalid input instead of silently discarding the user's entry.
+        while (true) {
+            dialog.setVisible(true);
 
-        Object value = optionPane.getValue();
-        int option = (value instanceof Integer) ? (Integer) value : JOptionPane.CLOSED_OPTION;
-        if (option != JOptionPane.OK_OPTION) {
-            return null;
+            Object value = optionPane.getValue();
+            int option = (value instanceof Integer) ? (Integer) value : JOptionPane.CLOSED_OPTION;
+            if (option != JOptionPane.OK_OPTION) {
+                dialog.dispose();
+                return null;
+            }
+
+            Object selectedScenario = scenarioBox.getSelectedItem();
+            String scenarioName = selectedScenario == null
+                ? ""
+                : selectedScenario.toString().trim();
+            String reusableName = nameField.getText().trim();
+            if (reusableName.isEmpty()) {
+                Notification.show("Reusable Name is required.");
+                optionPane.setValue(JOptionPane.UNINITIALIZED_VALUE);
+                continue;
+            }
+            if (scenarioName.isEmpty()) {
+                Notification.show("Reusable Scenario Name is required.");
+                optionPane.setValue(JOptionPane.UNINITIALIZED_VALUE);
+                continue;
+            }
+
+            dialog.dispose();
+            TargetScope targetScope = sharedRadio.isSelected()
+                ? TargetScope.SHARED
+                : TargetScope.PROJECT;
+            return new Result(scenarioName, reusableName, targetScope);
         }
-
-        Object selectedScenario = scenarioBox.getSelectedItem();
-        String scenarioName = selectedScenario == null ? "" : selectedScenario.toString().trim();
-        String reusableName = nameField.getText().trim();
-        if (scenarioName.isEmpty() || reusableName.isEmpty()) {
-            return null;
-        }
-
-        TargetScope targetScope = sharedRadio.isSelected()
-            ? TargetScope.SHARED
-            : TargetScope.PROJECT;
-        return new Result(scenarioName, reusableName, targetScope);
     }
 }

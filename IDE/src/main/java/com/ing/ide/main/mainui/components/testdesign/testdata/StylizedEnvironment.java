@@ -1,5 +1,7 @@
 package com.ing.ide.main.mainui.components.testdesign.testdata;
 
+import com.ing.ide.util.Notification;
+import com.ing.ide.util.Validator;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -382,23 +384,30 @@ public class StylizedEnvironment extends JPanel {
     }
 
     private void createNewEnvironment() {
-        String name = getEnvironmentName();
-        if (!name.trim().isEmpty()) {
-            if (copyFromOthers.isSelected()) {
-                if (
-                    tdProxy.addNewEnvironment(
-                        name,
-                        environments.getSelectedItem().toString(),
-                        testDataList.getSelectedValuesList(),
-                        copyGlobalData.isSelected()
-                    )
-                ) {
-                    environments.addItem(name);
-                    copyFromOthers.setSelected(false);
-                }
-            } else {
-                tdProxy.addNewEnvironment(name, null, null, false);
+        String name = getEnvironmentName().trim();
+        if (name.isEmpty()) {
+            Notification.show("Environment name is required.");
+            return;
+        }
+        if (!Validator.isValidName(name)) {
+            Notification.show("'" + name + "' is not a valid environment name.");
+            return;
+        }
+        if (copyFromOthers.isSelected()) {
+            if (
+                tdProxy.addNewEnvironment(
+                    name,
+                    environments.getSelectedItem().toString(),
+                    testDataList.getSelectedValuesList(),
+                    copyGlobalData.isSelected()
+                )
+            ) {
+                environments.addItem(name);
+                copyFromOthers.setSelected(false);
+                envName.setText("");
             }
+        } else if (tdProxy.addNewEnvironment(name, null, null, false)) {
+            envName.setText("");
         }
     }
 

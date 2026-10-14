@@ -181,8 +181,12 @@ public abstract class TestData {
     }
 
     public void refactorScenario(String oldScenarioName, String newScenarioName) {
+        refactorScenario(oldScenarioName, newScenarioName, null);
+    }
+
+    public void refactorScenario(String oldScenarioName, String newScenarioName, String scope) {
         for (TestDataModel testDataList1 : testDataList) {
-            testDataList1.refactorScenario(oldScenarioName, newScenarioName);
+            testDataList1.refactorScenario(oldScenarioName, newScenarioName, scope);
         }
     }
 
@@ -191,8 +195,17 @@ public abstract class TestData {
         String oldTestCaseName,
         String newTestCaseName
     ) {
+        refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName, null);
+    }
+
+    public void refactorTestCase(
+        String scenarioName,
+        String oldTestCaseName,
+        String newTestCaseName,
+        String scope
+    ) {
         for (TestDataModel testDataList1 : testDataList) {
-            testDataList1.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName);
+            testDataList1.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName, scope);
         }
     }
 

@@ -124,16 +124,36 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
     }
 
     public void refactorScenario(String oldScenarioName, String newScenarioName) {
+        refactorScenario(oldScenarioName, newScenarioName, null);
+    }
+
+    /**
+     * Renames scenario references in test data rows.
+     * When {@code scope} is non-null, only rows whose Scope matches it are updated - this keeps a
+     * rename of one scenario from also renaming a same-named scenario that lives in a different
+     * scope (Test Plan / Project Reusables / Shared Reusables).
+     *
+     * @param scope raw Scope token ("" / "[Project]" / "[Shared]") to restrict the match to, or null
+     *              to match rows regardless of their Scope
+     */
+    public void refactorScenario(String oldScenarioName, String newScenarioName, String scope) {
         Boolean clearOnExit = getRecords().isEmpty();
         loadTableModel();
+        boolean changed = false;
         for (Record record : getRecords()) {
-            if (record.getScenario().equals(oldScenarioName)) {
+            if (record.getScenario().equals(oldScenarioName) && matchesScope(record, scope)) {
                 record.setScenario(newScenarioName);
                 fireTableCellUpdated(getRecords().indexOf(record), 0);
+                changed = true;
             }
         }
-        if (clearOnExit) {
+        // Always save if a record was updated to persist changes, even when the sheet is
+        // already open in the UI (records non-empty), otherwise a later reload would
+        // revert the rename since it was never written to disk.
+        if (changed) {
             save();
+        }
+        if (clearOnExit) {
             getRecords().clear();
         }
     }
@@ -143,21 +163,51 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
         String oldTestCaseName,
         String newTestCaseName
     ) {
+        refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName, null);
+    }
+
+    /**
+     * Renames test case references in test data rows.
+     * When {@code scope} is non-null, only rows whose Scope matches it are updated - this keeps a
+     * rename of one test case from also renaming a same-named test case that lives in a different
+     * scope (Test Plan / Project Reusables / Shared Reusables).
+     *
+     * @param scope raw Scope token ("" / "[Project]" / "[Shared]") to restrict the match to, or null
+     *              to match rows regardless of their Scope
+     */
+    public void refactorTestCase(
+        String scenarioName,
+        String oldTestCaseName,
+        String newTestCaseName,
+        String scope
+    ) {
         Boolean clearOnExit = getRecords().isEmpty();
         loadTableModel();
+        boolean changed = false;
         for (Record record : getRecords()) {
             if (
                 record.getScenario().equals(scenarioName) &&
-                record.getTestcase().equals(oldTestCaseName)
+                record.getTestcase().equals(oldTestCaseName) &&
+                matchesScope(record, scope)
             ) {
                 record.setTestcase(newTestCaseName);
                 fireTableCellUpdated(getRecords().indexOf(record), 1);
+                changed = true;
             }
         }
-        if (clearOnExit) {
+        // Always save if a record was updated to persist changes, even when the sheet is
+        // already open in the UI (records non-empty), otherwise a later reload would
+        // revert the rename since it was never written to disk.
+        if (changed) {
             save();
+        }
+        if (clearOnExit) {
             getRecords().clear();
         }
+    }
+
+    private boolean matchesScope(Record record, String scope) {
+        return scope == null || Objects.toString(record.getScope(), "").equals(scope);
     }
 
     public void refactorTestCaseScenario(
@@ -167,6 +217,7 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
     ) {
         Boolean clearOnExit = getRecords().isEmpty();
         loadTableModel();
+        boolean changed = false;
         for (Record record : getRecords()) {
             if (
                 record.getScenario().equals(oldScenarioName) &&
@@ -174,10 +225,16 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
             ) {
                 record.setScenario(newScenarioName);
                 fireTableCellUpdated(getRecords().indexOf(record), 1);
+                changed = true;
             }
         }
-        if (clearOnExit) {
+        // Always save if a record was updated to persist changes, even when the sheet is
+        // already open in the UI (records non-empty), otherwise a later reload would
+        // revert the rename since it was never written to disk.
+        if (changed) {
             save();
+        }
+        if (clearOnExit) {
             getRecords().clear();
         }
     }
