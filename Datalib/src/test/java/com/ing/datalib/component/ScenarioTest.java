@@ -1,7 +1,12 @@
 package com.ing.datalib.component;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -277,7 +282,7 @@ public class ScenarioTest {
                 }
             )
             .when(project)
-            .refactorScenario("LoginScenario", "LoginScenarioRenamed");
+            .refactorScenario("LoginScenario", "LoginScenarioRenamed", Scenario.Source.TEST_PLAN);
 
         Boolean result = scenario.rename("LoginScenarioRenamed");
 
@@ -304,7 +309,11 @@ public class ScenarioTest {
                 }
             )
             .when(project)
-            .refactorScenario("LoginScenario", "LoginScenarioRenamed");
+            .refactorScenario(
+                "LoginScenario",
+                "LoginScenarioRenamed",
+                Scenario.Source.REUSABLE_COMPONENTS
+            );
 
         Boolean result = scenario.renameReusable("LoginScenarioRenamed");
 
@@ -331,7 +340,11 @@ public class ScenarioTest {
                 }
             )
             .when(project)
-            .refactorScenario("LoginScenario", "LoginScenarioRenamed");
+            .refactorScenario(
+                "LoginScenario",
+                "LoginScenarioRenamed",
+                Scenario.Source.SHARED_REUSABLE_COMPONENTS
+            );
 
         Boolean result = scenario.renameSharedReusable("LoginScenarioRenamed");
 
@@ -352,15 +365,15 @@ public class ScenarioTest {
                 }
             )
             .when(project)
-            .refactorScenario(anyString(), anyString());
+            .refactorScenario(anyString(), anyString(), any(Scenario.Source.class));
 
         assertThat(scenario.rename("Step2")).isTrue();
         assertThat(scenario.rename("Step3")).isTrue();
 
         assertThat(scenario.getName()).isEqualTo("Step3");
         assertThat(observedDirNames).containsExactly("Step2", "Step3");
-        verify(project).refactorScenario("LoginScenario", "Step2");
-        verify(project).refactorScenario("Step2", "Step3");
+        verify(project).refactorScenario("LoginScenario", "Step2", Scenario.Source.TEST_PLAN);
+        verify(project).refactorScenario("Step2", "Step3", Scenario.Source.TEST_PLAN);
     }
 
     @Test
@@ -387,7 +400,7 @@ public class ScenarioTest {
                 }
             )
             .when(project)
-            .refactorScenario("LoginScenario", "LoginScenarioRenamed");
+            .refactorScenario("LoginScenario", "LoginScenarioRenamed", Scenario.Source.TEST_PLAN);
 
         assertThat(scenario.rename("LoginScenarioRenamed")).isTrue();
 

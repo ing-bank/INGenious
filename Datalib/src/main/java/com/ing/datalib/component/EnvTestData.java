@@ -307,8 +307,12 @@ public class EnvTestData {
     }
 
     public void refactorScenario(String oldScenarioName, String newScenarioName) {
+        refactorScenario(oldScenarioName, newScenarioName, null);
+    }
+
+    public void refactorScenario(String oldScenarioName, String newScenarioName, String scope) {
         for (TestData testData : getAllEnvironments()) {
-            testData.refactorScenario(oldScenarioName, newScenarioName);
+            testData.refactorScenario(oldScenarioName, newScenarioName, scope);
         }
     }
 
@@ -317,8 +321,17 @@ public class EnvTestData {
         String oldTestCaseName,
         String newTestCaseName
     ) {
+        refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName, null);
+    }
+
+    public void refactorTestCase(
+        String scenarioName,
+        String oldTestCaseName,
+        String newTestCaseName,
+        String scope
+    ) {
         for (TestData testData : getAllEnvironments()) {
-            testData.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName);
+            testData.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName, scope);
         }
     }
 

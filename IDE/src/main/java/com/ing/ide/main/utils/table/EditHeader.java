@@ -143,7 +143,7 @@ public class EditHeader {
 
     private void renameColumn() {
         Object oldvalue = column.getHeaderValue();
-        String newvalue = text.getText();
+        String newvalue = text.getText().trim();
         if (
             !newvalue.isEmpty() &&
             !newvalue.equals(oldvalue.toString()) &&

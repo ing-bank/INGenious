@@ -494,17 +494,14 @@ public class Project {
     }
 
     /**
-     * Finds a reusable scenario by name, excluding deleted scenarios.
+     * Finds a reusable scenario by name.
      * @param name scenario name to search for (case-insensitive)
-     * @return the reusable scenario if found and active, null otherwise
+     * @return the reusable scenario if found, null otherwise
      */
     public Scenario getReusableScenarioByName(String name) {
         for (Scenario scenario : reusableScenarios) {
             if (scenario.getName().equalsIgnoreCase(name)) {
-                // Verify the scenario folder still exists on disk
-                if (new File(scenario.getLocation()).exists()) {
-                    return scenario;
-                }
+                return scenario;
             }
         }
         return null;
@@ -533,17 +530,14 @@ public class Project {
     }
 
     /**
-     * Finds a shared reusable scenario by name, excluding deleted scenarios.
+     * Finds a shared reusable scenario by name.
      * @param name scenario name to search for (case-insensitive)
-     * @return the shared reusable scenario if found and active, null otherwise
+     * @return the shared reusable scenario if found, null otherwise
      */
     public Scenario getSharedReusableScenarioByName(String name) {
         for (Scenario scenario : sharedReusableScenarios) {
             if (scenario.getName().equalsIgnoreCase(name)) {
-                // Verify the scenario folder still exists on disk
-                if (new File(scenario.getLocation()).exists()) {
-                    return scenario;
-                }
+                return scenario;
             }
         }
         return null;
@@ -1578,6 +1572,23 @@ public class Project {
      * @param newScenarioName new scenario name
      */
     public void refactorScenario(String oldScenarioName, String newScenarioName) {
+        refactorScenario(oldScenarioName, newScenarioName, null);
+    }
+
+    /**
+     * Refactors (renames) a scenario across the entire project including all releases, test sets, and test data.
+     * @param oldScenarioName old scenario name
+     * @param newScenarioName new scenario name
+     * @param scope source scope of the renamed scenario (TEST_PLAN, REUSABLE_COMPONENTS,
+     *              SHARED_REUSABLE_COMPONENTS), or null to update test data regardless of scope.
+     *              Restricts the Test Data update so a same-named scenario in a different scope
+     *              is left untouched.
+     */
+    public void refactorScenario(
+        String oldScenarioName,
+        String newScenarioName,
+        Scenario.Source scope
+    ) {
         LOGGER.log(
             Level.INFO,
             "Refactoring started for Scenario [{0}] to [{1}]",
@@ -1589,7 +1600,11 @@ public class Project {
         for (Release release : releases) {
             release.refactorScenario(oldScenarioName, newScenarioName);
         }
-        testData.refactorScenario(oldScenarioName, newScenarioName);
+        testData.refactorScenario(
+            oldScenarioName,
+            newScenarioName,
+            scope == null ? null : scopeToken(scope)
+        );
         LOGGER.log(
             Level.INFO,
             "Refactoring done for Scenario [{0}] to [{1}]",
@@ -1622,6 +1637,25 @@ public class Project {
         String oldTestCaseName,
         String newTestCaseName
     ) {
+        refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName, null);
+    }
+
+    /**
+     * Refactors (renames) a test case across the entire project including all releases, test sets, and test data.
+     * @param scenarioName scenario containing the test case
+     * @param oldTestCaseName old test case name
+     * @param newTestCaseName new test case name
+     * @param scope source scope of the renamed test case's scenario (TEST_PLAN, REUSABLE_COMPONENTS,
+     *              SHARED_REUSABLE_COMPONENTS), or null to update test data regardless of scope.
+     *              Restricts the Test Data update so a same-named test case in a different scope
+     *              is left untouched.
+     */
+    public void refactorTestCase(
+        String scenarioName,
+        String oldTestCaseName,
+        String newTestCaseName,
+        Scenario.Source scope
+    ) {
         LOGGER.log(
             Level.INFO,
             "Refactoring started for TestCase [{0}] to [{1}]",
@@ -1633,7 +1667,12 @@ public class Project {
         for (Release release : releases) {
             release.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName);
         }
-        testData.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName);
+        testData.refactorTestCase(
+            scenarioName,
+            oldTestCaseName,
+            newTestCaseName,
+            scope == null ? null : scopeToken(scope)
+        );
         LOGGER.log(
             Level.INFO,
             "Refactoring done for TestCase [{0}] to [{1}]",
