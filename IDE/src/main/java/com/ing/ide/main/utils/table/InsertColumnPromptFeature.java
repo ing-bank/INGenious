@@ -36,6 +36,10 @@ public class InsertColumnPromptFeature {
 
     private final JTable table;
 
+    private final InsertPromptGate gate;
+
+    private Point lastMousePoint;
+
     private int hoverInsertColumn = -1;
     private int hoverRow = -1;
     private boolean insertingColumn = false;
@@ -59,6 +63,20 @@ public class InsertColumnPromptFeature {
      */
     public InsertColumnPromptFeature(JTable table) {
         this.table = table;
+        this.gate = new InsertPromptGate(this::onPromptRevealed);
+    }
+
+    /**
+     * Refreshes the indicator and cursor once the dwell delay has elapsed and the
+     * pointer is still resting on the insertion boundary.
+     */
+    private void onPromptRevealed() {
+        if (lastMousePoint != null && hoverInsertColumn != -1 && isPointOnPlus(lastMousePoint)) {
+            table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            cursorOwnedByInsertColumnPrompt = true;
+        }
+
+        table.repaint();
     }
 
     /**
@@ -94,13 +112,24 @@ public class InsertColumnPromptFeature {
                         newHoverRow = -1;
                     }
 
+                    lastMousePoint = e.getPoint();
+
                     if (newHoverInsertColumn != hoverInsertColumn || newHoverRow != hoverRow) {
                         hoverInsertColumn = newHoverInsertColumn;
                         hoverRow = newHoverRow;
+
+                        if (hoverInsertColumn == -1) {
+                            gate.reset();
+                        } else {
+                            gate.candidateChanged();
+                        }
+
                         table.repaint();
                     }
 
-                    if (hoverInsertColumn != -1 && isPointOnPlus(e.getPoint())) {
+                    if (
+                        gate.isRevealed() && hoverInsertColumn != -1 && isPointOnPlus(e.getPoint())
+                    ) {
                         table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                         cursorOwnedByInsertColumnPrompt = true;
                     } else if (cursorOwnedByInsertColumnPrompt) {
@@ -121,7 +150,10 @@ public class InsertColumnPromptFeature {
                     }
 
                     if (
-                        !insertingColumn && hoverInsertColumn != -1 && isPointOnPlus(e.getPoint())
+                        !insertingColumn &&
+                        gate.isArmed() &&
+                        hoverInsertColumn != -1 &&
+                        isPointOnPlus(e.getPoint())
                     ) {
                         insertColumnAtHoverPosition();
                         e.consume();
@@ -156,6 +188,8 @@ public class InsertColumnPromptFeature {
 
         insertColumnMouseAdapter = null;
         installed = false;
+        gate.reset();
+        lastMousePoint = null;
         hoverInsertColumn = -1;
         hoverRow = -1;
     }
@@ -221,7 +255,7 @@ public class InsertColumnPromptFeature {
      * @param g graphics context
      */
     public void paint(Graphics g) {
-        if (enabled && hoverInsertColumn != -1 && hoverRow != -1) {
+        if (enabled && hoverInsertColumn != -1 && hoverRow != -1 && gate.isRevealed()) {
             paintInsertColumnIndicator(g);
         }
     }
@@ -562,7 +596,7 @@ public class InsertColumnPromptFeature {
      * @param g graphics context
      */
     private void paintInsertColumnIndicator(Graphics g) {
-        if (!enabled || hoverInsertColumn == -1 || hoverRow == -1) {
+        if (!enabled || hoverInsertColumn == -1 || hoverRow == -1 || !gate.isRevealed()) {
             return;
         }
 
@@ -614,6 +648,9 @@ public class InsertColumnPromptFeature {
      * Clears the current hover state and resets the table cursor.
      */
     private void clearHoverState() {
+        gate.reset();
+        lastMousePoint = null;
+
         if (hoverInsertColumn == -1 && hoverRow == -1) {
             resetTableCursor();
             return;

@@ -37,6 +37,10 @@ public class InsertRowPromptFeature {
 
     private final JTable table;
 
+    private final InsertPromptGate gate;
+
+    private Point lastMousePoint;
+
     private int hoverInsertRow = -1;
     private boolean insertingRow = false;
     private boolean installed = false;
@@ -54,6 +58,19 @@ public class InsertRowPromptFeature {
      */
     public InsertRowPromptFeature(JTable table) {
         this.table = table;
+        this.gate = new InsertPromptGate(this::onPromptRevealed);
+    }
+
+    /**
+     * Refreshes the indicator and cursor once the dwell delay has elapsed and the
+     * pointer is still resting on the insertion boundary.
+     */
+    private void onPromptRevealed() {
+        if (lastMousePoint != null && hoverInsertRow != -1 && isPointOnPlus(lastMousePoint)) {
+            table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        }
+
+        table.repaint();
     }
 
     /**
@@ -83,12 +100,21 @@ public class InsertRowPromptFeature {
 
                 int newHoverInsertRow = getInsertRowForPoint(e.getPoint());
 
+                lastMousePoint = e.getPoint();
+
                 if (newHoverInsertRow != hoverInsertRow) {
                     hoverInsertRow = newHoverInsertRow;
+
+                    if (hoverInsertRow == -1) {
+                        gate.reset();
+                    } else {
+                        gate.candidateChanged();
+                    }
+
                     table.repaint();
                 }
 
-                if (hoverInsertRow != -1 && isPointOnPlus(e.getPoint())) {
+                if (gate.isRevealed() && hoverInsertRow != -1 && isPointOnPlus(e.getPoint())) {
                     table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 } else {
                     table.setCursor(Cursor.getDefaultCursor());
@@ -144,7 +170,7 @@ public class InsertRowPromptFeature {
      * @param g graphics context
      */
     public void paint(Graphics g) {
-        if (enabled && hoverInsertRow != -1) {
+        if (enabled && hoverInsertRow != -1 && gate.isRevealed()) {
             paintInsertRowIndicator(g);
         }
     }
@@ -166,7 +192,12 @@ public class InsertRowPromptFeature {
         }
 
         if (e.getID() == MouseEvent.MOUSE_PRESSED) {
-            if (!insertingRow && hoverInsertRow != -1 && isPointOnPlus(e.getPoint())) {
+            if (
+                !insertingRow &&
+                gate.isArmed() &&
+                hoverInsertRow != -1 &&
+                isPointOnPlus(e.getPoint())
+            ) {
                 insertRowAtHoverPosition();
                 e.consume();
                 return true;
@@ -508,6 +539,9 @@ public class InsertRowPromptFeature {
      * Clears the current hover state and resets the cursor.
      */
     private void clearHoverState() {
+        gate.reset();
+        lastMousePoint = null;
+
         if (hoverInsertRow == -1) {
             table.setCursor(Cursor.getDefaultCursor());
             return;
