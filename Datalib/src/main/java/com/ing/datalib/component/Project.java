@@ -2373,6 +2373,12 @@ public class Project {
             newScenarioName,
             scope == null ? null : scopeToken(scope)
         );
+        // Rows in Shared Test Data can reference a scenario from any scope too.
+        sharedTestData.refactorScenario(
+            oldScenarioName,
+            newScenarioName,
+            scope == null ? null : scopeToken(scope)
+        );
         LOGGER.log(
             Level.INFO,
             "Refactoring done for Scenario [{0}] to [{1}]",
@@ -2441,6 +2447,13 @@ public class Project {
             newTestCaseName,
             scope == null ? null : scopeToken(scope)
         );
+        // Rows in Shared Test Data can reference a test case from any scope too.
+        sharedTestData.refactorTestCase(
+            scenarioName,
+            oldTestCaseName,
+            newTestCaseName,
+            scope == null ? null : scopeToken(scope)
+        );
         LOGGER.log(
             Level.INFO,
             "Refactoring done for TestCase [{0}] to [{1}]",
@@ -2477,6 +2490,8 @@ public class Project {
             release.refactorTestCaseScenario(testCaseName, oldScenarioName, newScenarioName);
         }
         testData.refactorTestCaseScenario(testCaseName, oldScenarioName, newScenarioName);
+        // Rows in Shared Test Data can reference this test case/scenario pair too.
+        sharedTestData.refactorTestCaseScenario(testCaseName, oldScenarioName, newScenarioName);
         LOGGER.log(
             Level.INFO,
             "Refactoring done TestCase [{0}] from Scenario [{1}] to [{2}]",
