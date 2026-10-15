@@ -78,8 +78,8 @@ public final class ReusableComponentDialog {
      */
     public static Result prompt(Component parent, Project project) {
         // Scope selection radio buttons
-        JRadioButton projectRadio = new JRadioButton("Project User Intent", true);
-        JRadioButton sharedRadio = new JRadioButton("Shared User Intent", false);
+        JRadioButton projectRadio = new JRadioButton("Project", true);
+        JRadioButton sharedRadio = new JRadioButton("Shared", false);
         ButtonGroup scopeGroup = new ButtonGroup();
         scopeGroup.add(projectRadio);
         scopeGroup.add(sharedRadio);
@@ -148,7 +148,7 @@ public final class ReusableComponentDialog {
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.weightx = 0;
-        panel.add(new JLabel("User Intent Scenario Name:"), gbc);
+        panel.add(new JLabel("Scenario Name:"), gbc);
         gbc.gridx = 1;
         gbc.weightx = 1;
         panel.add(scenarioBox, gbc);
@@ -157,7 +157,7 @@ public final class ReusableComponentDialog {
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.weightx = 0;
-        panel.add(new JLabel("User Intent Name:"), gbc);
+        panel.add(new JLabel("Test Case Name:"), gbc);
         gbc.gridx = 1;
         gbc.weightx = 1;
         panel.add(nameField, gbc);

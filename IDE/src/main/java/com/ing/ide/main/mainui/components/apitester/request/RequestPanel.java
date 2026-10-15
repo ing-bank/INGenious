@@ -328,7 +328,7 @@ public class RequestPanel extends JPanel {
                         list.toArray(new com.ing.datalib.component.Scenario[0])
                     )
                 );
-                nameLabel.setText(reusable ? "User Intent Name:" : "Test Case Name:");
+                nameLabel.setText(reusable ? "Test Case Name:" : "Test Case Name:");
             }
         );
         // Initialise for the default selection (Test Case)
