@@ -20,7 +20,7 @@ public class TestDataNotFoundExceptionTest {
     public void testGetTemplate() {
         System.out.println("getTemplate- TestData");
         String expResult =
-            "{0} \n[Env : {1} | Scope : {2} | Sheet : {3} | Field : {4} | TestCase : {5}/{6} | Reusable : {7}/{8} ]";
+            "{0} \n[Env : {1} | Scope : {2} | Sheet : {3} | Field : {4} | TestCase : {5}/{6} | User Intent : {7}/{8} ]";
         String result = TestDataNotFoundException.getTemplate(true);
         assertEquals(expResult, result);
         expResult =
