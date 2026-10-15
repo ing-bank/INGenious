@@ -62,6 +62,37 @@ public final class AuthoringSkill {
                 "generation. Releases, test sets, execution and reports are all IN SCOPE \u2014 use the "
             )
             .append("matching tools instead of declining.\n\n")
+            .append("When running tests, leave `headless` unset (default false) for browser-based ")
+            .append(
+                "tests so they run headed with a visible window; only pass `headless:true` if the "
+            )
+            .append(
+                "user explicitly asks for a headless run. Tests using browser 'No Browser' (API/AI "
+            )
+            .append("tests) are unaffected by this flag and keep running without a browser.\n\n")
+            .append("Also leave `breakOnError` unset on ingenious_run/ingenious_run_async - it ")
+            .append(
+                "defaults to true so a run stops at the first failed step instead of paying the "
+            )
+            .append("default per-step wait for every remaining step in a long script; only pass ")
+            .append("`breakOnError:false` if the user wants the run to continue past failures.\n\n")
+            .append("When using ingenious_browser_discover / ingenious_browser_session_start for ")
+            .append(
+                "live Playwright-cli discovery, leave `headed` unset (default true) so the browser "
+            )
+            .append(
+                "window stays visible and the exploration is transparent; only pass `headed:false` "
+            )
+            .append("if the user asks for a headless discovery session.\n\n")
+            .append("Skill routing: for any request to author a browser/UI test, an API test, ")
+            .append("migrate Selenium/Gherkin tests, create a plugin, or detect customizations, ")
+            .append("FIRST call ingenious_skill_read to load the matching skill (or ")
+            .append("ingenious_skill_list if unsure) and follow its playbook exactly. The skills ")
+            .append(
+                "are tool-first and their structure is mandatory: split the flow into reusable "
+            )
+            .append("components, create per-page Object Repository objects, and parameterize data ")
+            .append("into sheets \u2014 never emit one monolithic test with hard-coded values.\n\n")
             .append(
                 "Working style: inspect current state with the list/show tools before mutating; "
             )

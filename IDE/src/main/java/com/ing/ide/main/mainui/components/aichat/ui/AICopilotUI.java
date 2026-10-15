@@ -42,9 +42,10 @@ public class AICopilotUI extends JPanel {
 
     private final JComboBox<ModelInfo> modelSelector = new JComboBox<>();
     private final JCheckBox agentModeToggle = new JCheckBox("Agent");
+    private final JCheckBox attendedModeToggle = new JCheckBox("Attended");
     private final JToggleButton promptsToggle = new JToggleButton("Prompts");
     private final JButton historyButton = new JButton("History");
-    private final JButton connectButton = new JButton("Connect to VS Code");
+    private final JButton connectButton = new JButton("Connect");
     private final JLabel connectionBulb = new JLabel(YELLOW_DOT);
     private final JButton sendButton = new JButton("Send");
     private final JButton stopButton = new JButton("Stop");
@@ -98,6 +99,7 @@ public class AICopilotUI extends JPanel {
         stopButton.setEnabled(false);
         // Default to Agent (tool-calling) mode so the assistant can actually act.
         agentModeToggle.setSelected(true);
+        attendedModeToggle.setSelected(controller.isAttendedMode());
         startContextTimer();
     }
 
@@ -149,6 +151,11 @@ public class AICopilotUI extends JPanel {
             "Agent mode: let the AI create/edit scenarios, test cases, steps and OR entries (with approval)."
         );
         left.add(agentModeToggle);
+        attendedModeToggle.setToolTipText(
+            "Attended mode: pause at logical checkpoints (and on the first run failure) to ask you for " +
+            "input, instead of retrying fully on its own."
+        );
+        left.add(attendedModeToggle);
         promptsToggle.setToolTipText("Show the prompt library — click a chip to fill the input.");
         left.add(promptsToggle);
         historyButton.setToolTipText("Browse and reload past conversations, or start a new chat.");
@@ -280,6 +287,9 @@ public class AICopilotUI extends JPanel {
         clearButton.addActionListener(e -> controller.clearConversation());
         connectButton.addActionListener(e -> controller.connectToVsCode());
         historyButton.addActionListener(e -> showHistoryMenu());
+        attendedModeToggle.addActionListener(
+            e -> controller.setAttendedMode(attendedModeToggle.isSelected())
+        );
         promptsToggle.addActionListener(
             e -> {
                 promptScroll.setVisible(promptsToggle.isSelected());
@@ -375,6 +385,11 @@ public class AICopilotUI extends JPanel {
         return agentModeToggle.isSelected();
     }
 
+    /** Whether attended mode (pause at checkpoints) is enabled. */
+    public boolean isAttendedMode() {
+        return attendedModeToggle.isSelected();
+    }
+
     public void setModels(List<ModelInfo> models, String selectedId) {
         SwingUtilities.invokeLater(
             () -> {
@@ -404,7 +419,7 @@ public class AICopilotUI extends JPanel {
     /**
      * Updates the connection indicator: a green bulb + status when connected,
      * a yellow bulb + "Not connected" otherwise. The action button label adapts
-     * to the active backend (Copilot SDK vs. VS Code bridge).
+     * to the active backend (Copilot SDK vs. direct GitHub sign-in).
      */
     public void setConnected(boolean connected, String status) {
         SwingUtilities.invokeLater(
@@ -413,17 +428,17 @@ public class AICopilotUI extends JPanel {
                 boolean sdk = controller.isCopilotSdkEnabled();
                 connectionBulb.setToolTipText(
                     connected
-                        ? (sdk ? "Copilot CLI ready" : "Connected to VS Code")
+                        ? (sdk ? "Copilot CLI ready" : "Signed in to GitHub")
                         : (
                             sdk
                                 ? "Copilot CLI not ready \u2014 click to check"
-                                : "Not connected \u2014 click Connect to VS Code"
+                                : "Not connected \u2014 click Connect"
                         )
                 );
                 if (sdk) {
                     connectButton.setText(connected ? "Recheck" : "Check Copilot CLI");
                 } else {
-                    connectButton.setText(connected ? "Reconnect" : "Connect to VS Code");
+                    connectButton.setText(connected ? "Reconnect" : "Connect");
                 }
                 persistentStatus =
                     status != null ? status : (connected ? "Connected" : "Not connected");
