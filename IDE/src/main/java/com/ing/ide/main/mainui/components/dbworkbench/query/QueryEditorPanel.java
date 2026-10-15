@@ -283,7 +283,7 @@ public class QueryEditorPanel extends JPanel {
                 boolean reusable = TYPE_USER_INTENT.equals(typeCombo.getSelectedItem());
                 List<Scenario> list = reusable ? reusableScenarios : testPlanScenarios;
                 scenarioCombo.setModel(new DefaultComboBoxModel<>(list.toArray(new Scenario[0])));
-                nameLabel.setText(reusable ? "User Intent Name:" : "Test Case Name:");
+                nameLabel.setText("Test Case Name:");
             }
         );
         scenarioCombo.setModel(
