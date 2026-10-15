@@ -23,7 +23,6 @@ npm-debug.log
 /Dist/release/**
 
 # Docs folders
-/docs/
 /Engine/docs/
 /IDE/docs/
 
