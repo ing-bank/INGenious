@@ -19,9 +19,31 @@ public class SAPObject {
     String objectName;
     SAPFindType findType;
 
-    public static HashMap<String, Map<String, Map<String, String>>> dynamicValue = new HashMap<>();
-    public static HashMap<String, String> globalDynamicValue = new HashMap<>();
-    public static String Action = "";
+    // Backed by ThreadLocal so parallel test-execution threads each see their own
+    // object-property state instead of clobbering each other.
+    private static final ThreadLocal<Map<String, Map<String, Map<String, String>>>> DYNAMIC_VALUE = ThreadLocal.withInitial(
+        HashMap::new
+    );
+    private static final ThreadLocal<Map<String, String>> GLOBAL_DYNAMIC_VALUE = ThreadLocal.withInitial(
+        HashMap::new
+    );
+    private static final ThreadLocal<String> CURRENT_ACTION = ThreadLocal.withInitial(() -> "");
+
+    public static Map<String, Map<String, Map<String, String>>> dynamicValue() {
+        return DYNAMIC_VALUE.get();
+    }
+
+    public static Map<String, String> globalDynamicValue() {
+        return GLOBAL_DYNAMIC_VALUE.get();
+    }
+
+    public static String getAction() {
+        return CURRENT_ACTION.get();
+    }
+
+    public static void setAction(String action) {
+        CURRENT_ACTION.set(action);
+    }
 
     public enum SAPFindType {
         GLOBAL_OBJECT,
@@ -195,6 +217,8 @@ public class SAPObject {
         if (value == null) {
             return null;
         }
+        Map<String, String> globalDynamicValue = globalDynamicValue();
+        Map<String, Map<String, Map<String, String>>> dynamicValue = dynamicValue();
         if (findType != null && findType.equals(SAPFindType.GLOBAL_OBJECT)) {
             for (String Key : globalDynamicValue.keySet()) {
                 value = value.replace(Key, globalDynamicValue.get(Key));

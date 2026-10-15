@@ -151,7 +151,7 @@ public abstract class CommandControl {
                             structuredData = SObject.findElement(ObjectName, Reference);
                         }
                         if (structuredData != null) {
-                            StructuredDataObject.Action = this.Action;
+                            StructuredDataObject.setAction(this.Action);
 
                             Data = structuredData;
                         } else if (webDriver == null && AObject != null) {
@@ -167,7 +167,7 @@ public abstract class CommandControl {
                                 );
                         } else if (SAPsession != null && SAPObject != null && isSAPAction()) {
                             /********** Updates the Action for NLP_locator****************/
-                            SAPObject.Action = this.Action;
+                            SAPObject.setAction(this.Action);
                             /**************************************************************/
 
                             SAPElement =
@@ -178,7 +178,7 @@ public abstract class CommandControl {
                                 );
                         } else if (webDriver != null && MObject != null) {
                             /********** Updates the Action for NLP_locator****************/
-                            MobileObject.Action = this.Action;
+                            MobileObject.setAction(this.Action);
                             /**************************************************************/
 
                             Element =
@@ -478,17 +478,17 @@ public abstract class CommandControl {
     ) {
         if (global) {
             if (SAPsession != null && SAPObject != null) {
-                SAPObject.globalDynamicValue.put(key, value);
+                SAPObject.globalDynamicValue().put(key, value);
             } else if (webDriver != null && MObject != null) {
-                MobileObject.globalDynamicValue.put(key, value);
+                MobileObject.globalDynamicValue().put(key, value);
             } else {
                 AutomationObject.globalDynamicValue().put(key, value);
-                StructuredDataObject.globalDynamicValue.put(key, value);
+                StructuredDataObject.globalDynamicValue().put(key, value);
             }
         } else {
             if (SAPsession != null && SAPObject != null) {
                 InlineObjectProperty.putObjectProperty(
-                    SAPObject.dynamicValue,
+                    SAPObject.dynamicValue(),
                     reference,
                     objectName,
                     key,
@@ -496,7 +496,7 @@ public abstract class CommandControl {
                 );
             } else if (webDriver != null && MObject != null) {
                 InlineObjectProperty.putObjectProperty(
-                    MobileObject.dynamicValue,
+                    MobileObject.dynamicValue(),
                     reference,
                     objectName,
                     key,
@@ -511,7 +511,7 @@ public abstract class CommandControl {
                     value
                 );
                 InlineObjectProperty.putObjectProperty(
-                    StructuredDataObject.dynamicValue,
+                    StructuredDataObject.dynamicValue(),
                     reference,
                     objectName,
                     key,

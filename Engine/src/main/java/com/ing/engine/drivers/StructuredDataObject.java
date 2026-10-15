@@ -54,11 +54,35 @@ public class StructuredDataObject {
     FindType findType;
     private Duration waitTime;
 
-    public static HashMap<String, Map<String, Map<String, String>>> dynamicValue = new HashMap<>();
-    public static HashMap<String, String> globalDynamicValue = new HashMap<>();
-    public static String Action = "";
+    // Backed by ThreadLocal so parallel test-execution threads each see their own
+    // object-property state instead of clobbering each other.
+    private static final ThreadLocal<Map<String, Map<String, Map<String, String>>>> DYNAMIC_VALUE = ThreadLocal.withInitial(
+        HashMap::new
+    );
+    private static final ThreadLocal<Map<String, String>> GLOBAL_DYNAMIC_VALUE = ThreadLocal.withInitial(
+        HashMap::new
+    );
+    private static final ThreadLocal<String> CURRENT_ACTION = ThreadLocal.withInitial(() -> "");
+    // Declared for parity with AutomationObject's OR model but never mutated (filter logic
+    // in this driver is commented out) - left as plain statics rather than ThreadLocal.
     static HashMap<String, String> chainLocatorMaping = new HashMap<String, String>();
     public static final Map<String, List<String>> locatorFiltersMap = new HashMap<>();
+
+    public static Map<String, Map<String, Map<String, String>>> dynamicValue() {
+        return DYNAMIC_VALUE.get();
+    }
+
+    public static Map<String, String> globalDynamicValue() {
+        return GLOBAL_DYNAMIC_VALUE.get();
+    }
+
+    public static String getAction() {
+        return CURRENT_ACTION.get();
+    }
+
+    public static void setAction(String action) {
+        CURRENT_ACTION.set(action);
+    }
 
     public enum FindType {
         GLOBAL_OBJECT,
@@ -329,6 +353,8 @@ public class StructuredDataObject {
     }
 
     private String getRuntimeValue(String value) {
+        Map<String, String> globalDynamicValue = globalDynamicValue();
+        Map<String, Map<String, Map<String, String>>> dynamicValue = dynamicValue();
         if (findType != null && findType.equals(FindType.GLOBAL_OBJECT)) {
             for (String Key : globalDynamicValue.keySet()) {
                 value = value.replace(Key, globalDynamicValue.get(Key));

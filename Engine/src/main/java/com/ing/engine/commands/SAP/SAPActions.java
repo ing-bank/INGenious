@@ -1760,7 +1760,7 @@ public class SAPActions extends General {
      */
     private void setProperty(String key, String value) {
         com.ing.engine.core.InlineObjectProperty.putObjectProperty(
-            SAPObject.dynamicValue,
+            SAPObject.dynamicValue(),
             Reference,
             ObjectName,
             key,
