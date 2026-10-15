@@ -1,5 +1,7 @@
 package com.ing.engine.execution.data;
 
+import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
+import com.ing.engine.execution.exception.data.TestDataNotFoundException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -165,7 +167,14 @@ public final class TestDataToken {
                             sc[1]
                         );
                     }
-                } catch (RuntimeException e) {
+                } catch (TestDataNotFoundException | GlobalDataNotFoundException e) {
+                    // Allow-list, not deny-list: these are the only two exception types that
+                    // mean "field/iteration genuinely not found" - safe to leave the token as
+                    // literal text. Any other DataNotFoundException - chiefly the plain
+                    // "Reached the end of data sheet" signal a dynamic (index-less) Param Loop
+                    // relies on to know when to stop - must keep propagating unchanged, or a
+                    // {Sheet:Column} token embedded in a Webservice/SQL/file/queue payload with
+                    // no directly-visible filler step never terminates its owning loop.
                     LOG.warn(
                         "Test Data token {} (sheet '{}', column '{}') could not be resolved: {}. Leaving it as literal text.",
                         token,

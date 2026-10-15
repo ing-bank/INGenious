@@ -1,11 +1,17 @@
 package com.ing.engine.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ing.engine.execution.data.UserDataAccess;
+import com.ing.engine.execution.exception.data.DataNotFoundException;
+import com.ing.engine.execution.exception.data.DataNotFoundException.Cause;
+import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
+import com.ing.engine.execution.exception.data.TestDataNotFoundException;
+import com.ing.engine.execution.run.TestCaseRunner;
 import org.testng.annotations.Test;
 
 /**
@@ -76,5 +82,48 @@ public class CommandControlGetDataSheetValueTest {
                 org.mockito.ArgumentMatchers.anyString(),
                 org.mockito.ArgumentMatchers.anyString()
             );
+    }
+
+    @Test
+    public void endOfDataSheetPropagatesSoTheOwningParamLoopCanDetectIt() {
+        UserDataAccess userData = mock(UserDataAccess.class);
+        DataNotFoundException endOfData = new DataNotFoundException(
+            "Reached the end of data sheet."
+        );
+        endOfData.cause = endOfData.new CauseInfo(Cause.EndOfDataSheet, "end of data");
+        when(userData.getData("PL_SC001", "Data2")).thenThrow(endOfData);
+        CommandControl control = newControlWith(userData);
+
+        assertThatThrownBy(() -> control.getDataSheetValue("{PL_SC001:Data2}")).isSameAs(endOfData);
+    }
+
+    @Test
+    public void dataNotFoundOtherThanEndOfDataReturnsNullQuietly() {
+        UserDataAccess userData = mock(UserDataAccess.class);
+        TestDataNotFoundException notFound = new TestDataNotFoundException(
+            mock(TestCaseRunner.class),
+            "PL_SC001",
+            "Data2",
+            Cause.Data,
+            "missing field"
+        );
+        when(userData.getData("PL_SC001", "Data2")).thenThrow(notFound);
+        CommandControl control = newControlWith(userData);
+
+        assertThat(control.getDataSheetValue("{PL_SC001:Data2}")).isNull();
+    }
+
+    @Test
+    public void globalDataNotFoundReturnsNullQuietly() {
+        UserDataAccess userData = mock(UserDataAccess.class);
+        GlobalDataNotFoundException notFound = new GlobalDataNotFoundException(
+            mock(TestCaseRunner.class),
+            "#gid",
+            "Field"
+        );
+        when(userData.getData("PL_SC001", "Data2")).thenThrow(notFound);
+        CommandControl control = newControlWith(userData);
+
+        assertThat(control.getDataSheetValue("{PL_SC001:Data2}")).isNull();
     }
 }
