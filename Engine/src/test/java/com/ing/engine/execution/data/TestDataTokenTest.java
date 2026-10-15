@@ -1,9 +1,14 @@
 package com.ing.engine.execution.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.ing.engine.execution.exception.data.DataNotFoundException;
+import com.ing.engine.execution.exception.data.DataNotFoundException.Cause;
+import com.ing.engine.execution.exception.data.TestDataNotFoundException;
+import com.ing.engine.execution.run.TestCaseRunner;
 import org.testng.annotations.Test;
 
 /**
@@ -115,10 +120,31 @@ public class TestDataTokenTest {
         UserDataAccess ud = mock(UserDataAccess.class);
         when(ud.getData("Known", "Col")).thenReturn("v");
         when(ud.getData("Unknown", "Col"))
-            .thenThrow(new com.ing.engine.execution.exception.data.DataNotFoundException("nope"));
+            .thenThrow(
+                new TestDataNotFoundException(
+                    mock(TestCaseRunner.class),
+                    "Unknown",
+                    "Col",
+                    Cause.Data,
+                    "missing field"
+                )
+            );
 
         assertThat(TestDataToken.resolveEmbeddedTokens("a={Known:Col} b={Unknown:Col}", ud))
             .isEqualTo("a=v b={Unknown:Col}");
+    }
+
+    @Test
+    public void endOfDataSheetPropagatesSoTheOwningParamLoopCanDetectIt() {
+        UserDataAccess ud = mock(UserDataAccess.class);
+        DataNotFoundException endOfData = new DataNotFoundException(
+            "Reached the end of data sheet."
+        );
+        endOfData.cause = endOfData.new CauseInfo(Cause.EndOfDataSheet, "end of data");
+        when(ud.getData("Sheet", "Col")).thenThrow(endOfData);
+
+        assertThatThrownBy(() -> TestDataToken.resolveEmbeddedTokens("body={Sheet:Col}", ud))
+            .isSameAs(endOfData);
     }
 
     @Test

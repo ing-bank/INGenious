@@ -18,6 +18,8 @@ import com.ing.engine.execution.data.DataProcessor;
 import com.ing.engine.execution.data.TestDataToken;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.execution.exception.UnCaughtException;
+import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
+import com.ing.engine.execution.exception.data.TestDataNotFoundException;
 import com.ing.engine.execution.run.TestCaseRunner;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.support.Step;
@@ -358,8 +360,16 @@ public abstract class CommandControl {
         }
         try {
             return userData.getData(scoped[0], scoped[1]);
-        } catch (RuntimeException ex) {
-            // Quiet: getDatasheet(key) is the single place that reports the failure.
+        } catch (TestDataNotFoundException | GlobalDataNotFoundException ex) {
+            // Allow-list, not deny-list: these are the only two exception types that mean
+            // "field/iteration genuinely not found" - getDatasheet(key) is the single place
+            // that reports that failure, so swallow quietly here. Every other
+            // DataNotFoundException - chiefly the plain, un-subclassed "Reached the end of
+            // data sheet" signal thrown only by DataAccessInternal.throwErrorWithCause's
+            // EndOfDataSheet branch - is left to propagate unchanged, since that's how a
+            // dynamic (index-less) Param Loop learns to stop. A {Sheet:Column} reference
+            // resolved only inside a reusable's String Operation (no directly-visible filler
+            // step) has no other path to signal that to its owning loop.
             return null;
         }
     }
