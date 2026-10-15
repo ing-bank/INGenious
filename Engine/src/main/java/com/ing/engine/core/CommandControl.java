@@ -156,7 +156,7 @@ public abstract class CommandControl {
                             Data = structuredData;
                         } else if (webDriver == null && AObject != null) {
                             /********** Updates the Action for NLP_locator****************/
-                            AutomationObject.Action = this.Action;
+                            AutomationObject.setAction(this.Action);
                             /**************************************************************/
 
                             Locator =
@@ -482,7 +482,7 @@ public abstract class CommandControl {
             } else if (webDriver != null && MObject != null) {
                 MobileObject.globalDynamicValue.put(key, value);
             } else {
-                AutomationObject.globalDynamicValue.put(key, value);
+                AutomationObject.globalDynamicValue().put(key, value);
                 StructuredDataObject.globalDynamicValue.put(key, value);
             }
         } else {
@@ -504,7 +504,7 @@ public abstract class CommandControl {
                 );
             } else {
                 InlineObjectProperty.putObjectProperty(
-                    AutomationObject.dynamicValue,
+                    AutomationObject.dynamicValue(),
                     reference,
                     objectName,
                     key,

@@ -9,6 +9,11 @@ import com.ing.engine.reporting.TestCaseReport;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
@@ -38,14 +43,14 @@ public class DynamicObjectTest {
         setField(dynObj, Command.class, "Commander", commander);
 
         // Clear static maps before each test
-        AutomationObject.globalDynamicValue.clear();
-        AutomationObject.dynamicValue.clear();
+        AutomationObject.globalDynamicValue().clear();
+        AutomationObject.dynamicValue().clear();
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
-        AutomationObject.globalDynamicValue.clear();
-        AutomationObject.dynamicValue.clear();
+        AutomationObject.globalDynamicValue().clear();
+        AutomationObject.dynamicValue().clear();
         mocks.close();
     }
 
@@ -59,7 +64,7 @@ public class DynamicObjectTest {
 
         dynObj.setglobalObjectProperty();
 
-        assertThat(AutomationObject.globalDynamicValue).containsEntry("myKey", "myValue");
+        assertThat(AutomationObject.globalDynamicValue()).containsEntry("myKey", "myValue");
     }
 
     @Test
@@ -70,7 +75,7 @@ public class DynamicObjectTest {
 
         dynObj.setglobalObjectProperty();
 
-        assertThat(AutomationObject.globalDynamicValue)
+        assertThat(AutomationObject.globalDynamicValue())
             .containsEntry("k1", "v1")
             .containsEntry("k2", "v2")
             .containsEntry("k3", "v3");
@@ -85,7 +90,7 @@ public class DynamicObjectTest {
 
         dynObj.setglobalObjectProperty();
 
-        assertThat(AutomationObject.globalDynamicValue).containsEntry("url", "http://host?a=1");
+        assertThat(AutomationObject.globalDynamicValue()).containsEntry("url", "http://host?a=1");
     }
 
     @Test
@@ -111,9 +116,9 @@ public class DynamicObjectTest {
 
         dynObj.setObjectProperty();
 
-        assertThat(AutomationObject.dynamicValue).containsKey("Page1");
-        assertThat(AutomationObject.dynamicValue.get("Page1")).containsKey("Btn1");
-        assertThat(AutomationObject.dynamicValue.get("Page1").get("Btn1"))
+        assertThat(AutomationObject.dynamicValue()).containsKey("Page1");
+        assertThat(AutomationObject.dynamicValue().get("Page1")).containsKey("Btn1");
+        assertThat(AutomationObject.dynamicValue().get("Page1").get("Btn1"))
             .containsEntry("propKey", "someVal");
     }
 
@@ -127,7 +132,7 @@ public class DynamicObjectTest {
 
         dynObj.setObjectProperty();
 
-        Map<String, String> props = AutomationObject.dynamicValue.get("Ref1").get("Obj1");
+        Map<String, String> props = AutomationObject.dynamicValue().get("Ref1").get("Obj1");
         assertThat(props).containsEntry("a", "1").containsEntry("b", "2");
     }
 
@@ -138,7 +143,7 @@ public class DynamicObjectTest {
         existingProp.put("x", "0");
         Map<String, Map<String, String>> existingObj = new HashMap<>();
         existingObj.put("ObjA", existingProp);
-        AutomationObject.dynamicValue.put("Ref1", existingObj);
+        AutomationObject.dynamicValue().put("Ref1", existingObj);
 
         setField(dynObj, Command.class, "Data", "newKey=newVal");
         setField(dynObj, Command.class, "Condition", "");
@@ -149,9 +154,9 @@ public class DynamicObjectTest {
         dynObj.setObjectProperty();
 
         // ObjA still present
-        assertThat(AutomationObject.dynamicValue.get("Ref1")).containsKey("ObjA");
+        assertThat(AutomationObject.dynamicValue().get("Ref1")).containsKey("ObjA");
         // ObjB added
-        assertThat(AutomationObject.dynamicValue.get("Ref1").get("ObjB"))
+        assertThat(AutomationObject.dynamicValue().get("Ref1").get("ObjB"))
             .containsEntry("newKey", "newVal");
     }
 
@@ -162,7 +167,7 @@ public class DynamicObjectTest {
         prop.put("a", "old");
         Map<String, Map<String, String>> objMap = new HashMap<>();
         objMap.put("Obj1", prop);
-        AutomationObject.dynamicValue.put("Ref1", objMap);
+        AutomationObject.dynamicValue().put("Ref1", objMap);
 
         setField(dynObj, Command.class, "Data", "a=new");
         setField(dynObj, Command.class, "Condition", "");
@@ -172,7 +177,8 @@ public class DynamicObjectTest {
 
         dynObj.setObjectProperty();
 
-        assertThat(AutomationObject.dynamicValue.get("Ref1").get("Obj1")).containsEntry("a", "new");
+        assertThat(AutomationObject.dynamicValue().get("Ref1").get("Obj1"))
+            .containsEntry("a", "new");
     }
 
     @Test
@@ -184,6 +190,58 @@ public class DynamicObjectTest {
 
         verify(report)
             .updateTestLog(eq("setObjectProperty"), eq("Input should not be empty"), any());
+    }
+
+    // ── Thread isolation (parallel execution) ───────────────────────────
+
+    @Test
+    public void testSetObjectPropertyIsIsolatedPerThread() throws Exception {
+        int threadCount = 2;
+        ExecutorService pool = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch bothSet = new CountDownLatch(threadCount);
+        CountDownLatch proceedToRead = new CountDownLatch(1);
+        Map<Integer, String> observed = new ConcurrentHashMap<>();
+
+        try {
+            for (int i = 0; i < threadCount; i++) {
+                String value = (i == 0) ? "About this page" : "Google offered in";
+                pool.submit(
+                    () -> {
+                        com.ing.engine.core.InlineObjectProperty.putObjectProperty(
+                            AutomationObject.dynamicValue(),
+                            "Page1",
+                            "TxtDynamic",
+                            "#token",
+                            value
+                        );
+                        bothSet.countDown();
+                        try {
+                            proceedToRead.await();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                        observed.put(
+                            Thread.currentThread().hashCode(),
+                            AutomationObject
+                                .dynamicValue()
+                                .get("Page1")
+                                .get("TxtDynamic")
+                                .get("#token")
+                        );
+                    }
+                );
+            }
+
+            bothSet.await();
+            proceedToRead.countDown();
+            pool.shutdown();
+            pool.awaitTermination(5, TimeUnit.SECONDS);
+
+            assertThat(observed.values())
+                .containsExactlyInAnyOrder("About this page", "Google offered in");
+        } finally {
+            pool.shutdownNow();
+        }
     }
 
     // ── Utility ─────────────────────────────────────────────────────────

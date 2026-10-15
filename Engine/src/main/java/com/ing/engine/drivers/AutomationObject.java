@@ -54,11 +54,45 @@ public class AutomationObject implements AutomationObjectApi {
     FindType findType;
     private Duration waitTime;
 
-    public static HashMap<String, Map<String, Map<String, String>>> dynamicValue = new HashMap<>();
-    public static HashMap<String, String> globalDynamicValue = new HashMap<>();
-    public static String Action = "";
-    static HashMap<String, String> chainLocatorMaping = new HashMap<String, String>();
-    public static final Map<String, List<String>> locatorFiltersMap = new HashMap<>();
+    // Backed by ThreadLocal (not plain static maps) so parallel test-execution threads
+    // each see their own object-property / locator state instead of clobbering each other.
+    private static final ThreadLocal<Map<String, Map<String, Map<String, String>>>> DYNAMIC_VALUE = ThreadLocal.withInitial(
+        HashMap::new
+    );
+    private static final ThreadLocal<Map<String, String>> GLOBAL_DYNAMIC_VALUE = ThreadLocal.withInitial(
+        HashMap::new
+    );
+    private static final ThreadLocal<String> CURRENT_ACTION = ThreadLocal.withInitial(() -> "");
+    private static final ThreadLocal<Map<String, String>> CHAIN_LOCATOR_MAPING = ThreadLocal.withInitial(
+        HashMap::new
+    );
+    private static final ThreadLocal<Map<String, List<String>>> LOCATOR_FILTERS_MAP = ThreadLocal.withInitial(
+        HashMap::new
+    );
+
+    public static Map<String, Map<String, Map<String, String>>> dynamicValue() {
+        return DYNAMIC_VALUE.get();
+    }
+
+    public static Map<String, String> globalDynamicValue() {
+        return GLOBAL_DYNAMIC_VALUE.get();
+    }
+
+    public static String getAction() {
+        return CURRENT_ACTION.get();
+    }
+
+    public static void setAction(String action) {
+        CURRENT_ACTION.set(action);
+    }
+
+    static Map<String, String> chainLocatorMaping() {
+        return CHAIN_LOCATOR_MAPING.get();
+    }
+
+    public static Map<String, List<String>> locatorFiltersMap() {
+        return LOCATOR_FILTERS_MAP.get();
+    }
 
     public AutomationObject() {}
 
@@ -538,6 +572,7 @@ public class AutomationObject implements AutomationObjectApi {
     private static Locator chainLocators(String selector, int index, Page page, Locator locator) {
         Pattern pattern = null;
         Matcher matcher = null;
+        Map<String, String> chainLocatorMaping = chainLocatorMaping();
         chainLocatorMaping.clear();
         chainLocatorMapping(selector);
         String tag = selector.split("\\(")[0];
@@ -679,6 +714,7 @@ public class AutomationObject implements AutomationObjectApi {
     ) {
         Pattern pattern = null;
         Matcher matcher = null;
+        Map<String, String> chainLocatorMaping = chainLocatorMaping();
         chainLocatorMaping.clear();
         chainLocatorMapping(selector);
         String tag = selector.split("\\(")[0];
@@ -819,6 +855,7 @@ public class AutomationObject implements AutomationObjectApi {
     }
 
     public static void chainLocatorMapping(String selector) {
+        Map<String, String> chainLocatorMaping = chainLocatorMaping();
         if (selector.contains("setExact(true)")) {
             chainLocatorMaping.put("setExact", "true");
         }
@@ -899,6 +936,8 @@ public class AutomationObject implements AutomationObjectApi {
     }
 
     private String getRuntimeValue(String value) {
+        Map<String, String> globalDynamicValue = globalDynamicValue();
+        Map<String, Map<String, Map<String, String>>> dynamicValue = dynamicValue();
         if (findType != null && findType.equals(FindType.GLOBAL_OBJECT)) {
             for (String Key : globalDynamicValue.keySet()) {
                 value = value.replace(Key, globalDynamicValue.get(Key));
@@ -1239,10 +1278,11 @@ public class AutomationObject implements AutomationObjectApi {
     }
 
     public void addFilter(String locatorKey, String filter) {
-        locatorFiltersMap.computeIfAbsent(locatorKey, k -> new ArrayList<>()).add(filter);
+        locatorFiltersMap().computeIfAbsent(locatorKey, k -> new ArrayList<>()).add(filter);
     }
 
     private Locator setFilter(Locator locator) {
+        Map<String, List<String>> locatorFiltersMap = locatorFiltersMap();
         List<String> filters = locatorFiltersMap.get(pageName + objectName);
         if (filters != null) {
             for (String value : filters) {
@@ -1259,7 +1299,7 @@ public class AutomationObject implements AutomationObjectApi {
                     locator = locator.nth(Integer.parseInt(value.replace("setIndex: ", "")));
                 }
             }
-            if (!Action.contains("setFilter")) {
+            if (!getAction().contains("setFilter")) {
                 locatorFiltersMap.remove(pageName + objectName); // Clear only for this locator
             }
         }
