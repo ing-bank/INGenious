@@ -7,6 +7,7 @@ import static com.ing.datalib.component.TestStep.HEADERS.Input;
 import static com.ing.datalib.component.TestStep.HEADERS.ObjectName;
 import static com.ing.datalib.component.TestStep.HEADERS.Reference;
 
+import com.ing.datalib.component.EnvTestData;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
@@ -305,6 +306,89 @@ public class TestCaseAutoSuggest {
 
         inputAutoSuggest =
             (InputAutoSuggest) new InputAutoSuggest().withOnHide(stopEditingOnFocusLost());
+        // Test Data sheet-name suggestions (the step before a column is chosen) are grouped
+        // by scope with a "[Project]"/"[Shared]" prefix for display only; setSelectedItem
+        // strips it so the Input cell still gets the bare Sheet:Column reference (the
+        // @Shared/@Project tag itself is appended later, after the column is picked).
+        inputAutoSuggest.setRenderer(
+            new ComboSeparatorsRenderer(inputAutoSuggest.getRenderer()) {
+
+                @Override
+                protected void customizeListItemComponent(
+                    java.awt.Component comp,
+                    JList list,
+                    Object value,
+                    int index,
+                    boolean isSelected,
+                    boolean cellHasFocus
+                ) {
+                    if (!(comp instanceof javax.swing.JLabel) || value == null) {
+                        return;
+                    }
+                    javax.swing.JLabel lbl = (javax.swing.JLabel) comp;
+                    lbl.setText(removeScopePrefix(value.toString()));
+                }
+
+                @Override
+                protected boolean addHeaderBefore(JList list, Object value, int index) {
+                    if (value == null) {
+                        return false;
+                    }
+                    String current = value.toString();
+                    if (!current.startsWith("[Project] ") && !current.startsWith("[Shared] ")) {
+                        return false;
+                    }
+                    return (
+                        index == 0 ||
+                        !Objects
+                            .toString(list.getModel().getElementAt(index - 1), "")
+                            .startsWith(current.startsWith("[Shared]") ? "[Shared]" : "[Project]")
+                    );
+                }
+
+                @Override
+                protected String getHeaderLabel(JList list, Object value, int index) {
+                    if (value == null) {
+                        return "";
+                    }
+                    String current = value.toString();
+                    if (current.startsWith("[Project]")) {
+                        return "Project Test Data";
+                    }
+                    if (current.startsWith("[Shared]")) {
+                        return "Shared Test Data";
+                    }
+                    return "";
+                }
+
+                @Override
+                protected Color getHeaderForeground(
+                    JList list,
+                    Object value,
+                    int index,
+                    java.awt.Component comp
+                ) {
+                    if (value != null && value.toString().startsWith("[Shared]")) {
+                        return new Color(0, 128, 0);
+                    }
+                    return Color.DARK_GRAY;
+                }
+
+                @Override
+                protected boolean addSeparatorAfter(JList list, Object value, int index) {
+                    if (value == null) return false;
+                    if (index < list.getModel().getSize() - 1) {
+                        Object nextValue = list.getModel().getElementAt(index + 1);
+                        if (nextValue != null) {
+                            String current = value.toString();
+                            String next = nextValue.toString();
+                            return current.startsWith("[Project]") && next.startsWith("[Shared]");
+                        }
+                    }
+                    return false;
+                }
+            }
+        );
     }
 
     private boolean isStringOpsEditor() {
@@ -321,7 +405,17 @@ public class TestCaseAutoSuggest {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 if (table.isEditing()) {
+                    int row = table.getEditingRow();
                     table.getCellEditor().stopCellEditing();
+                    // The AutoSuggest editor's own "still editing" gate can suppress JTable's
+                    // normal post-edit repaint, so force one here - validation colouring (e.g.
+                    // Shared Test Data green) depends on re-running the renderers with the
+                    // value just committed.
+                    if (row >= 0) {
+                        Rectangle rowRect = table.getCellRect(row, 0, true);
+                        rowRect.width = table.getWidth();
+                        table.repaint(rowRect);
+                    }
                 }
             }
         };
@@ -1094,6 +1188,9 @@ public class TestCaseAutoSuggest {
     class InputAutoSuggest extends InputMainAutoSuggest {
         Boolean isPending = false;
         private String prevText;
+        // Scope chosen when picking a sheet from the Project/Shared grouped list, carried
+        // over until the column is picked and the full Sheet:Column reference is built.
+        private String pendingScopeTag = "";
 
         public InputAutoSuggest() {
             super.setTable(TestCaseAutoSuggest.this.table);
@@ -1130,29 +1227,65 @@ public class TestCaseAutoSuggest {
             return newFList;
         }
 
+        /**
+         * A sheet reference's scope tag ("@Shared"/"@Project") now trails the whole
+         * {@code Sheet:Column} reference (after the column), not the sheet name - see
+         * DataAccessInternal for the runtime-side parsing. Autosuggest triggers while the user
+         * is still typing the sheet/column, before the tag exists, so the sheet name offered
+         * here is always bare and column lookups are merged across both Test Data stores.
+         */
+        private String stripLeadingBrace(String s) {
+            return s.startsWith("{") ? s.substring(1) : s;
+        }
+
         private List setupTestData(String value) {
             if (value != null && value.contains(":")) {
                 prevText = value.substring(0, value.indexOf(':'));
                 isPending = true;
                 Set colList = new LinkedHashSet<>();
-                String tdName = value.substring(0, value.indexOf(':'));
-                for (TestData sTestData : sProject.getTestData().getAllEnvironments()) {
-                    for (TestDataModel stdList : sTestData.getTestDataList()) {
-                        if (stdList.getName().equals(tdName)) {
-                            colList.addAll(stdList.getColumns());
+                String tdName = stripLeadingBrace(prevText).trim();
+                for (EnvTestData source : Arrays.asList(
+                    sProject.getTestData(),
+                    sProject.getSharedTestData()
+                )) {
+                    if (source == null) {
+                        continue;
+                    }
+                    for (TestData sTestData : source.getAllEnvironments()) {
+                        for (TestDataModel stdList : sTestData.getTestDataList()) {
+                            if (stdList.getName().equals(tdName)) {
+                                colList.addAll(stdList.getColumns());
+                            }
                         }
                     }
                 }
                 colList.removeAll(Arrays.asList(Record.HEADERS));
                 return new ArrayList<>(colList);
             } else {
-                Set tdList = new LinkedHashSet<>();
+                Set<String> projectSheets = new LinkedHashSet<>();
                 for (TestData sTestData : sProject.getTestData().getAllEnvironments()) {
                     for (TestDataModel stdList : sTestData.getTestDataList()) {
-                        tdList.add(stdList.getName());
+                        projectSheets.add(stdList.getName());
                     }
                 }
-                return new ArrayList<>(tdList);
+                Set<String> sharedSheets = new LinkedHashSet<>();
+                if (sProject.getSharedTestData() != null) {
+                    for (TestData sTestData : sProject.getSharedTestData().getAllEnvironments()) {
+                        for (TestDataModel stdList : sTestData.getTestDataList()) {
+                            sharedSheets.add(stdList.getName());
+                        }
+                    }
+                }
+                // Scope-prefixed for display grouping only; setSelectedItem strips the
+                // prefix before the bare sheet name is written into the Input cell.
+                List<String> grouped = new ArrayList<>();
+                for (String name : projectSheets) {
+                    grouped.add("[Project] " + name);
+                }
+                for (String name : sharedSheets) {
+                    grouped.add("[Shared] " + name);
+                }
+                return grouped;
             }
         }
 
@@ -1192,13 +1325,34 @@ public class TestCaseAutoSuggest {
             boolean isStringOpsEditor = isStringOpsEditor();
             if (
                 o != null &&
+                !isPending &&
+                (o.toString().startsWith("[Project] ") || o.toString().startsWith("[Shared] "))
+            ) {
+                pendingScopeTag = o.toString().startsWith("[Shared] ") ? "@Shared" : "@Project";
+                String bareName = removeScopePrefix(o.toString());
+                if (isStringOpsEditor) {
+                    super.setSelectedItem(bareName);
+                } else {
+                    // Set shouldHide before firing the selection so the ActionEvent this
+                    // triggers doesn't let the cell editor commit-and-close on just the sheet
+                    // name (which flashed the raw [Project]/[Shared] prefix into the cell).
+                    keepPopupOpen();
+                    super.setSelectedItem(bareName + ":");
+                    updateList();
+                }
+                return;
+            }
+            if (
+                o != null &&
                 !o.toString().matches("(@.+)\n(=.+)\n(%.+%)") &&
                 !o.toString().contains(":")
             ) {
                 if (isPending && prevText != null && !isStringOpsEditor) {
-                    o = prevText + ":" + o.toString();
+                    o = stripLeadingBrace(prevText) + ":" + o.toString() + pendingScopeTag;
+                    pendingScopeTag = "";
                 } else if (isPending && prevText != null && isStringOpsEditor) {
                     o = prevText + o.toString();
+                    pendingScopeTag = "";
                 }
             }
             super.setSelectedItem(o);
@@ -1207,7 +1361,9 @@ public class TestCaseAutoSuggest {
         @Override
         public String preReset(String val) {
             if (!val.isEmpty() && !val.equals(getText()) && !val.contains(":")) {
-                val = getText().split(":")[0] + ":" + val;
+                String prefix = stripLeadingBrace(getText().split(":")[0]);
+                val = prefix + ":" + val + pendingScopeTag;
+                pendingScopeTag = "";
                 table.setValueAt(val, table.getSelectedRow(), table.getSelectedColumn());
                 return val;
             }
@@ -1229,6 +1385,7 @@ public class TestCaseAutoSuggest {
         public void afterReset() {
             prevText = null;
             isPending = false;
+            pendingScopeTag = "";
             // Skip auto-appending ":" (test data Sheet:Column prompt) for values that are
             // user-defined refs (%), engine directives (@), functions (=) or DB aliases (#) -
             // none of these use the Sheet:Column format, so appending ":" corrupted them.

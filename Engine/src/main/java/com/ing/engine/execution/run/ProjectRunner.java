@@ -79,6 +79,15 @@ public class ProjectRunner implements TestRunner {
         );
     }
 
+    /**
+     * Environment for {@code [Shared]}-scoped data. Always follows the Project's Environment
+     * ({@link #runEnv()}) - Shared Test Data no longer has its own run-time environment setting.
+     */
+    @Override
+    public String sharedRunEnv() {
+        return runEnv();
+    }
+
     @Override
     public EnvTestData dataProvider() {
         return getProject().getTestData();

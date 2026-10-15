@@ -52,10 +52,12 @@ public class TestCaseTest {
 
     @Test
     public void testGetLocation() {
-        assertThat(testCase.getLocation())
-            .isEqualTo(
-                "/tmp/test-project/TestPlan/LoginScenario" + File.separator + "TC_Login.yaml"
-            );
+        // Build the expected path the same way production does (new File(...).getPath()), so the
+        // assertion is separator-agnostic - on Windows new File normalizes the mock's "/tmp/..."
+        // path to backslashes.
+        String expected = new File("/tmp/test-project/TestPlan/LoginScenario", "TC_Login.yaml")
+        .getPath();
+        assertThat(testCase.getLocation()).isEqualTo(expected);
     }
 
     // ---- toString ----

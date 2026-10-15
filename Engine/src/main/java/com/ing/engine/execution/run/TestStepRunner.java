@@ -13,6 +13,8 @@ import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.UnKnownError;
 import com.ing.engine.execution.exception.data.DataNotFoundException;
+import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
+import com.ing.engine.execution.exception.data.TestDataNotFoundException;
 import com.ing.engine.execution.policy.ObjectDependencyPolicyViolationException;
 import com.ing.engine.execution.policy.ObjectReferenceAnalyzer;
 import com.ing.engine.execution.resolver.ExecutionResolver;
@@ -295,16 +297,40 @@ public class TestStepRunner {
         List<String> concatList = context.getControl().smartCommaSplitter(getStep().getInput());
         List<String> result = new ArrayList();
         for (String part : concatList) {
+            // Resolve fragments for the report's resolved-input (Data) column only, via the
+            // NON-logging resolvers. The action method (Concat/Trim/...) resolves every
+            // fragment again for real and is the single place that reports a bad %var% /
+            // {sheet:column} reference - so this pass must stay quiet, otherwise the same
+            // warning is emitted twice per step.
             if (part.matches("%.*%")) result.add(
-                "'" + context.getControl().getVar(part) + "'"
+                "'" + nullToEmpty(context.getControl().getDynamicValue(part)) + "'"
             ); else if (part.matches("^\\{.*:.*\\}")) result.add(
-                "'" + context.getControl().getDatasheet(part) + "'"
+                "'" + nullToEmpty(getDataSheetValueQuietly(context, part)) + "'"
             ); else if (part.matches("\".*\"")) result.add(
                 "'" + part.substring(1, part.length() - 1) + "'"
             );
         }
         step.Data = String.join(",", result);
         context.getControl().sync(step);
+    }
+
+    private static String nullToEmpty(String v) {
+        return v == null ? "" : v;
+    }
+
+    /**
+     * Quiet counterpart of {@code CommandControl.getDatasheet} for this reporting-only pass:
+     * a genuinely missing field/iteration is swallowed without logging (the action method
+     * resolves the same fragment again for real and is the single place that reports it), but
+     * the plain "Reached the end of data sheet" signal (EndOfDataSheet) is left to propagate
+     * unchanged, since that's how a dynamic (index-less) Param Loop learns to stop.
+     */
+    private static String getDataSheetValueQuietly(TestCaseRunner context, String part) {
+        try {
+            return context.getControl().getDataSheetValue(part);
+        } catch (TestDataNotFoundException | GlobalDataNotFoundException ex) {
+            return null;
+        }
     }
 
     /**

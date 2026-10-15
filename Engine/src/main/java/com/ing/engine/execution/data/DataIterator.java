@@ -37,6 +37,15 @@ public class DataIterator {
     }
 
     public synchronized void setIter(String sheet, Set<String> iter) {
+        // A sheet that genuinely doesn't exist (wrong name) or has no row for the current
+        // scenario/testcase resolves to a null iteration set (DataAccess.getIterations) -
+        // record it as "0 iterations known" instead of NPE-ing here, so the caller's
+        // subsequent DataAccess.getData() still runs and throws its own detailed
+        // TestDataNotFoundException instead of this method crashing first with no diagnostic.
+        if (iter == null) {
+            dataIter.put(sheet, 0);
+            return;
+        }
         dataIter.put(sheet, iter.size());
         // Use the highest numeric Iteration value actually present rather than the set's size:
         // the two only coincide when every sheet's Iteration values are the dense sequence

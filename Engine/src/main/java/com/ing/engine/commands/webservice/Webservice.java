@@ -3,6 +3,7 @@ package com.ing.engine.commands.webservice;
 import com.ing.datalib.settings.DriverProperties;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.status.Status;
@@ -543,18 +544,16 @@ public class Webservice extends GeneralWebservice {
     public void storeJSONelementInDataSheet() {
         try {
             String strObj = Input;
-            if (WebserviceActionsHelper.isValidDataSheetReference(strObj)) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String[] sheetAndColumn = WebserviceActionsHelper.splitSheetAndColumn(strObj);
-                    String sheetName = sheetAndColumn[0];
-                    String columnName = sheetAndColumn[1];
                     String response = responsebodies.get(key);
                     String jsonpath = Condition;
                     String value = JsonPath.read(response, jsonpath).toString();
-                    userData.putData(sheetName, columnName, value);
+                    userData.putData(sheetDetail[0], sheetDetail[1], value);
                     Report.updateTestLog(
                         Action,
                         "Element text [" + value + "] is stored in " + strObj,
@@ -615,18 +614,16 @@ public class Webservice extends GeneralWebservice {
     public void storeXMLelementInDataSheet() {
         try {
             String strObj = Input;
-            if (WebserviceActionsHelper.isValidDataSheetReference(strObj)) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String[] sheetAndColumn = WebserviceActionsHelper.splitSheetAndColumn(strObj);
-                    String sheetName = sheetAndColumn[0];
-                    String columnName = sheetAndColumn[1];
                     String xmlText = responsebodies.get(key);
                     String expression = Condition;
                     String value = WebserviceActionsHelper.evaluateXPathValue(xmlText, expression);
-                    userData.putData(sheetName, columnName, value);
+                    userData.putData(sheetDetail[0], sheetDetail[1], value);
                     Report.updateTestLog(
                         Action,
                         "Element text [" + value + "] is stored in " + strObj,
@@ -787,15 +784,13 @@ public class Webservice extends GeneralWebservice {
     public void storeResponseBodyInDataSheet() {
         try {
             String strObj = Input;
-            if (WebserviceActionsHelper.isValidDataSheetReference(strObj)) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String[] sheetAndColumn = WebserviceActionsHelper.splitSheetAndColumn(strObj);
-                    String sheetName = sheetAndColumn[0];
-                    String columnName = sheetAndColumn[1];
-                    userData.putData(sheetName, columnName, responsebodies.get(key));
+                    userData.putData(sheetDetail[0], sheetDetail[1], responsebodies.get(key));
                     Report.updateTestLog(
                         Action,
                         "Response body is stored in " + strObj,
@@ -1176,17 +1171,15 @@ public class Webservice extends GeneralWebservice {
     public void storeJsonElementCountInDataSheet() {
         try {
             String strObj = Input;
-            if (WebserviceActionsHelper.isValidDataSheetReference(strObj)) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String[] sheetAndColumn = WebserviceActionsHelper.splitSheetAndColumn(strObj);
-                    String sheetName = sheetAndColumn[0];
-                    String columnName = sheetAndColumn[1];
                     int actualObjectCountInteger = getJsonElementCount();
                     String actualObjectCount = Integer.toString(actualObjectCountInteger);
-                    userData.putData(sheetName, columnName, actualObjectCount);
+                    userData.putData(sheetDetail[0], sheetDetail[1], actualObjectCount);
                     Report.updateTestLog(
                         Action,
                         "Element count [" + actualObjectCount + "] is stored in " + strObj,
@@ -1238,31 +1231,9 @@ public class Webservice extends GeneralWebservice {
     )
     public void addHeader() {
         try {
-            List<String> sheetlist = Control
-                .getCurrentProject()
-                .getTestData()
-                .getTestDataFor(Control.exe.runEnv())
-                .getTestDataNames();
-            for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
-                if (Data.contains("{" + sheetlist.get(sheet) + ":")) {
-                    com.ing.datalib.testdata.model.TestDataModel tdModel = Control
-                        .getCurrentProject()
-                        .getTestData()
-                        .getTestDataByName(sheetlist.get(sheet));
-                    List<String> columns = tdModel.getColumns();
-                    for (int col = 0; col < columns.size(); col++) {
-                        if (
-                            Data.contains("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}")
-                        ) {
-                            Data =
-                                Data.replace(
-                                    "{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
-                                    userData.getData(sheetlist.get(sheet), columns.get(col))
-                                );
-                        }
-                    }
-                }
-            }
+            // Resolves {Sheet:Column} / {Sheet:Column@Project} / {Sheet:Column@Shared} tokens
+            // in the header value; unknown tokens are left literal.
+            Data = TestDataToken.resolveEmbeddedTokens(Data, userData);
 
             Collection<Object> valuelist = Control
                 .getCurrentProject()
@@ -1511,7 +1482,8 @@ public class Webservice extends GeneralWebservice {
             }
 
             // Early return if input format is invalid
-            if (!WebserviceActionsHelper.isValidDataSheetReference(Input)) {
+            String[] sheetDetail = TestDataToken.parse(Input);
+            if (sheetDetail == null) {
                 Report.updateTestLog(
                     Action,
                     "Invalid input format [" + Input + "]. Expected format: sheetName:ColumnName",
@@ -1521,22 +1493,19 @@ public class Webservice extends GeneralWebservice {
             }
 
             try {
-                String[] sheetAndColumn = WebserviceActionsHelper.splitSheetAndColumn(Input);
-                String sheetName = sheetAndColumn[0];
-                String columnName = sheetAndColumn[1];
                 String headerValue = currentHeaders.get(headerName);
 
                 // Store header value in datasheet
-                userData.putData(sheetName, columnName, headerValue);
+                userData.putData(sheetDetail[0], sheetDetail[1], headerValue);
 
                 Report.updateTestLog(
                     Action,
                     "Header value [" +
                     headerValue +
                     "] stored in datasheet [" +
-                    sheetName +
+                    sheetDetail[0] +
                     ":" +
-                    columnName +
+                    sheetDetail[1] +
                     "]",
                     Status.DONE
                 );
