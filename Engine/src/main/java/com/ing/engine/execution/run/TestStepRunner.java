@@ -13,6 +13,8 @@ import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.UnKnownError;
 import com.ing.engine.execution.exception.data.DataNotFoundException;
+import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
+import com.ing.engine.execution.exception.data.TestDataNotFoundException;
 import com.ing.engine.execution.policy.ObjectDependencyPolicyViolationException;
 import com.ing.engine.execution.policy.ObjectReferenceAnalyzer;
 import com.ing.engine.execution.resolver.ExecutionResolver;
@@ -303,7 +305,7 @@ public class TestStepRunner {
             if (part.matches("%.*%")) result.add(
                 "'" + nullToEmpty(context.getControl().getDynamicValue(part)) + "'"
             ); else if (part.matches("^\\{.*:.*\\}")) result.add(
-                "'" + nullToEmpty(context.getControl().getDataSheetValue(part)) + "'"
+                "'" + nullToEmpty(getDataSheetValueQuietly(context, part)) + "'"
             ); else if (part.matches("\".*\"")) result.add(
                 "'" + part.substring(1, part.length() - 1) + "'"
             );
@@ -314,6 +316,21 @@ public class TestStepRunner {
 
     private static String nullToEmpty(String v) {
         return v == null ? "" : v;
+    }
+
+    /**
+     * Quiet counterpart of {@code CommandControl.getDatasheet} for this reporting-only pass:
+     * a genuinely missing field/iteration is swallowed without logging (the action method
+     * resolves the same fragment again for real and is the single place that reports it), but
+     * the plain "Reached the end of data sheet" signal (EndOfDataSheet) is left to propagate
+     * unchanged, since that's how a dynamic (index-less) Param Loop learns to stop.
+     */
+    private static String getDataSheetValueQuietly(TestCaseRunner context, String part) {
+        try {
+            return context.getControl().getDataSheetValue(part);
+        } catch (TestDataNotFoundException | GlobalDataNotFoundException ex) {
+            return null;
+        }
     }
 
     /**

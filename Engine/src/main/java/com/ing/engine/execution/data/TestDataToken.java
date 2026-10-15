@@ -180,7 +180,7 @@ public final class TestDataToken {
                         token,
                         sc[0],
                         sc[1],
-                        e.getMessage()
+                        e.toString()
                     );
                 }
             }

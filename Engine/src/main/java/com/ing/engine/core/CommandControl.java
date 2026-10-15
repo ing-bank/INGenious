@@ -333,17 +333,15 @@ public abstract class CommandControl {
 
     public String getDatasheet(String key) {
         System.out.println("Getting Datasheet " + key);
-        String val = getDataSheetValue(key);
-        if (val == null) {
+        try {
+            return getDataSheetValue(key);
+        } catch (TestDataNotFoundException | GlobalDataNotFoundException ex) {
+            // Log the exception's own detailed message (Env/Scope/Sheet/Field/TestCase) rather
+            // than a generic string - this is the single place that reports the failure, so
+            // losing that detail here means it is gone everywhere.
             System.err.println("Datasheet does not contain " + key + ". Returning Empty");
-            Report.updateTestLog(
-                "Get Datasheet",
-                "Getting From Datasheet " + key + " Failed",
-                Status.WARNING
-            );
+            Report.updateTestLog("Get Datasheet", ex.toString(), Status.WARNING);
             return "";
-        } else {
-            return val;
         }
     }
 
@@ -354,24 +352,16 @@ public abstract class CommandControl {
         // there. A hand-rolled sheet-name scan used to handle the untagged case separately and
         // skipped that fallback entirely, so a sheet only present under Default - and not the
         // currently selected Environment - resolved to nothing instead of the Default value.
+        //
+        // No try/catch here - callers decide how (or whether) to report a
+        // TestDataNotFoundException/GlobalDataNotFoundException, and the plain, un-subclassed
+        // "Reached the end of data sheet" DataNotFoundException (EndOfDataSheet) must always
+        // propagate unchanged for a dynamic (index-less) Param Loop to learn to stop.
         String[] scoped = TestDataToken.parse(key);
         if (scoped == null) {
             return null;
         }
-        try {
-            return userData.getData(scoped[0], scoped[1]);
-        } catch (TestDataNotFoundException | GlobalDataNotFoundException ex) {
-            // Allow-list, not deny-list: these are the only two exception types that mean
-            // "field/iteration genuinely not found" - getDatasheet(key) is the single place
-            // that reports that failure, so swallow quietly here. Every other
-            // DataNotFoundException - chiefly the plain, un-subclassed "Reached the end of
-            // data sheet" signal thrown only by DataAccessInternal.throwErrorWithCause's
-            // EndOfDataSheet branch - is left to propagate unchanged, since that's how a
-            // dynamic (index-less) Param Loop learns to stop. A {Sheet:Column} reference
-            // resolved only inside a reusable's String Operation (no directly-visible filler
-            // step) has no other path to signal that to its owning loop.
-            return null;
-        }
+        return userData.getData(scoped[0], scoped[1]);
     }
 
     public String getUserDefinedData(String key) {

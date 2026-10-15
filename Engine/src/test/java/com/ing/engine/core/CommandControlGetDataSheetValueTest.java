@@ -12,16 +12,26 @@ import com.ing.engine.execution.exception.data.DataNotFoundException.Cause;
 import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
 import com.ing.engine.execution.exception.data.TestDataNotFoundException;
 import com.ing.engine.execution.run.TestCaseRunner;
+import com.ing.engine.reporting.TestCaseReport;
+import com.ing.ingenious.api.status.Status;
 import org.testng.annotations.Test;
 
 /**
- * Regression tests for {@link CommandControl#getDataSheetValue(String)}.
+ * Regression tests for {@link CommandControl#getDataSheetValue(String)} and
+ * {@link CommandControl#getDatasheet(String)}.
  *
  * <p>Untagged {@code Sheet:Column} references used to be resolved by a hand-rolled scan of the
  * currently selected Environment's sheet names only, bypassing the scope-aware DataAccess
  * pipeline and its fallback to the Default environment - so a sheet defined only under Default
  * (and not the selected Environment) silently resolved to nothing. These tests confirm untagged
  * refs now go through {@link UserDataAccess#getData(String, String)}, same as tagged ones.
+ *
+ * <p>{@code getDataSheetValue} never catches any {@link DataNotFoundException} - it is a pure
+ * resolve-or-throw method. {@code getDatasheet} is the single place that catches
+ * {@link TestDataNotFoundException}/{@link GlobalDataNotFoundException} and reports the
+ * exception's own detailed message (Env/Scope/Sheet/Field/TestCase), returning {@code ""}. The
+ * plain, un-subclassed {@code DataNotFoundException} (the {@code EndOfDataSheet} signal a
+ * dynamic Param Loop relies on) is never caught by either method - it always propagates.
  */
 public class CommandControlGetDataSheetValueTest {
 
@@ -46,6 +56,7 @@ public class CommandControlGetDataSheetValueTest {
     private CommandControl newControlWith(UserDataAccess userData) {
         CommandControl control = new TestControl();
         control.userData = userData;
+        control.Report = mock(TestCaseReport.class);
         return control;
     }
 
@@ -95,10 +106,11 @@ public class CommandControlGetDataSheetValueTest {
         CommandControl control = newControlWith(userData);
 
         assertThatThrownBy(() -> control.getDataSheetValue("{PL_SC001:Data2}")).isSameAs(endOfData);
+        assertThatThrownBy(() -> control.getDatasheet("{PL_SC001:Data2}")).isSameAs(endOfData);
     }
 
     @Test
-    public void dataNotFoundOtherThanEndOfDataReturnsNullQuietly() {
+    public void getDataSheetValuePropagatesTestDataNotFound() {
         UserDataAccess userData = mock(UserDataAccess.class);
         TestDataNotFoundException notFound = new TestDataNotFoundException(
             mock(TestCaseRunner.class),
@@ -110,11 +122,28 @@ public class CommandControlGetDataSheetValueTest {
         when(userData.getData("PL_SC001", "Data2")).thenThrow(notFound);
         CommandControl control = newControlWith(userData);
 
-        assertThat(control.getDataSheetValue("{PL_SC001:Data2}")).isNull();
+        assertThatThrownBy(() -> control.getDataSheetValue("{PL_SC001:Data2}")).isSameAs(notFound);
     }
 
     @Test
-    public void globalDataNotFoundReturnsNullQuietly() {
+    public void getDatasheetReportsDetailedMessageOnTestDataNotFound() {
+        UserDataAccess userData = mock(UserDataAccess.class);
+        TestDataNotFoundException notFound = new TestDataNotFoundException(
+            mock(TestCaseRunner.class),
+            "PL_SC001",
+            "Data2",
+            Cause.Data,
+            "missing field"
+        );
+        when(userData.getData("PL_SC001", "Data2")).thenThrow(notFound);
+        CommandControl control = newControlWith(userData);
+
+        assertThat(control.getDatasheet("{PL_SC001:Data2}")).isEqualTo("");
+        verify(control.Report).updateTestLog("Get Datasheet", notFound.toString(), Status.WARNING);
+    }
+
+    @Test
+    public void getDatasheetReportsDetailedMessageOnGlobalDataNotFound() {
         UserDataAccess userData = mock(UserDataAccess.class);
         GlobalDataNotFoundException notFound = new GlobalDataNotFoundException(
             mock(TestCaseRunner.class),
@@ -124,6 +153,7 @@ public class CommandControlGetDataSheetValueTest {
         when(userData.getData("PL_SC001", "Data2")).thenThrow(notFound);
         CommandControl control = newControlWith(userData);
 
-        assertThat(control.getDataSheetValue("{PL_SC001:Data2}")).isNull();
+        assertThat(control.getDatasheet("{PL_SC001:Data2}")).isEqualTo("");
+        verify(control.Report).updateTestLog("Get Datasheet", notFound.toString(), Status.WARNING);
     }
 }
