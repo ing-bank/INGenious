@@ -5,6 +5,7 @@ import com.ibm.msg.client.jms.JmsConnectionFactory;
 import com.ibm.msg.client.jms.JmsFactoryFactory;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
+import com.ing.engine.constants.PathsApiImpl;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.drivers.MobileObject;
@@ -20,6 +21,7 @@ import com.ing.ingenious.api.contract.data.UserDataAccessApi;
 import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
 import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
 import com.ing.ingenious.api.contract.drivers.PlaywrightDriverCreationApi;
+import com.ing.ingenious.api.contract.paths.PathsApi;
 import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
 import com.ing.ingenious.api.contract.util.DateTimeApi;
 import com.jacob.activeX.ActiveXComponent;
@@ -450,6 +452,15 @@ public class Command implements CommandPluginApi {
     @Override
     public DateTimeApi getDateTime() {
         return DateTimeApiImpl.INSTANCE;
+    }
+
+    /**
+     * Implementation of {@link CommandPluginApi#getPaths()} for the API-plugin contract.
+     * @return the PathsApi instance for resolving project, application, results, and report paths
+     */
+    @Override
+    public PathsApi getPaths() {
+        return PathsApiImpl.INSTANCE;
     }
 
     /**

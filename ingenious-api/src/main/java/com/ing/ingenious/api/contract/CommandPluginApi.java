@@ -4,6 +4,7 @@ import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
 import com.ing.ingenious.api.contract.data.UserDataAccessApi;
 import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
 import com.ing.ingenious.api.contract.drivers.PlaywrightDriverCreationApi;
+import com.ing.ingenious.api.contract.paths.PathsApi;
 import com.ing.ingenious.api.contract.util.DateTimeApi;
 
 import java.io.File;
@@ -82,6 +83,13 @@ public interface CommandPluginApi {
     * @since 3.1
     */
    DateTimeApi getDateTime();
+
+   /**
+    * Gets the path utility API for resolving project, application, results, and report paths.
+    * @return the PathsApi instance
+    * @since 3.1
+    */
+   PathsApi getPaths();
 
     /**
      * Adds a runtime variable with the specified key and value.
