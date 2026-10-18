@@ -4,6 +4,7 @@ import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
 import com.ing.ingenious.api.contract.data.UserDataAccessApi;
 import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
 import com.ing.ingenious.api.contract.drivers.PlaywrightDriverCreationApi;
+import com.ing.ingenious.api.contract.util.DateTimeApi;
 
 import java.io.File;
 import java.util.Properties;
@@ -74,6 +75,13 @@ public interface CommandPluginApi {
     * @return the TestCaseReportApi instance for test reporting
     */
    TestCaseReportApi getReport();
+
+   /**
+    * Gets the date/time utility API for timestamp formatting.
+    * @return the DateTimeApi instance
+    * @since 3.1
+    */
+   DateTimeApi getDateTime();
 
     /**
      * Adds a runtime variable with the specified key and value.

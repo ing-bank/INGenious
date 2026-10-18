@@ -14,12 +14,14 @@ import com.ing.engine.drivers.StructuredDataObject;
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.reporting.TestCaseReport;
+import com.ing.engine.reporting.util.DateTimeApiImpl;
 import com.ing.ingenious.api.contract.CommandPluginApi;
 import com.ing.ingenious.api.contract.data.UserDataAccessApi;
 import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
 import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
 import com.ing.ingenious.api.contract.drivers.PlaywrightDriverCreationApi;
 import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
+import com.ing.ingenious.api.contract.util.DateTimeApi;
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import com.microsoft.playwright.APIRequestContext;
@@ -439,6 +441,15 @@ public class Command implements CommandPluginApi {
     @Override
     public TestCaseReportApi getReport() {
         return (TestCaseReportApi) Report;
+    }
+
+    /**
+     * Implementation of {@link CommandPluginApi#getDateTime()} for the API-plugin contract.
+     * @return the DateTimeApi instance for timestamp formatting
+     */
+    @Override
+    public DateTimeApi getDateTime() {
+        return DateTimeApiImpl.INSTANCE;
     }
 
     /**
