@@ -15,12 +15,15 @@ import java.util.function.Supplier;
  */
 public final class ProviderConfig {
     private static final ObjectMapper M = new ObjectMapper();
+    private static final String DEFAULT_BASE_URL = "https://api.openai.com/v1";
 
     private final Path file;
     public String provider = "copilot";
     public String model = "gpt-4o";
-    public String baseUrl = "https://api.openai.com/v1";
+    public String baseUrl = DEFAULT_BASE_URL;
     public String apiKeyEnv = "OPENAI_API_KEY";
+    /** "attended" or "unattended"; see {@link OperatingMode}. Remembered as the next session's default. */
+    public String mode = OperatingMode.UNATTENDED.label();
 
     private ProviderConfig(Path file) {
         this.file = file;
@@ -39,11 +42,31 @@ public final class ProviderConfig {
                 c.model = n.path("model").asText(c.model);
                 c.baseUrl = n.path("baseUrl").asText(c.baseUrl);
                 c.apiKeyEnv = n.path("apiKeyEnv").asText(c.apiKeyEnv);
+                c.mode = n.path("mode").asText(c.mode);
             }
         } catch (IOException ignored) {
             // defaults apply
         }
+        c.migrateLegacyBridge();
         return c;
+    }
+
+    /**
+     * Rewrites configs saved by older builds that used the removed VS Code
+     * "bridge" provider, which would otherwise keep pointing at a dead
+     * localhost endpoint.
+     */
+    private void migrateLegacyBridge() {
+        if (!"bridge".equalsIgnoreCase(provider)) {
+            return;
+        }
+        provider = "copilot-sdk";
+        baseUrl = DEFAULT_BASE_URL;
+        try {
+            save();
+        } catch (IOException ignored) {
+            // in-memory migration still applies for this session
+        }
     }
 
     public void save() throws IOException {
@@ -52,8 +75,14 @@ public final class ProviderConfig {
         n.put("model", model);
         n.put("baseUrl", baseUrl);
         n.put("apiKeyEnv", apiKeyEnv);
+        n.put("mode", mode);
         Files.createDirectories(file.getParent());
         Files.writeString(file, n.toPrettyString());
+    }
+
+    /** Typed accessor over {@link #mode}. */
+    public OperatingMode operatingMode() {
+        return OperatingMode.fromString(mode);
     }
 
     /** Build the configured provider; never returns null (copilot is the default). */
@@ -72,49 +101,10 @@ public final class ProviderConfig {
             // exposed to the CLI so the model can call the ingenious_* tools.
             return new CopilotSdkProvider(model, projectDir);
         }
-        if ("bridge".equalsIgnoreCase(provider)) {
-            // VS Code Copilot LLM Bridge: OpenAI-compatible, no key, no GitHub auth.
-            String url = discoverBridgeBaseUrl();
-            if (url == null || url.isBlank()) {
-                url = baseUrl; // fall back to the configured baseUrl
-            }
-            return new OpenAiCompatProvider(url, null, model);
-        }
         if ("openai".equalsIgnoreCase(provider)) {
             String key = System.getenv(apiKeyEnv);
             return new OpenAiCompatProvider(baseUrl, key, model);
         }
         return new CopilotProvider(store, model);
-    }
-
-    /**
-     * Locate a running VS Code Copilot bridge. Honours {@code INGENIOUS_AI_BASE_URL},
-     * then the discovery file {@code ~/.ingenious/bridge.json} written by the
-     * bridge extension. Returns {@code null} when none is available.
-     */
-    public static String discoverBridgeBaseUrl() {
-        String override = System.getenv("INGENIOUS_AI_BASE_URL");
-        if (override != null && !override.isBlank()) {
-            return override.trim();
-        }
-        try {
-            Path file = Path.of(System.getProperty("user.home"), ".ingenious", "bridge.json");
-            if (!Files.exists(file)) {
-                return null;
-            }
-            JsonNode n = M.readTree(file.toFile());
-            String url = n.path("baseUrl").asText(null);
-            if (url != null && !url.isBlank()) {
-                return url.trim();
-            }
-            int port = n.path("port").asInt(0);
-            if (port > 0) {
-                String host = n.path("host").asText("127.0.0.1");
-                return "http://" + host + ":" + port + "/v1";
-            }
-        } catch (IOException ignored) {
-            // no usable bridge
-        }
-        return null;
     }
 }

@@ -37,23 +37,11 @@ public class GitHubModelsClient {
     private static final String CATALOG_URL = "https://models.github.ai/catalog/models";
     private static final String CHAT_URL = "https://models.github.ai/inference/chat/completions";
 
-    // Endpoints are instance fields so the client can be pointed at a local
-    // VS Code Copilot bridge (OpenAI-compatible) instead of the GitHub Models API.
+    // Endpoints are instance fields for testability; always GitHub Models.
     private String catalogUrl = CATALOG_URL;
     private String chatUrl = CHAT_URL;
 
-    /**
-     * Route this client at a local OpenAI-compatible bridge (e.g. the VS Code
-     * Copilot LLM Bridge). {@code baseUrl} is like {@code http://127.0.0.1:8765/v1}.
-     * When in bridge mode the access token is optional.
-     */
-    public void useLocalBridge(String baseUrl) {
-        String base = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-        this.chatUrl = base + "/chat/completions";
-        this.catalogUrl = base + "/models";
-    }
-
-    /** True when a bearer token should be sent (real GitHub Models, not the bridge). */
+    /** True when a bearer token should be sent. */
     private static boolean hasToken(String token) {
         return token != null && !token.isBlank();
     }

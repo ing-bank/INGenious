@@ -1129,16 +1129,11 @@ public class AutomationObject implements AutomationObjectApi {
     }
 
     private Locator createRoleLocator(String value, Page page, Page.GetByRoleOptions roleOptions) {
-        if (value.contains(";")) {
-            String[] parts = value.split(";");
-            String roleType = parts[0].toUpperCase();
-            if (parts.length > 1) {
-                roleOptions.setName(parts[1]);
-            }
-            return page.getByRole(AriaRole.valueOf(roleType), roleOptions);
-        } else {
-            return page.getByRole(AriaRole.valueOf(value.toUpperCase()));
+        String[] rn = splitRoleLocator(value);
+        if (rn[1] != null) {
+            roleOptions.setName(rn[1]);
         }
+        return page.getByRole(AriaRole.valueOf(rn[0]), roleOptions);
     }
 
     private Locator createRoleLocator(
@@ -1146,16 +1141,31 @@ public class AutomationObject implements AutomationObjectApi {
         FrameLocator framelocator,
         FrameLocator.GetByRoleOptions roleOptions
     ) {
-        if (value.contains(";")) {
-            String[] parts = value.split(";");
-            String roleType = parts[0].toUpperCase();
-            if (parts.length > 1) {
-                roleOptions.setName(parts[1]);
-            }
-            return framelocator.getByRole(AriaRole.valueOf(roleType), roleOptions);
-        } else {
-            return framelocator.getByRole(AriaRole.valueOf(value.toUpperCase()));
+        String[] rn = splitRoleLocator(value);
+        if (rn[1] != null) {
+            roleOptions.setName(rn[1]);
         }
+        return framelocator.getByRole(AriaRole.valueOf(rn[0]), roleOptions);
+    }
+
+    /**
+     * Split a Role locator into [ROLE (upper-case), name-or-null]. Accepts the
+     * canonical {@code Role;Name} separator and, defensively, a legacy/mistaken
+     * {@code Role:Name} colon so a wrong separator resolves instead of crashing
+     * AriaRole.valueOf at run time.
+     */
+    private static String[] splitRoleLocator(String value) {
+        String v = value == null ? "" : value.trim();
+        int sep = v.indexOf(';');
+        if (sep < 0) {
+            sep = v.indexOf(':');
+        }
+        if (sep >= 0) {
+            String role = v.substring(0, sep).trim().toUpperCase();
+            String name = v.substring(sep + 1).trim();
+            return new String[] { role, name.isEmpty() ? null : name };
+        }
+        return new String[] { v.toUpperCase(), null };
     }
 
     private Locator createChainedLocator(String value, Page page) {

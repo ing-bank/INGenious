@@ -52,6 +52,42 @@ public class MCPToolSurfaceTest {
     }
 
     @Test
+    public void parameterizeToolAllowsPayloadFieldSelection() {
+        for (JsonNode t : tools()) {
+            if (!"ingenious_testcase_parameterize".equals(t.path("name").asText())) continue;
+            JsonNode selections = t
+                .path("inputSchema")
+                .path("properties")
+                .path("selections")
+                .path("items");
+            JsonNode paths = selections
+                .path("properties")
+                .path("paths")
+                .path("items")
+                .path("oneOf");
+            assertThat(paths).hasSize(2);
+            assertThat(paths.get(0).path("type").asText()).isEqualTo("string");
+            assertThat(paths.get(1).path("type").asText()).isEqualTo("object");
+            return;
+        }
+        throw new AssertionError("ingenious_testcase_parameterize not found");
+    }
+
+    @Test
+    public void scenarioAndTestCaseTagToolsAreRegistered() {
+        java.util.Set<String> names = new java.util.HashSet<>();
+        for (JsonNode tool : tools()) names.add(tool.path("name").asText());
+        assertThat(names).contains("ingenious_scenario_tags_add", "ingenious_testcase_tags_add");
+    }
+
+    @Test
+    public void databaseWorkbenchConnectionToolIsRegistered() {
+        java.util.Set<String> names = new java.util.HashSet<>();
+        for (JsonNode tool : tools()) names.add(tool.path("name").asText());
+        assertThat(names).contains("ingenious_db_connection_add");
+    }
+
+    @Test
     public void stepSchemaTeachesTheInputGrammar() {
         for (JsonNode t : tools()) {
             if (!"ingenious_testcase_create".equals(t.path("name").asText())) continue;
@@ -77,6 +113,8 @@ public class MCPToolSurfaceTest {
         for (JsonNode t : tools()) names.add(t.path("name").asText());
         assertThat(names)
             .contains(
+                "ingenious_apicollection_create",
+                "ingenious_apicollection_requests_add",
                 "ingenious_apicollection_import",
                 "ingenious_apicollection_list",
                 "ingenious_apicollection_show",

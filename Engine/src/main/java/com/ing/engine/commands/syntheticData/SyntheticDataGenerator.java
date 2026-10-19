@@ -32,9 +32,11 @@ public class SyntheticDataGenerator extends Command {
 
     @Action(object = ObjectType.DATA, desc = "Set Faker locale for testing", input = InputType.YES)
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.TEXT,
+        inputExample = "@en-US",
+        inputHelp = "Required. Locale to use for subsequently generated fake data, e.g. en-US, de-DE, fr-FR.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void setLocale() {
         try {
@@ -61,9 +63,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void streetAddress() {
         try {
@@ -92,9 +96,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void streetName() {
         try {
@@ -123,9 +129,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void secondaryAddress() {
         try {
@@ -154,9 +162,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void buildingNumber() {
         try {
@@ -185,9 +195,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void city() {
         try {
@@ -216,9 +228,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void cityPrefix() {
         try {
@@ -247,9 +261,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void citySuffix() {
         try {
@@ -278,9 +294,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void zipCode() {
         try {
@@ -309,9 +327,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@CA",
+        conditionHelp = "Required. Two-letter US state abbreviation, e.g. CA, NY."
     )
     public void zipCodeByState() {
         try {
@@ -341,9 +362,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void state() {
         try {
@@ -372,9 +395,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void stateAbbreviation() {
         try {
@@ -403,9 +428,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void country() {
         try {
@@ -434,9 +461,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void countryCode() {
         try {
@@ -465,9 +494,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void latitude() {
         try {
@@ -496,9 +527,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void longitude() {
         try {
@@ -527,9 +560,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void fullAddress() {
         try {
@@ -558,9 +593,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@90210",
+        conditionHelp = "Required. Zip code to resolve the county for."
     )
     public void countryByZipCode() {
         try {
@@ -590,9 +628,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void streetAddressIncludeSecondary() {
         try {
@@ -622,9 +662,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void streetAddressNumber() {
         try {
@@ -653,9 +695,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void streetPrefix() {
         try {
@@ -684,9 +728,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void streetSuffix() {
         try {
@@ -715,9 +761,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void timezone() {
         try {
@@ -746,9 +794,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void cityName() {
         try {
@@ -777,9 +827,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void addressFirstName() {
         try {
@@ -808,9 +860,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void addressLastName() {
         try {
@@ -839,9 +893,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void god() {
         try {
@@ -870,9 +926,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void primordial() {
         try {
@@ -901,9 +959,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void titan() {
         try {
@@ -932,9 +992,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void hero() {
         try {
@@ -963,9 +1025,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void appName() {
         try {
@@ -994,9 +1058,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void appVersion() {
         try {
@@ -1025,9 +1091,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void appAuthor() {
         try {
@@ -1056,9 +1124,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void artistName() {
         try {
@@ -1087,9 +1157,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void avatarUrl() {
         try {
@@ -1118,9 +1190,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void aircraft() {
         try {
@@ -1149,9 +1223,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void airport() {
         try {
@@ -1180,9 +1256,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void metar() {
         try {
@@ -1211,9 +1289,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void characterBackToTheFuture() {
         try {
@@ -1242,9 +1322,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteBackToTheFuture() {
         try {
@@ -1273,9 +1355,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void dateBackToTheFuture() {
         try {
@@ -1304,9 +1388,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void beerName() {
         try {
@@ -1335,9 +1421,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void beerStyle() {
         try {
@@ -1366,9 +1454,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void beerHop() {
         try {
@@ -1397,9 +1487,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void beerYeast() {
         try {
@@ -1428,9 +1520,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void beerMalt() {
         try {
@@ -1459,9 +1553,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void bookTitle() {
         try {
@@ -1490,9 +1586,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void bookAuthor() {
         try {
@@ -1521,9 +1619,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void bookGenre() {
         try {
@@ -1552,9 +1652,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void bookPublisher() {
         try {
@@ -1583,9 +1685,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void randomBool() {
         try {
@@ -1614,9 +1718,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void creditCardNumber() {
         try {
@@ -1645,9 +1751,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void creditCardType() {
         try {
@@ -1676,9 +1784,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void creditCardExpiry() {
         try {
@@ -1707,9 +1817,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void catName() {
         try {
@@ -1738,9 +1850,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void catBreed() {
         try {
@@ -1769,9 +1883,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void catRegistry() {
         try {
@@ -1800,9 +1916,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void chuckNorrisFact() {
         try {
@@ -1831,9 +1949,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void isbn10() {
         try {
@@ -1862,9 +1982,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void isbn13() {
         try {
@@ -1893,9 +2015,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void gtin8() {
         try {
@@ -1924,9 +2048,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void gtin13() {
         try {
@@ -1955,9 +2081,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void ean8() {
         try {
@@ -1986,9 +2114,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void ean13() {
         try {
@@ -2017,9 +2147,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void asin() {
         try {
@@ -2048,9 +2180,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void imei() {
         try {
@@ -2079,9 +2213,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void isbnGroup() {
         try {
@@ -2110,9 +2246,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void isbnGs1() {
         try {
@@ -2141,9 +2279,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void isbnRegistrant() {
         try {
@@ -2172,9 +2312,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void isbn10WithSeparator() {
         try {
@@ -2204,9 +2346,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void isbn13WithSeparator() {
         try {
@@ -2236,9 +2380,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void colorName() {
         try {
@@ -2267,9 +2413,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void hex() {
         try {
@@ -2298,9 +2446,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void hexIncludeHashSign() {
         try {
@@ -2330,9 +2480,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void productName() {
         try {
@@ -2361,9 +2513,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void commerceDepartment() {
         try {
@@ -2392,9 +2546,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void commercePrice() {
         try {
@@ -2423,9 +2579,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10:100",
+        conditionHelp = "Required. Min:Max price range, e.g. 10:100."
     )
     public void priceWithinRange() {
         try {
@@ -2458,9 +2617,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void commerceMaterial() {
         try {
@@ -2489,9 +2650,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void commerceColor() {
         try {
@@ -2520,9 +2683,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void promotionCode() {
         try {
@@ -2551,9 +2716,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@6",
+        conditionHelp = "Required. Number of digits in the generated promotion code."
     )
     public void promotionCodeWithDigits() {
         try {
@@ -2584,9 +2752,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void companyName() {
         try {
@@ -2615,9 +2785,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void companyIndustry() {
         try {
@@ -2646,9 +2818,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void companyCatchPhrase() {
         try {
@@ -2677,9 +2851,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void companyBuzzword() {
         try {
@@ -2708,9 +2884,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void companyBS() {
         try {
@@ -2739,9 +2917,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void companyLogo() {
         try {
@@ -2770,9 +2950,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void profession() {
         try {
@@ -2801,9 +2983,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void companySuffix() {
         try {
@@ -2832,9 +3016,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void companyUrl() {
         try {
@@ -2863,9 +3049,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void capital() {
         try {
@@ -2894,9 +3082,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void countryCode2() {
         try {
@@ -2925,9 +3115,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void countryCode3() {
         try {
@@ -2956,9 +3148,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void countryCurrency() {
         try {
@@ -2987,9 +3181,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void countryCurrencyCode() {
         try {
@@ -3018,9 +3214,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void flag() {
         try {
@@ -3049,9 +3247,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void countryName() {
         try {
@@ -3080,9 +3280,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void md5() {
         try {
@@ -3111,9 +3313,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void sha1() {
         try {
@@ -3142,9 +3346,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void sha256() {
         try {
@@ -3173,9 +3379,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void sha512() {
         try {
@@ -3204,9 +3412,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void currencyName() {
         try {
@@ -3235,9 +3445,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void currencyCode() {
         try {
@@ -3266,9 +3478,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10:DAYS",
+        conditionHelp = "Required. MaxAmount:TimeUnit, e.g. 10:DAYS (TimeUnit is a java.util.concurrent.TimeUnit name)."
     )
     public void futureUpto() {
         try {
@@ -3301,9 +3516,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@30:10:DAYS",
+        conditionHelp = "Required. MaxAmount:MinAmount:TimeUnit, e.g. 30:10:DAYS."
     )
     public void futureWithinRange() {
         try {
@@ -3338,9 +3556,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10:DAYS:21/09/2026",
+        conditionHelp = "Required. MaxAmount:TimeUnit:ReferenceDate(dd/MM/yyyy)."
     )
     public void futureUptoBasedOnRefDate() {
         try {
@@ -3376,9 +3597,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10:DAYS",
+        conditionHelp = "Required. MaxAmount:TimeUnit, e.g. 10:DAYS."
     )
     public void pastUpto() {
         try {
@@ -3411,9 +3635,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@30:10:DAYS",
+        conditionHelp = "Required. MaxAmount:MinAmount:TimeUnit, e.g. 30:10:DAYS."
     )
     public void pastWithinRange() {
         try {
@@ -3448,9 +3675,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10:DAYS:21/09/2026",
+        conditionHelp = "Required. MaxAmount:TimeUnit:ReferenceDate(dd/MM/yyyy)."
     )
     public void pastUptoBasedOnRefDate() {
         try {
@@ -3486,9 +3716,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@01/01/2020:31/12/2020",
+        conditionHelp = "Required. FromDate:ToDate in dd/MM/yyyy format."
     )
     public void dateBetween() {
         try {
@@ -3522,9 +3755,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void birthday() {
         try {
@@ -3553,9 +3788,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@18:65",
+        conditionHelp = "Required. MinAge:MaxAge, e.g. 18:65."
     )
     public void birthdayWithinRange() {
         try {
@@ -3588,9 +3826,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void race() {
         try {
@@ -3619,9 +3859,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void educationalAttainment() {
         try {
@@ -3650,9 +3892,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void sex() {
         try {
@@ -3681,9 +3925,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void maritalStatus() {
         try {
@@ -3712,9 +3958,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void demonym() {
         try {
@@ -3743,9 +3991,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void dogName() {
         try {
@@ -3774,9 +4024,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void dogBreed() {
         try {
@@ -3805,9 +4057,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void dogSound() {
         try {
@@ -3836,9 +4090,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void dogAge() {
         try {
@@ -3867,9 +4123,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void dogCoatLength() {
         try {
@@ -3898,9 +4156,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void dogSize() {
         try {
@@ -3929,9 +4189,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void dogGender() {
         try {
@@ -3960,9 +4222,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void memePhrase() {
         try {
@@ -3991,9 +4255,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void characterDragonBall() {
         try {
@@ -4022,9 +4288,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void university() {
         try {
@@ -4053,9 +4321,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void course() {
         try {
@@ -4084,9 +4354,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void campus() {
         try {
@@ -4115,9 +4387,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void secondarySchool() {
         try {
@@ -4146,9 +4420,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void esportsTeam() {
         try {
@@ -4177,9 +4453,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void esportsPlayer() {
         try {
@@ -4208,9 +4486,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void esportsGame() {
         try {
@@ -4239,9 +4519,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void esportsEvent() {
         try {
@@ -4270,9 +4552,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void esportsLeague() {
         try {
@@ -4301,9 +4585,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void fileName() {
         try {
@@ -4332,9 +4618,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@dir:name:txt:_",
+        conditionHelp = "Required. Dir:Name:Extension:Separator (any segment may be blank)."
     )
     public void fileNameWithDetails() {
         try {
@@ -4370,9 +4659,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void mimeType() {
         try {
@@ -4397,12 +4688,14 @@ public class SyntheticDataGenerator extends Command {
     @Action(
         object = ObjectType.DATA,
         desc = "Generate a random file name with an optional file extension",
-        input = InputType.NO
+        input = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void fileNameWithExtension() {
         try {
@@ -4431,9 +4724,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void financeCreditCardNumber() {
         try {
@@ -4462,9 +4757,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@VISA",
+        conditionHelp = "Required. A com.github.javafaker.CreditCardType constant name, e.g. VISA, MASTERCARD, AMERICAN_EXPRESS."
     )
     public void creditCardNumberBasedOnType() {
         try {
@@ -4495,9 +4793,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void bic() {
         try {
@@ -4526,9 +4826,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void iban() {
         try {
@@ -4557,9 +4859,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@DE",
+        conditionHelp = "Required. Two-letter country code for the IBAN, e.g. DE, FR."
     )
     public void ibanByCountry() {
         try {
@@ -4589,9 +4894,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void ingredient() {
         try {
@@ -4620,9 +4927,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void spice() {
         try {
@@ -4651,9 +4960,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void measurement() {
         try {
@@ -4682,9 +4993,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void characterFriends() {
         try {
@@ -4713,9 +5026,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void locationFriends() {
         try {
@@ -4744,9 +5059,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteFriends() {
         try {
@@ -4775,9 +5092,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void funnyName() {
         try {
@@ -4806,9 +5125,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void characterGOT() {
         try {
@@ -4837,9 +5158,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void houseGOT() {
         try {
@@ -4868,9 +5191,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void cityGOT() {
         try {
@@ -4899,9 +5224,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void dragonGOT() {
         try {
@@ -4930,9 +5257,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteGOT() {
         try {
@@ -4961,9 +5290,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void hackerAbbreviation() {
         try {
@@ -4992,9 +5323,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void hackerAdjective() {
         try {
@@ -5023,9 +5356,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void hackerNoun() {
         try {
@@ -5054,9 +5389,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void hackerVerb() {
         try {
@@ -5085,9 +5422,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void hackerIngVerb() {
         try {
@@ -5116,9 +5455,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void characterHarryPotter() {
         try {
@@ -5147,9 +5488,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void locationHarryPotter() {
         try {
@@ -5178,9 +5521,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteHarryPotter() {
         try {
@@ -5209,9 +5554,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void bookHarryPotter() {
         try {
@@ -5240,9 +5587,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void hipsterWord() {
         try {
@@ -5271,9 +5620,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void characterHitchhiker() {
         try {
@@ -5302,9 +5653,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void locationHitchhiker() {
         try {
@@ -5333,9 +5686,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void marvinQuoteHitchhiker() {
         try {
@@ -5364,9 +5719,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteHitchhiker() {
         try {
@@ -5395,9 +5752,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void planetHitchhiker() {
         try {
@@ -5426,9 +5785,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void specieHitchhiker() {
         try {
@@ -5457,9 +5818,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void starshipHitchhiker() {
         try {
@@ -5488,9 +5851,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void characterHobbit() {
         try {
@@ -5519,9 +5884,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void locationHobbit() {
         try {
@@ -5550,9 +5917,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteHobbit() {
         try {
@@ -5581,9 +5950,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void thorinsCompanyHobbit() {
         try {
@@ -5612,9 +5983,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void characterHowIMetYourMother() {
         try {
@@ -5643,9 +6016,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteHowIMetYourMother() {
         try {
@@ -5674,9 +6049,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void catchPhraseHowIMetYourMother() {
         try {
@@ -5705,9 +6082,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void highFiveHowIMetYourMother() {
         try {
@@ -5736,9 +6115,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void validIdNumber() {
         try {
@@ -5767,9 +6148,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void invalidIdNumber() {
         try {
@@ -5798,9 +6181,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void validSsn() {
         try {
@@ -5829,9 +6214,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void invalidSsn() {
         try {
@@ -5860,9 +6247,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void ssnValid() {
         try {
@@ -5891,9 +6280,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void emailAddress() {
         try {
@@ -5922,9 +6313,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@john.doe",
+        conditionHelp = "Required. Local part to use before the @ in the generated email address."
     )
     public void emailAddressWithLocalPart() {
         try {
@@ -5954,9 +6348,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void safeEmailAddress() {
         try {
@@ -5985,9 +6381,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@john.doe",
+        conditionHelp = "Required. Local part to use before the @ in the generated safe email address."
     )
     public void safeEmailAddressWithLocalPart() {
         try {
@@ -6017,9 +6416,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void domainName() {
         try {
@@ -6048,9 +6449,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void domainSuffix() {
         try {
@@ -6079,9 +6482,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void domainWord() {
         try {
@@ -6110,9 +6515,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void internetUrl() {
         try {
@@ -6141,9 +6548,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void ipV4Address() {
         try {
@@ -6172,9 +6581,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void ipV6Address() {
         try {
@@ -6203,9 +6614,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void ipV4Cidr() {
         try {
@@ -6234,9 +6647,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void ipV6Cidr() {
         try {
@@ -6265,9 +6680,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void macAddress() {
         try {
@@ -6296,9 +6713,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void macAddressWithPrefix() {
         try {
@@ -6328,9 +6747,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void privateIpV4Address() {
         try {
@@ -6359,9 +6780,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void publicIpV6Address() {
         try {
@@ -6390,9 +6813,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void internetAvatar() {
         try {
@@ -6421,9 +6846,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void internetImage() {
         try {
@@ -6452,9 +6879,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@640:480:false:profile",
+        conditionHelp = "Required. Width:Height:Gray:Text, e.g. 640:480:false:profile."
     )
     public void internetImageWithSpecs() {
         try {
@@ -6490,9 +6920,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@8:16",
+        conditionHelp = "Required. MinLength:MaxLength, e.g. 8:16."
     )
     public void internetPasswordWithLength() {
         try {
@@ -6525,9 +6958,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void internetPassword() {
         try {
@@ -6556,9 +6991,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void internetPasswordWithDigits() {
         try {
@@ -6588,9 +7025,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@8:16",
+        conditionHelp = "Required. MinLength:MaxLength, e.g. 8:16 (uppercase always included)."
     )
     public void internetPasswordWithLengthUppercase() {
         try {
@@ -6627,9 +7067,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@8:16",
+        conditionHelp = "Required. MinLength:MaxLength, e.g. 8:16 (uppercase and special chars always included)."
     )
     public void internetPasswordWithLengthUppercaseSpecial() {
         try {
@@ -6667,9 +7110,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@8:16",
+        conditionHelp = "Required. MinLength:MaxLength, e.g. 8:16 (uppercase, special chars and digits always included)."
     )
     public void internetPasswordwithUppercaseSpecialDigit() {
         try {
@@ -6708,9 +7154,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void slug() {
         try {
@@ -6739,9 +7187,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@word1:word2:-",
+        conditionHelp = "Required. Colon-separated words followed by the glue character, e.g. word1:word2:-."
     )
     public void slugWithSpecs() {
         try {
@@ -6777,9 +7228,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@CHROME",
+        conditionHelp = "Required. A com.github.javafaker.Internet.UserAgent constant name, e.g. CHROME, FIREFOX, SAFARI."
     )
     public void userAgentWithAgentType() {
         try {
@@ -6810,9 +7264,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void userAgentAny() {
         try {
@@ -6841,9 +7297,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void internetUUID() {
         try {
@@ -6872,9 +7330,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void jobTitle() {
         try {
@@ -6903,9 +7363,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void jobField() {
         try {
@@ -6934,9 +7396,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void jobKeySkills() {
         try {
@@ -6965,9 +7429,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void jobSeniority() {
         try {
@@ -6996,9 +7462,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void jobPosition() {
         try {
@@ -7027,9 +7495,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void championLOL() {
         try {
@@ -7058,9 +7528,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void summonerSpellLOL() {
         try {
@@ -7089,9 +7561,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void masteriesLOL() {
         try {
@@ -7120,9 +7594,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteLOL() {
         try {
@@ -7151,9 +7627,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void rankLOL() {
         try {
@@ -7182,9 +7660,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void locationLOL() {
         try {
@@ -7213,9 +7693,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void characterLebowski() {
         try {
@@ -7244,9 +7726,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteLebowski() {
         try {
@@ -7275,9 +7759,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void actorLebowski() {
         try {
@@ -7306,9 +7792,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void characterLordOfTheRings() {
         try {
@@ -7337,9 +7825,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void locationLordOfTheRings() {
         try {
@@ -7368,9 +7858,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void loremWord() {
         try {
@@ -7399,9 +7891,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void loremWords() {
         try {
@@ -7430,9 +7924,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@5",
+        conditionHelp = "Required. Number of words to generate."
     )
     public void loremWordsWithCount() {
         try {
@@ -7463,9 +7960,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void sentence() {
         try {
@@ -7494,9 +7993,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10",
+        conditionHelp = "Required. Number of words in the sentence."
     )
     public void sentenceWithCount() {
         try {
@@ -7531,9 +8033,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10:3",
+        conditionHelp = "Required. WordCount:RandomWordsToAdd."
     )
     public void sentenceWithCountAndRandomWords() {
         try {
@@ -7570,9 +8075,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@3",
+        conditionHelp = "Required. Number of sentences to generate."
     )
     public void sentences() {
         try {
@@ -7607,9 +8115,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void paragraph() {
         try {
@@ -7638,9 +8148,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@3",
+        conditionHelp = "Required. Number of sentences in the paragraph."
     )
     public void paragraphWithSentenceCount() {
         try {
@@ -7675,9 +8188,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@3",
+        conditionHelp = "Required. Number of paragraphs to generate."
     )
     public void paragraphsWithParagraphCount() {
         try {
@@ -7708,9 +8224,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void loremCharacter() {
         try {
@@ -7739,9 +8257,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void loremCharacters() {
         try {
@@ -7770,9 +8290,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void loremCharacterIncludeUpperCase() {
         try {
@@ -7802,9 +8324,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void loremCharactersIncludeUpperCase() {
         try {
@@ -7834,9 +8358,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10",
+        conditionHelp = "Required. Fixed number of characters to generate."
     )
     public void loremCharactersWithNumberOfChars() {
         try {
@@ -7867,9 +8394,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10",
+        conditionHelp = "Required. Fixed number of characters to generate (uppercase allowed)."
     )
     public void loremCharactersWithNumberOfCharsUpperCase() {
         try {
@@ -7904,9 +8434,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10",
+        conditionHelp = "Required. Fixed number of characters to generate (uppercase and digits allowed)."
     )
     public void loremCharactersWithNumberOfCharsUpperCaseDigit() {
         try {
@@ -7942,9 +8475,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@5:10",
+        conditionHelp = "Required. MinLength:MaxLength."
     )
     public void loremCharactersWithinLength() {
         try {
@@ -7977,9 +8513,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@5:10",
+        conditionHelp = "Required. MinLength:MaxLength (uppercase allowed)."
     )
     public void loremCharactersWithinLengthUpperCase() {
         try {
@@ -8016,9 +8555,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@5:10",
+        conditionHelp = "Required. MinLength:MaxLength (uppercase and digits allowed)."
     )
     public void loremCharactersWithinLengthUpperCaseDigit() {
         try {
@@ -8056,9 +8598,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10",
+        conditionHelp = "Required. Number of letters to generate."
     )
     public void loremFixedString() {
         try {
@@ -8089,9 +8634,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteMatz() {
         try {
@@ -8120,9 +8667,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void diseaseName() {
         try {
@@ -8151,9 +8700,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void hospitalName() {
         try {
@@ -8182,9 +8733,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void medicineName() {
         try {
@@ -8213,9 +8766,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void symptoms() {
         try {
@@ -8244,9 +8799,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void musicGenre() {
         try {
@@ -8275,9 +8832,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void musicalInstrument() {
         try {
@@ -8306,9 +8865,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void musicChord() {
         try {
@@ -8337,9 +8898,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void musicKey() {
         try {
@@ -8368,9 +8931,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void firstName() {
         try {
@@ -8399,9 +8964,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void lastName() {
         try {
@@ -8430,9 +8997,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void fullName() {
         try {
@@ -8461,9 +9030,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void namePrefix() {
         try {
@@ -8492,9 +9063,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void nameSuffix() {
         try {
@@ -8523,9 +9096,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void nameTitle() {
         try {
@@ -8554,9 +9129,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void username() {
         try {
@@ -8586,9 +9163,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void name() {
         try {
@@ -8617,9 +9196,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void nameWithMiddleName() {
         try {
@@ -8648,9 +9229,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void digit() {
         try {
@@ -8679,9 +9262,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@5",
+        conditionHelp = "Required. Number of digits to generate."
     )
     public void digits() {
         try {
@@ -8712,9 +9298,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void randomNumber() {
         try {
@@ -8743,9 +9331,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void randomDigit() {
         try {
@@ -8774,9 +9364,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void randomDigitNot0() {
         try {
@@ -8805,9 +9397,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@1:100",
+        conditionHelp = "Required. Min:Max integer range."
     )
     public void randomIntegerNumberBetween() {
         try {
@@ -8840,9 +9435,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@1:100",
+        conditionHelp = "Required. Min:Max long range."
     )
     public void randomLongNumberBetween() {
         try {
@@ -8875,9 +9473,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@2:1:100",
+        conditionHelp = "Required. MaxDecimals:Min:Max."
     )
     public void randomDoubleBetweenIntegers() {
         try {
@@ -8912,9 +9513,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@2:1:100",
+        conditionHelp = "Required. MaxDecimals:Min:Max."
     )
     public void randomDoubleBetweenLong() {
         try {
@@ -8949,9 +9553,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@5",
+        conditionHelp = "Required. Number of digits in the generated number."
     )
     public void randomNumberWithNoOfDigits() {
         try {
@@ -8983,9 +9590,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void optionFromBoolean() {
         try {
@@ -9014,9 +9623,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@1:2:3",
+        conditionHelp = "Required. Colon-separated list of integers to pick from."
     )
     public void optionFromIntegers() {
         try {
@@ -9051,9 +9663,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@1.1:2.2:3.3",
+        conditionHelp = "Required. Colon-separated list of doubles to pick from."
     )
     public void optionFromDoubles() {
         try {
@@ -9088,9 +9703,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@1:2:3",
+        conditionHelp = "Required. Colon-separated list of longs to pick from."
     )
     public void optionFromLong() {
         try {
@@ -9125,9 +9743,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@red:green:blue",
+        conditionHelp = "Required. Colon-separated list of strings to pick from."
     )
     public void optionFromStrings() {
         try {
@@ -9162,9 +9783,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@red:green:blue",
+        conditionHelp = "Required. Colon-separated list of strings to cycle through."
     )
     public void nextElementStringArray() {
         try {
@@ -9228,9 +9852,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void heroOverWatch() {
         try {
@@ -9259,9 +9885,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void locationOverWatch() {
         try {
@@ -9290,9 +9918,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteOverWatch() {
         try {
@@ -9321,9 +9951,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void phoneNumber() {
         try {
@@ -9352,9 +9984,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void cellPhone() {
         try {
@@ -9383,9 +10017,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void namePokemon() {
         try {
@@ -9414,9 +10050,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void locationPokemon() {
         try {
@@ -9445,9 +10083,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void randomHex() {
         try {
@@ -9476,9 +10116,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@8",
+        conditionHelp = "Required. Length of the generated hex string."
     )
     public void randomHexWithLength() {
         try {
@@ -9509,9 +10152,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@100",
+        conditionHelp = "Required. Exclusive upper bound for the generated integer."
     )
     public void randomNextIntWithLength() {
         try {
@@ -9542,9 +10188,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@1:100",
+        conditionHelp = "Required. Min:Max integer range."
     )
     public void randomNextIntInRange() {
         try {
@@ -9577,9 +10226,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void randomNextLong() {
         try {
@@ -9608,9 +10259,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@100",
+        conditionHelp = "Required. Exclusive upper bound for the generated long."
     )
     public void randomNextLongWithLength() {
         try {
@@ -9641,9 +10295,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void randomNextBoolean() {
         try {
@@ -9672,9 +10328,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void randomNextDouble() {
         try {
@@ -9703,9 +10361,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void characterRickAndMorty() {
         try {
@@ -9734,9 +10394,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void locationRickAndMorty() {
         try {
@@ -9765,9 +10427,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteRickAndMorty() {
         try {
@@ -9796,9 +10460,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteRobin() {
         try {
@@ -9827,9 +10493,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void nameRockBand() {
         try {
@@ -9858,9 +10526,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteHamlet() {
         try {
@@ -9889,9 +10559,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteAsYouLikeIt() {
         try {
@@ -9920,9 +10592,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteKingRichard() {
         try {
@@ -9951,9 +10625,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteRomeoAndJuliet() {
         try {
@@ -9982,9 +10658,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void slackEmoji() {
         try {
@@ -10013,9 +10691,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void slackEmojiPeople() {
         try {
@@ -10044,9 +10724,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void slackEmojiNature() {
         try {
@@ -10075,9 +10757,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void slackEmojiFoodAndDrink() {
         try {
@@ -10106,9 +10790,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void slackEmojiCelebration() {
         try {
@@ -10137,9 +10823,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void slackEmojiActivity() {
         try {
@@ -10168,9 +10856,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void slackEmojiTravelAndPlaces() {
         try {
@@ -10199,9 +10889,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void slackEmojiObjectsAndSymbols() {
         try {
@@ -10230,9 +10922,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void slackEmojiCustom() {
         try {
@@ -10261,9 +10955,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void planet() {
         try {
@@ -10292,9 +10988,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void moon() {
         try {
@@ -10323,9 +11021,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void galaxy() {
         try {
@@ -10354,9 +11054,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void nebula() {
         try {
@@ -10385,9 +11087,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void starCluster() {
         try {
@@ -10416,9 +11120,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void constellation() {
         try {
@@ -10447,9 +11153,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void star() {
         try {
@@ -10478,9 +11186,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void spaceAgency() {
         try {
@@ -10509,9 +11219,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void spaceAgencyAbbreviation() {
         try {
@@ -10540,9 +11252,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void spaceCompany() {
         try {
@@ -10571,9 +11285,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void distanceMeasurement() {
         try {
@@ -10602,9 +11318,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void meteorite() {
         try {
@@ -10633,9 +11351,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void nasaSpaceCraft() {
         try {
@@ -10664,9 +11384,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void characterStarTrek() {
         try {
@@ -10695,9 +11417,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void locationStarTrek() {
         try {
@@ -10726,9 +11450,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void specieStarTrek() {
         try {
@@ -10757,9 +11483,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void villainStarTrek() {
         try {
@@ -10788,9 +11516,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void nyseSymbol() {
         try {
@@ -10819,9 +11549,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void nsdqSymbol() {
         try {
@@ -10850,9 +11582,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void superheroName() {
         try {
@@ -10881,9 +11615,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void superheroPower() {
         try {
@@ -10912,9 +11648,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void superheroPrefix() {
         try {
@@ -10943,9 +11681,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void superheroSuffix() {
         try {
@@ -10974,9 +11714,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void superheroDescriptor() {
         try {
@@ -11005,9 +11747,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void teamName() {
         try {
@@ -11036,9 +11780,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void teamSport() {
         try {
@@ -11067,9 +11813,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void teamState() {
         try {
@@ -11098,9 +11846,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void teamCreature() {
         try {
@@ -11129,9 +11879,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void characterTwinPeaks() {
         try {
@@ -11160,9 +11912,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void locationTwinPeaks() {
         try {
@@ -11191,9 +11945,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteTwinPeaks() {
         try {
@@ -11222,9 +11978,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void universityName() {
         try {
@@ -11253,9 +12011,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void universityPrefix() {
         try {
@@ -11284,9 +12044,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void universitySuffix() {
         try {
@@ -11315,9 +12077,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void weatherDescription() {
         try {
@@ -11346,9 +12110,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void temperatureCelsius() {
         try {
@@ -11377,9 +12143,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void temperatureFahrenheit() {
         try {
@@ -11408,9 +12176,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10:30",
+        conditionHelp = "Required. MinTemp:MaxTemp in Celsius."
     )
     public void temperatureCelsiusWithinRange() {
         try {
@@ -11443,9 +12214,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@50:90",
+        conditionHelp = "Required. MinTemp:MaxTemp in Fahrenheit."
     )
     public void temperatureFahrenheitWithinRange() {
         try {
@@ -11478,9 +12252,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void characterWitcher() {
         try {
@@ -11509,9 +12285,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void locationWitcher() {
         try {
@@ -11540,9 +12318,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteWitcher() {
         try {
@@ -11571,9 +12351,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void witcher() {
         try {
@@ -11602,9 +12384,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void monsterWitcher() {
         try {
@@ -11633,9 +12417,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void schoolWitcher() {
         try {
@@ -11664,9 +12450,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void quoteYoda() {
         try {
@@ -11695,9 +12483,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void characterZelda() {
         try {
@@ -11726,9 +12516,11 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.NO
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
         condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        conditionHelp = "No condition required."
     )
     public void gameZelda() {
         try {
@@ -11757,9 +12549,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@#{Name.first_name}",
+        conditionHelp = "Required. A Faker expression string to evaluate."
     )
     public void expression() {
         try {
@@ -11789,9 +12584,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@????-#####",
+        conditionHelp = "Required. A bothify pattern (? = letter, # = digit)."
     )
     public void bothify() {
         try {
@@ -11821,9 +12619,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@????-#####",
+        conditionHelp = "Required. A bothify pattern (? = letter, # = digit); letters are uppercased."
     )
     public void bothifyWithUpper() {
         try {
@@ -11854,9 +12655,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@????",
+        conditionHelp = "Required. A letterify pattern (? = letter)."
     )
     public void letterify() {
         try {
@@ -11886,9 +12690,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@????",
+        conditionHelp = "Required. A letterify pattern (? = letter); letters are uppercased."
     )
     public void letterifyWithUpper() {
         try {
@@ -11919,9 +12726,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@#####",
+        conditionHelp = "Required. A numerify pattern (# = digit)."
     )
     public void numerify() {
         try {
@@ -11951,9 +12761,12 @@ public class SyntheticDataGenerator extends Command {
         condition = InputType.YES
     )
     @Args(
-        inputHelp = "no input required (e.g. leave empty)",
-        condition = ConditionKind.NONE,
-        conditionHelp = "no condition required (e.g. leave empty)"
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@[A-Z]{5}",
+        conditionHelp = "Required. A regular expression to generate a matching string from."
     )
     public void regexify() {
         try {

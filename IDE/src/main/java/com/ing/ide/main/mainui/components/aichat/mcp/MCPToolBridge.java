@@ -71,7 +71,9 @@ public class MCPToolBridge implements ToolProvider {
             "ingenious_run_dry",
             "ingenious_doctor",
             "ingenious_browser_session_snapshot",
-            "ingenious_browser_inspect"
+            "ingenious_browser_inspect",
+            "ingenious_skill_list",
+            "ingenious_skill_read"
         )
     );
 
@@ -86,8 +88,10 @@ public class MCPToolBridge implements ToolProvider {
             "ingenious_testcase_move_step",
             "ingenious_testcase_delete",
             "ingenious_testcase_parameterize",
+            "ingenious_testcase_tags_add",
             "ingenious_scenario_create",
             "ingenious_scenario_delete",
+            "ingenious_scenario_tags_add",
             "ingenious_object_add",
             "ingenious_object_update",
             "ingenious_object_delete",
@@ -106,6 +110,9 @@ public class MCPToolBridge implements ToolProvider {
             "ingenious_gen_testcase",
             "ingenious_gen_from_openapi",
             "ingenious_gen_from_har",
+            "ingenious_db_connection_add",
+            "ingenious_apicollection_create",
+            "ingenious_apicollection_requests_add",
             "ingenious_data_generate",
             "ingenious_import_curl",
             "ingenious_import_postman",

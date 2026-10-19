@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -242,6 +243,38 @@ public final class PlaywrightRecordingImporter {
         return s == null ? "" : s;
     }
 
+    /** ARIA role -> the "[Type]" suffix mandated by the OR naming convention. */
+    private static final Map<String, String> ROLE_TYPE_SUFFIX = new HashMap<>();
+
+    static {
+        ROLE_TYPE_SUFFIX.put("BUTTON", "Button");
+        ROLE_TYPE_SUFFIX.put("LINK", "Link");
+        ROLE_TYPE_SUFFIX.put("TEXTBOX", "Input");
+        ROLE_TYPE_SUFFIX.put("SEARCHBOX", "Input");
+        ROLE_TYPE_SUFFIX.put("SPINBUTTON", "Input");
+        ROLE_TYPE_SUFFIX.put("CHECKBOX", "Checkbox");
+        ROLE_TYPE_SUFFIX.put("RADIO", "Radio");
+        ROLE_TYPE_SUFFIX.put("COMBOBOX", "Dropdown");
+        ROLE_TYPE_SUFFIX.put("LISTBOX", "List");
+        ROLE_TYPE_SUFFIX.put("MENUITEM", "Menu Item");
+        ROLE_TYPE_SUFFIX.put("TAB", "Tab");
+        ROLE_TYPE_SUFFIX.put("SWITCH", "Switch");
+        ROLE_TYPE_SUFFIX.put("SLIDER", "Slider");
+        ROLE_TYPE_SUFFIX.put("CELL", "Cell");
+        ROLE_TYPE_SUFFIX.put("ROW", "Row");
+    }
+
+    /**
+     * Appends the OR naming convention's {@code [Type]} suffix (e.g.
+     * {@code "Next [Button]"}) derived from the accessible role, so objects
+     * discovered via {@code getByRole} don't need a manual rename pass.
+     */
+    private static String appendTypeSuffix(String label, String role) {
+        if (label == null || label.isEmpty() || label.contains("[")) return label;
+        String suffix = ROLE_TYPE_SUFFIX.get(role == null ? "" : role.toUpperCase(Locale.ROOT));
+        return suffix == null ? label : label + " [" + suffix + "]";
+    }
+
     private void attributeDeclaration() {
         attribute.put("Role", "");
         attribute.put("xpath", "");
@@ -360,14 +393,32 @@ public final class PlaywrightRecordingImporter {
         if (line.contains(".navigate(")) {
             input = "@" + line.split("\\.navigate\\(\"")[1].split("\"")[0];
         }
-        if (input.contains(",")) {
-            input = "\"" + input + "\"";
-        }
+        // Return the pure semantic value. This importer builds a TestStep model directly (YAML),
+        // so a value containing a comma must NOT be quote-wrapped — that would corrupt the leading
+        // "@" hardcoded-literal prefix and bake stray quotes into the matched text (e.g. a
+        // SelectSingleByText option). CSV escaping, if ever needed, belongs at the CSV writer only.
         return input;
+    }
+
+    /**
+     * Normalizes the newer Playwright "content frame" locator syntax
+     * ({@code page.locator("SEL").contentFrame().getByX(...)}) into the classic
+     * {@code page.frameLocator("SEL").getByX(...)} form so framed elements resolve
+     * to properly named objects (with a {@code frame} attribute) instead of a
+     * Refactor_Object chained locator. Applied to every occurrence, so nested
+     * frames convert too. Mirrors the IDE PlaywrightRecordingParser so the CLI/MCP
+     * import handles modern codegen recordings the same way.
+     */
+    static String normalizeContentFrame(String line) {
+        if (line == null || !line.contains(".contentFrame()")) {
+            return line;
+        }
+        return line.replaceAll("\\.locator\\((.*?)\\)\\.contentFrame\\(\\)", ".frameLocator($1)");
     }
 
     private void attributeInitialization(String stringLine) {
         try {
+            stringLine = normalizeContentFrame(stringLine);
             String line = "";
             if (stringLine.contains(").click(")) {
                 line = stringLine.split("\\.click\\(")[0];
@@ -454,7 +505,7 @@ public final class PlaywrightRecordingImporter {
                             String value = line.split(".setName\\(\"")[1].split("\"")[0].trim();
                             String roleValue = role + ";" + value + roleSetExact;
                             attribute.put("Role", roleValue);
-                            testCase.put("ObjectName", value);
+                            testCase.put("ObjectName", appendTypeSuffix(value, role));
                             break;
                         }
                     case "getByPlaceholder":

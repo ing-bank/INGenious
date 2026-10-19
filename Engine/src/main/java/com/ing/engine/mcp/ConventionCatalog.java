@@ -106,6 +106,12 @@ public final class ConventionCatalog {
             ERROR,
             "Step Input/Condition does not match the action's declared format (see ingenious_action_info)."
         );
+        rule(
+            "E12",
+            ERROR,
+            "Step targets an Object Repository element but has no scope Reference " +
+            "(e.g. '[Project] <page>'); the object cannot resolve at run time."
+        );
         // ---- warnings ------------------------------------------------
         rule(
             "W1",
@@ -130,6 +136,13 @@ public final class ConventionCatalog {
             "W10",
             WARN,
             "Identical step sequence shared by several test cases; extract a reusable component."
+        );
+        rule(
+            "W11",
+            WARN,
+            "Object Repository page is referenced by many test cases (likely a single " +
+            "monolithic 'journey' page); distribute its objects onto per-screen pages " +
+            "with ingenious_object_add/ingenious_object_update."
         );
         // ---- info ----------------------------------------------------
         rule(
@@ -227,6 +240,20 @@ public final class ConventionCatalog {
         return (
             "INGenious test-automation conventions (authoritative - always follow):\n" +
             "\n" +
+            "SKILL ROUTING (do this FIRST for any authoring/migration request)\n" +
+            "* Before authoring a browser/UI test, an API test, migrating Selenium/Gherkin\n" +
+            "  tests, creating a plugin, or detecting customizations, load the matching skill\n" +
+            "  and follow its playbook exactly:\n" +
+            "  - browser/UI test from a flow -> ingenious_skill_read name=\"ingenious-browser-test-from-specification\"\n" +
+            "  - API test (spec/collection/curl/HAR/flow) -> ingenious_skill_read name=\"ingenious-api-test-from-specification\"\n" +
+            "  - Selenium/Gherkin migration -> ingenious_skill_read name=\"ingenious-ui-migrator\"\n" +
+            "  - plugin create/fix -> ingenious_skill_read name=\"ingenious-plugin-creation\"\n" +
+            "  - customization detection -> ingenious_skill_read name=\"ingenious-customization-detection\"\n" +
+            "* Unsure which exists? Call ingenious_skill_list. These skills are TOOL-FIRST:\n" +
+            "  the skill's deterministic playbook (reusable components, per-page Object\n" +
+            "  Repository, parameterized data sheets) is mandatory - do NOT improvise a single\n" +
+            "  monolithic test with hard-coded values.\n" +
+            "\n" +
             "STEP INPUT GRAMMAR\n" +
             "* Hard-coded values are @-prefixed: input=\"@200\", input=\"@https://site\".\n" +
             "* Data-driven values reference a data sheet: input=\"Sheet:Column\".\n" +
@@ -236,6 +263,9 @@ public final class ConventionCatalog {
             "  never place them in a step input. Environment names come from the project's\n" +
             "  GlobalData sheet; never assume them.\n" +
             "* Object references are never @-prefixed (engine specials like @Browser excepted).\n" +
+            "* Object-Repository role locators use 'Role;Name' with a SEMICOLON (e.g.\n" +
+            "  'button;Create a new account'). The colon in 'Sheet:Column' is the DATA\n" +
+            "  reference separator only - never put a ':' in a role locator.\n" +
             "* Each action declares the exact Input/Condition format. Before authoring a step,\n" +
             "  check ingenious_action_info: inputType, inputExample, conditionKind, conditionValues.\n" +
             "  The write tools auto-correct known formats and REJECT values that are clearly wrong.\n" +
@@ -246,6 +276,17 @@ public final class ConventionCatalog {
             "3. Externalise data with ingenious_testcase_parameterize (mode=scan, then apply).\n" +
             "4. Validate (ingenious_testcase_validate), run (ingenious_run), triage\n" +
             "   (ingenious_report_failures).\n" +
+            "\n" +
+            "RUNNING TESTS\n" +
+            "* Leave 'headless' unset when calling ingenious_run/ingenious_run_async for\n" +
+            "  browser-based tests (Chromium/Firefox/WebKit) - it defaults to false, so the\n" +
+            "  browser runs headed (visible). Only pass headless:true if the user explicitly\n" +
+            "  asks for a headless run.\n" +
+            "* Tests using browser 'No Browser' (API/AI tests) are unaffected by 'headless' and\n" +
+            "  keep running without a browser window either way.\n" +
+            "* Leave 'breakOnError' unset - it defaults to true, so a run stops at its first\n" +
+            "  failed step instead of continuing (a bad locator near the start of a long script\n" +
+            "  would otherwise still pay the default per-step wait for every remaining step).\n" +
             "\n" +
             "STRUCTURE & NAMING\n" +
             "* TestPlan scenarios are business flows (e.g. 'Mortgage Calculation'); test cases\n" +
@@ -258,20 +299,37 @@ public final class ConventionCatalog {
             "* Reuse existing reusables and data-sheet rows before creating new ones.\n" +
             "\n" +
             "BROWSER FLOW DISCOVERY (deterministic routing - do not improvise)\n" +
+            "* Prefer the IMPORT-FIRST technique: let Playwright produce a Java recording,\n" +
+            "  import it so the engine builds the Page-Object-Model + steps + locators\n" +
+            "  deterministically, then refine. This is more deterministic and less token-heavy\n" +
+            "  than hand-authoring steps/locators.\n" +
             "* When a request is a browser test (plain English, BDD, or any format), first\n" +
             "  decide the intent: is it DISCOVERY, i.e. the objects/locators are NOT yet in\n" +
             "  the Object Repository? Check with ingenious_object_list / ingenious_object_search.\n" +
             "* If yes (objects unknown), confirm with the user, then ALWAYS drive discovery\n" +
             "  through @playwright/cli - never hand-write locators or guess the flow:\n" +
             "  1. Call ingenious_browser_discover with the url and the user's prompt verbatim.\n" +
+            "     Sessions default to headed (visible browser) so discovery stays transparent\n" +
+            "     and watchable; only pass headed:false if the user asks for a headless session.\n" +
             "  2. Explore the flow with ingenious_browser_session_do, using only the element\n" +
             "     refs from each returned snapshot. Each call blocks until the CLI finishes.\n" +
-            "  3. Call ingenious_browser_session_save: discovered locators are translated into\n" +
-            "     Object-Repository (WebOR) objects and the steps are linked to them.\n" +
-            "  4. Call ingenious_browser_session_close, then ingenious_testcase_validate.\n" +
-            "* The exploration outcome is the only non-deterministic part; the routing,\n" +
-            "  waiting, and WebOR/step translation are fixed. If objects already exist in the\n" +
-            "  Object Repository, author steps normally without a discovery session.\n" +
+            "  3. Call ingenious_browser_session_export to write the recording as Playwright\n" +
+            "     Java, then ingenious_import_playwright {file} to build the OR page + steps +\n" +
+            "     locators deterministically. (If the user already has a Playwright Java\n" +
+            "     script, skip discovery and import it directly.)\n" +
+            "  4. Refine on top: split into reusable components (user intents) with Execute\n" +
+            "     steps, distribute Object-Repository objects across per-screen pages, and\n" +
+            "     parameterize data into sheets. Then ingenious_testcase_validate.\n" +
+            "* The exploration outcome is the only non-deterministic part; routing, import,\n" +
+            "  and locator parsing are fixed. If objects already exist in the Object\n" +
+            "  Repository, author steps normally without a discovery session.\n" +
+            "* LOCATOR & RUN DISCIPLINE: prefer import-first and do NOT hand-edit imported\n" +
+            "  locators unless necessary. Verify a locator fast with ingenious_browser_inspect\n" +
+            "  (or the still-open discovery session) - never debug by re-running the whole\n" +
+            "  journey. Run the full flow ONCE; on failure triage with ingenious_report_failures\n" +
+            "  and fix ALL issues before re-running. For dynamic option text (e.g. a generated\n" +
+            "  account label), select by index or partial text, or store the value from a prior\n" +
+            "  step - never hardcode volatile exact text.\n" +
             "\n" +
             "QUALITY\n" +
             "* Never use fixed sleeps; use waitFor* actions.\n" +
