@@ -222,6 +222,7 @@ public class TestStepRunner {
             context
                 .getReport()
                 .startComponent(getStep().getAction(), getStep().getDescription(), resolvedScope);
+            fireLambdaTestCaseMarker(context, "lambda-testCase-start", getStep().getAction());
 
             // The reusable's own steps execute through this runner, so preserve both
             // the resolved scope and the reusable step-over debug state.

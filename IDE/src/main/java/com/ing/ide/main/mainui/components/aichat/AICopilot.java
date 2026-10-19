@@ -52,13 +52,6 @@ public class AICopilot implements SlideShow.SlideChangeListener {
     private final ChatHistoryStore historyStore = new ChatHistoryStore();
     private String currentConversationId;
 
-    /**
-     * OpenAI-compatible base URL of a running VS Code Copilot bridge, or
-     * {@code null} to use the direct GitHub Models auth flow. When set, the
-     * assistant works without a GitHub token. Re-evaluated by {@link #connectToVsCode()}.
-     */
-    private volatile String bridgeBaseUrl;
-
     private volatile Thread activeTurn;
     private volatile GitHubDeviceAuthService activeAuth;
     private volatile AgentOrchestrator activeAgent;
@@ -80,32 +73,13 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         this.toolServer = new MCPToolBridge(mainFrame);
         this.toolServer.addRefreshListener((toolName, result) -> scheduleLiveReload());
         this.ui = new AICopilotUI(this);
-        // Prefer a locally running VS Code Copilot bridge over direct GitHub auth.
-        this.bridgeBaseUrl =
-            com.ing.ide.main.mainui.components.aichat.client.BridgeDiscovery.detect();
-        if (bridgeBaseUrl != null) {
-            client.useLocalBridge(bridgeBaseUrl);
-            LOG.log(Level.INFO, "Using VS Code Copilot bridge at {0}", bridgeBaseUrl);
-        }
         refreshAuthState();
     }
 
-    /** True when the assistant is backed by a local VS Code Copilot bridge. */
-    private boolean bridgeActive() {
-        return bridgeBaseUrl != null;
-    }
-
-    /**
-     * The token to send with requests: the real GitHub token when present, a
-     * non-null placeholder when the bridge is active (so token gates pass and
-     * the client simply omits the {@code Authorization} header), else null.
-     */
+    /** The GitHub token to send with requests, or {@code null} when not signed in. */
     private String effectiveToken() {
         String token = credentials.getToken();
-        if (token != null && !token.isEmpty()) {
-            return token;
-        }
-        return bridgeActive() ? "local-bridge" : null;
+        return token != null && !token.isEmpty() ? token : null;
     }
 
     public AICopilotUI getAICopilotUI() {
@@ -151,13 +125,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
             loadCopilotSdkModelsAsync();
             return;
         }
-        if (bridgeActive()) {
-            ui.setConnected(
-                true,
-                "Connected \u00b7 port " + bridgePort() + " \u00b7 " + toolCount() + " tools"
-            );
-            loadCatalogAsync();
-        } else if (credentials.isSignedIn()) {
+        if (credentials.isSignedIn()) {
             String login = credentials.getLogin();
             ui.setConnected(true, login != null && !login.isEmpty() ? login : "Connected");
             loadCatalogAsync();
@@ -169,55 +137,18 @@ public class AICopilot implements SlideShow.SlideChangeListener {
     /**
      * Connects the assistant. When the Copilot SDK backend is active this
      * validates the Copilot CLI session (green bulb on success); otherwise it
-     * (re)detects a running VS Code Copilot bridge.
+     * signs in to GitHub (or refreshes the model catalog if already signed in).
      */
     public void connectToVsCode() {
         if (copilotSdkEnabled()) {
             probeCopilotSdk();
             return;
         }
-        ui.setStatus("Connecting to VS Code\u2026");
-        new Thread(
-            () -> {
-                String url = com.ing.ide.main.mainui.components.aichat.client.BridgeDiscovery.detect();
-                if (url == null) {
-                    SwingUtilities.invokeLater(
-                        () -> {
-                            ui.setConnected(false, "Not connected");
-                            showError(
-                                "VS Code bridge not found. In VS Code, install and run the " +
-                                "'VSCode INGenious Bridge' extension (it starts automatically), " +
-                                "then click Connect to VS Code."
-                            );
-                        }
-                    );
-                    return;
-                }
-                bridgeBaseUrl = url;
-                client.useLocalBridge(url);
-                int port = bridgePort();
-                LOG.log(Level.INFO, "Connected to VS Code Copilot bridge at {0}", url);
-                SwingUtilities.invokeLater(
-                    () -> {
-                        int tools = toolCount();
-                        ui.setConnected(
-                            true,
-                            "Connected \u00b7 port " + port + " \u00b7 " + tools + " tools"
-                        );
-                        ui.showTemporaryMessage(
-                            "\u2713 Connected on port " +
-                            port +
-                            " \u2014 " +
-                            tools +
-                            " tools available"
-                        );
-                    }
-                );
-                loadCatalogAsync();
-            },
-            "aichat-connect"
-        )
-        .start();
+        if (credentials.isSignedIn()) {
+            refreshAuthState();
+            return;
+        }
+        toggleSignIn();
     }
 
     /**
@@ -230,13 +161,11 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         new Thread(
             () -> {
                 try {
-                    ensureCopilotSdkProvider().warmUp();
+                    com.ing.engine.aicli.ai.CopilotSdkProvider provider = ensureCopilotSdkProvider();
+                    provider.warmUp();
                     SwingUtilities.invokeLater(
                         () -> {
-                            ui.setConnected(
-                                true,
-                                "Copilot CLI (SDK) \u00b7 " + credentials.getCopilotSdkModel()
-                            );
+                            ui.setConnected(true, "Copilot CLI (SDK) \u00b7 " + provider.model());
                             ui.showTemporaryMessage("\u2713 Copilot CLI ready");
                             ui.setFooter(creditSummary());
                         }
@@ -283,15 +212,6 @@ public class AICopilot implements SlideShow.SlideChangeListener {
             return " ";
         }
         return "AI credits: " + total.summary();
-    }
-
-    /** Port of the currently connected bridge, or -1 when unknown. */
-    private int bridgePort() {
-        try {
-            return bridgeBaseUrl == null ? -1 : URI.create(bridgeBaseUrl).getPort();
-        } catch (Exception ex) {
-            return -1;
-        }
     }
 
     /** Number of INGenious tools currently exposed to the model (diagnostic). */
@@ -380,6 +300,15 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         return credentials.isCopilotSdkEnabled();
     }
 
+    /** Whether the assistant should pause at checkpoints (and on the first failure) for input. */
+    public boolean isAttendedMode() {
+        return credentials.isAttendedMode();
+    }
+
+    public void setAttendedMode(boolean attended) {
+        credentials.setAttendedMode(attended);
+    }
+
     public void toggleSignIn() {
         if (credentials.isSignedIn()) {
             credentials.clear();
@@ -465,10 +394,10 @@ public class AICopilot implements SlideShow.SlideChangeListener {
     // ── Chat turn ─────────────────────────────────────────────────────────
 
     public void sendUserMessage(String text) {
-        if (!copilotSdkEnabled() && !credentials.isSignedIn() && !bridgeActive()) {
+        if (!copilotSdkEnabled() && !credentials.isSignedIn()) {
             showError(
                 "Not connected. Enable \"Copilot SDK\" to use the GitHub Copilot CLI, or click " +
-                "\"Connect to VS Code\" to use GitHub Copilot via the bridge."
+                "\"Connect\" to sign in with GitHub."
             );
             return;
         }
@@ -539,6 +468,15 @@ public class AICopilot implements SlideShow.SlideChangeListener {
             "\nWhen the user refers to \"this\"/\"current\" project, scenario, or " +
             "test case, use the values above. Pass the project path to tools."
         );
+        sb
+            .append("\n\n")
+            .append(
+                com
+                    .ing.engine.aicli.ai.OperatingMode.fromString(
+                        isAttendedMode() ? "attended" : "unattended"
+                    )
+                    .policyText()
+            );
         return sb.toString();
     }
 
@@ -648,7 +586,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         String wanted = credentials.getCopilotSdkModel();
         if (
             copilotSdkProvider == null ||
-            !java.util.Objects.equals(copilotSdkProvider.model(), wanted)
+            !java.util.Objects.equals(copilotSdkProvider.configuredModel(), wanted)
         ) {
             copilotSdkProvider =
                 new com.ing.engine.aicli.ai.CopilotSdkProvider(
@@ -718,9 +656,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                         ui.getChatWebView().addMessage(assistantMessage);
                     }
                     if (!activities.isEmpty()) {
-                        ui
-                            .getChatWebView()
-                            .addMessage(ChatMessage.assistant(toolReportMarkdown(activities)));
+                        ui.getChatWebView().appendActivityReport(activityReport(activities));
                         triggerLiveReloadNow();
                     }
                     com.ing.engine.aicli.ai.TurnStats stats = provider.lastTurnStats();
@@ -753,62 +689,21 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         turn.start();
     }
 
-    /** Renders the turn's tool activity as a Markdown table with emoji status badges. */
-    private String toolReportMarkdown(List<Object[]> activities) {
-        StringBuilder sb = new StringBuilder("**Tools used (" + activities.size() + ")**\n\n");
-        sb.append("| Status | Tool | Result |\n|---|---|---|\n");
-        int ok = 0;
-        int info = 0;
-        int warn = 0;
-        int fail = 0;
+    /** Summarizes the turn's raw tool calls into a user-facing activity report. */
+    private com.ing.engine.aicli.ai.ActivityReport.Result activityReport(
+        List<Object[]> activities
+    ) {
+        List<com.ing.engine.aicli.ai.ActivityReport.Call> calls = new ArrayList<>();
         for (Object[] a : activities) {
-            String name = (String) a[0];
-            boolean success = (Boolean) a[1];
-            String summary = (String) a[2];
-            String kind = com.ing.engine.aicli.ai.ToolReportUtil.classify(
-                name,
-                success,
-                summary,
-                null
+            calls.add(
+                new com.ing.engine.aicli.ai.ActivityReport.Call(
+                    (String) a[0],
+                    (Boolean) a[1],
+                    (String) a[2]
+                )
             );
-            String badge;
-            switch (kind) {
-                case "FAIL":
-                    badge = "\u274c FAIL";
-                    fail++;
-                    break;
-                case "WARN":
-                    badge = "\u26a0\ufe0f WARN";
-                    warn++;
-                    break;
-                case "INFO":
-                    badge = "\u2139\ufe0f INFO";
-                    info++;
-                    break;
-                default:
-                    badge = "\u2705 OK";
-                    ok++;
-            }
-            sb
-                .append("| ")
-                .append(badge)
-                .append(" | `")
-                .append(name)
-                .append("` | ")
-                .append(oneLine(summary, 90).replace("|", "\\|"))
-                .append(" |\n");
         }
-        sb.append("\n").append(ok).append(" OK");
-        if (info > 0) {
-            sb.append("  \u00b7  ").append(info).append(" INFO");
-        }
-        if (warn > 0) {
-            sb.append("  \u00b7  ").append(warn).append(" WARN");
-        }
-        if (fail > 0) {
-            sb.append("  \u00b7  ").append(fail).append(" FAIL");
-        }
-        return sb.toString();
+        return com.ing.engine.aicli.ai.ActivityReport.summarize(calls);
     }
 
     // ── Agent turn (tool-calling) ─────────────────────────────────────────

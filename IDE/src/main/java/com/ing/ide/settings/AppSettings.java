@@ -38,6 +38,7 @@ public class AppSettings {
         AI_GITHUB_CLIENT_ID("githubOAuthClientId", ""),
         AI_COPILOT_SDK_ENABLED("aiCopilotSdkEnabled", "true"),
         AI_COPILOT_SDK_MODEL("aiCopilotSdkModel", "claude-sonnet-4.5"),
+        AI_ATTENDED_MODE("aiAttendedMode", "false"),
         AI_SIDEBAR_VISIBLE("aiSidebarVisible", "false"),
         AI_SIDEBAR_WIDTH("aiSidebarWidth", "675"),
         TC_VISIBLE_COLUMNS(

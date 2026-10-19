@@ -60,6 +60,24 @@ public class Main {
         // Suppress JavaFX warnings
         System.setProperty("javafx.verbose", "false");
         System.setProperty("prism.verbose", "false");
+        configureJavaFxRendering();
+    }
+
+    private static void configureJavaFxRendering() {
+        // Every JavaFX surface here is a Swing-embedded JFXPanel, which rasterises its
+        // scene at Prism's render scale and lets Swing blit the resulting image. On a
+        // mixed-DPI setup (HiDPI primary display + a standard/non-HD external screen)
+        // Prism renders each panel at the HiDPI scale and Swing then downscales it on
+        // the non-HD screen, uniformly blurring all JavaFX text, icons, borders and
+        // buttons. Forcing a 1x render scale keeps embedded JavaFX crisp on non-HD
+        // screens. Override with -Dprism.allowhidpi=true on HiDPI-only machines.
+        setDefaultSystemProperty("prism.allowhidpi", "false");
+    }
+
+    private static void setDefaultSystemProperty(String key, String value) {
+        if (System.getProperty(key) == null) {
+            System.setProperty(key, value);
+        }
     }
 
     public static void main(String[] args) {

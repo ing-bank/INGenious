@@ -33,7 +33,7 @@ public class AgentOrchestrator {
     private static final int MAX_ITERATIONS = 20;
 
     // Cap tool-result text fed back to the model so the request body stays small
-    // (large results otherwise accumulate and trip the bridge's payload limit).
+    // (large results otherwise accumulate and trip the provider's payload limit).
     private static final int MAX_TOOL_RESULT_CHARS = 6000;
 
     private final GitHubModelsClient client;
