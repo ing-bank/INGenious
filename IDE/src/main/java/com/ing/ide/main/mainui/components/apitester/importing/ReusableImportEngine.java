@@ -155,7 +155,7 @@ public class ReusableImportEngine {
                             ImportWarning.warn(
                                 loc(nr),
                                 "Failed to create " +
-                                (toReusable ? "reusable" : "test case") +
+                                (toReusable ? "user intent" : "test case") +
                                 " '" +
                                 tcName +
                                 "'"

@@ -43,7 +43,7 @@ public class ScenarioPopupMenu extends JPopupMenu {
         );
         add(removeComp);
         addSeparator();
-        add(Utils.createMenuItem("Create Reusable", actionListener));
+        add(Utils.createMenuItem("Create User Intent", actionListener));
         addSeparator();
         add(Utils.createMenuItem("Cut", "Ctrl+X", Keystroke.CUT, actionListener));
         add(Utils.createMenuItem("Copy", "Ctrl+C", Keystroke.COPY, actionListener));

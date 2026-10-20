@@ -54,20 +54,21 @@ public class TestDesignUI extends JPanel {
         testPlanPanel = getTreeInPanel("Test Plan", testDesign.getProjectTree().getTree());
         projectNReusableTreeSplitPane.setTopComponent(testPlanPanel);
 
-        // Create tabbed pane for Project and Shared Reusables
+        // Create tabbed pane for Project and Shared Reusables, under the "User Intent" header
         reusableTreeTabbedPane = new JTabbedPane();
         JPanel projectReusablesPanel = getRTreeInPanel(
-            "User Intent",
+            "Project",
             testDesign.getReusableTree().getTree()
         );
         JPanel sharedReusablesPanel = getRTreeInPanel(
-            "Shared Reusables",
+            "Shared",
             testDesign.getSharedReusableTree().getTree()
         );
-        reusableTreeTabbedPane.addTab("User Intent", projectReusablesPanel);
-        reusableTreeTabbedPane.addTab("Shared Reusables", sharedReusablesPanel);
+        reusableTreeTabbedPane.addTab("Project", projectReusablesPanel);
+        reusableTreeTabbedPane.addTab("Shared", sharedReusablesPanel);
 
         appReusablePanel = new JPanel(new BorderLayout());
+        appReusablePanel.add(new FXPanelHeader("User Intent"), BorderLayout.NORTH);
         appReusablePanel.add(reusableTreeTabbedPane, BorderLayout.CENTER);
 
         projectNReusableTreeSplitPane.setBottomComponent(appReusablePanel);
@@ -311,8 +312,7 @@ public class TestDesignUI extends JPanel {
         reusableSwitch.setFont(new Font("ING Me", Font.BOLD, 12));
         reusableSwitch.setContentAreaFilled(false);
 
-        FXPanelHeader header = new FXPanelHeader(labelText);
-        panel.add(header, BorderLayout.NORTH);
+        // No inner header here — the tab title and the "User Intent" header above suffice
         panel.add(TreeSearch.installFor(tree), BorderLayout.CENTER);
         return panel;
     }
