@@ -22,16 +22,16 @@ public class AutomationObjectLocatorTest {
     @BeforeMethod
     public void setUp() {
         ao = new AutomationObject();
-        AutomationObject.dynamicValue.clear();
-        AutomationObject.globalDynamicValue.clear();
-        AutomationObject.chainLocatorMaping.clear();
+        AutomationObject.dynamicValue().clear();
+        AutomationObject.globalDynamicValue().clear();
+        AutomationObject.chainLocatorMaping().clear();
     }
 
     @AfterMethod
     public void tearDown() {
-        AutomationObject.dynamicValue.clear();
-        AutomationObject.globalDynamicValue.clear();
-        AutomationObject.chainLocatorMaping.clear();
+        AutomationObject.dynamicValue().clear();
+        AutomationObject.globalDynamicValue().clear();
+        AutomationObject.chainLocatorMaping().clear();
     }
 
     // ── FindType enum ───────────────────────────────────────────────────
@@ -73,23 +73,23 @@ public class AutomationObjectLocatorTest {
             "getByRole(AriaRole.BUTTON, new GetByRoleOptions().setName(\"Submit\"))"
         );
 
-        assertThat(AutomationObject.chainLocatorMaping.get("roleType")).isEqualTo("BUTTON");
-        assertThat(AutomationObject.chainLocatorMaping.get("setName")).isEqualTo("Submit");
+        assertThat(AutomationObject.chainLocatorMaping().get("roleType")).isEqualTo("BUTTON");
+        assertThat(AutomationObject.chainLocatorMaping().get("setName")).isEqualTo("Submit");
     }
 
     @Test
     public void testChainLocatorMappingGetByRoleWithoutName() {
         AutomationObject.chainLocatorMapping("getByRole(AriaRole.LINK)");
 
-        assertThat(AutomationObject.chainLocatorMaping.get("roleType")).isEqualTo("LINK");
-        assertThat(AutomationObject.chainLocatorMaping).doesNotContainKey("setName");
+        assertThat(AutomationObject.chainLocatorMaping().get("roleType")).isEqualTo("LINK");
+        assertThat(AutomationObject.chainLocatorMaping()).doesNotContainKey("setName");
     }
 
     @Test
     public void testChainLocatorMappingLocator() {
         AutomationObject.chainLocatorMapping("locator(\"div.container\")");
 
-        assertThat(AutomationObject.chainLocatorMaping.get("locator")).isEqualTo("div.container");
+        assertThat(AutomationObject.chainLocatorMaping().get("locator")).isEqualTo("div.container");
     }
 
     @Test
@@ -98,57 +98,58 @@ public class AutomationObjectLocatorTest {
             "filter(new Locator.FilterOptions().setHasText(\"Hello\"))"
         );
 
-        assertThat(AutomationObject.chainLocatorMaping.get("setHasText")).isEqualTo("Hello");
+        assertThat(AutomationObject.chainLocatorMaping().get("setHasText")).isEqualTo("Hello");
     }
 
     @Test
     public void testChainLocatorMappingGetByPlaceholder() {
         AutomationObject.chainLocatorMapping("getByPlaceholder(\"Enter name\")");
 
-        assertThat(AutomationObject.chainLocatorMaping.get("placeholder")).isEqualTo("Enter name");
+        assertThat(AutomationObject.chainLocatorMaping().get("placeholder"))
+            .isEqualTo("Enter name");
     }
 
     @Test
     public void testChainLocatorMappingGetByLabel() {
         AutomationObject.chainLocatorMapping("getByLabel(\"Email\")");
 
-        assertThat(AutomationObject.chainLocatorMaping.get("label")).isEqualTo("Email");
+        assertThat(AutomationObject.chainLocatorMaping().get("label")).isEqualTo("Email");
     }
 
     @Test
     public void testChainLocatorMappingGetByAltText() {
         AutomationObject.chainLocatorMapping("getByAltText(\"Logo\")");
 
-        assertThat(AutomationObject.chainLocatorMaping.get("lable")).isEqualTo("Logo");
+        assertThat(AutomationObject.chainLocatorMaping().get("lable")).isEqualTo("Logo");
     }
 
     @Test
     public void testChainLocatorMappingGetByText() {
         AutomationObject.chainLocatorMapping("getByText(\"Click Me\")");
 
-        assertThat(AutomationObject.chainLocatorMaping.get("text")).isEqualTo("Click Me");
+        assertThat(AutomationObject.chainLocatorMaping().get("text")).isEqualTo("Click Me");
     }
 
     @Test
     public void testChainLocatorMappingFrameLocator() {
         AutomationObject.chainLocatorMapping("frameLocator(\"#myFrame\")");
 
-        assertThat(AutomationObject.chainLocatorMaping.get("frameLocator")).isEqualTo("#myFrame");
+        assertThat(AutomationObject.chainLocatorMaping().get("frameLocator")).isEqualTo("#myFrame");
     }
 
     @Test
     public void testChainLocatorMappingSetExact() {
         AutomationObject.chainLocatorMapping("getByText(\"Save\").setExact(true)");
 
-        assertThat(AutomationObject.chainLocatorMaping.get("setExact")).isEqualTo("true");
-        assertThat(AutomationObject.chainLocatorMaping.get("text")).isEqualTo("Save");
+        assertThat(AutomationObject.chainLocatorMaping().get("setExact")).isEqualTo("true");
+        assertThat(AutomationObject.chainLocatorMaping().get("text")).isEqualTo("Save");
     }
 
     // ── getRuntimeValue (private) ───────────────────────────────────────
 
     @Test
     public void testGetRuntimeValueWithGlobalDynamic() throws Exception {
-        AutomationObject.globalDynamicValue.put("{env}", "production");
+        AutomationObject.globalDynamicValue().put("{env}", "production");
         ao.findType = AutomationObject.FindType.GLOBAL_OBJECT;
 
         String result = invokeGetRuntimeValue("https://{env}.example.com");
@@ -161,7 +162,7 @@ public class AutomationObjectLocatorTest {
         props.put("{id}", "42");
         Map<String, Map<String, String>> objMap = new HashMap<>();
         objMap.put("Btn1", props);
-        AutomationObject.dynamicValue.put("Page1", objMap);
+        AutomationObject.dynamicValue().put("Page1", objMap);
 
         ao.pageName = "Page1";
         ao.objectName = "Btn1";
@@ -178,8 +179,8 @@ public class AutomationObjectLocatorTest {
 
     @Test
     public void testGetRuntimeValueMultipleReplacements() throws Exception {
-        AutomationObject.globalDynamicValue.put("{a}", "X");
-        AutomationObject.globalDynamicValue.put("{b}", "Y");
+        AutomationObject.globalDynamicValue().put("{a}", "X");
+        AutomationObject.globalDynamicValue().put("{b}", "Y");
         ao.findType = AutomationObject.FindType.GLOBAL_OBJECT;
 
         String result = invokeGetRuntimeValue("{a}-{b}");
@@ -266,16 +267,16 @@ public class AutomationObjectLocatorTest {
 
     @Test
     public void testDynamicValueMapOperations() {
-        AutomationObject.dynamicValue.put("Page1", new HashMap<>());
-        assertThat(AutomationObject.dynamicValue).containsKey("Page1");
-        AutomationObject.dynamicValue.clear();
-        assertThat(AutomationObject.dynamicValue).isEmpty();
+        AutomationObject.dynamicValue().put("Page1", new HashMap<>());
+        assertThat(AutomationObject.dynamicValue()).containsKey("Page1");
+        AutomationObject.dynamicValue().clear();
+        assertThat(AutomationObject.dynamicValue()).isEmpty();
     }
 
     @Test
     public void testGlobalDynamicValueMapOperations() {
-        AutomationObject.globalDynamicValue.put("key", "value");
-        assertThat(AutomationObject.globalDynamicValue).containsEntry("key", "value");
+        AutomationObject.globalDynamicValue().put("key", "value");
+        assertThat(AutomationObject.globalDynamicValue()).containsEntry("key", "value");
     }
 
     // ── page/getPage/setPage ────────────────────────────────────────────
