@@ -55,7 +55,7 @@
         <j2objc-annotations.version>2.8</j2objc-annotations.version>
         <slf4j-api.version>2.0.7</slf4j-api.version>
         <httpcore.version>4.4.16</httpcore.version>
-        <guava.version>32.1.0-jre</guava.version>
+        <guava.version>33.7.2-jre</guava.version>
         <appium.version>10.1.1</appium.version>
         <javafaker.version>1.0.2</javafaker.version>
         <kafka-clients.version>3.9.2</kafka-clients.version>
