@@ -95,6 +95,34 @@ public class SqlScriptTest {
     }
 
     @Test
+    public void detectsStatementsThatChangeBrowsableObjects() {
+        assertTrue(SqlScript.changesBrowsableObjects("CREATE TABLE t (a int)"));
+        assertTrue(SqlScript.changesBrowsableObjects("create schema demo"));
+        assertTrue(SqlScript.changesBrowsableObjects("CREATE DATABASE demo"));
+        assertTrue(
+            SqlScript.changesBrowsableObjects("/* setup */ CREATE TABLE IF NOT EXISTS t (a int)")
+        );
+        assertTrue(SqlScript.changesBrowsableObjects("CREATE GLOBAL TEMPORARY TABLE t (a int)"));
+        assertTrue(SqlScript.changesBrowsableObjects("CREATE OR REPLACE TABLE t (a int)"));
+        assertTrue(SqlScript.changesBrowsableObjects("DROP TABLE t"));
+        assertTrue(SqlScript.changesBrowsableObjects("drop table if exists t cascade"));
+        assertTrue(SqlScript.changesBrowsableObjects("DROP SCHEMA demo CASCADE"));
+        assertTrue(SqlScript.changesBrowsableObjects("DROP DATABASE demo"));
+        assertTrue(SqlScript.changesBrowsableObjects("DROP TEMPORARY TABLE t"));
+        assertTrue(SqlScript.changesBrowsableObjects("ALTER TABLE t RENAME TO t2"));
+        assertTrue(SqlScript.changesBrowsableObjects("alter schema s rename to s2"));
+        assertTrue(SqlScript.changesBrowsableObjects("ALTER DATABASE demo RENAME TO other"));
+        assertTrue(SqlScript.changesBrowsableObjects("ALTER TABLE t SET SCHEMA other"));
+        assertTrue(SqlScript.changesBrowsableObjects("RENAME TABLE old TO new"));
+        assertTrue(SqlScript.changesBrowsableObjects("RENAME old TO new"));
+        assertFalse(SqlScript.changesBrowsableObjects("CREATE TABLESPACE ts LOCATION '/x'"));
+        assertFalse(SqlScript.changesBrowsableObjects("CREATE INDEX idx ON t (a)"));
+        assertFalse(SqlScript.changesBrowsableObjects("DROP INDEX idx"));
+        assertFalse(SqlScript.changesBrowsableObjects("ALTER TABLE t ADD COLUMN b int"));
+        assertFalse(SqlScript.changesBrowsableObjects("SELECT 1"));
+    }
+
+    @Test
     public void expandsPsqlShorthand() {
         assertTrue(SqlScript.expandPsqlShorthand("\\l").contains("pg_database"));
         assertTrue(SqlScript.expandPsqlShorthand("\\dt").contains("pg_class"));

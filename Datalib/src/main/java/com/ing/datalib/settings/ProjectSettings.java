@@ -29,6 +29,8 @@ public class ProjectSettings {
     private final DBProperties dbSettings;
     private final ContextOptions contextSettings;
     private final KafkaSSLConfigurations SSLConfigurations;
+    private final KafkaProducerProperties kafkaProducerSettings;
+    private final KafkaConsumerProperties kafkaConsumerSettings;
     private final LambdaTestCaps lambdaTestCaps;
 
     public ProjectSettings(Project sProject) {
@@ -51,6 +53,8 @@ public class ProjectSettings {
         this.extentSettings = new ExtentReportSettings(getLocation());
         this.contextSettings = new ContextOptions(getLocation());
         this.SSLConfigurations = new KafkaSSLConfigurations(getLocation());
+        this.kafkaProducerSettings = new KafkaProducerProperties(getLocation());
+        this.kafkaConsumerSettings = new KafkaConsumerProperties(getLocation());
         this.lambdaTestCaps = new LambdaTestCaps(getLocation());
 
         // Ensure SAP is available as default browser (skipped if read-only)
@@ -61,6 +65,10 @@ public class ProjectSettings {
         // Skipped if in read-only mode.
         if (!readOnlyMode) {
             EmulatorToDeviceMigration.migrate(emulators, devices);
+
+            // One-time migration: copy the single global Kafka SSL bag into the new
+            // per-config default producer/consumer. Idempotent; legacy bag is kept.
+            migrateLegacyKafkaSSL();
         }
     }
 
@@ -148,6 +156,8 @@ public class ProjectSettings {
         rpSettings.setLocation(getLocation());
         extentSettings.setLocation(getLocation());
         contextSettings.setLocation(getLocation());
+        kafkaProducerSettings.setLocation(getLocation());
+        kafkaConsumerSettings.setLocation(getLocation());
         lambdaTestCaps.setLocation(getLocation());
     }
 
@@ -173,6 +183,14 @@ public class ProjectSettings {
 
     public KafkaSSLConfigurations getKafkaSSLConfigurations() {
         return SSLConfigurations;
+    }
+
+    public KafkaProducerProperties getKafkaProducerSettings() {
+        return kafkaProducerSettings;
+    }
+
+    public KafkaConsumerProperties getKafkaConsumerSettings() {
+        return kafkaConsumerSettings;
     }
 
     public ContextOptions getContextSettings() {

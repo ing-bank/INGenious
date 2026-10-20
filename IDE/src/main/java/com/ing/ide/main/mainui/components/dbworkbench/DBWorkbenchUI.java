@@ -5,6 +5,7 @@ import com.ing.ide.main.mainui.components.dbworkbench.connections.ConnectionTree
 import com.ing.ide.main.mainui.components.dbworkbench.query.QueryEditorPanel;
 import com.ing.ide.main.mainui.components.dbworkbench.result.ResultGridPanel;
 import com.ing.ide.main.mainui.components.dbworkbench.util.JdbcExecutor;
+import com.ing.ide.main.mainui.components.dbworkbench.util.SqlScript;
 import java.awt.BorderLayout;
 import java.sql.Connection;
 import java.util.List;
@@ -117,7 +118,11 @@ public class DBWorkbenchUI extends JPanel {
             @Override
             protected void done() {
                 try {
-                    resultPanel.showOutcomes(alias, get());
+                    List<JdbcExecutor.StatementOutcome> outcomes = get();
+                    resultPanel.showOutcomes(alias, outcomes);
+                    if (changesBrowsableObjects(outcomes)) {
+                        connectionTree.refreshConnection(alias);
+                    }
                 } catch (Exception ex) {
                     Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
                     resultPanel.showError(
@@ -127,6 +132,18 @@ public class DBWorkbenchUI extends JPanel {
             }
         }
         .execute();
+    }
+
+    /** @return true when a statement added, dropped or renamed a table, schema or database */
+    private static boolean changesBrowsableObjects(List<JdbcExecutor.StatementOutcome> outcomes) {
+        for (JdbcExecutor.StatementOutcome outcome : outcomes) {
+            if (
+                outcome.kind == SqlScript.Kind.DDL && SqlScript.changesBrowsableObjects(outcome.sql)
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private int parseTimeout(Properties props) {

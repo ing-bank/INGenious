@@ -546,13 +546,31 @@ public class ConnectionTree extends JPanel {
         .execute();
     }
 
+    /**
+     * Reloads the subtree of a connection so newly created tables, schemas or
+     * databases become visible. Safe to call when the connection is not shown.
+     *
+     * @param alias the connection whose subtree should be reloaded
+     */
+    public void refreshConnection(String alias) {
+        if (alias != null) {
+            reloadConnection(alias);
+        }
+    }
+
     /** Drops the cached children of a connection so the next expand reloads them. */
     private void reloadConnection(String alias) {
         DefaultMutableTreeNode connNode = findConnNode(alias);
         if (connNode == null) return;
+        boolean wasExpanded = tree.isExpanded(new TreePath(connNode.getPath()));
         connNode.removeAllChildren();
         connNode.add(new DefaultMutableTreeNode(LOADING));
         treeModel.reload(connNode);
+        if (wasExpanded) {
+            // The node stays expanded across the reload, so no expansion event fires to
+            // drive the lazy loader; kick it off here or the placeholder would never resolve.
+            lazyLoad(connNode);
+        }
     }
 
     private void maybeShowContextMenu(MouseEvent e) {

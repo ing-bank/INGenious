@@ -252,33 +252,10 @@ public class DBWorkbench implements SlideShow.SlideChangeListener {
         }
     }
 
-    public TestCase convertQueryToReusable(
-        DBQuery query,
-        Scenario reusableScenario,
-        String testCaseName
-    ) {
-        if (query == null || reusableScenario == null || testCaseName == null) return null;
-        if (!reusableScenario.isReusableScenario()) {
-            LOG.warning(
-                "convertQueryToReusable called with non-reusable scenario: " +
-                reusableScenario.getName()
-            );
-            return null;
-        }
-        TestCase testCase = reusableScenario.addTestCase(testCaseName);
-        if (testCase == null) {
-            LOG.warning(
-                "User Intent '" + testCaseName + "' could not be created (likely already exists)"
-            );
-            return null;
-        }
-        try {
-            buildStepsForQuery(testCase, query);
-            testCase.save();
-            if (
-                mainFrame.getTestDesign() != null &&
-                mainFrame.getTestDesign().getReusableTree() != null
-            ) {
+    private void addToTestDesignTree(TestCase testCase, boolean reusable, boolean created) {
+        if (!created || mainFrame.getTestDesign() == null) return;
+        if (reusable) {
+            if (mainFrame.getTestDesign().getReusableTree() != null) {
                 mainFrame.getTestDesign().getReusableTree().getTreeModel().addTestCase(testCase);
             }
         } else if (mainFrame.getTestDesign().getProjectTree() != null) {

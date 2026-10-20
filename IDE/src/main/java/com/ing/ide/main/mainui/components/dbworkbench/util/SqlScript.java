@@ -35,6 +35,14 @@ public final class SqlScript {
 
     private SqlScript() {}
 
+    /** Object types shown in the connection tree. */
+    private static final String BROWSABLE = "(TABLE|SCHEMA|DATABASE)";
+    private static final String CREATE_MODIFIERS =
+        "(?: (?:OR|REPLACE|GLOBAL|LOCAL|TEMP|TEMPORARY|TRANSIENT|UNLOGGED|EXTERNAL|" +
+        "CACHED|MEMORY|VOLATILE|COLUMN|ROW|MULTISET))*";
+    private static final String DROP_MODIFIERS = "(?: (?:TEMP|TEMPORARY|EXTERNAL|FOREIGN))*";
+    private static final String ALTER_MODIFIERS = "(?: (?:EXTERNAL|FOREIGN))*";
+
     /**
      * Splits a SQL script into executable statements on unquoted semicolons.
      * Quoted literals, identifiers, dollar-quoted bodies and comments are
@@ -209,6 +217,29 @@ public final class SqlScript {
             default:
                 return Kind.OTHER;
         }
+    }
+
+    /**
+     * Tells whether a statement adds, removes or renames an object the
+     * connection tree shows: a table, a schema or a database. Optional
+     * modifiers between the verb and the object type ({@code OR REPLACE},
+     * {@code GLOBAL TEMPORARY}, {@code IF EXISTS}, ...) are tolerated.
+     *
+     * @param statement one statement, without a trailing semicolon
+     * @return true when the tree has to be reloaded to stay accurate
+     */
+    public static boolean changesBrowsableObjects(String statement) {
+        String normalized = stripLeadingNoise(statement).toUpperCase(Locale.ROOT);
+        normalized = normalized.replaceAll("\\s+", " ");
+        return (
+            normalized.matches("^CREATE" + CREATE_MODIFIERS + " " + BROWSABLE + "\\b.*") ||
+            normalized.matches("^DROP" + DROP_MODIFIERS + " " + BROWSABLE + "\\b.*") ||
+            normalized.matches(
+                "^ALTER" + ALTER_MODIFIERS + " " + BROWSABLE + "\\b.*\\b(RENAME|SET SCHEMA)\\b.*"
+            ) ||
+            // Oracle's "RENAME old TO new" and MySQL's "RENAME TABLE old TO new".
+            normalized.matches("^RENAME\\b.*\\bTO\\b.*")
+        );
     }
 
     /**
