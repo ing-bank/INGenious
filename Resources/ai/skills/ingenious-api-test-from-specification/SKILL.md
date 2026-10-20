@@ -102,7 +102,7 @@ payloads, store the whole body in one column and reference it; for small payload
 **Dynamic / unique data (repeatable runs).** When a field must be fresh/unique per run
 (e.g. "dynamic email", "unique order id", "for repeatability") so re-running the test
 doesn't collide with a prior run's data, don't hardcode a value. Add a synthetic-data
-step (`object: Data`; find it with `ingenious_action_search "email"` / `"uuid"` /
+step (`object: Synthetic Data`; find it with `ingenious_action_search "email"` / `"uuid"` /
 `"random"` etc.) immediately before the request that needs it, with `Input` set to the
 target `Sheet:Column` — then reference that same `Sheet:Column` in the request
 payload/params.

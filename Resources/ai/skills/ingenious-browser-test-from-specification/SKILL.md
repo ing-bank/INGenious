@@ -134,7 +134,7 @@ Run these tool calls in order. Fill slots from the inputs; do not reorder.
      `ingenious_data_column_add` / `ingenious_data_row_add`; reference as `Sheet:Column`.
    - **Dynamic / unique / random data** (spec says "dynamic email", "unique username",
      "random order id", "for repeatability", etc.): never hardcode or hand-invent the
-     value. Insert a synthetic-data step (`object: Data`; find it with
+     value. Insert a synthetic-data step (`object: Synthetic Data`; find it with
      `ingenious_action_search "email"` / `"uuid"` / `"random"` / `"number"` etc., e.g.
      `emailAddress`, `internetUUID`, `randomNumberWithNoOfDigits`) immediately before the
      step that first needs the value, with `Input` set to the `Sheet:Column` where the

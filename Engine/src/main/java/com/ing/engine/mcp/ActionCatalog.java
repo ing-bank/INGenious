@@ -40,7 +40,7 @@ public final class ActionCatalog {
         CATEGORY.put("app", "Mobile");
         CATEGORY.put("general", "General");
         CATEGORY.put("any", "General");
-        CATEGORY.put("data", "General");
+        CATEGORY.put("syntheticdata", "General");
         CATEGORY.put("file", "General");
         CATEGORY.put("image", "General");
         CATEGORY.put("stringoperations", "General");
@@ -342,7 +342,7 @@ public final class ActionCatalog {
         if (n.contains(".commands.queue.")) return "Kafka";
         if (n.contains(".commands.file.")) return "File";
         if (n.contains(".commands.stringoperations.")) return "String Operations";
-        if (n.contains(".commands.syntheticdata.")) return "Data";
+        if (n.contains(".commands.syntheticdata.")) return "Synthetic Data";
         if (n.contains(".commands.galencommands.")) return "Browser";
         if (n.contains(".commands.axe.")) return "Browser";
         if (n.contains(".commands.general.")) return "General";
