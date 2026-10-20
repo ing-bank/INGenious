@@ -115,7 +115,7 @@ public class ProjectDnD extends TransferHandler {
         Boolean shouldCut = ts.isDrop() ? ts.getDropAction() == MOVE : clipboardCutInProgress;
         if (shouldCut && isMoveFromTestPlanOrProjectToShared()) {
             Notification.showWarning(
-                "Cut/Move from Test Plan or Project Reusable to Shared Reusable is not allowed. Use 'Make As Shared Reusable' instead."
+                "Cut/Move from Test Plan or Project User Intent to Shared User Intent is not allowed. Use 'Make As Shared User Intent' instead."
             );
             return false;
         }
@@ -128,7 +128,7 @@ public class ProjectDnD extends TransferHandler {
         }
         if (shouldCut && isRestrictedMoveToSharedTree()) {
             Notification.showWarning(
-                "Move-paste into Shared Reusables is not supported from Test Plan or Project Reusables. Use 'Make As Shared Reusable' instead."
+                "Move-paste into Shared User Intent is not supported from Test Plan or Project User Intent. Use 'Make As Shared User Intent' instead."
             );
             return false;
         }
@@ -182,7 +182,7 @@ public class ProjectDnD extends TransferHandler {
         Boolean shouldCut = ts.isDrop() ? ts.getDropAction() == MOVE : clipboardCutInProgress;
         if (shouldCut && isMoveFromTestPlanOrProjectToShared()) {
             Notification.showWarning(
-                "Cut/Move from Test Plan or Project Reusable to Shared Reusable is not allowed. Use 'Make As Shared Reusable' instead."
+                "Cut/Move from Test Plan or Project User Intent to Shared User Intent is not allowed. Use 'Make As Shared User Intent' instead."
             );
             return false;
         }
@@ -532,22 +532,22 @@ public class ProjectDnD extends TransferHandler {
         }
 
         if ("testplan".equals(sourceScope) && "project".equals(destinationScope)) {
-            return "Cut/Move from Test Plan to Project Reusable is not allowed. Use 'Make As Project Reusable' instead.";
+            return "Cut/Move from Test Plan to Project User Intent is not allowed. Use 'Make As Project User Intent' instead.";
         }
         if ("testplan".equals(sourceScope) && "shared".equals(destinationScope)) {
-            return "Cut/Move from Test Plan to Shared Reusable is not allowed. Use 'Make As Shared Reusable' instead.";
+            return "Cut/Move from Test Plan to Shared User Intent is not allowed. Use 'Make As Shared User Intent' instead.";
         }
         if ("project".equals(sourceScope) && "shared".equals(destinationScope)) {
-            return "Cut/Move from Project Reusable to Shared Reusable is not allowed. Use 'Make As Shared Reusable' instead.";
+            return "Cut/Move from Project User Intent to Shared User Intent is not allowed. Use 'Make As Shared User Intent' instead.";
         }
         if ("project".equals(sourceScope) && "testplan".equals(destinationScope)) {
-            return "Cut/Move from Project Reusable to Test Plan is not allowed. Use 'Make As TestCase' instead.";
+            return "Cut/Move from Project User Intent to Test Plan is not allowed. Use 'Make As TestCase' instead.";
         }
         if ("shared".equals(sourceScope) && "project".equals(destinationScope)) {
-            return "Cut/Move from Shared Reusable to Project Reusable action is not allowed.";
+            return "Cut/Move from Shared User Intent to Project User Intent action is not allowed.";
         }
         if ("shared".equals(sourceScope) && "testplan".equals(destinationScope)) {
-            return "Cut/Move from Shared Reusable to Test Plan action is not allowed.";
+            return "Cut/Move from Shared User Intent to Test Plan action is not allowed.";
         }
 
         return "Cross-scope cut/move is not allowed. Use the appropriate 'Make As ...' action instead.";

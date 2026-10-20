@@ -46,7 +46,7 @@ public class ScenarioToolBar extends JToolBar {
         searchField = new SearchBox(actionListener);
         add(searchField);
         addSeparator();
-        add(Utils.createButton("Create Reusable", "reusable", null, actionListener));
+        add(Utils.createButton("Create User Intent", "reusable", null, actionListener));
 
         JButton addCompButton = Utils.createButton(
             "Add Component",

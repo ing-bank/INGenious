@@ -624,7 +624,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             case "Paste":
                 ccp(ae.getActionCommand());
                 break;
-            case "Create Reusable":
+            case "Create User Intent":
                 createReusable();
                 break;
             case "Move Rows Up":
@@ -651,7 +651,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             case "Console":
                 consoleDialog.showConsole();
                 break;
-            case "Go To Reusable":
+            case "Go To User Intent":
                 goToSelectedReusable();
                 break;
             case "Go To Object":
@@ -1722,7 +1722,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                         testDesign.getReusableTree().getTreeModel().addTestCase(reusable);
                     }
                 } else {
-                    Notification.show("Couldn't Create Reusable - " + result.getReusableName());
+                    Notification.show("Couldn't Create User Intent - " + result.getReusableName());
                 }
             }
         }
@@ -1790,7 +1790,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
 
             // Go To Reusable is only available for PROJECT and SHARED scope reusables
             if (!tStep.isReusableStep()) {
-                Notification.showWarning("Selected step is not a reusable step.");
+                Notification.showWarning("Selected step is not a user intent step.");
                 return;
             }
 
@@ -1819,7 +1819,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 // Only allow navigation for PROJECT and SHARED scoped reusables
                 if (ref.getScope() == ReusableRef.Scope.UNSCOPED) {
                     Notification.showWarning(
-                        "Cannot navigate to unscoped reusable. Please explicitly scope the reference as [Project] or [Shared] in the Action column."
+                        "Cannot navigate to unscoped user intent. Please explicitly scope the reference as [Project] or [Shared] in the Action column."
                     );
                     return;
                 }
@@ -1854,7 +1854,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                         ref.getScenarioName() +
                         "] not present in " +
                         ref.getScope() +
-                        " reusable scope"
+                        " user intent scope"
                     );
                 }
             }

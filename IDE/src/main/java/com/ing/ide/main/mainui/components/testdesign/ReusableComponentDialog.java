@@ -78,8 +78,8 @@ public final class ReusableComponentDialog {
      */
     public static Result prompt(Component parent, Project project) {
         // Scope selection radio buttons
-        JRadioButton projectRadio = new JRadioButton("Project Reusable", true);
-        JRadioButton sharedRadio = new JRadioButton("Shared Reusable", false);
+        JRadioButton projectRadio = new JRadioButton("Project", true);
+        JRadioButton sharedRadio = new JRadioButton("Shared", false);
         ButtonGroup scopeGroup = new ButtonGroup();
         scopeGroup.add(projectRadio);
         scopeGroup.add(sharedRadio);
@@ -148,7 +148,7 @@ public final class ReusableComponentDialog {
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.weightx = 0;
-        panel.add(new JLabel("Reusable Scenario Name:"), gbc);
+        panel.add(new JLabel("Scenario Name:"), gbc);
         gbc.gridx = 1;
         gbc.weightx = 1;
         panel.add(scenarioBox, gbc);
@@ -157,7 +157,7 @@ public final class ReusableComponentDialog {
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.weightx = 0;
-        panel.add(new JLabel("Reusable Name:"), gbc);
+        panel.add(new JLabel("Test Case Name:"), gbc);
         gbc.gridx = 1;
         gbc.weightx = 1;
         panel.add(nameField, gbc);
@@ -167,7 +167,7 @@ public final class ReusableComponentDialog {
             JOptionPane.PLAIN_MESSAGE,
             JOptionPane.OK_CANCEL_OPTION
         );
-        JDialog dialog = optionPane.createDialog(parent, "Create Reusable");
+        JDialog dialog = optionPane.createDialog(parent, "Create User Intent");
 
         // Hitting Enter inside the name field confirms the dialog; the pane's own
         // listener hides it, validation below decides whether to dispose or re-show it.
