@@ -188,10 +188,10 @@ public class SAPActions extends General {
                 String[] groups = Data.split(",");
                 for (String group : groups) {
                     String[] vals = group.split("=", 2);
-                    AutomationObject.globalDynamicValue.put(vals[0], vals[1]);
+                    AutomationObject.globalDynamicValue().put(vals[0], vals[1]);
                 }
             } else {
-                AutomationObject.globalDynamicValue.put(Condition, Data);
+                AutomationObject.globalDynamicValue().put(Condition, Data);
             }
             String text = String.format(
                 "Setting Global Object Property for %s with %s",
