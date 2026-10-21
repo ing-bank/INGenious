@@ -91,6 +91,15 @@ public interface CommandPluginApi {
     */
    PathsApi getPaths();
 
+   /**
+    * Gets the system defaults API for the framework's shared run-level
+    * timing defaults, execution-control flags, and command-line/environment
+    * variables.
+    * @return the SystemDefaultsApi instance
+    * @since 3.1
+    */
+   SystemDefaultsApi getSystemDefaults();
+
     /**
      * Adds a runtime variable with the specified key and value.
      * @param key the variable key

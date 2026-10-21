@@ -6,6 +6,7 @@ import com.ibm.msg.client.jms.JmsFactoryFactory;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
 import com.ing.engine.constants.PathsApiImpl;
+import com.ing.engine.constants.SystemDefaultsApiImpl;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.drivers.MobileObject;
@@ -17,6 +18,7 @@ import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.reporting.util.DateTimeApiImpl;
 import com.ing.ingenious.api.contract.CommandPluginApi;
+import com.ing.ingenious.api.contract.SystemDefaultsApi;
 import com.ing.ingenious.api.contract.data.UserDataAccessApi;
 import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
 import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
@@ -461,6 +463,15 @@ public class Command implements CommandPluginApi {
     @Override
     public PathsApi getPaths() {
         return PathsApiImpl.INSTANCE;
+    }
+
+    /**
+     * Implementation of {@link CommandPluginApi#getSystemDefaults()} for the API-plugin contract.
+     * @return the SystemDefaultsApi instance for the framework's shared run-level defaults and flags
+     */
+    @Override
+    public SystemDefaultsApi getSystemDefaults() {
+        return SystemDefaultsApiImpl.INSTANCE;
     }
 
     /**
