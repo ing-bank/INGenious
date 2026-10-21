@@ -28,9 +28,15 @@ public class InsertColumnPromptFeature {
     private static final float INSERT_LINE_OPACITY = 0.45f;
     private static final float INSERT_PLUS_OPACITY = 0.90f;
 
-    private static final int INSERT_PLUS_SIZE = 18;
     private static final int INSERT_PLUS_HIT_PADDING = 2;
-    private static final int INSERT_HOVER_ZONE = INSERT_PLUS_SIZE / 2 + INSERT_PLUS_HIT_PADDING;
+
+    /*
+     * The plus icon is intentionally kept small relative to the row height so it
+     * is far less likely to be clicked accidentally while navigating the table.
+     */
+    private static final float INSERT_PLUS_HEIGHT_RATIO = 0.30f;
+    private static final int INSERT_PLUS_MIN_SIZE = 8;
+    private static final int INSERT_PLUS_MAX_SIZE = 18;
 
     private static final int INSERT_MOUSE_SUPPRESSION_MS = 140;
 
@@ -281,7 +287,7 @@ public class InsertColumnPromptFeature {
          * column, so before-first-column insertion is not reliable.
          */
         if (
-            Math.abs(point.x - cellLeft) <= INSERT_HOVER_ZONE &&
+            Math.abs(point.x - cellLeft) <= getInsertHoverZone() &&
             (column > 0 || insertColumnHandler != null)
         ) {
             int candidateInsertColumn = column;
@@ -291,7 +297,7 @@ public class InsertColumnPromptFeature {
             }
         }
 
-        if (Math.abs(point.x - cellRight) <= INSERT_HOVER_ZONE) {
+        if (Math.abs(point.x - cellRight) <= getInsertHoverZone()) {
             int candidateInsertColumn = column + 1;
 
             if (isInsertColumnAllowed(candidateInsertColumn)) {
@@ -320,7 +326,7 @@ public class InsertColumnPromptFeature {
         Rectangle lastCell = table.getCellRect(row, columnCount - 1, true);
         int lastCellRight = lastCell.x + lastCell.width;
 
-        if (Math.abs(point.x - lastCellRight) <= INSERT_HOVER_ZONE) {
+        if (Math.abs(point.x - lastCellRight) <= getInsertHoverZone()) {
             int candidateInsertColumn = columnCount;
 
             if (isInsertColumnAllowed(candidateInsertColumn)) {
@@ -408,9 +414,32 @@ public class InsertColumnPromptFeature {
         int x = getInsertLineX(insertColumn);
         int y = rowBounds.y + rowBounds.height / 2;
 
-        int half = INSERT_PLUS_SIZE / 2;
+        int size = getPlusSize();
+        int half = size / 2;
 
-        return new Rectangle(x - half, y - half, INSERT_PLUS_SIZE, INSERT_PLUS_SIZE);
+        return new Rectangle(x - half, y - half, size, size);
+    }
+
+    /**
+     * Returns the plus icon diameter, scaled to a fraction of the row height.
+     *
+     * @return plus icon size in pixels
+     */
+    private int getPlusSize() {
+        int rowHeight = Math.max(1, table.getRowHeight());
+        int scaledSize = Math.round(rowHeight * INSERT_PLUS_HEIGHT_RATIO);
+
+        return Math.max(INSERT_PLUS_MIN_SIZE, Math.min(INSERT_PLUS_MAX_SIZE, scaledSize));
+    }
+
+    /**
+     * Returns the horizontal tolerance used to detect hovering over an insertion
+     * position, derived from the current plus icon size.
+     *
+     * @return hover tolerance in pixels
+     */
+    private int getInsertHoverZone() {
+        return getPlusSize() / 2 + INSERT_PLUS_HIT_PADDING;
     }
 
     /**
@@ -598,13 +627,15 @@ public class InsertColumnPromptFeature {
 
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
             g2.setColor(Color.WHITE);
-            g2.setStroke(new BasicStroke(2f));
+            g2.setStroke(new BasicStroke(Math.max(1f, plusBounds.height / 9f)));
 
             int centerX = plusBounds.x + plusBounds.width / 2;
             int centerY = plusBounds.y + plusBounds.height / 2;
 
-            g2.drawLine(centerX - 5, centerY, centerX + 5, centerY);
-            g2.drawLine(centerX, centerY - 5, centerX, centerY + 5);
+            int arm = Math.max(2, Math.round(plusBounds.width * 0.28f));
+
+            g2.drawLine(centerX - arm, centerY, centerX + arm, centerY);
+            g2.drawLine(centerX, centerY - arm, centerX, centerY + arm);
         } finally {
             g2.dispose();
         }
