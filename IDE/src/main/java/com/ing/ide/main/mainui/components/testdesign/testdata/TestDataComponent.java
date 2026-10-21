@@ -1283,13 +1283,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     // ─── "Make As Shared TestData" ────────────────────────────────────────────
 
-    /** Outcome of the "also move the test cases?" prompt. */
+    /** Outcome of the "also move the Project Reusable components?" prompt. */
     private static final class PromoteChoice {
         /** true when the user dismissed the prompt - the whole operation is aborted. */
         boolean cancelled;
-        /** test cases the user chose to convert to Shared Reusables (empty when declined). */
+        /** Project Reusable components the user chose to convert to Shared Reusables (empty when declined). */
         final List<TestCase> toPromote = new ArrayList<>();
-        /** test cases left behind because the user said No (empty when there were none / Yes). */
+        /** components left behind because the user said No (empty when there were none / Yes). */
         final List<TestCase> leftBehind = new ArrayList<>();
     }
 
@@ -1318,8 +1318,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             "' from environment '" +
             envName +
             "' to Shared Test Data?\n" +
-            "References to it will be updated to [Shared] (unless the same sheet still exists " +
-            "in another environment).",
+            "References to it will be updated to [Shared].",
             "Make As Shared TestData",
             JOptionPane.YES_NO_OPTION
         );
@@ -1354,12 +1353,46 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
      * test case / Test Data auto-suggests pick up test cases that were also promoted to
      * Shared Reusables - mirroring what the tree "Make As Shared Reusable" flow does
      * ({@code getProject().reload(); load();}).
+     *
+     * <p>The currently open test case editor (if any) keeps its pre-reload {@code TestCase}
+     * instance otherwise - {@code TestCaseComponent.load()} doesn't touch it - so it would
+     * keep showing stale Input/reference values (and, if that very test case was moved to
+     * Shared Reusables, a now-deleted file path). Re-resolve it by scenario/test case name
+     * across the reloaded project's scopes and rebind the table to the fresh instance.</p>
      */
     private void refreshAfterMakeShared() {
+        TestCase openTestCase = testDesign.getTestCaseComp().getCurrentTestCase();
+        String openScenarioName = openTestCase == null
+            ? null
+            : openTestCase.getScenario().getName();
+        String openTestCaseName = openTestCase == null ? null : openTestCase.getName();
+
         if (testDesign.getProject() != null) {
             testDesign.getProject().reload();
         }
         testDesign.load();
+
+        if (openScenarioName != null) {
+            TestCase refreshed = findTestCaseAcrossScopes(openScenarioName, openTestCaseName);
+            if (refreshed != null) {
+                testDesign.getTestCaseComp().loadTableModelForSelection(refreshed);
+            }
+        }
+    }
+
+    private TestCase findTestCaseAcrossScopes(String scenarioName, String testCaseName) {
+        if (testDesign.getProject() == null) {
+            return null;
+        }
+        for (Scenario scenario : testDesign.getProject().getAllScenarios()) {
+            if (scenario.getName().equals(scenarioName)) {
+                TestCase tc = scenario.getTestCaseByName(testCaseName);
+                if (tc != null) {
+                    return tc;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -1390,9 +1423,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             Notification.showWarning("Environment '" + envName + "' has no Test Data to move.");
             return;
         }
-        String fate = "Default".equals(envName)
-            ? "The Default environment stays but is emptied."
-            : "The environment is then removed from the project.";
+        String fate = "The environment stays but is emptied.";
         int confirm = JOptionPane.showConfirmDialog(
             this,
             "Move ALL Test Data and Global Data of environment '" +
@@ -1456,15 +1487,18 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     /**
-     * Asks whether the Test Plan / Project-Reusable test cases tied to the datasheet(s) being
-     * moved (they use it, or hold its data rows) should also be converted to Shared Reusables
-     * so other consumers of the shared data can run them.
+     * Asks whether the Project Reusable components (project-level reusable components) tied
+     * to the datasheet(s) being moved (they use it, or hold its data rows) should also be
+     * converted to Shared Reusables so other consumers of the shared data can run them. Test
+     * Plan test cases are never offered here - they aren't reusable components other
+     * projects/users could invoke, so they're left referencing the moved sheet as {@code
+     * [Shared]} without a prompt.
      *
      * <p>Yes converts them and rewrites their references to {@code [Shared]}; No moves only the
-     * Test Data and records the left-behind cases so the caller can warn about them; dismissing
-     * the dialog aborts the whole operation.</p>
+     * Test Data and records the left-behind components so the caller can warn about them;
+     * dismissing the dialog aborts the whole operation.</p>
      *
-     * @param promotable candidate test cases (any order, may contain duplicates)
+     * @param promotable candidate Project Reusable components (any order, may contain duplicates)
      * @return the user's choice
      */
     private PromoteChoice askMoveTestCasesToShared(List<TestCase> promotable) {
@@ -1472,7 +1506,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         List<TestCase> distinct = new ArrayList<>();
         java.util.Set<String> seen = new java.util.HashSet<>();
         for (TestCase tc : promotable) {
-            if (tc.getScenario() == null || tc.getScenario().isSharedReusableScenario()) {
+            if (tc.getScenario() == null || !tc.getScenario().isReusableScenario()) {
                 continue;
             }
             if (seen.add(tc.getScenario().getName() + " / " + tc.getName())) {
@@ -1506,8 +1540,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             new JLabel(
                 "<html>" +
                 distinct.size() +
-                " impacted Test Plan / Project Reusable test case(s) use the Test Data being " +
-                "moved:</html>"
+                " impacted Project Reusable component(s) use the Test Data being moved:</html>"
             ),
             BorderLayout.NORTH
         );
@@ -1569,19 +1602,6 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 " test case(s) were NOT moved to Shared Reusables - other users of the shared " +
                 "Test Data may not be able to run them: " +
                 String.join(", ", names)
-            );
-        }
-
-        if (!result.partiallyMovedSheets.isEmpty()) {
-            List<String> notes = new ArrayList<>();
-            for (java.util.Map.Entry<String, List<String>> e : result.partiallyMovedSheets.entrySet()) {
-                notes.add(e.getKey() + " (still in: " + String.join(", ", e.getValue()) + ")");
-            }
-            Notification.showWarning(
-                "References were NOT updated to [Shared] for: " +
-                String.join("; ", notes) +
-                " - the same sheet still exists in those project environment(s). Move those " +
-                "environments too to finish the migration."
             );
         }
     }

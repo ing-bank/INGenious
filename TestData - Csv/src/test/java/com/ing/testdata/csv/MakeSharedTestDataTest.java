@@ -126,7 +126,6 @@ public class MakeSharedTestDataTest {
         assertThat(result.movedSheets).containsEntry("Basic", "Basic");
         assertThat(result.referenceUpdates).isEqualTo(2);
         assertThat(result.promoted).isEmpty();
-        assertThat(result.partiallyMovedSheets).isEmpty();
 
         TestData sharedDefault = project.getSharedTestData().getTestDataFor("Default");
         assertThat(sharedDefault.getByNameIgnoreCase("Basic")).isNotNull();
@@ -181,6 +180,184 @@ public class MakeSharedTestDataTest {
     }
 
     @Test
+    public void promotesProjectReusableTestCaseAndRetagsItsDataReference() throws Exception {
+        importProjectSheet("Situation", "Default");
+        TestCase reusable = projectReusableCaseReferencing(
+            "MortgageFlow",
+            "My income",
+            "Situation:URL"
+        );
+
+        Project.MakeSharedTestDataResult result = project.makeTestDataSheetShared(
+            "Default",
+            "Situation",
+            new ArrayList<>(Arrays.asList(reusable))
+        );
+
+        assertThat(result.promoted).hasSize(1);
+        Scenario shared = project.getSharedReusableScenarioByName("MortgageFlow");
+        assertThat(shared).isNotNull();
+        TestCase movedTc = shared.getTestCaseByName("My income");
+        assertThat(movedTc).isNotNull();
+        assertThat(firstInput(movedTc)).isEqualTo("Situation:URL@Shared");
+    }
+
+    @Test
+    public void promotesMultipleReusableTestCasesInSameScenarioAndRetagsAllOfThem()
+        throws Exception {
+        importProjectSheet("Situation", "Default");
+        TestCase income = projectReusableCaseReferencing(
+            "MortgageFlow",
+            "My income",
+            "Situation:Income"
+        );
+        TestCase expenses = projectReusableCaseReferencing(
+            "MortgageFlow",
+            "Mandatory expenses",
+            "Situation:Debt"
+        );
+        TestCase plans = projectReusableCaseReferencing(
+            "MortgageFlow",
+            "Your plans",
+            "Situation:BuyingSituation"
+        );
+        TestCase personal = projectReusableCaseReferencing(
+            "MortgageFlow",
+            "Personal situation",
+            "Situation:Age"
+        );
+
+        Project.MakeSharedTestDataResult result = project.makeTestDataSheetShared(
+            "Default",
+            "Situation",
+            new ArrayList<>(Arrays.asList(income, expenses, plans, personal))
+        );
+
+        assertThat(result.promoted).hasSize(4);
+        Scenario shared = project.getSharedReusableScenarioByName("MortgageFlow");
+        assertThat(shared).isNotNull();
+        assertThat(firstInput(shared.getTestCaseByName("My income")))
+            .isEqualTo("Situation:Income@Shared");
+        assertThat(firstInput(shared.getTestCaseByName("Mandatory expenses")))
+            .isEqualTo("Situation:Debt@Shared");
+        assertThat(firstInput(shared.getTestCaseByName("Your plans")))
+            .isEqualTo("Situation:BuyingSituation@Shared");
+        assertThat(firstInput(shared.getTestCaseByName("Personal situation")))
+            .isEqualTo("Situation:Age@Shared");
+
+        // Verify persistence to disk, not just in-memory state: reload the project fresh.
+        Project reloaded = new Project(project.getLocation());
+        Scenario sharedReloaded = reloaded.getSharedReusableScenarioByName("MortgageFlow");
+        assertThat(sharedReloaded).isNotNull();
+        assertThat(firstInput(sharedReloaded.getTestCaseByName("My income")))
+            .isEqualTo("Situation:Income@Shared");
+        assertThat(firstInput(sharedReloaded.getTestCaseByName("Mandatory expenses")))
+            .isEqualTo("Situation:Debt@Shared");
+        assertThat(firstInput(sharedReloaded.getTestCaseByName("Your plans")))
+            .isEqualTo("Situation:BuyingSituation@Shared");
+        assertThat(firstInput(sharedReloaded.getTestCaseByName("Personal situation")))
+            .isEqualTo("Situation:Age@Shared");
+    }
+
+    @Test
+    public void retagsEmbeddedTokensInsideJsonPayloadsTooNotJustWholeInputs() throws Exception {
+        importProjectSheet("Payment", "Default");
+        TestCase apiCase = projectReusableCaseReferencing(
+            "APIs",
+            "POST_Payment",
+            "{\"bank_name\": \"{Payment:Bank Name}\", \"account_number\": \"{Payment:Account Number}\"}"
+        );
+
+        Project.MakeSharedTestDataResult result = project.makeTestDataSheetShared(
+            "Default",
+            "Payment",
+            new ArrayList<>(Arrays.asList(apiCase))
+        );
+
+        assertThat(result.referenceUpdates).isGreaterThanOrEqualTo(1);
+        Scenario shared = project.getSharedReusableScenarioByName("APIs");
+        assertThat(shared).isNotNull();
+        assertThat(firstInput(shared.getTestCaseByName("POST_Payment")))
+            .isEqualTo(
+                "{\"bank_name\": \"{Payment:Bank Name@Shared}\", \"account_number\": \"{Payment:Account Number@Shared}\"}"
+            );
+    }
+
+    @Test
+    public void retagsEmbeddedTokenNestedDeepInsideJsonObjectsAndRetagsProjectTaggedOnesToo()
+        throws Exception {
+        importProjectSheet("Payment", "Default");
+        TestCase apiCase = projectReusableCaseReferencing(
+            "APIs",
+            "POST_Payment",
+            "{\"id\": 1, \"data\": {\"nested\": {\"field\": \"{Payment:Bank Name@Project}\"}}}"
+        );
+
+        project.makeTestDataSheetShared(
+            "Default",
+            "Payment",
+            new ArrayList<>(Arrays.asList(apiCase))
+        );
+
+        Scenario shared = project.getSharedReusableScenarioByName("APIs");
+        assertThat(firstInput(shared.getTestCaseByName("POST_Payment")))
+            .isEqualTo(
+                "{\"id\": 1, \"data\": {\"nested\": {\"field\": \"{Payment:Bank Name@Shared}\"}}}"
+            );
+    }
+
+    @Test
+    public void movingWholeEnvironmentRetagsAllReferencingReusableComponents() throws Exception {
+        importProjectSheet("Basic", "Default");
+        importProjectSheet("Situation", "Default");
+        importProjectSheet("Payment", "Default");
+        TestCase income = projectReusableCaseReferencing(
+            "MortgageFlow",
+            "My income",
+            "Situation:Income"
+        );
+        TestCase expenses = projectReusableCaseReferencing(
+            "MortgageFlow",
+            "Mandatory expenses",
+            "Situation:Debt"
+        );
+        TestCase plans = projectReusableCaseReferencing(
+            "MortgageFlow",
+            "Your plans",
+            "Situation:BuyingSituation"
+        );
+        TestCase personal = projectReusableCaseReferencing(
+            "MortgageFlow",
+            "Personal situation",
+            "Situation:Age"
+        );
+        TestCase mortgage = projectReusableCaseReferencing(
+            "MortgageFlow",
+            "My maximum mortgage",
+            "Basic:URL"
+        );
+
+        Project.MakeSharedTestDataResult result = project.makeEnvironmentTestDataShared(
+            "Default",
+            new ArrayList<>(Arrays.asList(income, expenses, plans, personal, mortgage))
+        );
+
+        assertThat(result.promoted).hasSize(5);
+        Scenario shared = project.getSharedReusableScenarioByName("MortgageFlow");
+        assertThat(shared).isNotNull();
+        assertThat(firstInput(shared.getTestCaseByName("My income")))
+            .isEqualTo("Situation:Income@Shared");
+        assertThat(firstInput(shared.getTestCaseByName("Mandatory expenses")))
+            .isEqualTo("Situation:Debt@Shared");
+        assertThat(firstInput(shared.getTestCaseByName("Your plans")))
+            .isEqualTo("Situation:BuyingSituation@Shared");
+        assertThat(firstInput(shared.getTestCaseByName("Personal situation")))
+            .isEqualTo("Situation:Age@Shared");
+        assertThat(firstInput(shared.getTestCaseByName("My maximum mortgage")))
+            .isEqualTo("Basic:URL@Shared");
+    }
+
+    @Test
     public void detectsTestCasesFromDatasheetRowsNotJustStepReferences() throws Exception {
         File source = tempDir.resolve("Rows.csv").toFile();
         try (FileWriter fw = new FileWriter(source)) {
@@ -198,7 +375,7 @@ public class MakeSharedTestDataTest {
     }
 
     @Test
-    public void movesEveryDatasheetOfAnEnvironmentAndDeletesItsFolder() throws Exception {
+    public void movesEveryDatasheetOfAnEnvironmentButKeepsItEmptied() throws Exception {
         importProjectSheet("Sheet1", "QA");
         importProjectSheet("Sheet2", "QA");
         File qaFolder = new File(project.getTestData().getTestDataFor("QA").getLocation());
@@ -210,11 +387,12 @@ public class MakeSharedTestDataTest {
         );
 
         assertThat(result.movedSheets.keySet()).containsExactlyInAnyOrder("Sheet1", "Sheet2");
-        assertThat(project.getTestData().getTestDataFor("QA")).isNull();
-        // the whole environment folder (with its GlobalData.csv) is gone from disk
-        assertThat(qaFolder).doesNotExist();
-        // and the project's environment.properties no longer lists QA
-        assertThat(project.getTestData().getEnvironments()).doesNotContain("QA");
+        // QA is kept - folder/tab stays, just emptied of datasheets
+        TestData projectQa = project.getTestData().getTestDataFor("QA");
+        assertThat(projectQa).isNotNull();
+        assertThat(projectQa.getTestDataList()).isEmpty();
+        assertThat(qaFolder).isDirectory();
+        assertThat(project.getTestData().getEnvironments()).contains("QA");
 
         TestData sharedQa = project.getSharedTestData().getTestDataFor("QA");
         assertThat(sharedQa).isNotNull();
@@ -223,7 +401,8 @@ public class MakeSharedTestDataTest {
     }
 
     @Test
-    public void movingANonDefaultEnvironmentLeavesDefaultUntouched() throws Exception {
+    public void movingANonDefaultEnvironmentLeavesDefaultsOwnSheetButRetagsReferencesAnyway()
+        throws Exception {
         importProjectSheet("Common", "Default");
         importProjectSheet("Common", "QA");
         importProjectSheet("QaOnly", "QA");
@@ -234,21 +413,20 @@ public class MakeSharedTestDataTest {
             new ArrayList<>()
         );
 
-        // Default keeps its Common sheet; only QA's copies moved
+        // Default keeps its own (now orphaned) Common sheet; QA is kept too, just emptied
         TestData projectDefault = project.getTestData().getTestDataFor("Default");
         assertThat(projectDefault.getByNameIgnoreCase("Common")).isNotNull();
-        assertThat(project.getTestData().getTestDataFor("QA")).isNull();
+        TestData projectQa = project.getTestData().getTestDataFor("QA");
+        assertThat(projectQa).isNotNull();
+        assertThat(projectQa.getTestDataList()).isEmpty();
 
         TestData sharedQa = project.getSharedTestData().getTestDataFor("QA");
         assertThat(sharedQa.getByNameIgnoreCase("Common")).isNotNull();
         assertThat(sharedQa.getByNameIgnoreCase("QaOnly")).isNotNull();
 
-        // Common still lives in project Default -> its references are left as-is and reported
-        assertThat(result.partiallyMovedSheets).containsKey("Common");
-        assertThat(result.partiallyMovedSheets.get("Common")).containsExactly("Default");
-        assertThat(firstInput(plan)).isEqualTo("Common:URL");
-        // QaOnly was unique to QA -> no partial-move entry for it
-        assertThat(result.partiallyMovedSheets).doesNotContainKey("QaOnly");
+        // References are retagged regardless of Default still having its own Common sheet -
+        // moving to Shared means every usage should redirect there.
+        assertThat(firstInput(plan)).isEqualTo("Common:URL@Shared");
     }
 
     @Test

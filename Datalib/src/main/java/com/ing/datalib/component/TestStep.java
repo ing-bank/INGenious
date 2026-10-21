@@ -320,6 +320,9 @@ public class TestStep {
         if (isScopedTestDataRef(getInput())) {
             return true;
         }
+        if (isBareBracedTestDataRef(getInput())) {
+            return true;
+        }
         if (
             getInput().startsWith("<") || getInput().startsWith("{") || getInput().startsWith("[")
         ) return false; else if (
@@ -334,6 +337,21 @@ public class TestStep {
      */
     private boolean isScopedTestDataRef(String inp) {
         return unwrapBraces(inp).matches("[^:{}\\[\\]@]+:[^:{}\\[\\]@]+(@Shared|@Project)");
+    }
+
+    /**
+     * {@code {Sheet:Column}} - braced but untagged. Checked separately from
+     * {@link #isScopedTestDataRef} since an untagged reference resolves against the project's
+     * own Test Data (mirrors the engine's {@code DataProcessor.isInputPatternDataSheet} braced
+     * case, which also doesn't require a scope tag).
+     */
+    private boolean isBareBracedTestDataRef(String inp) {
+        String t = Objects.toString(inp, "").trim();
+        return (
+            t.startsWith("{") &&
+            t.endsWith("}") &&
+            unwrapBraces(t).matches("[^:{}\\[\\]@]+:[^:{}\\[\\]@]+")
+        );
     }
 
     private String unwrapBraces(String inp) {

@@ -25,6 +25,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -891,7 +892,10 @@ public class INGeniousSettings extends javax.swing.JFrame {
     }
 
     private Object[] getEnvList() {
-        return sProject.getTestData().getEnvironments().toArray();
+        // Union of project environments and Shared Test Data environments, de-duplicated
+        Set<String> envs = new LinkedHashSet<>(sProject.getTestData().getEnvironments());
+        envs.addAll(sProject.getSharedTestData().getEnvironments());
+        return envs.toArray();
     }
 
     private void loadTMSettings() {

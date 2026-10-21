@@ -1890,13 +1890,6 @@ public class Project {
         public int referenceUpdates = 0;
 
         /**
-         * Moved sheet name -&gt; the project environments that still contain a sheet of that
-         * name, so references were <em>not</em> retagged (doing so would break those
-         * environments). Populated only for the environment-scoped move.
-         */
-        public final Map<String, List<String>> partiallyMovedSheets = new LinkedHashMap<>();
-
-        /**
          * The Shared Reusable test cases created by promoting referencing Test Plan /
          * Project-Reusable cases (the moved copies, not the originals). Empty when the user
          * declined promotion. The IDE feeds these to the "move referenced project objects to
@@ -1971,22 +1964,26 @@ public class Project {
     }
 
     /**
-     * Every Test Plan / Project-Reusable test case that would be "left behind" if
-     * {@code sheetName} moves to Shared Test Data: the union of the cases the sheet holds data
-     * for ({@link #getTestCasesServedByDataSheet(String)}) and the cases whose steps reference
-     * it ({@link #getImpactedTestDataTestCasesAllScopes(String)}). Drives the "also convert
-     * these test cases to Shared Reusables?" prompt.
+     * Project-Reusable test cases (project-level reusable components) that would be "left
+     * behind" if {@code sheetName} moves to Shared Test Data: the union of the cases the sheet
+     * holds data for ({@link #getTestCasesServedByDataSheet(String)}) and the cases whose steps
+     * reference it ({@link #getImpactedTestDataTestCasesAllScopes(String)}), restricted to
+     * Project Reusable scope. Drives the "also convert these test cases to Shared Reusables?"
+     * prompt - Test Plan test cases are never offered there since they aren't reusable
+     * components other projects/users could invoke.
      *
      * @param sheetName datasheet name
-     * @return de-duplicated promotable test cases
+     * @return de-duplicated promotable Project-Reusable test cases
      */
     public List<TestCase> getPromotableTestCasesForSheet(String sheetName) {
         java.util.LinkedHashMap<String, TestCase> byId = new LinkedHashMap<>();
         for (TestCase tc : getTestCasesServedByDataSheet(sheetName)) {
-            byId.putIfAbsent(promotableId(tc), tc);
+            if (tc.getScenario() != null && tc.getScenario().isReusableScenario()) {
+                byId.putIfAbsent(promotableId(tc), tc);
+            }
         }
         for (TestCase tc : getImpactedTestDataTestCasesAllScopes(sheetName)) {
-            if (tc.getScenario() != null && !tc.getScenario().isSharedReusableScenario()) {
+            if (tc.getScenario() != null && tc.getScenario().isReusableScenario()) {
                 byId.putIfAbsent(promotableId(tc), tc);
             }
         }
@@ -2015,12 +2012,11 @@ public class Project {
     }
 
     /**
-     * Moves one project datasheet from environment {@code env} into Shared Test Data and, when
-     * that was the only project environment holding a sheet of that name, rewrites every
-     * reference to it (Test Plan, Project Reusables, Shared Reusables) to {@code [Shared] ...}.
-     * If the same sheet name still exists in another project environment, the references are
-     * left untouched and the sheet is recorded in
-     * {@link MakeSharedTestDataResult#partiallyMovedSheets}.
+     * Moves one project datasheet from environment {@code env} into Shared Test Data and
+     * rewrites every reference to it (Test Plan, Project Reusables, Shared Reusables) to
+     * {@code [Shared] ...} - even when the same sheet name still exists in another project
+     * environment, since moving to Shared is meant to redirect every usage there; that other
+     * environment's own copy is simply left behind, unreferenced.
      *
      * @param env environment the datasheet belongs to
      * @param sheetName datasheet to move
@@ -2046,9 +2042,9 @@ public class Project {
     /**
      * Moves a whole project Test Data environment into Shared Test Data: <em>only that
      * environment's</em> datasheets and Global Data (merged by {@code GlobalDataID} into the
-     * Shared environment's single Global Data). The project environment is then removed
-     * entirely - folder, {@code GlobalData.csv} and all - except {@code Default}, which cannot
-     * be removed and is instead left empty. Other environments are untouched.
+     * Shared environment's single Global Data). The environment itself - folder and tab - is
+     * kept, just emptied (Global Data cleared), so it stays available for new Test Data rather
+     * than disappearing from the project. Other environments are untouched.
      *
      * @param env environment to move
      * @param testCasesToPromote see {@link #makeTestDataSheetShared(String, String, List)}
@@ -2065,8 +2061,6 @@ public class Project {
 
         TestData projEnv = testData.getTestDataFor(env);
         if (projEnv != null) {
-            String envFolder = projEnv.getLocation();
-
             List<String> sheetNames = new ArrayList<>();
             for (TestDataModel model : projEnv.getTestDataList()) {
                 sheetNames.add(model.getName());
@@ -2083,16 +2077,11 @@ public class Project {
                 sharedTestData.getTestDataFor(env).getGlobalData()
             );
 
-            if ("Default".equals(env)) {
-                // Default cannot be removed; clear its Global Data and drop the stale file.
-                clearAllRecords(projEnv.getGlobalData());
-                new File(projEnv.getGlobalData().getLocation()).delete();
-                projEnv.getGlobalData().setSaved(true);
-            } else {
-                testData.deleteEnvironment(env);
-                // deleteEnvironment leaves the folder and GlobalData.csv on disk - remove them.
-                FileUtils.deleteFile(envFolder);
-            }
+            // Keep the environment (folder/tab) even though it now has no datasheets of its
+            // own - only its Global Data is cleared, same treatment as Default always got.
+            clearAllRecords(projEnv.getGlobalData());
+            new File(projEnv.getGlobalData().getLocation()).delete();
+            projEnv.getGlobalData().setSaved(true);
         }
 
         save();
@@ -2132,10 +2121,10 @@ public class Project {
 
     /**
      * Moves {@code env}'s copy of {@code sheetName} into {@code Shared/<env>} (suffixing the
-     * name on collision <em>within that Shared environment</em>). References are retagged to
-     * {@code [Shared] finalName} only when no project environment still holds a sheet of that
-     * name; otherwise the sheet is recorded in {@code partiallyMovedSheets} and references are
-     * left as-is so the other environments keep working.
+     * name on collision <em>within that Shared environment</em>) and retags every reference to
+     * it to {@code [Shared] finalName}, even if a project environment other than {@code env}
+     * still holds a sheet of that name - that other environment's own copy is simply left
+     * behind, unreferenced, since moving to Shared is meant to redirect all usages.
      */
     private void moveSheetToSharedInEnv(
         String env,
@@ -2161,13 +2150,7 @@ public class Project {
         projEnv.deleteTestData(sheetName);
 
         result.movedSheets.put(sheetName, finalName);
-
-        List<String> stillInProject = testData.findEnvironmentsWithDatasheet(sheetName);
-        if (stillInProject.isEmpty()) {
-            result.referenceUpdates += retagTestDataReferencesToShared(sheetName, finalName);
-        } else {
-            result.partiallyMovedSheets.put(sheetName, stillInProject);
-        }
+        result.referenceUpdates += retagTestDataReferencesToShared(sheetName, finalName);
     }
 
     private String uniqueSharedSheetNameInEnv(String env, String base) {

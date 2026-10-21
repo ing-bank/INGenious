@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.event.TableModelEvent;
 
 /**
@@ -1407,9 +1409,11 @@ public class TestCase extends DataModel {
     /**
      * Rewrites every whole-input Test Data reference to {@code originalName} (whatever scope tag
      * it currently carries, or none) to {@code finalName:Column...@Shared}, then persists the
-     * test case. Used by "Make As Shared TestData" when a project datasheet moves to the Shared
-     * store; {@code finalName} differs from {@code originalName} only when the name collided in
-     * the Shared store and was suffixed.
+     * test case. Also rewrites embedded {@code {originalName:Column}} tokens inside a larger
+     * payload Input (webservice/MQ body, SQL text, file template) the same way, braces kept.
+     * Used by "Make As Shared TestData" when a project datasheet moves to the Shared store;
+     * {@code finalName} differs from {@code originalName} only when the name collided in the
+     * Shared store and was suffixed.
      *
      * @return number of test steps changed
      */
@@ -1429,6 +1433,16 @@ public class TestCase extends DataModel {
                     testStep.setInput(newInput);
                     count++;
                 }
+                continue;
+            }
+            String retaggedInput = retagEmbeddedTokens(
+                testStep.getInput(),
+                originalName,
+                finalName
+            );
+            if (!retaggedInput.equals(testStep.getInput())) {
+                testStep.setInput(retaggedInput);
+                count++;
             }
         }
         if (count > 0 || clearOnExit) {
@@ -1438,6 +1452,42 @@ public class TestCase extends DataModel {
             getTestSteps().clear();
         }
         return count;
+    }
+
+    private static final Pattern EMBEDDED_TOKEN = Pattern.compile(
+        "\\{\\s*[^{}:\"@]+:[^{}:\"@]+(@Shared|@Project)?\\s*\\}"
+    );
+
+    /**
+     * Rewrites every embedded {@code {originalName:Column}} token (bare or {@code @Project}
+     * tagged) referencing {@code originalName} to {@code {finalName:Column@Shared}}, leaving
+     * tokens for other sheets and any already-{@code @Shared} tokens untouched.
+     */
+    private static String retagEmbeddedTokens(String input, String originalName, String finalName) {
+        if (input == null || !input.contains("{")) {
+            return input;
+        }
+        Matcher matcher = EMBEDDED_TOKEN.matcher(input);
+        StringBuilder result = new StringBuilder();
+        int lastEnd = 0;
+        while (matcher.find()) {
+            String token = matcher.group();
+            String inner = token.substring(1, token.length() - 1).trim();
+            String tag = inner.endsWith("@Shared")
+                ? "@Shared"
+                : inner.endsWith("@Project") ? "@Project" : "";
+            String bare = tag.isEmpty() ? inner : inner.substring(0, inner.length() - tag.length());
+            int sep = bare.indexOf(':');
+            if (sep <= 0 || !bare.substring(0, sep).trim().equals(originalName)) {
+                continue;
+            }
+            String column = bare.substring(sep + 1).trim();
+            result.append(input, lastEnd, matcher.start());
+            result.append('{').append(finalName).append(':').append(column).append("@Shared}");
+            lastEnd = matcher.end();
+        }
+        result.append(input.substring(lastEnd));
+        return result.toString();
     }
 
     /**
