@@ -36,6 +36,15 @@ public class ChatMessage {
     @JsonProperty("name")
     private String name;
 
+    /**
+     * Credit/token consumption of the turn that produced this assistant message,
+     * already formatted for display. Persisted with the conversation history so
+     * reloaded chats can show what each prompt cost; the model API client strips
+     * it from outgoing requests.
+     */
+    @JsonProperty("credit_usage")
+    private String creditUsage;
+
     public ChatMessage() {}
 
     public ChatMessage(String role, String content) {
@@ -101,5 +110,13 @@ public class ChatMessage {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getCreditUsage() {
+        return creditUsage;
+    }
+
+    public void setCreditUsage(String creditUsage) {
+        this.creditUsage = creditUsage;
     }
 }
