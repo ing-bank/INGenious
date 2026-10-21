@@ -37,10 +37,10 @@ public class DynamicObject extends Command {
                 String[] groups = Data.split(",");
                 for (String group : groups) {
                     String[] vals = group.split("=", 2);
-                    MobileObject.globalDynamicValue.put(vals[0], vals[1]);
+                    MobileObject.globalDynamicValue().put(vals[0], vals[1]);
                 }
             } else {
-                MobileObject.globalDynamicValue.put(Condition, Data);
+                MobileObject.globalDynamicValue().put(Condition, Data);
             }
             String text = String.format(
                 "Setting Global Object Property for %s with %s",
@@ -93,7 +93,7 @@ public class DynamicObject extends Command {
 
     private void setProperty(String key, String value) {
         com.ing.engine.core.InlineObjectProperty.putObjectProperty(
-            MobileObject.dynamicValue,
+            MobileObject.dynamicValue(),
             Reference,
             ObjectName,
             key,

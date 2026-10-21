@@ -52,9 +52,31 @@ public class MobileObject implements MobileObjectApi {
     MobileObjectApi.FindmType findType;
     private Duration waitTime;
 
-    public static HashMap<String, Map<String, Map<String, String>>> dynamicValue = new HashMap<>();
-    public static HashMap<String, String> globalDynamicValue = new HashMap<>();
-    public static String Action = "";
+    // Backed by ThreadLocal (not plain static maps) so parallel test-execution threads
+    // each see their own object-property / locator state instead of clobbering each other.
+    private static final ThreadLocal<Map<String, Map<String, Map<String, String>>>> DYNAMIC_VALUE = ThreadLocal.withInitial(
+        HashMap::new
+    );
+    private static final ThreadLocal<Map<String, String>> GLOBAL_DYNAMIC_VALUE = ThreadLocal.withInitial(
+        HashMap::new
+    );
+    private static final ThreadLocal<String> CURRENT_ACTION = ThreadLocal.withInitial(() -> "");
+
+    public static Map<String, Map<String, Map<String, String>>> dynamicValue() {
+        return DYNAMIC_VALUE.get();
+    }
+
+    public static Map<String, String> globalDynamicValue() {
+        return GLOBAL_DYNAMIC_VALUE.get();
+    }
+
+    public static String getAction() {
+        return CURRENT_ACTION.get();
+    }
+
+    public static void setAction(String action) {
+        CURRENT_ACTION.set(action);
+    }
 
     public MobileObject() {}
 
@@ -510,7 +532,7 @@ public class MobileObject implements MobileObjectApi {
                             tag = attr.getName();
                             value = getRuntimeValue(attr.getValue());
                             if (tag.equals("NLP_locator")) {
-                                elements = NLP_located_element(attributes, Action, value);
+                                elements = NLP_located_element(attributes, getAction(), value);
                                 if (elements != null) {
                                     safeStoreOuterHTML(attributes, elements.get(0));
                                 }
@@ -603,10 +625,12 @@ public class MobileObject implements MobileObjectApi {
 
     private String getRuntimeValue(String value) {
         if (findType != null && findType.equals(MobileObjectApi.FindmType.GLOBAL_OBJECT)) {
+            Map<String, String> globalDynamicValue = globalDynamicValue();
             for (String Key : globalDynamicValue.keySet()) {
                 value = value.replace(Key, globalDynamicValue.get(Key));
             }
         }
+        Map<String, Map<String, Map<String, String>>> dynamicValue = dynamicValue();
         if (
             dynamicValue.containsKey(pageName) && dynamicValue.get(pageName).containsKey(objectName)
         ) {
