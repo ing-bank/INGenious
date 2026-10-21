@@ -37,6 +37,7 @@ import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
@@ -710,6 +711,26 @@ public class XTable extends JTable {
         if (insertColumnPromptFeature != null) {
             insertColumnPromptFeature.setMinimumInsertColumn(minimumInsertColumn);
         }
+    }
+
+    /**
+     * Creates a table header that also renders the insert-column prompt strip.
+     *
+     * @return table header for this table
+     */
+    @Override
+    protected JTableHeader createDefaultTableHeader() {
+        return new JTableHeader(columnModel) {
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+
+                if (insertColumnPromptFeature != null) {
+                    insertColumnPromptFeature.paintHeader(g);
+                }
+            }
+        };
     }
 
     // -----------------------------------------------------------------------------

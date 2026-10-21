@@ -19,7 +19,11 @@ import javax.swing.SwingUtilities;
 
 /**
  * Provides a visual insert-row prompt for a table, allowing users to insert
- * rows at a specific position via a hoverable plus icon displayed between rows.
+ * rows at a specific position via a hoverable plus icon.
+ *
+ * The prompt is triggered from a thin, invisible hover rail along the left edge
+ * of the table instead of the full width of the first column, so the prompt can
+ * no longer be activated while working inside table cells.
  */
 public class InsertRowPromptFeature {
     private static final Color INSERT_INDICATOR_COLOR = Color.decode("#7724FF");
@@ -27,9 +31,15 @@ public class InsertRowPromptFeature {
     private static final float INSERT_LINE_OPACITY = 0.45f;
     private static final float INSERT_PLUS_OPACITY = 0.90f;
 
-    private static final int INSERT_PLUS_X = 24;
+    /*
+     * Width of the invisible hover rail along the left edge of the table. Only
+     * pointer positions inside this rail (or on the plus icon itself) arm the
+     * insert-row prompt.
+     */
+    private static final int INSERT_RAIL_WIDTH = 6;
+
     private static final int INSERT_PLUS_HIT_PADDING = 2;
-    private static final int INSERT_PLUS_SIZE = 18;
+    private static final int INSERT_PLUS_SIZE = 9;
 
     private static final int INSERT_HOVER_ZONE = INSERT_PLUS_SIZE / 2 + INSERT_PLUS_HIT_PADDING;
 
@@ -139,12 +149,18 @@ public class InsertRowPromptFeature {
     }
 
     /**
-     * Paints the insert-row indicator when a valid insertion location is hovered.
+     * Paints the insert-row indicator when a valid insertion location is
+     * hovered. The hover rail itself is intentionally not painted so the table
+     * gutter stays clean until the prompt is armed.
      *
      * @param g graphics context
      */
     public void paint(Graphics g) {
-        if (enabled && hoverInsertRow != -1) {
+        if (!enabled) {
+            return;
+        }
+
+        if (hoverInsertRow != -1) {
             paintInsertRowIndicator(g);
         }
     }
@@ -210,11 +226,19 @@ public class InsertRowPromptFeature {
     /**
      * Resolves the row insertion index for the specified point.
      *
+     * The prompt is only armed while the pointer is inside the thin left rail or
+     * already on the plus icon. Inside the rail the nearest row boundary is used,
+     * so the whole rail segment next to a row acts as the hover target.
+     *
      * @param point mouse location
      * @return insertion row index, or {@code -1} if none applies
      */
     private int getInsertRowForPoint(Point point) {
-        if (!isPointInFirstColumn(point)) {
+        if (hoverInsertRow != -1 && isPointInArmedCorridor(point)) {
+            return hoverInsertRow;
+        }
+
+        if (!isPointInRail(point)) {
             return -1;
         }
 
@@ -235,21 +259,51 @@ public class InsertRowPromptFeature {
         if (row != -1) {
             Rectangle rowBounds = table.getCellRect(row, 0, true);
 
-            int rowTop = rowBounds.y;
-            int rowBottom = rowBounds.y + rowBounds.height;
+            boolean nearerToTop = point.y - rowBounds.y < rowBounds.height / 2;
 
-            if (Math.abs(point.y - rowTop) <= INSERT_HOVER_ZONE) {
-                return row;
-            }
-
-            if (Math.abs(point.y - rowBottom) <= INSERT_HOVER_ZONE) {
-                return row + 1;
-            }
-
-            return -1;
+            return nearerToTop ? row : row + 1;
         }
 
         return getInsertRowForPointOutsideRows(point);
+    }
+
+    /**
+     * Checks whether the specified point lies inside the thin hover rail along
+     * the left edge of the table.
+     *
+     * @param point mouse location
+     * @return {@code true} if the point is inside the rail
+     */
+    private boolean isPointInRail(Point point) {
+        return point.x >= 0 && point.x <= INSERT_RAIL_WIDTH;
+    }
+
+    /**
+     * Checks whether the specified point is inside the corridor that keeps an
+     * already armed prompt alive.
+     *
+     * The plus icon sits at the left edge of the table, so the band along the
+     * insertion line between the rail and the icon must stay armed while the
+     * pointer travels towards it. The corridor never arms the prompt by itself.
+     *
+     * @param point mouse location
+     * @return {@code true} if the armed prompt should be kept
+     */
+    private boolean isPointInArmedCorridor(Point point) {
+        if (hoverInsertRow == -1) {
+            return false;
+        }
+
+        Rectangle plusHitBounds = getPlusHitBounds(hoverInsertRow);
+
+        Rectangle corridor = new Rectangle(
+            0,
+            plusHitBounds.y,
+            plusHitBounds.x + plusHitBounds.width,
+            plusHitBounds.height
+        );
+
+        return corridor.contains(point);
     }
 
     /**
@@ -266,17 +320,19 @@ public class InsertRowPromptFeature {
             return -1;
         }
 
+        int rowHeight = Math.max(1, table.getRowHeight());
+
         Rectangle lastRow = table.getCellRect(rowCount - 1, 0, true);
         int lastRowBottom = lastRow.y + lastRow.height;
 
-        if (Math.abs(point.y - lastRowBottom) <= INSERT_HOVER_ZONE) {
+        if (point.y >= lastRowBottom && point.y - lastRowBottom <= rowHeight) {
             return rowCount;
         }
 
         Rectangle firstRow = table.getCellRect(0, 0, true);
         int firstRowTop = firstRow.y;
 
-        if (Math.abs(point.y - firstRowTop) <= INSERT_HOVER_ZONE) {
+        if (point.y <= firstRowTop && firstRowTop - point.y <= rowHeight) {
             return 0;
         }
 
@@ -347,10 +403,21 @@ public class InsertRowPromptFeature {
      */
     private Rectangle getPlusBounds(int insertRow) {
         int y = getInsertLineY(insertRow);
-        int x = INSERT_PLUS_X;
+        int x = getPlusX();
         int half = INSERT_PLUS_SIZE / 2;
 
         return new Rectangle(x - half, y - half, INSERT_PLUS_SIZE, INSERT_PLUS_SIZE);
+    }
+
+    /**
+     * Returns the horizontal center of the plus icon, which sits at the
+     * leftmost edge of the table so the icon rests against the start of the
+     * first column instead of covering cell content.
+     *
+     * @return x-coordinate of the plus icon center
+     */
+    private int getPlusX() {
+        return INSERT_PLUS_SIZE / 2;
     }
 
     /**
@@ -492,13 +559,14 @@ public class InsertRowPromptFeature {
 
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
             g2.setColor(Color.WHITE);
-            g2.setStroke(new BasicStroke(2f));
+            g2.setStroke(new BasicStroke(Math.max(1f, plusBounds.width / 9f)));
 
             int centerX = plusBounds.x + plusBounds.width / 2;
             int centerY = plusBounds.y + plusBounds.height / 2;
+            int arm = Math.max(2, Math.round(plusBounds.width * 0.28f));
 
-            g2.drawLine(centerX - 5, centerY, centerX + 5, centerY);
-            g2.drawLine(centerX, centerY - 5, centerX, centerY + 5);
+            g2.drawLine(centerX - arm, centerY, centerX + arm, centerY);
+            g2.drawLine(centerX, centerY - arm, centerX, centerY + arm);
         } finally {
             g2.dispose();
         }
@@ -559,21 +627,5 @@ public class InsertRowPromptFeature {
                 new ActionEvent(table, ActionEvent.ACTION_PERFORMED, actionName)
             );
         }
-    }
-
-    /**
-     * Checks whether the specified point is inside the first visible table column.
-     *
-     * @param point mouse location
-     * @return {@code true} if the point is inside the first visible column
-     */
-    private boolean isPointInFirstColumn(Point point) {
-        if (table.getColumnCount() == 0) {
-            return false;
-        }
-
-        int firstColumnWidth = table.getColumnModel().getColumn(0).getWidth();
-
-        return point.x >= 0 && point.x <= firstColumnWidth;
     }
 }
