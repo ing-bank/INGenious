@@ -130,9 +130,33 @@ public class EnvTestData {
         List<String> duplicateSheets,
         Boolean globalDataAsWell
     ) {
+        createNewEnvironment(
+            envName,
+            this,
+            duplicateDataFromEnv,
+            duplicateSheets,
+            globalDataAsWell
+        );
+    }
+
+    /**
+     * Creates a new environment, optionally duplicating sheets from an environment that can
+     * live in a <em>different</em> {@link EnvTestData} store (e.g. a new Project environment
+     * copying sheets from an existing Shared Test Data environment, or vice versa).
+     *
+     * @param sourceStore the store ({@code this} project's own, or the other scope's) the
+     *     {@code duplicateDataFromEnv} environment and {@code duplicateSheets} are read from
+     */
+    public void createNewEnvironment(
+        String envName,
+        EnvTestData sourceStore,
+        String duplicateDataFromEnv,
+        List<String> duplicateSheets,
+        Boolean globalDataAsWell
+    ) {
         loadForEnv(envName);
         TestData newEnvTestData = getTestDataFor(envName);
-        TestData dupEnvTestData = getTestDataFor(duplicateDataFromEnv);
+        TestData dupEnvTestData = sourceStore.getTestDataFor(duplicateDataFromEnv);
         if (dupEnvTestData != null) {
             if (globalDataAsWell) {
                 dupEnvTestData.getGlobalData().cloneAs(newEnvTestData.getGlobalData());
