@@ -116,4 +116,26 @@ public final class AICredentials {
         AppSettings.set(APP_SETTINGS.AI_ATTENDED_MODE.getKey(), Boolean.toString(attended));
         AppSettings.store("AI attended mode updated");
     }
+
+    /**
+     * Max consecutive failed generation attempts before the AI Discovery/agent loop stops and
+     * reports the failure instead of continuing to retry. Configurable without code changes.
+     */
+    public int getMaxFailedAttempts() {
+        String configured = AppSettings.get(APP_SETTINGS.AI_MAX_FAILED_ATTEMPTS.getKey());
+        try {
+            int value = Integer.parseInt(configured);
+            return value > 0 ? value : 5;
+        } catch (NumberFormatException ex) {
+            return 5;
+        }
+    }
+
+    public void setMaxFailedAttempts(int maxFailedAttempts) {
+        AppSettings.set(
+            APP_SETTINGS.AI_MAX_FAILED_ATTEMPTS.getKey(),
+            Integer.toString(maxFailedAttempts)
+        );
+        AppSettings.store("AI max failed attempts updated");
+    }
 }

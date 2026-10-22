@@ -24,6 +24,12 @@ public final class ProviderConfig {
     public String apiKeyEnv = "OPENAI_API_KEY";
     /** "attended" or "unattended"; see {@link OperatingMode}. Remembered as the next session's default. */
     public String mode = OperatingMode.UNATTENDED.label();
+    /**
+     * Max consecutive failed generation attempts before the agent loop stops and reports the
+     * failure instead of continuing to retry (avoids runaway token consumption). Tunable here
+     * without code changes; see {@code com.ing.engine.aicli.agent.AgentLoop}.
+     */
+    public int maxFailedAttempts = com.ing.engine.aicli.agent.AgentLoop.DEFAULT_MAX_FAILED_ATTEMPTS;
 
     private ProviderConfig(Path file) {
         this.file = file;
@@ -43,6 +49,7 @@ public final class ProviderConfig {
                 c.baseUrl = n.path("baseUrl").asText(c.baseUrl);
                 c.apiKeyEnv = n.path("apiKeyEnv").asText(c.apiKeyEnv);
                 c.mode = n.path("mode").asText(c.mode);
+                c.maxFailedAttempts = n.path("maxFailedAttempts").asInt(c.maxFailedAttempts);
             }
         } catch (IOException ignored) {
             // defaults apply
@@ -76,6 +83,7 @@ public final class ProviderConfig {
         n.put("baseUrl", baseUrl);
         n.put("apiKeyEnv", apiKeyEnv);
         n.put("mode", mode);
+        n.put("maxFailedAttempts", maxFailedAttempts);
         Files.createDirectories(file.getParent());
         Files.writeString(file, n.toPrettyString());
     }

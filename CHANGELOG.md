@@ -1,6 +1,27 @@
 # INGenious Comprehensive Changelog
 
-> Scope: recent codebase changes discussed in the Playwright BrowserContext, WebView context switching, column selection, ADB/mobile actions, IDE input focus, IntelliSense, and LambdaTest reusable component markers chats.
+> Scope: recent codebase changes discussed in the Playwright BrowserContext, WebView context switching, column selection, ADB/mobile actions, IDE input focus, IntelliSense, LambdaTest reusable component markers, and AI agent retry-limit chats.
+
+## 9. AI Discovery/agent retry-limit protection
+
+The AI agent loop (CLI's `AgentLoop` and the IDE's `AgentOrchestrator`, which drive INGenie test-generation/discovery requests) previously kept retrying tool calls until the overall step limit was hit, even when every attempt failed consecutively — wasting AI tokens and delaying feedback. Both loops now track **consecutive** tool-call failures and stop automatically once a configurable threshold (default **5**) is reached, instead of continuing to make AI requests.
+
+### What changed
+
+- `AgentLoop` (CLI) and `AgentOrchestrator` (IDE) each track a consecutive-failure counter across tool-call results: any failed tool call (unknown tool, `ToolException`, or runtime error) increments it; any successful tool call resets it to zero.
+- When the counter reaches the configured limit, the loop stops immediately (no further AI requests), logs the failure details via `java.util.logging`, and surfaces a clear message telling the user to adjust their prompt/context/inputs before retrying. `AgentLoop.Outcome` gained a `failureLimitReached` flag so the CLI REPL can render this distinctly from the existing step-limit message.
+- The limit is configurable without code changes: the CLI reads `maxFailedAttempts` from `~/.ingenious/ai.json` (`ProviderConfig`), and the IDE reads `aiMaxFailedAttempts` from `Configuration/app.settings` (`AppSettings`/`AICredentials.getMaxFailedAttempts()`), both defaulting to 5.
+- A new generation/discovery request (e.g. after the user edits their prompt or inputs) always starts a fresh counter — failures from a previous, already-stopped turn never carry over.
+
+### Files
+
+- [Engine/src/main/java/com/ing/engine/aicli/agent/AgentLoop.java](Engine/src/main/java/com/ing/engine/aicli/agent/AgentLoop.java)
+- [Engine/src/main/java/com/ing/engine/aicli/ai/ProviderConfig.java](Engine/src/main/java/com/ing/engine/aicli/ai/ProviderConfig.java)
+- [Engine/src/main/java/com/ing/engine/aicli/repl/Repl.java](Engine/src/main/java/com/ing/engine/aicli/repl/Repl.java)
+- [IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/agent/AgentOrchestrator.java](IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/agent/AgentOrchestrator.java)
+- [IDE/src/main/java/com/ing/ide/settings/AppSettings.java](IDE/src/main/java/com/ing/ide/settings/AppSettings.java)
+- [IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/auth/AICredentials.java](IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/auth/AICredentials.java)
+- [IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/AICopilot.java](IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/AICopilot.java)
 
 ## 8. LambdaTest reusable component markers
 

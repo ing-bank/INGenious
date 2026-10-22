@@ -581,7 +581,8 @@ public final class Repl {
                     journal(),
                     input,
                     ui,
-                    aiConfig.operatingMode()
+                    aiConfig.operatingMode(),
+                    aiConfig.maxFailedAttempts
                 );
         } catch (AiProvider.AiException e) {
             if (spinning[0]) spinner.stop();
@@ -609,7 +610,15 @@ public final class Repl {
             }
             session.rememberFiles(paths);
         }
-        if (outcome.hitLimit) {
+        if (outcome.failureLimitReached) {
+            System.out.println(
+                theme.fail(
+                    "Stopped after " +
+                    aiConfig.maxFailedAttempts +
+                    " consecutive failed attempts; adjust your prompt/context and try again."
+                )
+            );
+        } else if (outcome.hitLimit) {
             System.out.println(
                 theme.yellow("Agent stopped at the step limit; ask it to continue if needed.")
             );

@@ -32,6 +32,9 @@ public class AgentOrchestrator {
 
     private static final int MAX_ITERATIONS = 20;
 
+    /** Default cap on consecutive failed generation attempts before the loop stops and reports the failure. */
+    public static final int DEFAULT_MAX_FAILED_ATTEMPTS = 5;
+
     // Cap tool-result text fed back to the model so the request body stays small
     // (large results otherwise accumulate and trip the provider's payload limit).
     private static final int MAX_TOOL_RESULT_CHARS = 6000;
@@ -39,12 +42,28 @@ public class AgentOrchestrator {
     private final GitHubModelsClient client;
     private final ToolProvider toolServer;
     private final ObjectMapper mapper = new ObjectMapper();
+    private final int maxFailedAttempts;
 
     private volatile boolean cancelled;
 
     public AgentOrchestrator(GitHubModelsClient client, ToolProvider toolServer) {
+        this(client, toolServer, DEFAULT_MAX_FAILED_ATTEMPTS);
+    }
+
+    /**
+     * @param maxFailedAttempts consecutive tool-call failures allowed before the loop stops
+     *                          early (reset by any successful tool call); values &lt;= 0 fall
+     *                          back to {@link #DEFAULT_MAX_FAILED_ATTEMPTS}.
+     */
+    public AgentOrchestrator(
+        GitHubModelsClient client,
+        ToolProvider toolServer,
+        int maxFailedAttempts
+    ) {
         this.client = client;
         this.toolServer = toolServer;
+        this.maxFailedAttempts =
+            maxFailedAttempts > 0 ? maxFailedAttempts : DEFAULT_MAX_FAILED_ATTEMPTS;
     }
 
     /** Approval gate for mutating tool calls. Implementations may block (e.g. a dialog). */
@@ -82,6 +101,7 @@ public class AgentOrchestrator {
      */
     public void run(String token, ChatSession session, ApprovalGate gate, AgentListener listener) {
         cancelled = false;
+        int consecutiveFailures = 0;
         try {
             for (int i = 0; i < MAX_ITERATIONS; i++) {
                 if (cancelled) {
@@ -135,6 +155,34 @@ public class AgentOrchestrator {
                             cap(result.getContent())
                         )
                     );
+
+                    if (result.isError()) {
+                        consecutiveFailures++;
+                        LOG.log(
+                            Level.WARNING,
+                            "Generation attempt failed ({0}/{1}): tool={2}, error={3}",
+                            new Object[] {
+                                consecutiveFailures,
+                                maxFailedAttempts,
+                                call.getName(),
+                                result.getContent()
+                            }
+                        );
+                    } else {
+                        consecutiveFailures = 0;
+                    }
+                    if (consecutiveFailures >= maxFailedAttempts) {
+                        listener.onError(
+                            new IllegalStateException(
+                                "Stopped after " +
+                                maxFailedAttempts +
+                                " consecutive failed generation attempts to avoid unnecessary AI " +
+                                "requests. Review the errors above, then adjust your prompt, context, " +
+                                "or inputs before trying again."
+                            )
+                        );
+                        return;
+                    }
                 }
             }
             listener.onError(
