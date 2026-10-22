@@ -171,13 +171,15 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             public void actionPerformed(ActionEvent ae) {
                 String newName = getValue("newValue").toString();
                 Boolean returnVal = false;
-                if (Validator.isValidTestDataName(newName)) {
+                if (!Validator.isValidTestDataName(newName)) {
+                    showInvalidTestDataNameNotification();
+                } else if (!Validator.isValidTestDataSheetName(newName)) {
+                    showReservedTestDataNameNotification();
+                } else {
                     TestDataTablePanel panel = getSelectedData();
                     if (panel != null) {
                         returnVal = panel.rename(getValue("newValue").toString());
                     }
-                } else {
-                    showInvalidTestDataNameNotification();
                 }
                 putValue("rename", returnVal);
             }
@@ -656,6 +658,10 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 showInvalidTestDataNameNotification();
                 return;
             }
+            if (!Validator.isValidTestDataSheetName(newName)) {
+                showReservedTestDataNameNotification();
+                return;
+            }
             panel.rename(newName);
         }
     }
@@ -669,6 +675,17 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             "up to " +
             Validator.MAX_TESTDATA_NAME_LENGTH +
             " characters"
+        );
+    }
+
+    /**
+     * Shown when a datasheet rename targets the reserved {@code GlobalData} name.
+     */
+    private void showReservedTestDataNameNotification() {
+        Notification.show(
+            "'" +
+            Validator.RESERVED_GLOBAL_DATA_NAME +
+            "' is a reserved name and cannot be used for a datasheet"
         );
     }
 

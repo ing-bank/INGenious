@@ -74,4 +74,22 @@ public class Validator {
             TESTDATA_NAME_PATTERN.matcher(text).matches()
         );
     }
+
+    /**
+     * Name reserved for the Global Data store ({@code GlobalData.csv}), which every Test Data
+     * provider excludes from its normal sheet listing/loading. A datasheet named this collides
+     * with that reserved file on disk and silently disappears from the Test Data tabs on reload.
+     */
+    public static final String RESERVED_GLOBAL_DATA_NAME = "GlobalData";
+
+    /**
+     * Validates a TestData <em>datasheet</em> (not column) name: must pass
+     * {@link #isValidTestDataName(String)} and must not be the reserved {@code GlobalData} name.
+     *
+     * @param text the sheet name to validate
+     * @return true if the name is valid for a TestData datasheet, false otherwise
+     */
+    public static boolean isValidTestDataSheetName(String text) {
+        return (isValidTestDataName(text) && !RESERVED_GLOBAL_DATA_NAME.equalsIgnoreCase(text));
+    }
 }
