@@ -566,6 +566,7 @@ public class SharedReusableTree extends ProjectTree {
                     renameScenario(scenarioNode.getScenario());
                     super.getTestDesign().getScenarioComp().refreshTitle();
                     super.getTestDesign().getTestDatacomp().refreshOpenTestData();
+                    super.getTestDesign().getSharedTestDataComp().refreshOpenTestData();
                     LOGGER.log(
                         Level.INFO,
                         "Scenario successfully renamed from ''{0}'' to ''{1}''",
@@ -634,6 +635,7 @@ public class SharedReusableTree extends ProjectTree {
                     getTreeModel().reload(testCaseNode);
                     super.getTestDesign().getTestCaseComp().refreshTitle();
                     super.getTestDesign().getTestDatacomp().refreshOpenTestData();
+                    super.getTestDesign().getSharedTestDataComp().refreshOpenTestData();
                     LOGGER.log(
                         Level.INFO,
                         "Test case successfully renamed from ''{0}'' to ''{1}''",
@@ -845,6 +847,7 @@ public class SharedReusableTree extends ProjectTree {
                 getTestDesign().getProjectTree().load();
                 load();
                 getTestDesign().getTestDatacomp().load();
+                getTestDesign().getSharedTestDataComp().load();
                 showImpactedReferenceNotification("Moved to Test Plan", impactedUpdates);
             } else {
                 Notification.showWarning(
@@ -881,6 +884,7 @@ public class SharedReusableTree extends ProjectTree {
             getTestDesign().getProjectTree().load();
             load();
             getTestDesign().getTestDatacomp().load();
+            getTestDesign().getSharedTestDataComp().load();
             showImpactedReferenceNotification("Moved to Test Plan", impactedUpdates);
         } catch (TestCaseConversionException e) {
             Notification.show(e.getMessage());
@@ -1004,6 +1008,7 @@ public class SharedReusableTree extends ProjectTree {
                 getTestDesign().getProjectTree().load();
                 load();
                 getTestDesign().getTestDatacomp().load();
+                getTestDesign().getSharedTestDataComp().load();
             }
         }
     }
@@ -1111,6 +1116,7 @@ public class SharedReusableTree extends ProjectTree {
             getTestDesign().getReusableTree().load();
             getTestDesign().getSharedReusableTree().load();
             getTestDesign().getTestDatacomp().load();
+            getTestDesign().getSharedTestDataComp().load();
             showImpactedReferenceNotification("Moved to Project User Intent", impactedUpdates);
         } else {
             Notification.showWarning(

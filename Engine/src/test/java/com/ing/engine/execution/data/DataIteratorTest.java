@@ -51,6 +51,17 @@ public class DataIteratorTest {
     }
 
     @Test
+    public void testSetIterWithNullSetDoesNotThrow() {
+        // DataAccess.getIterations(context, sheet) returns null when the sheet genuinely
+        // doesn't exist or has no row for the current scenario/testcase - setIter must record
+        // that as "0 iterations known" instead of NPE-ing, so the caller's subsequent
+        // DataAccess.getData() call still runs and throws its own detailed exception.
+        iter.setIter("Missing", null);
+        assertThat(iter.isIterResolved("Missing")).isTrue();
+        assertThat(iter.getMaxIter()).isEqualTo(1);
+    }
+
+    @Test
     public void testSetIterSetsMaxIter() {
         Set<String> iterSet = new HashSet<>();
         iterSet.add("1");

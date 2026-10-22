@@ -289,8 +289,11 @@ public class InlinePropertyDialog extends JDialog {
                                 DataFlavors.TESTDATA_FLAVOR
                             );
                             if (!td.getColumnNames().isEmpty()) {
+                                // Scope tag trails the whole reference - explicit even for
+                                // Project so it matches the source tab the column came from.
+                                String scopeTag = td.isShared() ? "@Shared" : "@Project";
                                 combo.setSelectedItem(
-                                    td.getSheetName() + ":" + td.getColumnNames().get(0)
+                                    td.getSheetName() + ":" + td.getColumnNames().get(0) + scopeTag
                                 );
                                 return true;
                             }

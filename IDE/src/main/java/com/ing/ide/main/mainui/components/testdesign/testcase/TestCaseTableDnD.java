@@ -102,6 +102,9 @@ public class TestCaseTableDnD extends TransferHandler {
         } else {
             return false;
         }
+        // Dropped values bypass cell editing entirely, so nothing else tells the table to
+        // re-run its validation/colour renderers (e.g. Shared Test Data green) - force it.
+        table.repaint();
         return super.importData(support);
     }
 
@@ -213,7 +216,10 @@ public class TestCaseTableDnD extends TransferHandler {
             if (row > table.getRowCount() - 1) {
                 testCase.addNewStep();
             }
-            table.setValueAt(td.getSheetName() + ":" + col, row++, inputColumn);
+            // Scope tag trails the whole reference - explicit even for Project so a dropped
+            // reference's scope matches the source tab regardless of untagged-default resolution.
+            String scopeTag = td.isShared() ? "@Shared" : "@Project";
+            table.setValueAt(td.getSheetName() + ":" + col + scopeTag, row++, inputColumn);
         }
         testCase.stopGroupEdit();
     }

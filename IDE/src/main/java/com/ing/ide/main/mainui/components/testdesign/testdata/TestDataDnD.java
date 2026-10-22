@@ -21,6 +21,11 @@ import javax.swing.TransferHandler;
  *
  */
 public class TestDataDnD extends TransferHandler {
+    private final boolean shared;
+
+    public TestDataDnD(boolean shared) {
+        this.shared = shared;
+    }
 
     @Override
     public int getSourceActions(JComponent c) {
@@ -34,6 +39,7 @@ public class TestDataDnD extends TransferHandler {
             TestDataModel tdm = (TestDataModel) table.getModel();
             TestDataDetail td = new TestDataDetail();
             td.setSheetName(tdm.getName());
+            td.setShared(shared);
             for (int viewCol : table.getSelectedColumns()) {
                 int modelCol = table.convertColumnIndexToModel(viewCol);
                 if (modelCol > 3) {
