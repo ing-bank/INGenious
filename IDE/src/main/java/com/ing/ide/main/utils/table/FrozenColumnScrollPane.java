@@ -813,7 +813,9 @@ public class FrozenColumnScrollPane extends JScrollPane {
 
         // Re-sync selection model
         fixedTable.setSelectionModel(mainTable.getSelectionModel());
-        fixedTable.removeRowSelectionInterval(0, fixedTable.getRowCount() - 1);
+        // clearSelection() instead of removeRowSelectionInterval(0, rowCount - 1): the latter
+        // throws when the sheet has zero rows (rowCount - 1 == -1 is out of range).
+        fixedTable.clearSelection();
 
         // Add model listener to new model
         model.addTableModelListener(modelListener);

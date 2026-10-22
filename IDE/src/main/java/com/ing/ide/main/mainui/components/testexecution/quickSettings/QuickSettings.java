@@ -4,6 +4,8 @@ import com.ing.datalib.settings.RunSettings;
 import com.ing.ide.main.mainui.components.testexecution.testset.TestSetComponent;
 import com.ing.ide.util.logging.UILogger;
 import java.awt.event.ActionEvent;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import javax.swing.Action;
 import javax.swing.JComponent;
 
@@ -33,7 +35,12 @@ public class QuickSettings implements PropertyListener {
 
                 @Override
                 public Object[] getEnvList() {
-                    return view.getProject().getTestData().getEnvironments().toArray();
+                    // Union of project environments and Shared Test Data environments, de-duplicated
+                    Set<String> envs = new LinkedHashSet<>(
+                        view.getProject().getTestData().getEnvironments()
+                    );
+                    envs.addAll(view.getProject().getSharedTestData().getEnvironments());
+                    return envs.toArray();
                 }
             };
         setListeners();
