@@ -138,15 +138,7 @@ final class MCPTools {
         }
         int reapedSessions = 0;
         for (String name : new ArrayList<>(pwSessions.keySet())) {
-            PwSession s = pwSessions.remove(name);
-            if (s == null) continue;
-            lastClosedSession = s;
-            try {
-                runPlaywright(name, Arrays.asList("close"), 20);
-            } catch (RuntimeException ignored) {
-                // best-effort; the daemon may already be gone
-            }
-            reapedSessions++;
+            if (closeSessionQuietly(name, "idle for " + (idleFor / 1000) + "s")) reapedSessions++;
         }
         if (reapedRuns > 0 || reapedSessions > 0) {
             System.err.println(
@@ -158,6 +150,43 @@ final class MCPTools {
                 reapedSessions +
                 " browser session(s)"
             );
+        }
+    }
+
+    /**
+     * Best-effort close of one live browser session: removes it from the live
+     * map, issues the CLI {@code close} command, and logs the outcome so
+     * cleanup (and cleanup failures) are traceable. Never throws.
+     *
+     * @return false if no such session was live (nothing to close).
+     */
+    private boolean closeSessionQuietly(String name, String reason) {
+        PwSession s = pwSessions.remove(name);
+        if (s == null) return false;
+        lastClosedSession = s; // retain so a late export/save can still finalize
+        try {
+            runPlaywright(name, Arrays.asList("close"), 20);
+            System.err.println(
+                "[ingenious-mcp] closed browser session '" + name + "' (" + reason + ")"
+            );
+        } catch (RuntimeException e) {
+            // best-effort; the CLI daemon may already be gone
+            System.err.println(
+                "[ingenious-mcp] failed to close browser session '" +
+                name +
+                "' (" +
+                reason +
+                "): " +
+                e.getMessage()
+            );
+        }
+        return true;
+    }
+
+    /** Close every live browser session so none outlives the MCP server process. */
+    void closeAllSessions() {
+        for (String name : new ArrayList<>(pwSessions.keySet())) {
+            closeSessionQuietly(name, "server shutdown");
         }
     }
 
@@ -8074,12 +8103,22 @@ final class MCPTools {
             );
         }
 
+        // A retry/re-discovery reusing the same session name must not leak the
+        // previous browser instance - close it before opening a fresh one.
+        closeSessionQuietly(session, "reopened by ingenious_browser_discover");
+
         List<String> verb = new ArrayList<>();
         verb.add("open");
         verb.add(url);
         if (headed) verb.add("--headed");
         if (browser != null && !browser.isEmpty()) verb.add("--browser=" + browser);
-        PwResult r = runPlaywright(session, verb, 120); // blocks until the CLI is ready
+        PwResult r;
+        try {
+            r = runPlaywright(session, verb, 120); // blocks until the CLI is ready
+        } catch (RuntimeException e) {
+            closeSessionQuietly(session, "discover open failed: " + e.getMessage());
+            throw e;
+        }
 
         PwSession s = new PwSession();
         s.name = session;
@@ -8109,10 +8148,9 @@ final class MCPTools {
             "\"); scenario/testcase/page are already bound. Discovered locators are\n" +
             "   translated into Object-Repository objects on page '" +
             (page == null ? "<derived>" : page) +
-            "' and the recorded steps are linked to them automatically.\n" +
-            "4. Finally call ingenious_browser_session_close (session=\"" +
-            session +
-            "\").";
+            "' and the recorded steps are linked to them automatically. The browser " +
+            "session is closed automatically once session_save (or session_export) " +
+            "completes - no separate close call is needed.";
 
         ObjectNode out = json.createObjectNode();
         out.put("session", session);
@@ -8134,12 +8172,20 @@ final class MCPTools {
         String browser = MCPServer.paramOrDefault(args, "browser", "chromium");
         // Headed by default so discovery stays a transparent, watchable process.
         boolean headed = boolArg(args, "headed", true);
+        // A retry reusing the same session name must not leak the previous browser.
+        closeSessionQuietly(name, "reopened by ingenious_browser_session_start");
         List<String> verb = new ArrayList<>();
         verb.add("open");
         verb.add(url);
         if (headed) verb.add("--headed");
         if (browser != null && !browser.isEmpty()) verb.add("--browser=" + browser);
-        PwResult r = runPlaywright(name, verb, 120);
+        PwResult r;
+        try {
+            r = runPlaywright(name, verb, 120);
+        } catch (RuntimeException e) {
+            closeSessionQuietly(name, "session_start open failed: " + e.getMessage());
+            throw e;
+        }
         PwSession s = new PwSession();
         s.name = name;
         s.browser = browser;
@@ -8209,7 +8255,15 @@ final class MCPTools {
                 st.locator = ariaLocatorValue(rn[0], rn[1]);
             }
         }
-        PwResult r = runPlaywright(name, tokens, 60);
+        PwResult r;
+        try {
+            r = runPlaywright(name, tokens, 60);
+        } catch (RuntimeException e) {
+            // the CLI/browser is presumed broken beyond recovery; drop the session
+            // instead of leaving an unusable, never-closed browser lingering.
+            closeSessionQuietly(name, "session_do failed: " + e.getMessage());
+            throw e;
+        }
         s.lastSnapshot = r.output;
         s.steps.addAll(mapped);
         ObjectNode out = json.createObjectNode();
@@ -8256,86 +8310,94 @@ final class MCPTools {
     private JsonNode browserSessionSave(ObjectMapper json, JsonNode args) {
         String name = MCPServer.requiredParam(args, "name");
         PwSession s = sessionForFinalize(name);
-        // scenario / testcase / reusable default to whatever ingenious_browser_discover
-        // pre-bound on the session, so a discovery flow can save with no extra args.
-        String scenName = MCPServer.paramOrDefault(args, "scenario", s.scenario);
-        if (scenName == null || scenName.isEmpty()) scenName =
-            MCPServer.requiredParam(args, "scenario");
-        String tcName = MCPServer.paramOrDefault(args, "testcase", s.testcase);
-        if (tcName == null || tcName.isEmpty()) tcName = MCPServer.requiredParam(args, "testcase");
-        boolean reusable = boolArg(args, "reusable", s.reusable);
-        String page = MCPServer.paramOrDefault(args, "page", s.page);
-        if (page == null || page.isEmpty()) page = capitalize(sanitizeObjectName(tcName)) + "Page";
-        String ifExists = MCPServer
-            .paramOrDefault(args, "ifExists", "error")
-            .toLowerCase(Locale.ROOT);
-        Project p = loadProject(resolveProject(projectArg(args)));
+        try {
+            // scenario / testcase / reusable default to whatever ingenious_browser_discover
+            // pre-bound on the session, so a discovery flow can save with no extra args.
+            String scenName = MCPServer.paramOrDefault(args, "scenario", s.scenario);
+            if (scenName == null || scenName.isEmpty()) scenName =
+                MCPServer.requiredParam(args, "scenario");
+            String tcName = MCPServer.paramOrDefault(args, "testcase", s.testcase);
+            if (tcName == null || tcName.isEmpty()) tcName =
+                MCPServer.requiredParam(args, "testcase");
+            boolean reusable = boolArg(args, "reusable", s.reusable);
+            String page = MCPServer.paramOrDefault(args, "page", s.page);
+            if (page == null || page.isEmpty()) page =
+                capitalize(sanitizeObjectName(tcName)) + "Page";
+            String ifExists = MCPServer
+                .paramOrDefault(args, "ifExists", "error")
+                .toLowerCase(Locale.ROOT);
+            Project p = loadProject(resolveProject(projectArg(args)));
 
-        // A redundant save (e.g. after ingenious_import_playwright already created
-        // this test case) should degrade gracefully instead of throwing, unless the
-        // caller explicitly wants the default strict behaviour.
-        Scenario existingScenario = reusable
-            ? p.getReusableScenarioByName(scenName)
-            : p.getScenarioByName(scenName);
-        TestCase existingTc = existingScenario == null
-            ? null
-            : existingScenario.getTestCaseByName(tcName);
-        if (existingTc != null) {
-            switch (ifExists) {
-                case "skip":
-                    ensureLoaded(existingTc);
-                    return json
-                        .createObjectNode()
-                        .put("created", false)
-                        .put("existing", true)
-                        .put("scenario", scenName)
-                        .put("testcase", tcName)
-                        .put("reusable", reusable)
-                        .put("steps", existingTc.getTestSteps().size());
-                case "overwrite":
-                    File old = new File(existingTc.getLocation());
-                    if (old.exists()) old.delete();
-                    existingScenario.getTestCases().remove(existingTc);
-                    break;
-                case "error":
-                default:
-                    throw new MCPServer.MCPException(
-                        -32602,
-                        "Test case already exists: " +
-                        tcName +
-                        " (pass ifExists=skip|overwrite to change this)"
-                    );
+            // A redundant save (e.g. after ingenious_import_playwright already created
+            // this test case) should degrade gracefully instead of throwing, unless the
+            // caller explicitly wants the default strict behaviour.
+            Scenario existingScenario = reusable
+                ? p.getReusableScenarioByName(scenName)
+                : p.getScenarioByName(scenName);
+            TestCase existingTc = existingScenario == null
+                ? null
+                : existingScenario.getTestCaseByName(tcName);
+            if (existingTc != null) {
+                switch (ifExists) {
+                    case "skip":
+                        ensureLoaded(existingTc);
+                        return json
+                            .createObjectNode()
+                            .put("created", false)
+                            .put("existing", true)
+                            .put("scenario", scenName)
+                            .put("testcase", tcName)
+                            .put("reusable", reusable)
+                            .put("steps", existingTc.getTestSteps().size());
+                    case "overwrite":
+                        File old = new File(existingTc.getLocation());
+                        if (old.exists()) old.delete();
+                        existingScenario.getTestCases().remove(existingTc);
+                        break;
+                    case "error":
+                    default:
+                        throw new MCPServer.MCPException(
+                            -32602,
+                            "Test case already exists: " +
+                            tcName +
+                            " (pass ifExists=skip|overwrite to change this)"
+                        );
+                }
             }
+
+            // ---- Materialize discovered locators into the Object Repository ----
+            // Every recorded ref that carries a durable locator becomes (or reuses)
+            // a WebOR object on `page`; the step is rewritten to reference it as
+            // Page.object. Objects are written through the Datalib ObjectRepository
+            // model, so they land as YAML (ObjectRepository/Web/<page>.yaml) - the
+            // canonical format the engine and IDE actually load.
+            int objectsCreated = materializeDiscoveredObjects(p, page, s.steps);
+
+            // ---- Build the test case from the (now OR-linked) steps ----
+            // Wrap with real catalog actions: Open (Browser, url) ... ClosePage.
+            List<PlaywrightCliTranslator.Step> steps = new ArrayList<>();
+            if (s.startUrl != null && !s.startUrl.isEmpty()) {
+                steps.add(new PlaywrightCliTranslator.Step("Open", "Browser", "@" + s.startUrl));
+            }
+            steps.addAll(s.steps);
+            steps.add(new PlaywrightCliTranslator.Step("ClosePage", "", ""));
+
+            TestCase tc = buildTestCaseFromSteps(p, scenName, tcName, reusable, steps);
+            p.save();
+            return json
+                .createObjectNode()
+                .put("created", true)
+                .put("scenario", scenName)
+                .put("testcase", tcName)
+                .put("reusable", reusable)
+                .put("page", page)
+                .put("objectsCreated", objectsCreated)
+                .put("steps", tc.getTestSteps().size());
+        } finally {
+            // Test generation (successful or not) is the end of this browser's job -
+            // close it here instead of relying on a separate, easy-to-skip agent call.
+            closeSessionQuietly(s.name, "session_save completed");
         }
-
-        // ---- Materialize discovered locators into the Object Repository ----
-        // Every recorded ref that carries a durable locator becomes (or reuses)
-        // a WebOR object on `page`; the step is rewritten to reference it as
-        // Page.object. Objects are written through the Datalib ObjectRepository
-        // model, so they land as YAML (ObjectRepository/Web/<page>.yaml) - the
-        // canonical format the engine and IDE actually load.
-        int objectsCreated = materializeDiscoveredObjects(p, page, s.steps);
-
-        // ---- Build the test case from the (now OR-linked) steps ----
-        // Wrap with real catalog actions: Open (Browser, url) ... ClosePage.
-        List<PlaywrightCliTranslator.Step> steps = new ArrayList<>();
-        if (s.startUrl != null && !s.startUrl.isEmpty()) {
-            steps.add(new PlaywrightCliTranslator.Step("Open", "Browser", "@" + s.startUrl));
-        }
-        steps.addAll(s.steps);
-        steps.add(new PlaywrightCliTranslator.Step("ClosePage", "", ""));
-
-        TestCase tc = buildTestCaseFromSteps(p, scenName, tcName, reusable, steps);
-        p.save();
-        return json
-            .createObjectNode()
-            .put("created", true)
-            .put("scenario", scenName)
-            .put("testcase", tcName)
-            .put("reusable", reusable)
-            .put("page", page)
-            .put("objectsCreated", objectsCreated)
-            .put("steps", tc.getTestSteps().size());
     }
 
     /**
@@ -8347,60 +8409,65 @@ final class MCPTools {
     private JsonNode browserSessionExport(ObjectMapper json, JsonNode args) {
         String name = MCPServer.requiredParam(args, "name");
         PwSession s = sessionForFinalize(name);
-
-        File out;
-        String file = MCPServer.paramOrDefault(args, "file", null);
-        if (file != null && !file.isEmpty()) {
-            out = new File(file);
-        } else {
-            File recDir = new File(resolveProject(projectArg(args)), "Recording");
-            recDir.mkdirs();
-            out = new File(recDir, sanitizeObjectName(name) + ".java");
-        }
-
-        String source = generatePlaywrightJava(s);
-        int emitted = 0;
-        for (String line : source.split("\n")) {
-            if (line.trim().startsWith("page.")) emitted++;
-        }
-        // A step with a ref that never resolved to a locator (e.g. it was acted on
-        // before any snapshot captured it) is silently skipped by generatePlaywrightJava.
-        // Surface that explicitly instead of leaving the test quietly incomplete.
-        int droppedSteps = 0;
-        for (PlaywrightCliTranslator.Step st : s.steps) {
-            if (st.ref != null && st.locator == null) droppedSteps++;
-        }
         try {
-            Files.write(out.toPath(), source.getBytes(StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            throw new MCPServer.MCPException(
-                -32603,
-                "Failed to write recording: " + e.getMessage()
-            );
-        }
-        ObjectNode o = json.createObjectNode();
-        o.put("session", name);
-        o.put("file", out.getAbsolutePath());
-        o.put("recordedSteps", s.steps.size());
-        o.put("emittedLines", emitted);
-        if (droppedSteps > 0) {
+            File out;
+            String file = MCPServer.paramOrDefault(args, "file", null);
+            if (file != null && !file.isEmpty()) {
+                out = new File(file);
+            } else {
+                File recDir = new File(resolveProject(projectArg(args)), "Recording");
+                recDir.mkdirs();
+                out = new File(recDir, sanitizeObjectName(name) + ".java");
+            }
+
+            String source = generatePlaywrightJava(s);
+            int emitted = 0;
+            for (String line : source.split("\n")) {
+                if (line.trim().startsWith("page.")) emitted++;
+            }
+            // A step with a ref that never resolved to a locator (e.g. it was acted on
+            // before any snapshot captured it) is silently skipped by generatePlaywrightJava.
+            // Surface that explicitly instead of leaving the test quietly incomplete.
+            int droppedSteps = 0;
+            for (PlaywrightCliTranslator.Step st : s.steps) {
+                if (st.ref != null && st.locator == null) droppedSteps++;
+            }
+            try {
+                Files.write(out.toPath(), source.getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                throw new MCPServer.MCPException(
+                    -32603,
+                    "Failed to write recording: " + e.getMessage()
+                );
+            }
+            ObjectNode o = json.createObjectNode();
+            o.put("session", name);
+            o.put("file", out.getAbsolutePath());
+            o.put("recordedSteps", s.steps.size());
+            o.put("emittedLines", emitted);
+            if (droppedSteps > 0) {
+                o.put(
+                    "warning",
+                    droppedSteps +
+                    " recorded step(s) had no resolvable locator and were NOT written to " +
+                    "the file - they will be missing from the imported test. This means a " +
+                    "ingenious_browser_session_do call ran on a ref before any snapshot had " +
+                    "shown it; re-discover those specific steps with a snapshot immediately " +
+                    "before each session_do call."
+                );
+            }
             o.put(
-                "warning",
-                droppedSteps +
-                " recorded step(s) had no resolvable locator and were NOT written to " +
-                "the file - they will be missing from the imported test. This means a " +
-                "ingenious_browser_session_do call ran on a ref before any snapshot had " +
-                "shown it; re-discover those specific steps with a snapshot immediately " +
-                "before each session_do call."
+                "nextStep",
+                "Import it deterministically: ingenious_import_playwright {file:\"" +
+                out.getAbsolutePath() +
+                "\", scenario, testcase}. Then refine (reusables, page split, parameterize)."
             );
+            return o;
+        } finally {
+            // Export is a terminal operation for this browser - close it here instead
+            // of relying on a separate, easy-to-skip agent call.
+            closeSessionQuietly(s.name, "session_export completed");
         }
-        o.put(
-            "nextStep",
-            "Import it deterministically: ingenious_import_playwright {file:\"" +
-            out.getAbsolutePath() +
-            "\", scenario, testcase}. Then refine (reusables, page split, parameterize)."
-        );
-        return o;
     }
 
     /** Render a session's recorded steps as a Playwright Java codegen body. */
@@ -8659,16 +8726,9 @@ final class MCPTools {
 
     private JsonNode browserSessionClose(ObjectMapper json, JsonNode args) {
         String name = MCPServer.requiredParam(args, "name");
-        PwSession s = pwSessions.remove(name);
-        if (s != null) {
-            lastClosedSession = s; // retain so a late export/save can still finalize
-        }
+        PwSession s = pwSessions.get(name);
         int recorded = s == null ? 0 : s.steps.size();
-        try {
-            runPlaywright(name, Arrays.asList("close"), 20);
-        } catch (RuntimeException ignored) {
-            // best-effort; the daemon may already be gone
-        }
+        closeSessionQuietly(name, "explicit session_close");
         return json
             .createObjectNode()
             .put("closed", true)

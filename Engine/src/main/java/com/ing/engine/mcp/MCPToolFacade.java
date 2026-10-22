@@ -24,6 +24,11 @@ public final class MCPToolFacade {
     public MCPToolFacade(ObjectMapper mapper, String defaultProject) {
         this.mapper = mapper == null ? new ObjectMapper() : mapper;
         this.tools = new MCPTools(defaultProject);
+        // This front-end (./ingenious ai REPL, IDE sidebar) never goes through
+        // MCPServer's shutdown hook, so it must close its own browser sessions.
+        Runtime
+            .getRuntime()
+            .addShutdownHook(new Thread(tools::closeAllSessions, "ingenious-ai-shutdown"));
     }
 
     /**
@@ -82,5 +87,10 @@ public final class MCPToolFacade {
             }
         }
         return false;
+    }
+
+    /** Close any live browser session (e.g. an abandoned discovery). Safe to call anytime. */
+    public void closeAllSessions() {
+        tools.closeAllSessions();
     }
 }
