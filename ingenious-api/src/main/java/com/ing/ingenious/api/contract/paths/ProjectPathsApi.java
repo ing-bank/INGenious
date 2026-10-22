@@ -76,7 +76,12 @@ public interface ProjectPathsApi {
      */
     String resolveExtension(String directory, String baseName);
 
-    /** @return the current project's path, or an empty string if not set */
+    /**
+     * @return the current project's path, or an empty string if not set
+     * @apiNote Not to be confused with
+     * {@link com.ing.ingenious.api.contract.settings.RunSettingsApi#getTestEnv()},
+     * which returns an environment <em>name</em> (e.g. {@code "QA"}), not a path.
+     */
     String getTestEnv();
 
     /** @return the folder name used for the Settings/TestExecution sub-folder */

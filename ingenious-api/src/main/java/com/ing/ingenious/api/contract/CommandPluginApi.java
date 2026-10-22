@@ -4,6 +4,7 @@ import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
 import com.ing.ingenious.api.contract.data.UserDataAccessApi;
 import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
 import com.ing.ingenious.api.contract.drivers.PlaywrightDriverCreationApi;
+import com.ing.ingenious.api.contract.execution.ExecutionContextApi;
 import com.ing.ingenious.api.contract.paths.PathsApi;
 import com.ing.ingenious.api.contract.util.DateTimeApi;
 
@@ -99,6 +100,14 @@ public interface CommandPluginApi {
     * @since 3.1
     */
    SystemDefaultsApi getSystemDefaults();
+
+   /**
+    * Gets the execution context API for the current run (project, runner,
+    * report manager, trigger id, start time).
+    * @return the ExecutionContextApi instance
+    * @since 3.1
+    */
+   ExecutionContextApi getExecutionContext();
 
     /**
      * Adds a runtime variable with the specified key and value.

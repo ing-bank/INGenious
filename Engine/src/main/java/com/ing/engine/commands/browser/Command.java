@@ -8,6 +8,7 @@ import com.ing.datalib.or.image.ImageORObject;
 import com.ing.engine.constants.PathsApiImpl;
 import com.ing.engine.constants.SystemDefaultsApiImpl;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.core.ExecutionContextApiImpl;
 import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.drivers.MobileObject;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
@@ -23,6 +24,7 @@ import com.ing.ingenious.api.contract.data.UserDataAccessApi;
 import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
 import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
 import com.ing.ingenious.api.contract.drivers.PlaywrightDriverCreationApi;
+import com.ing.ingenious.api.contract.execution.ExecutionContextApi;
 import com.ing.ingenious.api.contract.paths.PathsApi;
 import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
 import com.ing.ingenious.api.contract.util.DateTimeApi;
@@ -472,6 +474,15 @@ public class Command implements CommandPluginApi {
     @Override
     public SystemDefaultsApi getSystemDefaults() {
         return SystemDefaultsApiImpl.INSTANCE;
+    }
+
+    /**
+     * Implementation of {@link CommandPluginApi#getExecutionContext()} for the API-plugin contract.
+     * @return the ExecutionContextApi instance for the current run's project, runner, and report manager
+     */
+    @Override
+    public ExecutionContextApi getExecutionContext() {
+        return ExecutionContextApiImpl.INSTANCE;
     }
 
     /**
