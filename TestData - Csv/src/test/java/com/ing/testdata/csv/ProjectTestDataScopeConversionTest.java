@@ -27,6 +27,7 @@ public class ProjectTestDataScopeConversionTest {
     private String originalUserDir;
     private Project project;
     private TestDataModel dataModel;
+    private TestDataModel sharedDataModel;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -43,6 +44,7 @@ public class ProjectTestDataScopeConversionTest {
 
         project = new Project(tempDir.resolve("SampleProject").toString(), "csv").createProject();
         dataModel = project.getTestData().defData().addTestData();
+        sharedDataModel = project.getSharedTestData().defData().addTestData();
     }
 
     @AfterMethod
@@ -70,6 +72,23 @@ public class ProjectTestDataScopeConversionTest {
             }
         }
         throw new AssertionError("No Test Data row found for " + scenario + "/" + testcase);
+    }
+
+    private Record addSharedDataRow(String scenario, String testcase, String scope) {
+        Record record = sharedDataModel.addRecord();
+        record.setScenario(scenario);
+        record.setTestcase(testcase);
+        record.setScope(scope);
+        return record;
+    }
+
+    private String scopeOfShared(String scenario, String testcase) {
+        for (Record record : sharedDataModel.getRecords()) {
+            if (record.getScenario().equals(scenario) && record.getTestcase().equals(testcase)) {
+                return record.getScope();
+            }
+        }
+        throw new AssertionError("No Shared Test Data row found for " + scenario + "/" + testcase);
     }
 
     @Test
@@ -167,5 +186,77 @@ public class ProjectTestDataScopeConversionTest {
         assertThat(dataModel.getRecords().get(1).getScope())
             .as("The colliding Shared entry must be left untouched")
             .isEqualTo("[Shared]");
+    }
+
+    // ---- Regression: Shared Test Data Scope must be updated too (a test case can reference
+    // both a Project sheet and a Shared sheet, and the conversion must retag both stores) ----
+
+    @Test
+    public void moveTestPlanToProjectReusable_UpdatesScopeInSharedTestDataToo() throws Exception {
+        Scenario scenario = project.addScenario("Login");
+        TestCase testCase = scenario.addTestCase("Step1");
+        addDataRow("Login", "Step1", "");
+        addSharedDataRow("Login", "Step1", "");
+
+        project.moveTestCaseToReusable(testCase);
+
+        assertThat(scopeOf("Login", "Step1")).isEqualTo("[Project]");
+        assertThat(scopeOfShared("Login", "Step1"))
+            .as("Shared Test Data's Scope must be updated alongside the project's own")
+            .isEqualTo("[Project]");
+    }
+
+    @Test
+    public void moveProjectReusableToSharedReusable_UpdatesScopeInSharedTestDataToo()
+        throws Exception {
+        Scenario scenario = project.addReusableScenario("Login");
+        TestCase testCase = scenario.addTestCase("Step1");
+        addDataRow("Login", "Step1", "[Project]");
+        addSharedDataRow("Login", "Step1", "[Project]");
+
+        project.moveTestCaseToSharedReusable(testCase);
+
+        assertThat(scopeOf("Login", "Step1")).isEqualTo("[Shared]");
+        assertThat(scopeOfShared("Login", "Step1")).isEqualTo("[Shared]");
+    }
+
+    @Test
+    public void moveSharedReusableToProjectReusable_UpdatesScopeInSharedTestDataToo()
+        throws Exception {
+        Scenario scenario = project.addSharedReusableScenario("Login");
+        TestCase testCase = scenario.addTestCase("Step1");
+        addDataRow("Login", "Step1", "[Shared]");
+        addSharedDataRow("Login", "Step1", "[Shared]");
+
+        project.moveSharedReusableToReusable(testCase);
+
+        assertThat(scopeOf("Login", "Step1")).isEqualTo("[Project]");
+        assertThat(scopeOfShared("Login", "Step1")).isEqualTo("[Project]");
+    }
+
+    @Test
+    public void moveSharedReusableToTestPlan_UpdatesScopeInSharedTestDataToo() throws Exception {
+        Scenario scenario = project.addSharedReusableScenario("Login");
+        TestCase testCase = scenario.addTestCase("Step1");
+        addDataRow("Login", "Step1", "[Shared]");
+        addSharedDataRow("Login", "Step1", "[Shared]");
+
+        project.moveTestCaseToTestPlan(testCase);
+
+        assertThat(scopeOf("Login", "Step1")).isEqualTo("");
+        assertThat(scopeOfShared("Login", "Step1")).isEqualTo("");
+    }
+
+    @Test
+    public void moveWithNoMatchingSharedTestDataRow_DoesNotFail() throws Exception {
+        // A test case that never references Shared Test Data at all must still convert cleanly.
+        Scenario scenario = project.addScenario("Login");
+        TestCase testCase = scenario.addTestCase("Step1");
+        addDataRow("Login", "Step1", "");
+
+        project.moveTestCaseToReusable(testCase);
+
+        assertThat(scopeOf("Login", "Step1")).isEqualTo("[Project]");
+        assertThat(sharedDataModel.getRecords()).isEmpty();
     }
 }
