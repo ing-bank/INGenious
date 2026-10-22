@@ -3447,6 +3447,18 @@ final class MCPTools {
         String subIter = MCPServer.paramOrDefault(args, "subIteration", "1");
         String envName = MCPServer.paramOrDefault(args, "env", null);
         JsonNode colObj = args == null ? null : args.get("columns");
+        Map<String, String> columns = new LinkedHashMap<>();
+        if (colObj != null && colObj.isObject()) {
+            java.util.Iterator<String> fields = colObj.fieldNames();
+            while (fields.hasNext()) {
+                String k = fields.next();
+                columns.put(k, colObj.get(k).asText());
+            }
+        }
+        // Reusable components carry their scope in the dedicated Scope column, not
+        // in the scenario name - the runtime data lookup matches on the real scenario
+        // name plus scope ([Project]/[Shared]), so it would never find a "(R) <name>" row.
+        String scope = reusable ? "[Project]" : "";
 
         com.ing.datalib.component.EnvTestData env = p.getTestData();
         java.util.Collection<com.ing.datalib.component.TestData> targets = com.ing.engine.cli.commands.DataCommand.pickEnvs(
@@ -3458,28 +3470,10 @@ final class MCPTools {
             "Environment not found: " + envName
         );
         int added = 0;
+        boolean duplicate = false;
         for (com.ing.datalib.component.TestData td : targets) {
-            com.ing.datalib.testdata.model.TestDataModel model = td.getByName(sheet);
-            if (model == null) model = td.addTestData(td.getNewTestData(sheet));
-            model.loadTableModel();
-            com.ing.datalib.testdata.model.Record rec = model.addRecord();
-            rec.setScenario(reusable ? ("(R) " + scnName) : scnName);
-            rec.setTestcase(tcName);
-            rec.setIteration(iter);
-            rec.setSubIteration(subIter);
-            if (colObj != null && colObj.isObject()) {
-                int row = model.getRowCount() - 1;
-                java.util.Iterator<String> fields = colObj.fieldNames();
-                while (fields.hasNext()) {
-                    String k = fields.next();
-                    String v = colObj.get(k).asText();
-                    int idx = model.getColumnIndex(k);
-                    if (idx < 0) {
-                        model.addColumn(k);
-                        idx = model.getColumnIndex(k);
-                    }
-                    if (idx >= 0) model.setValueAt(v, row, idx);
-                }
+            if (writeDataRow(td, sheet, scnName, tcName, iter, subIter, scope, columns)) {
+                duplicate = true;
             }
             added++;
         }
@@ -3491,7 +3485,8 @@ final class MCPTools {
             .put("environments", added)
             .put("scenario", scnName)
             .put("testcase", tcName)
-            .put("reusable", reusable);
+            .put("reusable", reusable)
+            .put("duplicate", duplicate);
     }
 
     private JsonNode dataColumnAdd(ObjectMapper json, JsonNode args) {
@@ -4787,6 +4782,12 @@ final class MCPTools {
                 );
             }
         }
+        // E13/W12 – data-sheet hygiene: reusable scope must live in the Scope column
+        // (never a "(R) " scenario-name prefix), and identical rows should not be
+        // duplicated across scenario/testcase/iteration/sub-iteration/scope keys.
+        if (tcName == null) {
+            validateDataSheets(p, errors, warnings);
+        }
         if (checked == 0) throw new MCPServer.MCPException(
             -32602,
             "No matching test cases to validate."
@@ -4800,6 +4801,74 @@ final class MCPTools {
         out.set("warnings", warnings);
         out.set("info", info);
         return out;
+    }
+
+    /**
+     * Lints every data sheet across all environments for two AI-generation hygiene rules:
+     * a scenario name must never carry a "(R) " reusable-scope prefix (the Scope column is
+     * the correct place for that), and identical rows (same scenario/testcase/iteration/
+     * sub-iteration/scope plus identical column values) must not be duplicated.
+     */
+    private void validateDataSheets(Project p, ArrayNode errors, ArrayNode warnings) {
+        com.ing.datalib.component.EnvTestData env = p.getTestData();
+        for (String envName : env.getEnvironments()) {
+            com.ing.datalib.component.TestData td = env.getTestDataFor(envName);
+            if (td == null) continue;
+            for (com.ing.datalib.testdata.model.TestDataModel model : td.getTestDataList()) {
+                model.loadTableModel();
+                List<com.ing.datalib.testdata.model.Record> records = model.getRecords();
+                Map<String, List<Integer>> seen = new LinkedHashMap<>();
+                for (int i = 0; i < records.size(); i++) {
+                    com.ing.datalib.testdata.model.Record rec = records.get(i);
+                    String scenario = rec.getScenario();
+                    if (scenario != null && scenario.startsWith("(R) ")) {
+                        errors.add(
+                            "data sheet '" +
+                            model.getName() +
+                            "' (" +
+                            envName +
+                            ") row " +
+                            (i + 1) +
+                            ": scenario '" +
+                            scenario +
+                            "' uses the invalid '(R) ' naming prefix; set the Scope column " +
+                            "to [Project]/[Shared] instead [E13]"
+                        );
+                    }
+                    StringBuilder key = new StringBuilder();
+                    key
+                        .append(scenario)
+                        .append('|')
+                        .append(rec.getTestcase())
+                        .append('|')
+                        .append(rec.getIteration())
+                        .append('|')
+                        .append(rec.getSubIteration())
+                        .append('|')
+                        .append(rec.getScope());
+                    for (
+                        int c = com.ing.datalib.testdata.model.Record.HEADERS.length;
+                        c < model.getColumnCount();
+                        c++
+                    ) {
+                        key.append('|').append(model.getValueAt(i, c));
+                    }
+                    seen.computeIfAbsent(key.toString(), k -> new ArrayList<>()).add(i + 1);
+                }
+                for (List<Integer> rows : seen.values()) {
+                    if (rows.size() < 2) continue;
+                    warnings.add(
+                        "data sheet '" +
+                        model.getName() +
+                        "' (" +
+                        envName +
+                        ") rows " +
+                        rows +
+                        " are exact duplicates; remove or merge them [W12]"
+                    );
+                }
+            }
+        }
     }
 
     private static String safeTrim(String s) {
@@ -5032,11 +5101,14 @@ final class MCPTools {
             "Selections matched no parameterizable values."
         );
 
-        String rowScenario = reusable ? "(R) " + scenName : scenName;
+        // Reusable components carry their scope in the dedicated Scope column, not in the
+        // scenario name - the runtime lookup matches on the real scenario name plus scope.
+        String scope = reusable ? "[Project]" : "";
         ObjectNode out = json.createObjectNode();
         out.put("scenario", scenName).put("testcase", tcName).put("reusable", reusable);
         ObjectNode row = out.putObject("row");
-        row.put("scenario", rowScenario).put("testcase", tcName).put("iteration", iteration);
+        row.put("scenario", scenName).put("testcase", tcName).put("iteration", iteration);
+        row.put("scope", scope);
         ArrayNode ra = out.putArray("replacements");
         for (ObjectNode r : replacements) ra.add(r);
 
@@ -5057,7 +5129,16 @@ final class MCPTools {
         );
         for (Map.Entry<String, Map<String, String>> se : sheetValues.entrySet()) {
             for (com.ing.datalib.component.TestData td : targets) {
-                writeDataRow(td, se.getKey(), rowScenario, tcName, iteration, se.getValue());
+                writeDataRow(
+                    td,
+                    se.getKey(),
+                    scenName,
+                    tcName,
+                    iteration,
+                    "1",
+                    scope,
+                    se.getValue()
+                );
             }
         }
         env.save();
@@ -5445,16 +5526,22 @@ final class MCPTools {
 
     /**
      * Writes {@code columns} into the data-sheet row keyed to
-     * ({@code rowScenario}, {@code tcName}, {@code iteration}) in {@code sheet},
-     * creating the sheet, columns and row as needed. Reuses an existing row so
-     * repeated parameterize runs stay idempotent.
+     * ({@code scn}, {@code tcName}, {@code iteration}, {@code subIteration}, {@code scope}) in
+     * {@code sheet}, creating the sheet, columns and row as needed. Reuses an existing row so
+     * repeated calls (parameterize re-runs, or a row already added for the same reusable call)
+     * stay idempotent instead of growing duplicate rows.
+     *
+     * @return {@code true} when an existing row was reused (no new row added), {@code false}
+     *         when a new row was created.
      */
-    private void writeDataRow(
+    private boolean writeDataRow(
         com.ing.datalib.component.TestData td,
         String sheet,
-        String rowScenario,
+        String scn,
         String tcName,
         String iteration,
+        String subIteration,
+        String scope,
         Map<String, String> columns
     ) {
         com.ing.datalib.testdata.model.TestDataModel model = td.getByName(sheet);
@@ -5468,26 +5555,31 @@ final class MCPTools {
         for (int i = 0; i < records.size(); i++) {
             com.ing.datalib.testdata.model.Record rec = records.get(i);
             if (
-                rowScenario.equals(rec.getScenario()) &&
+                scn.equals(rec.getScenario()) &&
                 tcName.equals(rec.getTestcase()) &&
-                iteration.equals(rec.getIteration())
+                iteration.equals(rec.getIteration()) &&
+                subIteration.equals(rec.getSubIteration()) &&
+                scope.equals(rec.getScope() == null ? "" : rec.getScope())
             ) {
                 rowIdx = i;
                 break;
             }
         }
+        boolean reused = rowIdx >= 0;
         if (rowIdx < 0) {
             com.ing.datalib.testdata.model.Record rec = model.addRecord();
-            rec.setScenario(rowScenario);
+            rec.setScenario(scn);
             rec.setTestcase(tcName);
+            rec.setScope(scope);
             rec.setIteration(iteration);
-            rec.setSubIteration("1");
+            rec.setSubIteration(subIteration);
             rowIdx = model.getRowCount() - 1;
         }
         for (Map.Entry<String, String> e : columns.entrySet()) {
             int col = model.getColumnIndex(e.getKey());
             if (col >= 0) model.setValueAt(e.getValue(), rowIdx, col);
         }
+        return reused;
     }
 
     // ==================================================================
