@@ -94,6 +94,10 @@ public class MCPServer {
                     () -> {
                         running.set(false);
                         requestExecutor.shutdownNow();
+                        // Close any browser sessions still live (e.g. an authoring session
+                        // the client abandoned without calling session_save/session_close)
+                        // so no Chrome/CFT process outlives this server process.
+                        tools.closeAllSessions();
                         log("Shutting down");
                     },
                     "mcp-shutdown"
