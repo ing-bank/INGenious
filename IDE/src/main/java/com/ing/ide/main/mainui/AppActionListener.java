@@ -144,6 +144,7 @@ public class AppActionListener implements ActionListener {
                 break;
             case "Multiple Environment":
                 sMainFrame.getTestDesign().getTestDatacomp().switchEnvView();
+                sMainFrame.getTestDesign().getSharedTestDataComp().switchEnvView();
                 break;
             case "Import TestData":
                 importTestData.importTestData();

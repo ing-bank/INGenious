@@ -95,7 +95,7 @@ public class ProjectProperties extends javax.swing.JDialog {
         noOfTestCases.setText("12");
         jPanel1.add(noOfTestCases);
 
-        jLabel7.setText("No of Reusables :");
+        jLabel7.setText("No of User Intents :");
         jPanel1.add(jLabel7);
 
         noOfReusables.setFont(new java.awt.Font("sansserif", 1, 12)); // NOI18N

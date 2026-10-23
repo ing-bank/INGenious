@@ -103,7 +103,7 @@ public class ObjectReferenceRenderer {
         String reusableScopeStr = reusableScope != null ? reusableScope.name() : "UNKNOWN";
 
         String errorMessage = String.format(
-            "[Policy Violation] Object '%s' [%s] cannot be used in [%s] reusable component. %s",
+            "[Policy Violation] Object '%s' [%s] cannot be used in [%s] user intent. %s",
             objectName,
             objectScopeStr,
             reusableScopeStr,
@@ -121,7 +121,7 @@ public class ObjectReferenceRenderer {
         ReusableRef.Scope reusableScope
     ) {
         return String.format(
-            "[Policy Violation] Object '%s' [%s] cannot be referenced from [%s] reusable. %s",
+            "[Policy Violation] Object '%s' [%s] cannot be referenced from [%s] user intent. %s",
             violation.objectName,
             violation.objectScope.name(),
             reusableScope.name(),

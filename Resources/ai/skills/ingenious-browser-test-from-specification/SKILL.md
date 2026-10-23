@@ -3,7 +3,7 @@ name: ingenious-browser-test-from-specification
 description: 'Create an INGenious 3.1.x browser test from a business flow by orchestrating the ingenious_* MCP tools. Use when the user gives checkout/login/order steps and wants a YAML Scenario -> TestCase, YAML reusable components, YAML Object Repository pages, and data sheets — all authored through tools, not hand-written files.'
 argument-hint: 'Business flow + scenario name + testcase name + expected outcomes'
 user-invocable: true
-version: "2.0.0"
+version: "2.1.0"
 requires:
   ingenious: ">=3.1.0 <3.2.0"
 metadata:
@@ -30,6 +30,9 @@ tools deterministically — never to hand-write `TestPlan/**`, `ObjectRepository
   create or edit test/OR/data/project files with file-edit tools.
 - **Discover, don't derive.** Get valid actions from `ingenious_action_search` /
   `ingenious_action_info`. NEVER read `Engine/src/**/commands/**` Java to find actions.
+- **Browser category only — never Mobile.** This skill produces browser/web tests, so
+  every action lookup MUST be category-pinned: `ingenious_action_search {query, category:"Browser"}`.
+  See "Browser/Web actions only" below.
 - **Validate via engine.** Correctness is whatever `ingenious_testcase_validate` says.
   Do not reason about YAML shape yourself.
 - **Dry-run first.** Pass `dryRun:true` on create/add tools and use `ingenious_run_dry`
@@ -38,6 +41,35 @@ tools deterministically — never to hand-write `TestPlan/**`, `ObjectRepository
   ("Did you mean: …"). Re-call with a suggested value; never hand-fix files.
 - **Ask only for genuinely missing inputs.** One concise plan up front, then execute.
   No per-step narration.
+
+## Mandatory for Object Repository references (Always use this)
+
+1. Object Repository references in test step canvas (ObjectName = <ElementName> and Reference = [Project] <PageName>).
+   Always ensure that the ObjectName matches the element name in the Object Repository and the Reference points to the correct page.
+## Browser/Web actions only — never Mobile (Always use this)
+
+Many action names exist for several object types: the same `Click`, `Set`, `AssertText`,
+`WaitForElement`, `SelectByText`, `Scroll` … are published by **both** the Browser
+(`Playwright` / `Browser` / `Web` object types) and the **Mobile** (`Mobile` / `App`
+object types) command sets. An unfiltered search can rank the Mobile variant first, and
+a Mobile action on a browser step fails at run time (no Appium driver / wrong object type).
+
+Rules:
+
+- **Always pin the category.** Every lookup for a browser/web element step is
+  `ingenious_action_search {query, category:"Browser"}` — never an unfiltered search.
+  For the non-element helper objects used by a browser test, pin the matching category
+  instead (`Data` / `File` / `String` steps → `category:"General"`). Mobile is never a
+  valid fallback for either.
+- **Verify before use.** `ingenious_action_info {action}` must report a Browser-family
+  object type (`Playwright`, `Browser`, or `Web`). If it reports `Mobile`/`App`, discard
+  the hit and re-search with `category:"Browser"` — do NOT "adapt" a Mobile action.
+- **Objects stay Browser-side.** Steps reference Object-Repository elements of the
+  Browser/Web page (ObjectName + `[Project] <PageName>` reference) or the fixed
+  `Browser` / `Execute` / `Data` objects. Never emit `object: Mobile`, `object: App`,
+  or a mobile Object-Repository reference in a browser test.
+- **Only exception:** the user explicitly asks for a mobile/Appium step (e.g. a hybrid
+  app webview). Then say so in the output summary — otherwise Mobile is out of scope.
 
 ## Attended vs. unattended mode
 
@@ -142,7 +174,7 @@ Run these tool calls in order. Fill slots from the inputs; do not reorder.
      that consume it. This generates a fresh value every run, so re-running the test
      never collides with data from a prior run.
    - **Add at least one business-outcome assertion** (discover the action with
-     `ingenious_action_search assert`).
+     `ingenious_action_search {query:"assert", category:"Browser"}`).
 
 6. **Validate**
    - `ingenious_testcase_validate` `{project, scenario, testcase}` → must return
@@ -189,9 +221,11 @@ Run these tool calls in order. Fill slots from the inputs; do not reorder.
 
 1. All mutations went through `ingenious_*` tools (no hand-authored files).
 2. `ingenious_testcase_validate` → `valid:true`.
-3. Test case + reusables + OR pages exist as YAML on disk (via the tools).
-4. At least one business-outcome assertion runs and passes on a smoke run.
-5. No unrelated files changed.
+3. Every step uses a Browser-category action (or a `General` helper action for
+   `Data`/`File`/`String` steps) — no `Mobile`/`App` actions or objects.
+4. Test case + reusables + OR pages exist as YAML on disk (via the tools).
+5. At least one business-outcome assertion runs and passes on a smoke run.
+6. No unrelated files changed.
 
 ## Output summary
 

@@ -37,6 +37,10 @@ public class XTableUtils {
         //     return;
         // }
 
+        if (numRows == 0 || numCols == 0) {
+            return;
+        }
+
         if (table.getModel() instanceof UndoRedoModel) {
             ((UndoRedoModel) table.getModel()).startGroupEdit();
         }
@@ -70,8 +74,13 @@ public class XTableUtils {
     }
 
     public static void pasteFromClipboard(JTable table) {
-        int startRow = table.getSelectedRows()[0];
-        int startCol = table.getSelectedColumns()[0];
+        int[] rowsSelected = table.getSelectedRows();
+        int[] colsSelected = table.getSelectedColumns();
+        if (rowsSelected.length == 0 || colsSelected.length == 0) {
+            return;
+        }
+        int startRow = rowsSelected[0];
+        int startCol = colsSelected[0];
 
         String pasteString;
         try {
@@ -86,10 +95,13 @@ public class XTableUtils {
         if (table.getModel() instanceof UndoRedoModel) {
             ((UndoRedoModel) table.getModel()).startGroupEdit();
         }
-        String[] lines = pasteString.split(LINE_BREAK);
+        String[] lines = pasteString
+            .replace("\r\n", LINE_BREAK)
+            .replace("\r", LINE_BREAK)
+            .split(LINE_BREAK);
 
         for (int i = 0; i < lines.length; i++) {
-            String[] cells = lines[i].split(CELL_BREAK);
+            String[] cells = lines[i].split(CELL_BREAK, -1);
             for (int j = 0; j < cells.length; j++) {
                 if (table.getRowCount() <= startRow + i) {
                     if (table.getModel() instanceof DataModel) {

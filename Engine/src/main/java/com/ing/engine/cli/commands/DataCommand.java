@@ -44,6 +44,35 @@ public class DataCommand implements Callable<Integer> {
     }
 
     /**
+     * Resolves the app-root Shared Test Data directory (Shared/SharedTestData), global across
+     * all projects. Mirrors Project.getSharedTestDataPath() without depending on Datalib.
+     */
+    static File sharedTestDataDir() {
+        return new File(new File(System.getProperty("user.dir"), "Shared"), "SharedTestData");
+    }
+
+    /**
+     * Resolves a (possibly scope-tagged) sheet reference to its CSV file. {@code "Foo@Shared"}
+     * -> {@code <workspace>/Shared/SharedTestData/Foo.csv}; {@code "Foo@Project"} / {@code "Foo"}
+     * -> {@code <project>/TestData/Foo.csv}.
+     */
+    static File resolveSheetCsv(String projectPath, String taggedSheet) {
+        String s = taggedSheet == null ? "" : taggedSheet.trim();
+        if (s.endsWith("@Shared")) {
+            String name = s.substring(0, s.length() - "@Shared".length()).trim();
+            File parent = new File(projectPath).getParentFile();
+            File sharedRoot = parent != null
+                ? new File(new File(parent, "Shared"), "SharedTestData")
+                : sharedTestDataDir();
+            return new File(sharedRoot, name + ".csv");
+        }
+        if (s.endsWith("@Project")) {
+            s = s.substring(0, s.length() - "@Project".length()).trim();
+        }
+        return new File(new File(projectPath, "TestData"), s + ".csv");
+    }
+
+    /**
      * List data sheets/environments.
      */
     @Command(name = "list", description = "List data sheets")
@@ -54,20 +83,31 @@ public class DataCommand implements Callable<Integer> {
         @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
+        @Option(
+            names = { "--shared" },
+            description = "List sheets from Shared Test Data instead of the project"
+        )
+        private boolean shared;
+
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
 
-            String path = projectPath != null ? projectPath : cli.getProjectPath();
-            if (path == null || path.isEmpty()) {
-                cli.printError("Project path required.");
-                return 1;
+            File testDataDir;
+            if (shared) {
+                testDataDir = sharedTestDataDir();
+            } else {
+                String path = projectPath != null ? projectPath : cli.getProjectPath();
+                if (path == null || path.isEmpty()) {
+                    cli.printError("Project path required.");
+                    return 1;
+                }
+                testDataDir = new File(path, "TestData");
             }
 
             try {
-                File testDataDir = new File(path, "TestData");
                 if (!testDataDir.exists()) {
-                    cli.printWarning("No test data found.");
+                    cli.printWarning(shared ? "No shared test data found." : "No test data found.");
                     return 0;
                 }
 
@@ -134,21 +174,33 @@ public class DataCommand implements Callable<Integer> {
         @Option(names = { "--limit" }, description = "Number of rows to show", defaultValue = "20")
         private int limit;
 
+        @Option(
+            names = { "--shared" },
+            description = "Show a sheet from Shared Test Data instead of the project"
+        )
+        private boolean shared;
+
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
 
-            String path = projectPath != null ? projectPath : cli.getProjectPath();
-            if (path == null || path.isEmpty()) {
-                cli.printError("Project path required.");
-                return 1;
+            File testDataDir;
+            if (shared) {
+                testDataDir = sharedTestDataDir();
+            } else {
+                String path = projectPath != null ? projectPath : cli.getProjectPath();
+                if (path == null || path.isEmpty()) {
+                    cli.printError("Project path required.");
+                    return 1;
+                }
+                testDataDir = new File(path, "TestData");
             }
 
             try {
-                File dataFile = new File(path, "TestData/" + sheetName);
+                File dataFile = new File(testDataDir, sheetName);
                 if (!dataFile.exists()) {
                     // Try with .csv extension
-                    dataFile = new File(path, "TestData/" + sheetName + ".csv");
+                    dataFile = new File(testDataDir, sheetName + ".csv");
                 }
 
                 if (!dataFile.exists()) {
@@ -210,25 +262,35 @@ public class DataCommand implements Callable<Integer> {
                 return 1;
             }
 
-            // Parse reference: Sheet:Column:Row or Sheet.Column[Row]
-            String[] parts = reference.split(":");
+            // Parse reference: Sheet:Column:Row, optionally tagged with a trailing
+            // @Project/@Shared scope suffix.
+            String tag = "";
+            String ref = reference;
+            if (ref.endsWith("@Shared")) {
+                tag = "@Shared";
+                ref = ref.substring(0, ref.length() - tag.length());
+            } else if (ref.endsWith("@Project")) {
+                tag = "@Project";
+                ref = ref.substring(0, ref.length() - tag.length());
+            }
+            String[] parts = ref.split(":");
             if (parts.length != 3) {
-                cli.printError("Invalid reference format. Use: Sheet:Column:Row");
+                cli.printError("Invalid reference format. Use: Sheet:Column:Row[@Project|@Shared]");
                 return 1;
             }
 
-            String sheet = parts[0];
+            String sheet = parts[0].trim() + tag;
             String column = parts[1];
             int row;
             try {
-                row = Integer.parseInt(parts[2]);
+                row = Integer.parseInt(parts[2].trim());
             } catch (NumberFormatException e) {
                 cli.printError("Invalid row number: " + parts[2]);
                 return 1;
             }
 
             try {
-                File dataFile = new File(path, "TestData/" + sheet + ".csv");
+                File dataFile = resolveSheetCsv(path, sheet);
                 if (!dataFile.exists()) {
                     cli.printError("Data sheet not found: " + sheet);
                     return 1;
@@ -310,24 +372,33 @@ public class DataCommand implements Callable<Integer> {
                 return 1;
             }
 
-            String[] parts = reference.split(":");
+            String tag = "";
+            String ref = reference;
+            if (ref.endsWith("@Shared")) {
+                tag = "@Shared";
+                ref = ref.substring(0, ref.length() - tag.length());
+            } else if (ref.endsWith("@Project")) {
+                tag = "@Project";
+                ref = ref.substring(0, ref.length() - tag.length());
+            }
+            String[] parts = ref.split(":");
             if (parts.length != 3) {
-                cli.printError("Invalid reference format. Use: Sheet:Column:Row");
+                cli.printError("Invalid reference format. Use: Sheet:Column:Row[@Project|@Shared]");
                 return 1;
             }
 
-            String sheet = parts[0];
+            String sheet = parts[0].trim() + tag;
             String column = parts[1];
             int targetRow;
             try {
-                targetRow = Integer.parseInt(parts[2]);
+                targetRow = Integer.parseInt(parts[2].trim());
             } catch (NumberFormatException e) {
                 cli.printError("Invalid row number: " + parts[2]);
                 return 1;
             }
 
             try {
-                File dataFile = new File(path, "TestData/" + sheet + ".csv");
+                File dataFile = resolveSheetCsv(path, sheet);
                 if (!dataFile.exists()) {
                     cli.printError("Data sheet not found: " + sheet);
                     return 1;

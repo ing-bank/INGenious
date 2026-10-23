@@ -21,6 +21,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Interactive ReAct agent loop for the CLI: sends the conversation plus the
@@ -35,8 +37,13 @@ import java.util.Map;
  * committing to a plan).</p>
  */
 public final class AgentLoop {
+    private static final Logger LOG = Logger.getLogger(AgentLoop.class.getName());
+
     private static final int MAX_ITERATIONS = 25;
     private static final int MAX_RESULT_CHARS = 6000;
+
+    /** Default cap on consecutive failed generation attempts before the loop stops; see {@link ProviderConfig#maxFailedAttempts}. */
+    public static final int DEFAULT_MAX_FAILED_ATTEMPTS = 5;
 
     /**
      * Tool ids that mark a natural pause point in ATTENDED mode: either the end of a
@@ -87,11 +94,19 @@ public final class AgentLoop {
         public final String text;
         public final List<FileChange> changes;
         public final boolean hitLimit;
+        /** True when the loop stopped early because {@link #DEFAULT_MAX_FAILED_ATTEMPTS} consecutive generation attempts failed. */
+        public final boolean failureLimitReached;
 
-        Outcome(String text, List<FileChange> changes, boolean hitLimit) {
+        Outcome(
+            String text,
+            List<FileChange> changes,
+            boolean hitLimit,
+            boolean failureLimitReached
+        ) {
             this.text = text;
             this.changes = changes;
             this.hitLimit = hitLimit;
+            this.failureLimitReached = failureLimitReached;
         }
     }
 
@@ -134,6 +149,7 @@ public final class AgentLoop {
      * and tool turns. In {@link OperatingMode#ATTENDED}, checkpoint tool results
      * (see {@link #CHECKPOINT_ON_SUCCESS}/{@link #CHECKPOINT_ON_FAILURE}) pause via
      * {@link Ui#checkpoint(String, boolean, String)} before the loop continues.
+     * Uses {@link #DEFAULT_MAX_FAILED_ATTEMPTS} as the consecutive-failure cap.
      */
     public Outcome run(
         AiProvider provider,
@@ -144,6 +160,37 @@ public final class AgentLoop {
         String goal,
         Ui ui,
         OperatingMode mode
+    )
+        throws AiProvider.AiException {
+        return run(
+            provider,
+            messages,
+            projectArg,
+            projectRoot,
+            journal,
+            goal,
+            ui,
+            mode,
+            DEFAULT_MAX_FAILED_ATTEMPTS
+        );
+    }
+
+    /**
+     * Runs the loop. {@code messages} is extended in place with the assistant
+     * and tool turns. Stops early, without further AI requests, once
+     * {@code maxFailedAttempts} consecutive tool-call failures are observed
+     * (reset by any successful tool call); see {@link Outcome#failureLimitReached}.
+     */
+    public Outcome run(
+        AiProvider provider,
+        List<AgentMessage> messages,
+        String projectArg,
+        Path projectRoot,
+        UndoJournal journal,
+        String goal,
+        Ui ui,
+        OperatingMode mode,
+        int maxFailedAttempts
     )
         throws AiProvider.AiException {
         Map<String, byte[]> snapshot = null;
@@ -158,9 +205,11 @@ public final class AgentLoop {
         List<ToolSpec> specs = buildSpecs();
         String finalText = null;
         boolean hitLimit = true;
+        boolean failureLimitReached = false;
         boolean approveAll = false;
+        int consecutiveFailures = 0;
 
-        for (int i = 0; i < MAX_ITERATIONS; i++) {
+        iterations:for (int i = 0; i < MAX_ITERATIONS; i++) {
             ui.thinking(true);
             AgentReply reply;
             try {
@@ -191,6 +240,20 @@ public final class AgentLoop {
                     String err = errorJson("Unknown tool: " + call.name);
                     ui.onToolResult(call.name, true, "unknown tool");
                     messages.add(AgentMessage.toolResult(call.id, call.name, err));
+                    consecutiveFailures++;
+                    LOG.log(
+                        Level.WARNING,
+                        "Generation attempt failed ({0}/{1}): unknown tool {2}",
+                        new Object[] { consecutiveFailures, maxFailedAttempts, call.name }
+                    );
+                    if (consecutiveFailures >= maxFailedAttempts) {
+                        failureLimitReached = true;
+                        finalText = retryLimitMessage(maxFailedAttempts);
+                        ui.onAssistantText(finalText);
+                        messages.add(AgentMessage.assistant(finalText));
+                        hitLimit = false;
+                        break iterations;
+                    }
                     continue;
                 }
 
@@ -228,6 +291,26 @@ public final class AgentLoop {
                     ui.onToolResult(call.name, true, String.valueOf(e.getMessage()));
                 }
                 messages.add(AgentMessage.toolResult(call.id, call.name, result));
+
+                if (error) {
+                    consecutiveFailures++;
+                    LOG.log(
+                        Level.WARNING,
+                        "Generation attempt failed ({0}/{1}): tool={2}, error={3}",
+                        new Object[] { consecutiveFailures, maxFailedAttempts, call.name, result }
+                    );
+                } else {
+                    consecutiveFailures = 0;
+                }
+                if (consecutiveFailures >= maxFailedAttempts) {
+                    failureLimitReached = true;
+                    finalText = retryLimitMessage(maxFailedAttempts);
+                    ui.onAssistantText(finalText);
+                    messages.add(AgentMessage.assistant(finalText));
+                    hitLimit = false;
+                    break iterations;
+                }
+
                 if (mode == OperatingMode.ATTENDED && isCheckpoint(tool.id(), error)) {
                     String guidance = ui.checkpoint(call.name, !error, result);
                     if (guidance != null && !guidance.isBlank()) {
@@ -248,7 +331,18 @@ public final class AgentLoop {
                 // mutation manifest unavailable; not fatal
             }
         }
-        return new Outcome(finalText, changes, hitLimit);
+        return new Outcome(finalText, changes, hitLimit, failureLimitReached);
+    }
+
+    /** User-facing message shown when the consecutive-failure cap stops the loop (ATDD scenario 2). */
+    private static String retryLimitMessage(int maxFailedAttempts) {
+        return (
+            "Stopped after " +
+            maxFailedAttempts +
+            " consecutive failed generation attempts to avoid " +
+            "unnecessary AI requests. Review the errors above, then adjust your prompt, context, or " +
+            "inputs before trying again."
+        );
     }
 
     /** True when {@code toolId}'s outcome (success or failure) should pause the loop in ATTENDED mode. */

@@ -2,7 +2,6 @@ package com.ing.ide.main.utils.table;
 
 import com.ing.datalib.undoredo.UndoRedoModel;
 import com.ing.ide.main.Main;
-import com.ing.ide.main.utils.keys.ClipboardKeyAdapter;
 import com.ing.ide.main.utils.keys.Keystroke;
 import java.awt.Color;
 import java.awt.Component;
@@ -37,11 +36,16 @@ import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
 public class XTable extends JTable {
+    private static final String CUT_ACTION = "XTable.cut";
+    private static final String COPY_ACTION = "XTable.copy";
+    private static final String PASTE_ACTION = "XTable.paste";
+
     private boolean inLayout;
 
     private SearchRenderer searchRenderer;
@@ -220,7 +224,6 @@ public class XTable extends JTable {
     }
 
     private void addKeyListeners() {
-        addKeyListener(new ClipboardKeyAdapter(this));
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.DELETE, "Clear");
         getActionMap()
             .put(
@@ -234,14 +237,47 @@ public class XTable extends JTable {
                 }
             );
         int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
-        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
-        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
-        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
         getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
 
-        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
-        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
-        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+        // Bound to dedicated action names instead of the L&F "cut"/"copy"/"paste"
+        // actions, which delegate to the table's TransferHandler and silently do
+        // nothing when a custom (drag-and-drop only) handler is installed.
+        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), CUT_ACTION);
+        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), COPY_ACTION);
+        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), PASTE_ACTION);
+        getActionMap()
+            .put(
+                CUT_ACTION,
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        cut();
+                    }
+                }
+            );
+        getActionMap()
+            .put(
+                COPY_ACTION,
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        copy();
+                    }
+                }
+            );
+        getActionMap()
+            .put(
+                PASTE_ACTION,
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        paste();
+                    }
+                }
+            );
 
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.INSERT_ROW, "Insert");
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.ADD_ROW, "Add");
@@ -629,15 +665,28 @@ public class XTable extends JTable {
     }
 
     public void cut() {
+        commitEdit();
         XTableUtils.copyToClipboard(this, true);
     }
 
     public void copy() {
+        commitEdit();
         XTableUtils.copyToClipboard(this, false);
     }
 
     public void paste() {
+        commitEdit();
         XTableUtils.pasteFromClipboard(this);
+    }
+
+    /**
+     * Pushes any in-progress cell edit into the model so clipboard operations
+     * always act on the committed values of the current selection.
+     */
+    private void commitEdit() {
+        if (isEditing() && getCellEditor() != null) {
+            getCellEditor().stopCellEditing();
+        }
     }
 
     public void selectColumn(int colIndex) {
@@ -683,7 +732,30 @@ public class XTable extends JTable {
             return;
         }
 
+        if (e.isPopupTrigger()) {
+            selectCellForPopup(e);
+        }
+
         super.processMouseEvent(e);
+    }
+
+    /**
+     * Swing ignores right-clicks for selection, so without this a popup-menu
+     * action would run against the previous (or an empty) selection.
+     */
+    private void selectCellForPopup(java.awt.event.MouseEvent e) {
+        int row = rowAtPoint(e.getPoint());
+        int column = columnAtPoint(e.getPoint());
+        if (row < 0 || column < 0) {
+            return;
+        }
+        commitEdit();
+        if (!isCellSelected(row, column)) {
+            changeSelection(row, column, false, false);
+        }
+        if (!hasFocus()) {
+            requestFocusInWindow();
+        }
     }
 
     /**
@@ -710,6 +782,26 @@ public class XTable extends JTable {
         if (insertColumnPromptFeature != null) {
             insertColumnPromptFeature.setMinimumInsertColumn(minimumInsertColumn);
         }
+    }
+
+    /**
+     * Creates a table header that also renders the insert-column prompt strip.
+     *
+     * @return table header for this table
+     */
+    @Override
+    protected JTableHeader createDefaultTableHeader() {
+        return new JTableHeader(columnModel) {
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+
+                if (insertColumnPromptFeature != null) {
+                    insertColumnPromptFeature.paintHeader(g);
+                }
+            }
+        };
     }
 
     // -----------------------------------------------------------------------------

@@ -83,6 +83,18 @@ public class ChatWebView {
         runScript("endAssistant();");
     }
 
+    /**
+     * Appends a small credit-consumption badge beneath the last message, so the
+     * cost of each prompt stays visible in the transcript (including reloaded
+     * conversations, where the footer no longer applies).
+     */
+    public void appendUsage(String text) {
+        if (text == null || text.isBlank()) {
+            return;
+        }
+        runScript("appendUsage(" + jsString(MarkdownRenderer.escape(text)) + ");");
+    }
+
     /** Removes all messages from the transcript. */
     public void clear() {
         runScript("clearAll();");
@@ -308,6 +320,9 @@ public class ChatWebView {
             ".pill.ok{background:#e6f4ea;color:#1e7e34;}.pill.info{background:#e3f2fd;color:#0277bd;}" +
             ".pill.warn{background:#fff4e5;color:#b26a00;}.pill.fail{background:#fdecea;color:#c62828;}" +
             ".act-foot{margin-top:8px;font-size:11px;color:#8a8a8a;}" +
+            ".usage{margin:-4px 0 10px 4px;font-size:11px;color:#7a6f92;display:flex;" +
+            "align-items:center;gap:5px;}" +
+            ".usage .ucoin{color:#b08400;}" +
             ".approval{margin:8px 0;padding:10px 12px;border-radius:8px;" +
             "background:#3a2f16;border-left:3px solid #d7a017;color:#f0e0b0;}" +
             ".approval b{color:#ffd479;}" +
@@ -331,6 +346,9 @@ public class ChatWebView {
             "chat.appendChild(d);scroll();}" +
             "function appendActivity(html){hideThinking();var d=document.createElement('div');" +
             "d.className='activity';d.innerHTML=html;chat.appendChild(d);scroll();}" +
+            "function appendUsage(text){var d=document.createElement('div');" +
+            "d.className='usage';d.innerHTML=\"<span class='ucoin'>\\u25C9</span><span>\"+text+" +
+            "\"</span>\";chat.appendChild(d);scroll();}" +
             "function appendError(text){hideThinking();var d=document.createElement('div');" +
             "d.className='msg error';d.innerHTML=text;chat.appendChild(d);scroll();}" +
             "function beginAssistant(){hideThinking();cur=document.createElement('div');" +

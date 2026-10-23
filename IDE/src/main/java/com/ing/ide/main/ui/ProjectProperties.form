@@ -123,7 +123,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel7">
           <Properties>
-            <Property name="text" type="java.lang.String" value="No of Reusables :"/>
+            <Property name="text" type="java.lang.String" value="No of User Intents :"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="noOfReusables">
