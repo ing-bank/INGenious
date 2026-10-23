@@ -21,6 +21,8 @@ public class StylizedEnvironment extends JPanel {
     // UI Components
     private JTextField envName;
     private JCheckBox copyFromOthers;
+    private JRadioButton projectScopeRadio;
+    private JRadioButton sharedScopeRadio;
     private JComboBox<String> environments;
     private JList<String> testDataList;
     private JButton createEnv;
@@ -112,6 +114,12 @@ public class StylizedEnvironment extends JPanel {
         if (copyFromOthers != null) {
             copyFromOthers.setForeground(getTextColor());
         }
+        if (projectScopeRadio != null) {
+            projectScopeRadio.setForeground(getTextColor());
+        }
+        if (sharedScopeRadio != null) {
+            sharedScopeRadio.setForeground(getTextColor());
+        }
         if (copyGlobalData != null) {
             copyGlobalData.setForeground(getTextColor());
         }
@@ -127,19 +135,28 @@ public class StylizedEnvironment extends JPanel {
         copyFromOthers.addItemListener(
             e -> {
                 boolean selected = copyFromOthers.isSelected();
+                projectScopeRadio.setEnabled(selected);
+                sharedScopeRadio.setEnabled(selected);
                 environments.setEnabled(selected);
                 testDataList.setEnabled(selected);
                 copyGlobalData.setEnabled(selected);
                 if (selected) {
-                    environments.setModel(
-                        new DefaultComboBoxModel<>(
-                            tdProxy.getListOfEnvironements().toArray(new String[0])
-                        )
-                    );
-                    loadTestDataLists();
+                    reloadEnvironmentsForSelectedScope();
                 }
             }
         );
+
+        // Project/Shared scope picker - which store the source environment is read from
+        projectScopeRadio = createStyledRadioButton("Project", !tdProxy.isShared());
+        sharedScopeRadio = createStyledRadioButton("Shared", tdProxy.isShared());
+        ButtonGroup scopeGroup = new ButtonGroup();
+        scopeGroup.add(projectScopeRadio);
+        scopeGroup.add(sharedScopeRadio);
+        projectScopeRadio.setEnabled(false);
+        sharedScopeRadio.setEnabled(false);
+        java.awt.event.ActionListener scopeChanged = e -> reloadEnvironmentsForSelectedScope();
+        projectScopeRadio.addActionListener(scopeChanged);
+        sharedScopeRadio.addActionListener(scopeChanged);
 
         // Environments dropdown
         environments = new JComboBox<>();
@@ -221,6 +238,14 @@ public class StylizedEnvironment extends JPanel {
 
         copyFromOthers.setAlignmentX(Component.LEFT_ALIGNMENT);
         copyPanel.add(copyFromOthers);
+        copyPanel.add(Box.createVerticalStrut(8));
+
+        JPanel scopePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        scopePanel.setOpaque(false);
+        scopePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        scopePanel.add(projectScopeRadio);
+        scopePanel.add(sharedScopeRadio);
+        copyPanel.add(scopePanel);
         copyPanel.add(Box.createVerticalStrut(8));
 
         envLabel = new JLabel("Source Environment:");
@@ -336,6 +361,15 @@ public class StylizedEnvironment extends JPanel {
         return cb;
     }
 
+    private JRadioButton createStyledRadioButton(String text, boolean selected) {
+        JRadioButton rb = new JRadioButton(text, selected);
+        rb.setFont(UIManager.getFont("Table.font"));
+        rb.setForeground(getTextColor());
+        rb.setOpaque(false);
+        rb.setFocusPainted(false);
+        return rb;
+    }
+
     private JButton createStyledButton(String text, org.kordamp.ikonli.Ikon icon) {
         JButton button = new JButton(text) {
 
@@ -372,12 +406,26 @@ public class StylizedEnvironment extends JPanel {
         return button;
     }
 
+    private boolean isSharedScopeSelected() {
+        return sharedScopeRadio.isSelected();
+    }
+
+    private void reloadEnvironmentsForSelectedScope() {
+        environments.setModel(
+            new DefaultComboBoxModel<>(
+                tdProxy.getListOfEnvironements(isSharedScopeSelected()).toArray(new String[0])
+            )
+        );
+        loadTestDataLists();
+    }
+
     private void loadTestDataLists() {
         DefaultListModel<String> model = (DefaultListModel<String>) testDataList.getModel();
         model.clear();
         if (environments.getSelectedItem() != null) {
             List<String> values = tdProxy.getListOfTestDatas(
-                environments.getSelectedItem().toString()
+                environments.getSelectedItem().toString(),
+                isSharedScopeSelected()
             );
             values.forEach(model::addElement);
         }
@@ -399,7 +447,8 @@ public class StylizedEnvironment extends JPanel {
                     name,
                     environments.getSelectedItem().toString(),
                     testDataList.getSelectedValuesList(),
-                    copyGlobalData.isSelected()
+                    copyGlobalData.isSelected(),
+                    isSharedScopeSelected()
                 )
             ) {
                 environments.addItem(name);
@@ -422,6 +471,8 @@ public class StylizedEnvironment extends JPanel {
 
     public void reset() {
         copyFromOthers.setSelected(false);
+        projectScopeRadio.setSelected(!tdProxy.isShared());
+        sharedScopeRadio.setSelected(tdProxy.isShared());
         ((DefaultListModel<String>) testDataList.getModel()).clear();
         environments.removeAllItems();
     }

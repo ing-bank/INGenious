@@ -1331,12 +1331,22 @@ public class Project {
 
         // Explicitly set Scope to the new location as part of this conversion - this is intentional
         // and must not be confused with (or blocked by) the reload-time "preserve existing Scope" logic.
+        // Shared Test Data rows for this scenario/testcase are retagged too - a reference can target
+        // either store, and the conversion must not leave one of them with a stale Scope.
         testData.updateScope(
             scenarioName,
             testCaseName,
             scopeToken(sourceType),
             scopeToken(targetSource)
         );
+        if (sharedTestData != null) {
+            sharedTestData.updateScope(
+                scenarioName,
+                testCaseName,
+                scopeToken(sourceType),
+                scopeToken(targetSource)
+            );
+        }
     }
 
     /**
@@ -1625,12 +1635,22 @@ public class Project {
             // Explicitly set Scope to the new location as part of this conversion. Only applies to
             // moves: a copy leaves the source test case (and its Test Data Scope) exactly where it was.
             // Move never renames scenario/testcase (see uniqueNameInScenario), so old names still match.
+            // Shared Test Data rows for this scenario/testcase are retagged too (e.g. Project Reusable
+            // -> Shared Reusable), same reasoning as moveTestCaseFile above.
             testData.updateScope(
                 scenarioName,
                 testCaseName,
                 scopeToken(sourceType),
                 scopeToken(targetSource)
             );
+            if (sharedTestData != null) {
+                sharedTestData.updateScope(
+                    scenarioName,
+                    testCaseName,
+                    scopeToken(sourceType),
+                    scopeToken(targetSource)
+                );
+            }
         }
 
         return targetTestCase;

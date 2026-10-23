@@ -53,6 +53,15 @@ public abstract class UserDataAccess implements UserDataAccessApi {
     }
 
     public String getData(String Sheet, String Column) {
+        // Mirrors DataProcessor.resolve's registration for a plain Input reference: a sheet
+        // read only through this ad-hoc path (e.g. String Operations' comma-separated
+        // fragments, which never go through DataProcessor.resolve) would otherwise never
+        // register its row count with the dynamic ("All") main-Iteration bound, silently
+        // capping a loop driven by this sheet's data at whatever other sheets contributed -
+        // or at 1 if nothing else did.
+        if (!context().isIterResolved(Sheet)) {
+            context().setIter(Sheet, DataAccess.getIterations(context(), Sheet));
+        }
         return DataAccess.getData(context(), Sheet, Column, getIteration(), getSubIteration());
     }
 

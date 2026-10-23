@@ -171,13 +171,15 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             public void actionPerformed(ActionEvent ae) {
                 String newName = getValue("newValue").toString();
                 Boolean returnVal = false;
-                if (Validator.isValidTestDataName(newName)) {
+                if (!Validator.isValidTestDataName(newName)) {
+                    showInvalidTestDataNameNotification();
+                } else if (!Validator.isValidTestDataSheetName(newName)) {
+                    showReservedTestDataNameNotification();
+                } else {
                     TestDataTablePanel panel = getSelectedData();
                     if (panel != null) {
                         returnVal = panel.rename(getValue("newValue").toString());
                     }
-                } else {
-                    showInvalidTestDataNameNotification();
                 }
                 putValue("rename", returnVal);
             }
@@ -656,6 +658,10 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 showInvalidTestDataNameNotification();
                 return;
             }
+            if (!Validator.isValidTestDataSheetName(newName)) {
+                showReservedTestDataNameNotification();
+                return;
+            }
             panel.rename(newName);
         }
     }
@@ -669,6 +675,17 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             "up to " +
             Validator.MAX_TESTDATA_NAME_LENGTH +
             " characters"
+        );
+    }
+
+    /**
+     * Shown when a datasheet rename targets the reserved {@code GlobalData} name.
+     */
+    private void showReservedTestDataNameNotification() {
+        Notification.show(
+            "'" +
+            Validator.RESERVED_GLOBAL_DATA_NAME +
+            "' is a reserved name and cannot be used for a datasheet"
         );
     }
 
@@ -860,15 +877,40 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     Set<String> getListOfEnvironements() {
-        return envTestData().getEnvironments();
+        return getListOfEnvironements(shared);
+    }
+
+    Set<String> getListOfEnvironements(boolean fromShared) {
+        return scopeStore(fromShared).getEnvironments();
     }
 
     List<String> getListOfTestDatas(String env) {
+        return getListOfTestDatas(env, shared);
+    }
+
+    List<String> getListOfTestDatas(String env, boolean fromShared) {
         List<String> tdL = new ArrayList<>();
-        for (AbstractDataModel std : envTestData().getTestDataFor(env).getTestDataList()) {
-            tdL.add(std.getName());
+        TestData td = scopeStore(fromShared).getTestDataFor(env);
+        if (td != null) {
+            for (AbstractDataModel std : td.getTestDataList()) {
+                tdL.add(std.getName());
+            }
         }
         return tdL;
+    }
+
+    /**
+     * Whether this component browses/edits Shared Test Data rather than the project's own -
+     * used by {@link StylizedEnvironment} to default its Project/Shared scope picker.
+     */
+    boolean isShared() {
+        return shared;
+    }
+
+    private EnvTestData scopeStore(boolean fromShared) {
+        return fromShared
+            ? testDesign.getProject().getSharedTestData()
+            : testDesign.getProject().getTestData();
     }
 
     private void addNewEnvironment(TestData sTestData) {
@@ -930,6 +972,27 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         List<String> duplicateSheets,
         Boolean globalDataAsWell
     ) {
+        return addNewEnvironment(
+            envName,
+            duplicateDataFromEnv,
+            duplicateSheets,
+            globalDataAsWell,
+            shared
+        );
+    }
+
+    /**
+     * @param duplicateFromShared which store {@code duplicateDataFromEnv} is read from - lets a
+     *     new Project environment duplicate sheets from an existing Shared Test Data environment
+     *     (or vice versa), not just from within this component's own scope.
+     */
+    Boolean addNewEnvironment(
+        String envName,
+        String duplicateDataFromEnv,
+        List<String> duplicateSheets,
+        Boolean globalDataAsWell,
+        boolean duplicateFromShared
+    ) {
         if (envTestData().getTestDataFor(envName) == null) {
             if (duplicateDataFromEnv == null) {
                 envTestData().createNewEnvironment(envName);
@@ -937,6 +1000,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 envTestData()
                     .createNewEnvironment(
                         envName,
+                        scopeStore(duplicateFromShared),
                         duplicateDataFromEnv,
                         duplicateSheets,
                         globalDataAsWell

@@ -38,9 +38,19 @@ public class DataProcessor {
      * "Sheet:Column@Shared" or "Sheet:Column@Project" - an explicit Test Data scope tag, bare or
      * braced. Mirrors ReusableRef.Scope's [Project]/[Shared] convention (kept as a trailing tag
      * here, unlike the reusable reference's leading one).
+     *
+     * <p>The sheet/column character classes exclude {@code {} as well as {@code }} - not just the
+     * closing brace - so a multi-fragment String Operations-style Input ({@code "+",{Sheet:Col@
+     * Shared}}) can never be mistaken for a single bare/braced whole-input reference: without
+     * also excluding {@code {}, the greedy middle group happily swallows a leading {@code "+",{}
+     * and still finds a {@code Sheet:Col@Shared}} tail to match against, making {@link
+     * #isInputPatternDataSheet} wrongly treat the embedded token as the step's own Input - which
+     * then feeds a bogus (quote/comma-polluted) sheet name into {@code TestCaseRunner.
+     * checkIfLastData}'s next-row peek, which reports "sheet not found" and silently ends a
+     * dynamic Param Loop after its very first sub-iteration.
      */
     private static final String SCOPED_DATASHEET_PATTERN =
-        "^\\{?[^}\\d:@][^}:@]*:[^}\\d:@][^}:@]*(@Shared|@Project)\\}?$";
+        "^\\{?[^{}\\d:@][^{}:@]*:[^{}\\d:@][^{}:@]*(@Shared|@Project)\\}?$";
 
     private static boolean isScopedDataSheetRef(String inp) {
         return inp.matches(SCOPED_DATASHEET_PATTERN);
@@ -65,7 +75,7 @@ public class DataProcessor {
             ) && // check if does not starts with curly braces with no colon inside
             (
                 inp.matches("^[A-Za-z].*:[A-Za-z].*") || // check if DataSheet:Data(@Scope)
-                inp.matches("^\\{[^}\\d:][^}:]*:[^}\\d:][^}:]*\\}") || // check if {DataSheet:Data(@Scope)}
+                inp.matches("^\\{[^{}\\d:][^{}:]*:[^{}\\d:][^{}:]*\\}") || // check if {DataSheet:Data(@Scope)}
                 isScopedDataSheetRef(inp)
             ) // check if Sheet:Column@Shared / Sheet:Column@Project, bare or braced
         );
