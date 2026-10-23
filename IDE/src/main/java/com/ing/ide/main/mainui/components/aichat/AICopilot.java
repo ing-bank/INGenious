@@ -214,6 +214,57 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         return "AI credits: " + total.summary();
     }
 
+    /**
+     * Per-turn credit consumption for a Copilot SDK turn, e.g.
+     * {@code 445.0 credits · 12,340 tokens (9,800 in / 2,540 out)}.
+     */
+    private static String turnUsageText(com.ing.engine.aicli.ai.TurnStats stats) {
+        if (stats == null) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format(java.util.Locale.US, "%.1f credits", stats.credits));
+        long total = stats.inputTokens + stats.outputTokens;
+        if (total > 0) {
+            sb.append(
+                String.format(
+                    java.util.Locale.US,
+                    " \u00b7 %,d tokens (%,d in / %,d out)",
+                    total,
+                    stats.inputTokens,
+                    stats.outputTokens
+                )
+            );
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Records the turn's credit consumption on the assistant message (so it is
+     * persisted with the conversation) and shows it under the reply.
+     */
+    private void attachUsage(ChatMessage assistantMessage, String usageText) {
+        if (usageText == null || usageText.isBlank()) {
+            return;
+        }
+        if (assistantMessage != null) {
+            assistantMessage.setCreditUsage(usageText);
+        }
+        ui.getChatWebView().appendUsage(usageText);
+    }
+
+    /** The most recent assistant message in the session, or {@code null}. */
+    private ChatMessage lastAssistantMessage() {
+        List<ChatMessage> messages = session.getMessages();
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            ChatMessage m = messages.get(i);
+            if (ChatMessage.ROLE_ASSISTANT.equals(m.getRole())) {
+                return m;
+            }
+        }
+        return null;
+    }
+
     /** Number of INGenious tools currently exposed to the model (diagnostic). */
     private int toolCount() {
         try {
@@ -529,8 +580,10 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                         @Override
                         public void onComplete() {
                             String full = accumulated.toString();
-                            session.addMessage(ChatMessage.assistant(full));
+                            ChatMessage assistantMessage = ChatMessage.assistant(full);
+                            session.addMessage(assistantMessage);
                             ui.getChatWebView().endAssistantMessage();
+                            attachUsage(assistantMessage, usageTracker.taskSummary());
                             ui.setGenerating(false);
                             activeTurn = null;
                             persistCurrentConversation();
@@ -650,8 +703,9 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                         List.of(com.ing.engine.aicli.ai.ChatMessage.user(prompt))
                     );
                     provider.setActivity(null);
+                    ChatMessage assistantMessage = null;
                     if (answer != null && !answer.isBlank()) {
-                        ChatMessage assistantMessage = ChatMessage.assistant(answer);
+                        assistantMessage = ChatMessage.assistant(answer);
                         session.addMessage(assistantMessage);
                         ui.getChatWebView().addMessage(assistantMessage);
                     }
@@ -670,6 +724,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                             line = line + "   \u2022   " + cumulative;
                         }
                         ui.setFooter(line);
+                        attachUsage(assistantMessage, turnUsageText(stats));
                     } else {
                         ui.setFooter(creditSummary());
                     }
@@ -774,6 +829,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                         public void onComplete() {
                             ui.setGenerating(false);
                             ui.setFooter(usageTracker.statusText());
+                            attachUsage(lastAssistantMessage(), usageTracker.taskSummary());
                             activeAgent = null;
                             failPendingApprovals();
                             if (mutated[0]) {
@@ -974,6 +1030,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                 !m.getContent().isBlank();
             if (renderable) {
                 ui.getChatWebView().addMessage(m);
+                ui.getChatWebView().appendUsage(m.getCreditUsage());
             }
         }
         ui.setFooter(" ");

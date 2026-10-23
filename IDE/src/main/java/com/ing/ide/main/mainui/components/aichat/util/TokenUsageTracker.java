@@ -66,6 +66,25 @@ public class TokenUsageTracker {
         taskUsage.setTotalTokens(0);
     }
 
+    /**
+     * Compact credit consumption for the current task only, suitable for a
+     * per-prompt badge in the transcript, e.g.
+     * {@code 2 requests · 1,234 tokens (980 in / 254 out)}.
+     */
+    public synchronized String taskSummary() {
+        if (taskRequests == 0 && taskUsage.getTotalTokens() == 0) {
+            return null;
+        }
+        return String.format(
+            "%d %s \u00b7 %,d tokens (%,d in / %,d out)",
+            taskRequests,
+            taskRequests == 1 ? "request" : "requests",
+            taskUsage.getTotalTokens(),
+            taskUsage.getPromptTokens(),
+            taskUsage.getCompletionTokens()
+        );
+    }
+
     /** Builds a compact summary suitable for a footer label. */
     public synchronized String statusText() {
         StringBuilder sb = new StringBuilder();

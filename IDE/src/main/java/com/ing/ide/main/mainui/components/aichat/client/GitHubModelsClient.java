@@ -1,10 +1,12 @@
 package com.ing.ide.main.mainui.components.aichat.client;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.ide.main.mainui.components.aichat.model.ChatCompletionRequest;
 import com.ing.ide.main.mainui.components.aichat.model.ChatCompletionResponse;
+import com.ing.ide.main.mainui.components.aichat.model.ChatMessage;
 import com.ing.ide.main.mainui.components.aichat.model.ModelInfo;
 import com.ing.ide.main.mainui.components.aichat.model.TokenUsage;
 import java.io.BufferedReader;
@@ -47,7 +49,24 @@ public class GitHubModelsClient {
     }
 
     private final ObjectMapper mapper = new ObjectMapper()
-    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .addMixIn(ChatMessage.class, NoCreditUsageMixin.class);
+
+    /**
+     * Keeps the IDE-only credit bookkeeping of {@link ChatMessage} out of the
+     * OpenAI-compatible request payload; it is persisted with the chat history
+     * but is not part of the API schema.
+     */
+    private abstract static class NoCreditUsageMixin {
+        @JsonIgnore
+        private String creditUsage;
+
+        @JsonIgnore
+        abstract String getCreditUsage();
+
+        @JsonIgnore
+        abstract void setCreditUsage(String creditUsage);
+    }
 
     private final HttpClient httpClient = HttpClient
         .newBuilder()
