@@ -115,6 +115,12 @@ public final class TestCaseValidation {
         if (reusable == null) {
             return false;
         }
+        // Mirror hasError(TestCase): when the reusable's steps are already loaded
+        // (e.g. it was just created/edited this session), re-evaluate live instead
+        // of trusting a cached value that may predate the current content.
+        if (!reusable.getTestSteps().isEmpty()) {
+            return computeAndCache(reusable, false);
+        }
         Boolean cached = CACHE.get(reusable);
         if (cached != null) {
             return cached;

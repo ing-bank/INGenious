@@ -15,7 +15,7 @@ import java.util.Properties;
 import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 public class RunManager {
     private static GlobalSettings globalSettings;

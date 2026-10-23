@@ -30,8 +30,20 @@ public class EnvTestData {
 
     private final Properties environmentProperties;
 
+    private final boolean shared;
+
     public EnvTestData(Project sProject) {
+        this(sProject, false);
+    }
+
+    /**
+     * @param sProject owning project
+     * @param shared when true, this instance reads/writes the app-root Shared Test Data
+     *     location (Project.getSharedTestDataPath()) instead of the project's own TestData folder
+     */
+    public EnvTestData(Project sProject, boolean shared) {
         this.sProject = sProject;
+        this.shared = shared;
         environmentProperties = new Properties();
         load();
     }
@@ -59,6 +71,44 @@ public class EnvTestData {
         }
     }
 
+    /**
+     * Reloads the environment configuration from disk.
+     * This method re-reads the environment.properties file and loads any
+     * new environments that have been created since the initial load.
+     * Useful for refreshing the UI after programmatic environment creation.
+     */
+    public void reloadEnvironments() {
+        File file = new File(getPropertiesLocation());
+        if (file.exists()) {
+            try (FileInputStream fis = new FileInputStream(file);) {
+                Properties freshProps = new Properties();
+                freshProps.load(fis);
+                String env = freshProps.getProperty("Environment");
+                if (env != null && !env.isEmpty()) {
+                    String[] envs = env.split(",");
+                    for (String envName : envs) {
+                        if (
+                            !envName.trim().isEmpty() &&
+                            !environmentTestData.containsKey(envName.trim())
+                        ) {
+                            loadForEnv(envName.trim());
+                            Logger
+                                .getLogger(EnvTestData.class.getName())
+                                .log(Level.INFO, "Loaded new environment: {0}", envName.trim());
+                        }
+                    }
+                }
+                // Update the cached properties
+                environmentProperties.clear();
+                environmentProperties.putAll(freshProps);
+            } catch (IOException ex) {
+                Logger
+                    .getLogger(EnvTestData.class.getName())
+                    .log(Level.WARNING, "Failed to reload environments from disk", ex);
+            }
+        }
+    }
+
     public String defEnv() {
         return "Default";
     }
@@ -80,9 +130,33 @@ public class EnvTestData {
         List<String> duplicateSheets,
         Boolean globalDataAsWell
     ) {
+        createNewEnvironment(
+            envName,
+            this,
+            duplicateDataFromEnv,
+            duplicateSheets,
+            globalDataAsWell
+        );
+    }
+
+    /**
+     * Creates a new environment, optionally duplicating sheets from an environment that can
+     * live in a <em>different</em> {@link EnvTestData} store (e.g. a new Project environment
+     * copying sheets from an existing Shared Test Data environment, or vice versa).
+     *
+     * @param sourceStore the store ({@code this} project's own, or the other scope's) the
+     *     {@code duplicateDataFromEnv} environment and {@code duplicateSheets} are read from
+     */
+    public void createNewEnvironment(
+        String envName,
+        EnvTestData sourceStore,
+        String duplicateDataFromEnv,
+        List<String> duplicateSheets,
+        Boolean globalDataAsWell
+    ) {
         loadForEnv(envName);
         TestData newEnvTestData = getTestDataFor(envName);
-        TestData dupEnvTestData = getTestDataFor(duplicateDataFromEnv);
+        TestData dupEnvTestData = sourceStore.getTestDataFor(duplicateDataFromEnv);
         if (dupEnvTestData != null) {
             if (globalDataAsWell) {
                 dupEnvTestData.getGlobalData().cloneAs(newEnvTestData.getGlobalData());
@@ -131,6 +205,39 @@ public class EnvTestData {
         }
     }
 
+    /**
+     * Imports {@code file} as a new datasheet into each of the given environments.
+     *
+     * <p>Works for both the project's own and the Shared ({@code locationOverride}) instance -
+     * each environment receives its own independent copy, written under its own folder. An
+     * environment that does not exist, or that already has a datasheet with the same name, is
+     * skipped.</p>
+     *
+     * @param file source datasheet file to import
+     * @param environments environment names to import the datasheet into
+     * @return the datasheets actually imported, keyed by environment name (skipped environments
+     *     are absent)
+     */
+    public Map<String, TestDataModel> importTestData(File file, Collection<String> environments) {
+        Map<String, TestDataModel> imported = new LinkedHashMap<>();
+        String sheetName = baseName(file.getName());
+        for (String env : environments) {
+            TestData sTestData = getTestDataFor(env);
+            if (sTestData == null || sTestData.getByNameIgnoreCase(sheetName) != null) {
+                continue;
+            }
+            TestDataModel model = sTestData.importTestData(file);
+            sTestData.addTestData(model);
+            imported.put(env, model);
+        }
+        return imported;
+    }
+
+    private static String baseName(String fileName) {
+        int dot = fileName.lastIndexOf('.');
+        return dot > 0 ? fileName.substring(0, dot) : fileName;
+    }
+
     public void duplicateColumnInOtherEnv(
         String envName,
         TestDataModel model,
@@ -171,6 +278,9 @@ public class EnvTestData {
 
     private void loadForEnv(String env) {
         TestData stestData = TestDataFactory.get(sProject.getTestdataType(), sProject, env);
+        if (shared) {
+            stestData.setLocationOverride(getLocation());
+        }
         // Propagate read-only mode to prevent datasheet migrations during validation
         stestData.setReadOnlyMode(sProject.isReadOnlyMode());
         stestData.load();
@@ -202,7 +312,9 @@ public class EnvTestData {
     }
 
     public String getLocation() {
-        return sProject.getLocation() + File.separator + "TestData";
+        return shared
+            ? Project.getSharedTestDataPath()
+            : sProject.getLocation() + File.separator + "TestData";
     }
 
     public void save() {
@@ -215,7 +327,10 @@ public class EnvTestData {
         environmentProperties.put("Environment", getEnvironmentsAsString());
         saveProperties(environmentProperties, getPropertiesLocation());
 
-        // Track shared reusables used in test data
+        // Track shared reusables used in test data (not applicable to the shared test data root itself)
+        if (shared) {
+            return;
+        }
         try {
             updateSharedReusableProjectsItemsFromTestData(sProject, this);
         } catch (Exception ex) {
@@ -269,8 +384,12 @@ public class EnvTestData {
     }
 
     public void refactorScenario(String oldScenarioName, String newScenarioName) {
+        refactorScenario(oldScenarioName, newScenarioName, null);
+    }
+
+    public void refactorScenario(String oldScenarioName, String newScenarioName, String scope) {
         for (TestData testData : getAllEnvironments()) {
-            testData.refactorScenario(oldScenarioName, newScenarioName);
+            testData.refactorScenario(oldScenarioName, newScenarioName, scope);
         }
     }
 
@@ -279,8 +398,17 @@ public class EnvTestData {
         String oldTestCaseName,
         String newTestCaseName
     ) {
+        refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName, null);
+    }
+
+    public void refactorTestCase(
+        String scenarioName,
+        String oldTestCaseName,
+        String newTestCaseName,
+        String scope
+    ) {
         for (TestData testData : getAllEnvironments()) {
-            testData.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName);
+            testData.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName, scope);
         }
     }
 
@@ -359,8 +487,10 @@ public class EnvTestData {
      * @return true if rename was successful, false if newName already exists
      */
     public Boolean renameTestData(String oldName, String newName, String envName) {
-        TestData ntestData = sProject.getTestData().getTestDataFor(envName);
-        TestDataModel existingByNewName = ntestData.getByNameIgnoreCase(newName);
+        TestData ntestData = getTestDataFor(envName);
+        TestDataModel existingByNewName = ntestData == null
+            ? null
+            : ntestData.getByNameIgnoreCase(newName);
         if (existingByNewName != null && !existingByNewName.getName().equals(oldName)) {
             return false;
         }
@@ -370,8 +500,18 @@ public class EnvTestData {
                 testData.getByName(oldName).rename(newName);
             }
         }
-        sProject.refactorTestData(oldName, newName);
+        sProject.refactorTestData(oldName, newName, scopeToken());
         return true;
+    }
+
+    /**
+     * The "@Shared"/"@Project" scope token that references to <em>this</em> environment test
+     * data carry in test steps, so a rename/column-rename only rewrites references in the
+     * matching scope. The Shared and Project test data share a flat sheet-name namespace, so
+     * without this an untagged "{Sheet:Col}" step would be rewritten by a Shared rename too.
+     */
+    private String scopeToken() {
+        return shared ? "@Shared" : "@Project";
     }
 
     /**
@@ -407,7 +547,7 @@ public class EnvTestData {
         }
 
         // Refactor references in test cases
-        sProject.refactorTestData(oldName, newName);
+        sProject.refactorTestData(oldName, newName, scopeToken());
         return true;
     }
 
@@ -434,7 +574,7 @@ public class EnvTestData {
                 tData.renameColumn(oldColName, newColName);
             }
         }
-        sProject.refactorTestDataColumn(tdName, oldColName, newColName);
+        sProject.refactorTestDataColumn(tdName, oldColName, newColName, scopeToken());
         return true;
     }
 

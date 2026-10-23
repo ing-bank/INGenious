@@ -34,7 +34,7 @@ public class Focus extends General {
     @Action(
         object = ObjectType.PLAYWRIGHT,
         desc = "Remove focus from [<Object>] ",
-        input = InputType.YES
+        input = InputType.NO
     )
     public void Blur() {
         try {

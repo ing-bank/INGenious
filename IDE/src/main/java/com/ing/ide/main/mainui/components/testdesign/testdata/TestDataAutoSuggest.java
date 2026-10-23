@@ -162,9 +162,9 @@ public class TestDataAutoSuggest {
                 protected String getHeaderLabel(JList list, Object value, int index) {
                     if (value == null) return "";
                     String current = removeOrderingPrefix(value.toString());
-                    if (current.startsWith("[TestPlan]")) return "Test plan";
-                    if (current.startsWith("[Project]")) return "Project Reusable Components";
-                    if (current.startsWith("[Shared]")) return "Shared Reusable Components";
+                    if (current.startsWith("[TestPlan]")) return "Test Plan";
+                    if (current.startsWith("[Project]")) return "Project User Intent";
+                    if (current.startsWith("[Shared]")) return "Shared User Intent";
                     return "";
                 }
 

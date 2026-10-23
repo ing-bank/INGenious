@@ -123,6 +123,14 @@ public class AppActionListener implements ActionListener {
             case "Mobile Spy":
                 sMainFrame.getSpyHealReco().showMobileSpy();
                 break;
+            // case "Mobile Recorder":
+            //     if (sMainFrame.getProject() == null) {
+            //         Notification.show("Open a project before starting the Mobile Recorder.");
+            //     } else {
+            //         new com.ing.ide.main.mobilerecorder.MobileRecorderFrame(sMainFrame)
+            //         .setVisible(true);
+            //     }
+            //     break;
             case "Exploratory":
                 {
                     try {
@@ -136,6 +144,7 @@ public class AppActionListener implements ActionListener {
                 break;
             case "Multiple Environment":
                 sMainFrame.getTestDesign().getTestDatacomp().switchEnvView();
+                sMainFrame.getTestDesign().getSharedTestDataComp().switchEnvView();
                 break;
             case "Import TestData":
                 importTestData.importTestData();
@@ -156,6 +165,9 @@ public class AppActionListener implements ActionListener {
                 break;
             case "Archetype Configurations":
                 driverSettings.open();
+                break;
+            case "Manage Archetypes":
+                com.ing.ide.main.settings.ArchetypeManagerDialog.open(sMainFrame);
                 break;
             case "AzureDevOps TestPlan Configuration":
                 tmSettings.open();
@@ -180,6 +192,9 @@ public class AppActionListener implements ActionListener {
             case "Har Compare":
                 sMainFrame.getDashBoardManager().openHarComapareInBrowser();
                 break;
+            case "Project Health":
+                showProjectHealth();
+                break;
             case "Help":
                 Help.openHelp();
                 break;
@@ -188,6 +203,9 @@ public class AppActionListener implements ActionListener {
                 break;
             case "Show Log":
                 UILogger.get().openLog();
+                break;
+            case "Start Tour":
+                sMainFrame.startTour();
                 break;
             case "Test Design":
                 sMainFrame.showTestDesign();
@@ -201,7 +219,13 @@ public class AppActionListener implements ActionListener {
             case "API Workbench":
                 sMainFrame.showAPITester();
                 break;
-            case "AI Assistant":
+            case "Database Workbench":
+                sMainFrame.showDBWorkbench();
+                break;
+            case "Performance Studio":
+                sMainFrame.showPerfStudio();
+                break;
+            case "INGenie":
                 sMainFrame.showAICopilot();
                 break;
             case "Refresh":
@@ -308,20 +332,64 @@ public class AppActionListener implements ActionListener {
                     handleSapImport(language);
                 } else if (ae.getActionCommand().startsWith("Import Collection:")) {
                     String fmt = ae.getActionCommand().substring("Import Collection:".length());
-                    com.ing.datalib.api.importer.ImportSource src;
-                    try {
-                        src = com.ing.datalib.api.importer.ImportSource.valueOf(fmt.toUpperCase());
-                    } catch (IllegalArgumentException ex) {
-                        src = com.ing.datalib.api.importer.ImportSource.POSTMAN;
+                    if ("Reports".equalsIgnoreCase(fmt)) {
+                        // Open the Import Reports viewer
+                        if (sMainFrame.getProject() == null) {
+                            com.ing.ide.util.Notification.show(
+                                "Please open a project first to view import reports."
+                            );
+                        } else {
+                            com.ing.ide.main.mainui.components.apitester.importing.ImportCollectionWizard.openReportsViewer(
+                                sMainFrame,
+                                sMainFrame.getProject().getLocation()
+                            );
+                        }
+                    } else {
+                        com.ing.datalib.api.importer.ImportSource src;
+                        try {
+                            src =
+                                com.ing.datalib.api.importer.ImportSource.valueOf(
+                                    fmt.toUpperCase()
+                                );
+                        } catch (IllegalArgumentException ex) {
+                            src = com.ing.datalib.api.importer.ImportSource.POSTMAN;
+                        }
+                        new com.ing.ide.main.mainui.components.apitester.importing.ImportCollectionAction(
+                            sMainFrame
+                        )
+                        .openWizard(src);
                     }
-                    new com.ing.ide.main.mainui.components.apitester.importing.ImportCollectionAction(
-                        sMainFrame
-                    )
-                    .openWizard(src);
                 } else {
                     System.out.println("UNHANDLED ACTION: [" + ae.getActionCommand() + "]");
                     sMainFrame.getLoader().showIDontCare();
                 }
+        }
+    }
+
+    /**
+     * Runs a read-only project health analysis on the currently open project
+     * and displays the result in a modern HTML overlay. The external
+     * {@code ingenious project validate} CLI command is unaffected.
+     */
+    private void showProjectHealth() {
+        if (sMainFrame.getProject() == null) {
+            Notification.show("Please open a project first to check its health.");
+            return;
+        }
+        sMainFrame.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+        try {
+            com.ing.ide.main.mainui.components.health.ProjectHealthReport report = com.ing.ide.main.mainui.components.health.ProjectHealthAnalyzer.analyse(
+                sMainFrame.getProject()
+            );
+            com.ing.ide.main.mainui.components.health.ProjectHealthDialog.showReport(
+                sMainFrame,
+                report
+            );
+        } catch (Exception ex) {
+            Logger.getLogger(AppActionListener.class.getName()).log(Level.SEVERE, null, ex);
+            Notification.show("Could not analyse project health: " + ex.getMessage());
+        } finally {
+            sMainFrame.setCursor(java.awt.Cursor.getDefaultCursor());
         }
     }
 

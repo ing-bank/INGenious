@@ -37,6 +37,7 @@ public class TestDesignUI extends JPanel {
     JPanel appReusablePanel;
     JPanel testPlanPanel;
     JTabbedPane reusableTreeTabbedPane;
+    JTabbedPane testDataTabbedPane;
 
     JButton reusableSwitch;
 
@@ -54,27 +55,21 @@ public class TestDesignUI extends JPanel {
         testPlanPanel = getTreeInPanel("Test Plan", testDesign.getProjectTree().getTree());
         projectNReusableTreeSplitPane.setTopComponent(testPlanPanel);
 
-        // Create tabbed pane for Project and Shared Reusables with header
+        // Create tabbed pane for Project and Shared Reusables, under the "User Intent" header
         reusableTreeTabbedPane = new JTabbedPane();
-        JPanel projectReusablesPanel = new JPanel(new BorderLayout());
-        projectReusablesPanel.add(
-            TreeSearch.installFor(testDesign.getReusableTree().getTree()),
-            BorderLayout.CENTER
+        JPanel projectReusablesPanel = getRTreeInPanel(
+            "Project",
+            testDesign.getReusableTree().getTree()
         );
-
-        JPanel sharedReusablesPanel = new JPanel(new BorderLayout());
-        sharedReusablesPanel.add(
-            TreeSearch.installFor(testDesign.getSharedReusableTree().getTree()),
-            BorderLayout.CENTER
+        JPanel sharedReusablesPanel = getRTreeInPanel(
+            "Shared",
+            testDesign.getSharedReusableTree().getTree()
         );
-
         reusableTreeTabbedPane.addTab("Project", projectReusablesPanel);
         reusableTreeTabbedPane.addTab("Shared", sharedReusablesPanel);
 
-        // Wrap reusable tabbed pane with FXPanelHeader style
         appReusablePanel = new JPanel(new BorderLayout());
-        FXPanelHeader reusableHeader = new FXPanelHeader("Reusable Components");
-        appReusablePanel.add(reusableHeader, BorderLayout.NORTH);
+        appReusablePanel.add(new FXPanelHeader("User Intent"), BorderLayout.NORTH);
         appReusablePanel.add(reusableTreeTabbedPane, BorderLayout.CENTER);
 
         projectNReusableTreeSplitPane.setBottomComponent(appReusablePanel);
@@ -84,7 +79,12 @@ public class TestDesignUI extends JPanel {
         testCaseNTestDataSplitPane.setResizeWeight(0.5);
 
         testCaseNTestDataSplitPane.setTopComponent(testDesign.getTestCaseComponent());
-        testCaseNTestDataSplitPane.setBottomComponent(testDesign.getTestDatacomp());
+
+        // Create tabbed pane for Project and Shared Test Data, mirroring the Reusable Components tabs above
+        testDataTabbedPane = new JTabbedPane();
+        testDataTabbedPane.addTab("Project", testDesign.getTestDatacomp());
+        testDataTabbedPane.addTab("Shared", testDesign.getSharedTestDataComp());
+        testCaseNTestDataSplitPane.setBottomComponent(testDataTabbedPane);
 
         oneTwo = new JSplitPane();
         oneTwo.setOneTouchExpandable(true);
@@ -95,7 +95,7 @@ public class TestDesignUI extends JPanel {
 
         oneThree = new JSplitPane();
         oneThree.setOneTouchExpandable(true);
-        oneThree.setResizeWeight(0.8);
+        oneThree.setResizeWeight(0.70);
 
         oneThree.setLeftComponent(oneTwo);
         oneThree.setRightComponent(testDesign.getObjectRepo());
@@ -104,6 +104,24 @@ public class TestDesignUI extends JPanel {
 
         // Apply initial pane backgrounds
         applyPaneBackgrounds();
+    }
+
+    /**
+     * Switches the visible Test Data tab, so "Go to Test Data" navigation is actually seen by
+     * the user rather than silently updating a panel hidden behind the other tab.
+     */
+    public void selectTestDataTab(boolean shared) {
+        if (testDataTabbedPane != null) {
+            testDataTabbedPane.setSelectedIndex(shared ? 1 : 0);
+        }
+    }
+
+    /**
+     * Whether the Shared (rather than Project) Test Data sub-tab is currently in front. Used to
+     * default the "Import into" scope in the Import Test Data dialog.
+     */
+    public boolean isSharedTestDataTabSelected() {
+        return testDataTabbedPane != null && testDataTabbedPane.getSelectedIndex() == 1;
     }
 
     /**
@@ -143,8 +161,10 @@ public class TestDesignUI extends JPanel {
         // Object Repository pane (dark black in dark mode)
         applyBackgroundRecursively(testDesign.getObjectRepo(), sidebarColor, dividerColor);
 
-        // Test Data pane (dark black in dark mode)
-        applyBackgroundRecursively(testDesign.getTestDatacomp(), sidebarColor, dividerColor);
+        // Test Data pane, both Project and Shared tabs (dark black in dark mode)
+        if (testDataTabbedPane != null) {
+            applyBackgroundRecursively(testDataTabbedPane, sidebarColor, dividerColor);
+        }
 
         // Test Steps pane (slightly lighter in dark mode)
         applyBackgroundRecursively(testDesign.getTestCaseComponent(), editorColor, dividerColor);
@@ -252,6 +272,16 @@ public class TestDesignUI extends JPanel {
         testCaseNTestDataSplitPane.setDividerLocation(0.5);
     }
 
+    /** Returns the Test Plan panel (top-left) — used by the tour for spotlighting. */
+    public JPanel getTestPlanPanel() {
+        return testPlanPanel;
+    }
+
+    /** Returns the Reusable Components panel (bottom-left) — used by the tour for spotlighting. */
+    public JPanel getReusablesPanel() {
+        return appReusablePanel;
+    }
+
     private JPanel getTreeInPanel(String labelText, JTree tree) {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
@@ -297,6 +327,22 @@ public class TestDesignUI extends JPanel {
         return panel;
     }
 
+    private JPanel getRTreeInPanel(String labelText, JTree tree) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+
+        registerFont();
+
+        // Reusable panel uses a clickable header (like legacy reusableSwitch button)
+        reusableSwitch = new JButton(labelText);
+        reusableSwitch.setFont(new Font("ING Me", Font.BOLD, 12));
+        reusableSwitch.setContentAreaFilled(false);
+
+        // No inner header here — the tab title and the "User Intent" header above suffice
+        panel.add(TreeSearch.installFor(tree), BorderLayout.CENTER);
+        return panel;
+    }
+
     private void registerFont() {
         try {
             Font customFont = Font.createFont(
@@ -312,7 +358,7 @@ public class TestDesignUI extends JPanel {
 
     public void adjustUI() {
         oneTwo.setDividerLocation(0.25);
-        oneThree.setDividerLocation(0.8);
+        oneThree.setDividerLocation(0.70);
         oneTwo.setDividerLocation(0.25);
         projectNReusableTreeSplitPane.setDividerLocation(0.5);
         testCaseNTestDataSplitPane.setDividerLocation(0.5);

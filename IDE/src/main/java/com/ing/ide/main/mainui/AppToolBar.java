@@ -46,6 +46,8 @@ public class AppToolBar extends JToolBar {
         add(createToggleButton("Auto Save"));
         //addSeparator();
         //add(createButton("Mobile Spy")); /**** This is disabled to ensure that the mobile capabilities are captured from Appium Inspector ****/
+        //addSeparator();
+        //add(createButton("Mobile Recorder"));
         addSeparator();
         add(createButton("Settings"));
         add(createButton("Archetype Configurations"));
@@ -64,7 +66,14 @@ public class AppToolBar extends JToolBar {
         JButton btn = new JButton();
         btn.setActionCommand(action);
         btn.setToolTipText(action);
-        btn.setIcon(Utils.getIconByResourceName("/ui/resources/main/" + action.replace(" ", "")));
+        javax.swing.Icon icon = Utils.getIconByResourceName(
+            "/ui/resources/main/" + action.replace(" ", "")
+        );
+        btn.setIcon(icon);
+        if (icon == null) {
+            // No icon resource for this action — show the label so the button stays visible.
+            btn.setText(action);
+        }
         btn.addActionListener(sActionListener);
         return btn;
     }

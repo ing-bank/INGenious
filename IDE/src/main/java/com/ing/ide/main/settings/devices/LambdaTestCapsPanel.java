@@ -51,6 +51,7 @@ public class LambdaTestCapsPanel extends JPanel {
     private final JPanel sectionsHolder;
     private final Map<String, Section> sections = new LinkedHashMap<>();
     private final List<TableModelListener> changeListeners = new ArrayList<>();
+    private java.util.function.Supplier<javax.swing.table.TableCellEditor> valueEditorFactory;
 
     /** Default capability groups in display order (excluding "Additional"). */
     private final Map<String, LinkedProperties> defaultGroups;
@@ -108,6 +109,20 @@ public class LambdaTestCapsPanel extends JPanel {
         rebuild(existing);
     }
 
+    /** Optional: supplies a per-section value-column cell editor (e.g. a dropdown). */
+    public void setValueEditorFactory(
+        java.util.function.Supplier<javax.swing.table.TableCellEditor> factory
+    ) {
+        this.valueEditorFactory = factory;
+        rebuild(getProperties());
+    }
+
+    private void applyValueEditor(Section section) {
+        if (valueEditorFactory != null && section.table.getColumnModel().getColumnCount() > 1) {
+            section.table.getColumnModel().getColumn(1).setCellEditor(valueEditorFactory.get());
+        }
+    }
+
     /** Returns a flat ordered property set with section markers stripped. */
     public LinkedProperties getProperties() {
         LinkedProperties props = new LinkedProperties();
@@ -145,6 +160,7 @@ public class LambdaTestCapsPanel extends JPanel {
                 section.model.addRow(new Object[] { key, val });
             }
             section.adjustHeight();
+            applyValueEditor(section);
             sections.put(group.getKey(), section);
             sectionsHolder.add(section);
             sectionsHolder.add(javax.swing.Box.createVerticalStrut(6));
@@ -161,6 +177,7 @@ public class LambdaTestCapsPanel extends JPanel {
             }
         }
         additional.adjustHeight();
+        applyValueEditor(additional);
         sections.put(ADDITIONAL_GROUP, additional);
         sectionsHolder.add(additional);
 

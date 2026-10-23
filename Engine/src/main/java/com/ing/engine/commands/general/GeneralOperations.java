@@ -3,16 +3,21 @@ package com.ing.engine.commands.general;
 import com.ing.engine.commands.browser.CommonMethods;
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ForcedException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.text.DecimalFormat;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Matcher;
@@ -25,10 +30,22 @@ public class GeneralOperations extends General {
         super(cc);
     }
 
-    @Action(object = ObjectType.GENERAL, desc = "This a dummy function helpful with testing.")
+    @Action(object = ObjectType.GENERAL, desc = "This a dummy (empty) function.")
+    @Args(
+        inputHelp = "no input required (e.g. leave empty)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void filler() {}
 
     @Action(object = ObjectType.GENERAL, desc = "print the data [<Data>]", input = InputType.YES)
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Hello World",
+        inputHelp = "text to print to console/log (e.g. @Hello World)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void print() {
         System.out.println(Data);
         Report.updateTestLog("print", String.format("printed %s", Data), Status.DONE);
@@ -38,6 +55,13 @@ public class GeneralOperations extends General {
         object = ObjectType.GENERAL,
         desc = "Wait for [<Data>] milli seconds",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TIMEOUT_MS,
+        inputExample = "@2000",
+        inputHelp = "sleep duration in milliseconds (e.g. @2000)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void pause() {
         try {
@@ -53,6 +77,13 @@ public class GeneralOperations extends General {
         object = ObjectType.GENERAL,
         desc = "Assert if Key:Value -> [<Data>] is valid",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%token%=abc123",
+        inputHelp = "assertion expression in key=value format (e.g. %token%=abc123)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void assertVariable() throws RuntimeException {
         try {
@@ -86,6 +117,14 @@ public class GeneralOperations extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "{sheetName:ColumnName}",
+        inputHelp = "expected value to compare against variable content (e.g. {sheetName:ColumnName})",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%myVar%",
+        conditionHelp = "variable name in %var% format to assert (e.g. %myVar%)"
+    )
     public void assertVariableFromDataSheet() throws RuntimeException {
         try {
             String strAns = getVar(Condition);
@@ -111,6 +150,14 @@ public class GeneralOperations extends General {
         desc = "Add a variable to access within testcase",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@my value",
+        inputHelp = "value or expression to store (e.g. @my value or =Replace('%a%','x','y',all))",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%myVar%",
+        conditionHelp = "destination variable in %var% format (e.g. %myVar%)"
     )
     public void AddVar() {
         if (Input.startsWith("=Replace(")) {
@@ -140,6 +187,14 @@ public class GeneralOperations extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@shared value",
+        inputHelp = "value to store as global variable (e.g. @shared value)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%globalVar%",
+        conditionHelp = "destination global variable name in %var% format (e.g. %globalVar%)"
+    )
     public void AddGlobalVar() {
         addGlobalVar(Condition, Data);
         if (getVar(Condition) != null) {
@@ -159,11 +214,29 @@ public class GeneralOperations extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "{UserData:Token",
+        inputHelp = "destination datasheet reference in Sheet:Column format (e.g. UserData:Token)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%tokenVar%",
+        conditionHelp = "source variable name in %var% format (e.g. %tokenVar%)"
+    )
     public void storeVariableInDataSheet() {
         if (Input != null && Condition != null) {
             if (!getVar(Condition).isEmpty()) {
                 System.out.println(Condition);
-                String[] sheetDetail = Input.split(":");
+                // Accepts Sheet:Column, Sheet:Column@Project and Sheet:Column@Shared;
+                // the tag (if any) stays on the sheet so putData routes to the right store.
+                String[] sheetDetail = TestDataToken.parse(Input);
+                if (sheetDetail == null) {
+                    Report.updateTestLog(
+                        Action,
+                        "Incorrect input format; expected Sheet:Column",
+                        Status.DEBUG
+                    );
+                    return;
+                }
                 String sheetName = sheetDetail[0];
                 String columnName = sheetDetail[1];
                 userData.putData(sheetName, columnName, getVar(Condition));
@@ -326,6 +399,13 @@ public class GeneralOperations extends General {
         desc = "Verify if the specific [<Data>] is present",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%otp%=123456",
+        inputHelp = "assertion expression in key=value format (e.g. %otp%=123456)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
+    )
     public void verifyVariable() {
         String strObj = Data;
         String[] strTemp = strObj.split("=", 2);
@@ -352,6 +432,14 @@ public class GeneralOperations extends General {
         desc = "Verify of variable [<Data>] from given datasheet",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@expectedValue",
+        inputHelp = "expected value to compare against variable content (e.g. @expectedValue)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%myVar%",
+        conditionHelp = "variable name in %var% format to verify (e.g. %myVar%)"
     )
     public void verifyVariableFromDataSheet() {
         String strAns = getVar(Condition);
@@ -392,6 +480,14 @@ public class GeneralOperations extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%copiedValue%",
+        inputHelp = "target variable (%var%) or target datasheet Sheet:Column (e.g. %copiedValue% or CurrentData:Result)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "SourceData:Token",
+        conditionHelp = "source datasheet reference in Sheet:Column format (e.g. SourceData:Token)"
+    )
     public void storeDataFromPreviousTestCaseData() {
         if (Input.isBlank()) {
             Report.updateTestLog(
@@ -422,13 +518,19 @@ public class GeneralOperations extends General {
             String sourceSubIteration = prevSubIterationVar != null
                 ? prevSubIterationVar
                 : userData.getSubIteration();
-            String sourceDataSheet = Condition;
-            String sourceSheetName = sourceDataSheet.split(":", 2)[0];
-            String sourceColumnName = sourceDataSheet.split(":", 2)[1];
+            String[] sourceSheetDetail = TestDataToken.parse(Condition);
+            if (sourceSheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect Condition format; expected Sheet:Column",
+                    Status.FAIL
+                );
+                return;
+            }
             String reportDescription = "";
             String value = userData.getData(
-                sourceSheetName,
-                sourceColumnName,
+                sourceSheetDetail[0],
+                sourceSheetDetail[1],
                 sourceScenario,
                 sourceTestCase,
                 sourceIteration,
@@ -439,13 +541,19 @@ public class GeneralOperations extends General {
                 addVar(Input, value);
                 reportDescription = Input.replaceAll("%", "");
             } else {
-                String targetDataSheet = Input;
-                String targetSheetName = targetDataSheet.split(":", 2)[0];
-                String targetColumnName = targetDataSheet.split(":", 2)[1];
-                reportDescription = targetColumnName;
+                String[] targetSheetDetail = TestDataToken.parse(Input);
+                if (targetSheetDetail == null) {
+                    Report.updateTestLog(
+                        Action,
+                        "Incorrect Input format; expected Sheet:Column",
+                        Status.FAIL
+                    );
+                    return;
+                }
+                reportDescription = targetSheetDetail[1];
                 userData.putData(
-                    targetSheetName,
-                    targetColumnName,
+                    targetSheetDetail[0],
+                    targetSheetDetail[1],
                     value,
                     userData.getScenario(),
                     userData.getTestCase(),
@@ -474,6 +582,13 @@ public class GeneralOperations extends General {
         object = ObjectType.GENERAL,
         desc = "Reset Required Variables for storeDataFromPreviousTestCaseData action",
         input = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@optional note",
+        inputHelp = "optional note appended to report log (e.g. @optional note)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required (e.g. leave empty)"
     )
     public void resetPreviousTestCaseDataVariables() {
         // Reset Variables
@@ -518,11 +633,38 @@ public class GeneralOperations extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@myValue123",
+        inputHelp = "value to store in global datasheet (e.g. @myValue123)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "GlobalSheet:UserData",
+        conditionHelp = "global datasheet reference in GlobalDataID:Column format (e.g. GlobalSheet:UserData)"
+    )
     public void storeInGlobalDataSheet() {
         if (Condition != null) {
-            String globalDataID = Condition.split(":")[0];
-            String globalcolumnName = Condition.split(":")[1];
-            userData.putGlobalData("#" + globalDataID, globalcolumnName, Data);
+            String[] parsed = TestDataToken.parse(Condition);
+            if (parsed == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected GlobalDataID:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            // Keep any trailing @Shared/@Project tag (Test Data's own convention), translating
+            // it to the [Shared]/[Project] prefix convention Global Data IDs use, so an
+            // explicitly scoped Global Data write routes to the matching store.
+            String tag = TestDataToken.scopeTag(parsed[0]);
+            String bareId = tag.isEmpty()
+                ? parsed[0]
+                : parsed[0].substring(0, parsed[0].length() - tag.length()).trim();
+            String globalTag = TestDataToken.SHARED_TAG.equals(tag)
+                ? "[Shared]"
+                : TestDataToken.PROJECT_TAG.equals(tag) ? "[Project]" : "";
+            String globalDataID = globalTag.isEmpty() ? "#" + bareId : globalTag + " #" + bareId;
+            String globalcolumnName = parsed[1];
+            userData.putGlobalData(globalDataID, globalcolumnName, Data);
             Report.updateTestLog(
                 Action,
                 "Global Value: " + Data + " has been stored into " + "the Global data sheet",
@@ -583,6 +725,14 @@ public class GeneralOperations extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.ENUM,
+        inputExample = "@seconds",
+        inputHelp = "timestamp format option: @seconds, @milliseconds, or @seconds+milliseconds",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%EpochTime%",
+        conditionHelp = "destination variable name in %var% format (e.g. %EpochTime%)"
+    )
     public void storeEpochTimestampInVariable() {
         if (Condition == null || Condition.isBlank() || Condition.equals("%%")) {
             Report.updateTestLog(
@@ -632,6 +782,105 @@ public class GeneralOperations extends General {
             Report.updateTestLog(
                 Action,
                 "Timestamp added in variable with value '" + epochTimestamp + "'",
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
+            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+        }
+    }
+
+    /**
+     * Stores the current UTC timestamp in a specified variable.
+     *
+     * <p>
+     * This method captures the current UTC date/time and stores it
+     * in one of the supported formats.
+     * </p>
+     *
+     * @see #Data Contains the format option:
+     * "iso", "iso+milliseconds", or "date"
+     * @see #Condition Contains the variable name where the timestamp
+     * will be stored
+     *
+     * <p><b>Usage Examples:</b></p>
+     * <pre>
+     * Input (Data): @iso
+     * Condition: %UTCTime%
+     * Result: 2026-08-03T12:34:56Z
+     *
+     * Input (Data): @iso+milliseconds
+     * Condition: %UTCTimeMS%
+     * Result: 2026-08-03T12:34:56.123Z
+     *
+     * Input (Data): @date
+     * Condition: %UTCDate%
+     * Result: 2026-08-03
+     * </pre>
+     */
+    @Action(
+        object = ObjectType.GENERAL,
+        desc = "Store UTC Timestamp in variable",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.ENUM,
+        inputExample = "@iso",
+        inputHelp = "UTC timestamp format option: @iso, @iso+milliseconds, or @date",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%UTCTime%",
+        conditionHelp = "destination variable name in %var% format (e.g. %UTCTime%)"
+    )
+    public void storeUTCTimestampInVariable() {
+        if (Condition == null || Condition.isBlank() || Condition.equals("%%")) {
+            Report.updateTestLog(
+                Action,
+                "Variable name is required. Please provide a valid variable name in the Condition field.",
+                Status.FAIL
+            );
+            return;
+        }
+        if (Data == null || Data.isBlank()) {
+            Report.updateTestLog(
+                Action,
+                "Format option is required. Use: 'iso', 'iso+milliseconds', or 'date'.",
+                Status.FAIL
+            );
+            return;
+        }
+        try {
+            String utcTimestamp;
+            String option = Data.trim().toLowerCase();
+
+            ZonedDateTime nowUTC = ZonedDateTime.now(ZoneId.of("UTC"));
+
+            switch (option) {
+                case "iso":
+                    utcTimestamp =
+                        nowUTC.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"));
+                    break;
+                case "iso+milliseconds":
+                    utcTimestamp =
+                        nowUTC.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+                    break;
+                case "date":
+                    utcTimestamp = nowUTC.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    break;
+                default:
+                    Report.updateTestLog(
+                        Action,
+                        "Invalid input. Use: 'iso', 'iso+milliseconds', or 'date'.",
+                        Status.FAIL
+                    );
+                    return;
+            }
+
+            addVar(Condition, utcTimestamp);
+
+            Report.updateTestLog(
+                Action,
+                "UTC timestamp added in variable with value '" + utcTimestamp + "'",
                 Status.DONE
             );
         } catch (Exception e) {

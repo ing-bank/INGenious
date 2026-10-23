@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.event.TableModelEvent;
 
 /**
@@ -772,6 +774,16 @@ public class TestCase extends DataModel {
                         .getLogger(TestCase.class.getName())
                         .log(Level.FINE, "Failed to update shared reusable projects.items", ex);
                 }
+                // ...and any Shared Test Data references, mirroring the same convention.
+                try {
+                    if (referencesSharedTestData()) {
+                        Project.addSharedTestDataProjectEntry(getProject());
+                    }
+                } catch (Exception ex) {
+                    Logger
+                        .getLogger(TestCase.class.getName())
+                        .log(Level.FINE, "Failed to update shared test data projects.items", ex);
+                }
             } catch (Exception ex) {
                 Logger
                     .getLogger(TestCase.class.getName())
@@ -804,6 +816,26 @@ public class TestCase extends DataModel {
         if (!sharedReusableNames.isEmpty()) {
             updateSharedReusableProjectsItems(getProject(), sharedReusableNames);
         }
+    }
+
+    /**
+     * Whether any step in this test case carries an {@code @Shared} Test Data reference -
+     * whole-input ({@code Sheet:Col@Shared}) or an embedded {@code {Sheet:Col@Shared}}
+     * token in the Input / Condition.
+     */
+    private boolean referencesSharedTestData() {
+        for (TestStep step : testSteps) {
+            if (step.isTestDataStep() && "@Shared".equals(step.getTestDataScopeTag())) {
+                return true;
+            }
+            if (
+                TestStep.containsSharedTestDataToken(step.getInput()) ||
+                TestStep.containsSharedTestDataToken(step.getCondition())
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1350,13 +1382,21 @@ public class TestCase extends DataModel {
     }
 
     public void refactorTestData(String oldTDName, String newTDName) {
+        refactorTestData(oldTDName, newTDName, null);
+    }
+
+    /**
+     * @param scopeToken "@Shared" to rewrite only Shared-tagged references, "@Project" to
+     *     rewrite only untagged / Project-tagged references, or {@code null} to rewrite any
+     */
+    public void refactorTestData(String oldTDName, String newTDName, String scopeToken) {
         Boolean clearOnExit = getTestSteps().isEmpty();
         loadTableModel();
         for (TestStep testStep : testSteps) {
             String[] values = testStep.getTestDataFromInput();
             if (values != null) {
-                if (values[0].equals(oldTDName)) {
-                    testStep.setInput(newTDName + ":" + values[1]);
+                if (values[0].equals(oldTDName) && scopeMatches(testStep, scopeToken)) {
+                    testStep.setInput(withScopeTag(testStep, newTDName + ":" + values[1]));
                 }
             }
         }
@@ -1366,18 +1406,147 @@ public class TestCase extends DataModel {
         }
     }
 
+    /**
+     * Rewrites every whole-input Test Data reference to {@code originalName} (whatever scope tag
+     * it currently carries, or none) to {@code finalName:Column...@Shared}, then persists the
+     * test case. Also rewrites embedded {@code {originalName:Column}} tokens inside a larger
+     * payload Input (webservice/MQ body, SQL text, file template) the same way, braces kept.
+     * Used by "Make As Shared TestData" when a project datasheet moves to the Shared store;
+     * {@code finalName} differs from {@code originalName} only when the name collided in the
+     * Shared store and was suffixed.
+     *
+     * @return number of test steps changed
+     */
+    public int retagTestDataReferencesToShared(String originalName, String finalName) {
+        Boolean clearOnExit = getTestSteps().isEmpty();
+        loadTableModel();
+        int count = 0;
+        for (TestStep testStep : testSteps) {
+            String[] values = testStep.getTestDataFromInput();
+            if (values != null && values[0].equals(originalName)) {
+                StringBuilder ref = new StringBuilder(finalName);
+                for (int i = 1; i < values.length; i++) {
+                    ref.append(":").append(values[i]);
+                }
+                String newInput = ref + "@Shared";
+                if (!newInput.equals(testStep.getInput())) {
+                    testStep.setInput(newInput);
+                    count++;
+                }
+                continue;
+            }
+            String retaggedInput = retagEmbeddedTokens(
+                testStep.getInput(),
+                originalName,
+                finalName
+            );
+            if (!retaggedInput.equals(testStep.getInput())) {
+                testStep.setInput(retaggedInput);
+                count++;
+            }
+        }
+        if (count > 0 || clearOnExit) {
+            save();
+        }
+        if (clearOnExit) {
+            getTestSteps().clear();
+        }
+        return count;
+    }
+
+    private static final Pattern EMBEDDED_TOKEN = Pattern.compile(
+        "\\{\\s*[^{}:\"@]+:[^{}:\"@]+(@Shared|@Project)?\\s*\\}"
+    );
+
+    /**
+     * Rewrites every embedded {@code {originalName:Column}} token (bare or {@code @Project}
+     * tagged) referencing {@code originalName} to {@code {finalName:Column@Shared}}, leaving
+     * tokens for other sheets and any already-{@code @Shared} tokens untouched.
+     */
+    private static String retagEmbeddedTokens(String input, String originalName, String finalName) {
+        if (input == null || !input.contains("{")) {
+            return input;
+        }
+        Matcher matcher = EMBEDDED_TOKEN.matcher(input);
+        StringBuilder result = new StringBuilder();
+        int lastEnd = 0;
+        while (matcher.find()) {
+            String token = matcher.group();
+            String inner = token.substring(1, token.length() - 1).trim();
+            String tag = inner.endsWith("@Shared")
+                ? "@Shared"
+                : inner.endsWith("@Project") ? "@Project" : "";
+            String bare = tag.isEmpty() ? inner : inner.substring(0, inner.length() - tag.length());
+            int sep = bare.indexOf(':');
+            if (sep <= 0 || !bare.substring(0, sep).trim().equals(originalName)) {
+                continue;
+            }
+            String column = bare.substring(sep + 1).trim();
+            result.append(input, lastEnd, matcher.start());
+            result.append('{').append(finalName).append(':').append(column).append("@Shared}");
+            lastEnd = matcher.end();
+        }
+        result.append(input.substring(lastEnd));
+        return result.toString();
+    }
+
+    /**
+     * Re-applies the "@Shared"/"@Project" scope tag a test data reference carried, since
+     * refactorTestData/refactorTestDataColumn rebuild the Input from bare sheet/column names.
+     * The tag trails the whole reference, so it's appended, not prepended.
+     */
+    private String withScopeTag(TestStep testStep, String bareInput) {
+        String tag = testStep.getTestDataScopeTag();
+        return tag.isEmpty() ? bareInput : bareInput + tag;
+    }
+
+    /**
+     * Whether a test step's test data reference belongs to the scope a refactor targets. A
+     * {@code null} scopeToken matches any step (legacy behavior). "@Shared" matches only
+     * steps whose Input carries the "@Shared" tag; "@Project" matches steps that are
+     * untagged or carry the "@Project" tag - since an untagged reference resolves against the
+     * project's own test data.
+     */
+    private boolean scopeMatches(TestStep testStep, String scopeToken) {
+        if (scopeToken == null) {
+            return true;
+        }
+        String tag = testStep.getTestDataScopeTag();
+        if ("@Shared".equals(scopeToken)) {
+            return "@Shared".equals(tag);
+        }
+        return tag.isEmpty() || "@Project".equals(tag);
+    }
+
     public void refactorTestDataColumn(
         String testDataName,
         String oldColumnName,
         String newColumnName
+    ) {
+        refactorTestDataColumn(testDataName, oldColumnName, newColumnName, null);
+    }
+
+    /**
+     * @param scopeToken "@Shared" / "@Project" / {@code null} - see
+     *     {@link #refactorTestData(String, String, String)}
+     */
+    public void refactorTestDataColumn(
+        String testDataName,
+        String oldColumnName,
+        String newColumnName,
+        String scopeToken
     ) {
         Boolean clearOnExit = getTestSteps().isEmpty();
         loadTableModel();
         for (TestStep testStep : testSteps) {
             String[] values = testStep.getTestDataFromInput();
             if (values != null) {
-                if (values[0].equals(testDataName) && values[1].equals(oldColumnName)) {
-                    testStep.setInput(testDataName + ":" + newColumnName);
+                if (
+                    values[0].equals(testDataName) &&
+                    values[1].equals(oldColumnName) &&
+                    scopeMatches(testStep, scopeToken)
+                ) {
+                    testStep.setInput(withScopeTag(testStep, testDataName + ":" + newColumnName));
                 }
             }
         }
@@ -1572,8 +1741,17 @@ public class TestCase extends DataModel {
         TestCase existing = getScenario().getTestCaseByName(newName);
         if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
-                getProject().refactorTestCase(getScenario().getName(), name, newName);
+                String oldName = name;
+                // Update name before refactoring so getLocation() resolves to the
+                // already-renamed file when this test case's own steps are (re)loaded.
                 name = newName;
+                getProject()
+                    .refactorTestCase(
+                        getScenario().getName(),
+                        oldName,
+                        newName,
+                        getScenario().getSource()
+                    );
                 return true;
             }
         }
@@ -1584,8 +1762,17 @@ public class TestCase extends DataModel {
         TestCase existing = getScenario().getTestCaseByName(newName);
         if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
-                getProject().refactorTestCase(getScenario().getName(), name, newName);
+                String oldName = name;
+                // Update name before refactoring so getLocation() resolves to the
+                // already-renamed file when this test case's own steps are (re)loaded.
                 name = newName;
+                getProject()
+                    .refactorTestCase(
+                        getScenario().getName(),
+                        oldName,
+                        newName,
+                        getScenario().getSource()
+                    );
                 return true;
             }
         }
@@ -1601,8 +1788,17 @@ public class TestCase extends DataModel {
         TestCase existing = getScenario().getTestCaseByName(newName);
         if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
-                getProject().refactorTestCase(getScenario().getName(), name, newName);
+                String oldName = name;
+                // Update name before refactoring so getLocation() resolves to the
+                // already-renamed file when this test case's own steps are (re)loaded.
                 name = newName;
+                getProject()
+                    .refactorTestCase(
+                        getScenario().getName(),
+                        oldName,
+                        newName,
+                        getScenario().getSource()
+                    );
                 return true;
             }
         }

@@ -156,12 +156,26 @@ public class FXMenuBar extends JFXPanel {
             ),
             "API Workbench"
         );
+        // bindAccelerator(
+        //     KeyStroke.getKeyStroke(
+        //         KeyEvent.VK_I,
+        //         InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+        //     ),
+        //     "INGenie"
+        // );
+        bindAccelerator(
+            KeyStroke.getKeyStroke(
+                KeyEvent.VK_B,
+                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+            ),
+            "Database Workbench"
+        );
         bindAccelerator(
             KeyStroke.getKeyStroke(
                 KeyEvent.VK_I,
                 InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
             ),
-            "AI Assistant"
+            "INGenie"
         );
         bindAccelerator(
             KeyStroke.getKeyStroke(
@@ -317,7 +331,8 @@ public class FXMenuBar extends JFXPanel {
             .getItems()
             .addAll(
                 createImportCollectionItem("Postman", "recorder", "Postman"),
-                createImportCollectionItem("Bruno", "recorder", "Bruno")
+                createImportCollectionItem("Bruno", "recorder", "Bruno"),
+                createImportCollectionItem("Reports", "importReports", "Reports")
             );
         tools.getItems().add(importCollection);
 
@@ -332,6 +347,10 @@ public class FXMenuBar extends JFXPanel {
                     KeyCombination.SHIFT_DOWN
                 )
             );
+
+        tools.getItems().add(new SeparatorMenuItem());
+        // tools.getItems().add(menuItem("Mobile Recorder", "recorder"));
+        tools.getItems().add(menuItem("Project Health", "dashboard"));
 
         return tools;
     }
@@ -371,8 +390,22 @@ public class FXMenuBar extends JFXPanel {
                     KeyCombination.SHIFT_DOWN,
                     KeyCombination.ALT_DOWN
                 ),
+                menuItem(
+                    "Database Workbench",
+                    "dbdock",
+                    KeyCode.B,
+                    KeyCombination.SHIFT_DOWN,
+                    KeyCombination.ALT_DOWN
+                ),
+                menuItem(
+                    "Performance Studio",
+                    "summary",
+                    KeyCode.P,
+                    KeyCombination.SHIFT_DOWN,
+                    KeyCombination.ALT_DOWN
+                ),
                 /*  menuItem(
-                    "AI Assistant",
+                    "INGenie",
                     "AICopilot",
                     KeyCode.I,
                     KeyCombination.SHIFT_DOWN,
@@ -398,7 +431,9 @@ public class FXMenuBar extends JFXPanel {
             .addAll(
                 menuItem("Help", "help", KeyCode.F1),
                 menuItem("About", "info", KeyCode.F3),
-                menuItem("Show Log", "console", KeyCode.F9)
+                menuItem("Show Log", "console", KeyCode.F9),
+                new javafx.scene.control.SeparatorMenuItem(),
+                menuItem("Start Tour", "tour")
             );
         return help;
     }

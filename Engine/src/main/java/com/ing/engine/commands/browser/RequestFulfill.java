@@ -3,9 +3,13 @@ package com.ing.engine.commands.browser;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.microsoft.playwright.*;
@@ -29,6 +33,13 @@ public class RequestFulfill extends Command {
         desc = "Set Endpoint for mocking request",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@**/api/users",
+        inputHelp = "route endpoint/pattern (e.g. @**/api/users) to mock (supports {Sheet:Column} and {var} placeholders)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void RouteFulfillEndpoint() {
         try {
             String resource = handlePayloadorEndpoint(Data);
@@ -48,6 +59,13 @@ public class RequestFulfill extends Command {
         object = ObjectType.BROWSER,
         desc = "Set body for mocking request",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.JSON_BODY,
+        inputExample = "{\"id\":\"{Users:id}\",\"name\":\"John\"}",
+        inputHelp = "mock response body string (JSON/text) with optional data placeholders",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void RouteFulfillSetBody() {
         try {
@@ -111,34 +129,9 @@ public class RequestFulfill extends Command {
     }
 
     private String handleDataSheetVariables(String payloadstring) {
-        List<String> sheetlist = Control
-            .getCurrentProject()
-            .getTestData()
-            .getTestDataFor(Control.exe.runEnv())
-            .getTestDataNames();
-        for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
-            if (payloadstring.contains("{" + sheetlist.get(sheet) + ":")) {
-                com.ing.datalib.testdata.model.TestDataModel tdModel = Control
-                    .getCurrentProject()
-                    .getTestData()
-                    .getTestDataByName(sheetlist.get(sheet));
-                List<String> columns = tdModel.getColumns();
-                for (int col = 0; col < columns.size(); col++) {
-                    if (
-                        payloadstring.contains(
-                            "{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}"
-                        )
-                    ) {
-                        payloadstring =
-                            payloadstring.replace(
-                                "{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
-                                userData.getData(sheetlist.get(sheet), columns.get(col))
-                            );
-                    }
-                }
-            }
-        }
-        return payloadstring;
+        // Resolves {Sheet:Column} / {Sheet:Column@Project} / {Sheet:Column@Shared} tokens;
+        // unknown tokens are left literal.
+        return TestDataToken.resolveEmbeddedTokens(payloadstring, userData);
     }
 
     private String handleuserDefinedVariables(String payloadstring) {

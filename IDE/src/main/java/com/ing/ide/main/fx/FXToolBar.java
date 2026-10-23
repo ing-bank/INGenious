@@ -65,9 +65,13 @@ public class FXToolBar extends JFXPanel {
                 createButton("Settings", "RunSettings"),
                 createButton("Archetype Configurations", "BrowserConfiguration"),
                 new Separator(),
+                //createMobileRecorderButton(),
+                //new Separator(),
                 createAPITesterButton(),
-                //createAICopilotButton(),
-                createSpacer()
+                createDBWorkbenchButton(),
+                createPerfStudioButton(),
+                createSpacer(),
+                createAICopilotButton()
                 //, createDarkModeToggle()
             );
 
@@ -95,6 +99,18 @@ public class FXToolBar extends JFXPanel {
         return btn;
     }
 
+    // private Button createMobileRecorderButton() {
+    //     Button btn = new Button("Mobile Recorder");
+    //     btn.getStyleClass().add("workbench-btn");
+    //     btn.setTooltip(new Tooltip("Record a mobile test from a live Appium session"));
+    //     org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored("recorder", 16);
+    //     if (icon != null) {
+    //         btn.setGraphic(icon);
+    //     }
+    //     btn.setOnAction(e -> fireSwingAction("Mobile Recorder"));
+    //     return btn;
+    // }
+
     private Button createAPITesterButton() {
         Button btn = new Button("Workbench");
         btn.getStyleClass().add("workbench-btn");
@@ -114,10 +130,46 @@ public class FXToolBar extends JFXPanel {
         return btn;
     }
 
+    private Button createDBWorkbenchButton() {
+        Button btn = new Button("DB Workbench");
+        btn.getStyleClass().add("workbench-btn");
+        btn.setTooltip(new Tooltip("Open Database Workbench - run SQL & build DB test cases"));
+
+        org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fx(
+            "dbdock",
+            16,
+            javafx.scene.paint.Color.BLACK
+        );
+        if (icon != null) {
+            btn.setGraphic(icon);
+        }
+
+        btn.setOnAction(e -> fireSwingAction("Database Workbench"));
+        return btn;
+    }
+
+    private Button createPerfStudioButton() {
+        Button btn = new Button("Perf Studio");
+        btn.getStyleClass().add("workbench-btn");
+        btn.setTooltip(new Tooltip("Open Performance Studio - author & run k6 load tests"));
+
+        org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fx(
+            "perfstudio",
+            16,
+            javafx.scene.paint.Color.BLACK
+        );
+        if (icon != null) {
+            btn.setGraphic(icon);
+        }
+
+        btn.setOnAction(e -> fireSwingAction("Performance Studio"));
+        return btn;
+    }
+
     private Button createAICopilotButton() {
-        Button btn = new Button("AI Assistant");
+        Button btn = new Button("INGenie");
         btn.getStyleClass().add("api-tester-btn");
-        btn.setTooltip(new Tooltip("Open the INGenious AI Assistant (GitHub Models)"));
+        btn.setTooltip(new Tooltip("Toggle the INGenious AI Assistant sidebar (GitHub Models)"));
 
         org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored("AICopilot", 16);
         if (icon != null) {
@@ -125,7 +177,7 @@ public class FXToolBar extends JFXPanel {
             btn.setGraphic(icon);
         }
 
-        btn.setOnAction(e -> fireSwingAction("AI Assistant"));
+        btn.setOnAction(e -> fireSwingAction("INGenie"));
         return btn;
     }
 

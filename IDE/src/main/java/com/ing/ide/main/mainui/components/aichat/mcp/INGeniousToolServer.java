@@ -37,7 +37,7 @@ import javax.swing.SwingUtilities;
  * tool name plus parsed arguments and returns a {@link ToolResult}, so the same
  * server can later be exposed over stdio/MCP to external clients.</p>
  */
-public class INGeniousToolServer {
+public class INGeniousToolServer implements ToolProvider {
     private static final Logger LOG = Logger.getLogger(INGeniousToolServer.class.getName());
 
     private final AppMainFrame mainFrame;

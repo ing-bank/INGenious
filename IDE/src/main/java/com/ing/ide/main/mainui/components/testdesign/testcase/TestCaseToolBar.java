@@ -122,6 +122,17 @@ public class TestCaseToolBar extends JToolBar {
                 testCaseComp
             )
         );
+        addSeparator();
+
+        JButton columnsButton = Utils.createButton(
+            "Columns",
+            "columns",
+            "Choose which columns to show",
+            null
+        );
+        columnsButton.addActionListener(e -> testCaseComp.showColumnMenu(columnsButton));
+        add(columnsButton);
+
         saveButton.setEnabled(false);
 
         setConsoleVisible(false);

@@ -1,10 +1,10 @@
 package com.ing.ide.main.utils.keys;
 
+import com.ing.ide.main.utils.table.XTable;
 import com.ing.ide.main.utils.table.XTableUtils;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import javax.swing.JTable;
-import org.jline.utils.Log;
 
 /**
  *
@@ -24,17 +24,29 @@ public class ClipboardKeyAdapter extends KeyAdapter {
                 case KeyEvent.VK_C:
                     // Copy
                     cancelEditing();
-                    XTableUtils.copyToClipboard(table, false);
+                    if (table instanceof XTable) {
+                        ((XTable) table).copy();
+                    } else {
+                        XTableUtils.copyToClipboard(table, false);
+                    }
                     break;
                 case KeyEvent.VK_X:
                     // Cut
                     cancelEditing();
-                    XTableUtils.copyToClipboard(table, true);
+                    if (table instanceof XTable) {
+                        ((XTable) table).cut();
+                    } else {
+                        XTableUtils.copyToClipboard(table, true);
+                    }
                     break;
                 case KeyEvent.VK_V:
                     // Paste
                     cancelEditing();
-                    XTableUtils.pasteFromClipboard(table);
+                    if (table instanceof XTable) {
+                        ((XTable) table).paste();
+                    } else {
+                        XTableUtils.pasteFromClipboard(table);
+                    }
                     break;
                 default:
                     break;

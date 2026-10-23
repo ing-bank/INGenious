@@ -112,12 +112,7 @@ public class Scenario extends DataModel {
 
     /**
      * Returns the source of this scenario.
-     * @return TEST_PLAN, REUSABLE_COMPONENTS, or SHARED_rce.REUSABLE_COMPONENTS;
-    }
-
-    /**
-     * Returns the source of this scenario.
-     * @return TEST_PLAN or REUSABLE_COMPONENTS
+     * @return TEST_PLAN, REUSABLE_COMPONENTS, or SHARED_REUSABLE_COMPONENTS
      */
     public Source getSource() {
         return source;
@@ -256,6 +251,16 @@ public class Scenario extends DataModel {
                 testCases.add(new TestCase(this, baseName));
             }
         }
+    }
+
+    /**
+     * Reloads test cases from disk, clearing existing in-memory test cases first.
+     * This is useful after CSV-to-YAML migration to ensure test cases reflect
+     * the newly created YAML files.
+     */
+    public void reloadTestCases() {
+        testCases.clear();
+        loadTestcases();
     }
 
     /**
@@ -628,9 +633,27 @@ public class Scenario extends DataModel {
     }
 
     public void refactorTestData(String oldTDName, String newTDName) {
+        refactorTestData(oldTDName, newTDName, null);
+    }
+
+    public void refactorTestData(String oldTDName, String newTDName, String scopeToken) {
         for (TestCase testCase : testCases) {
-            testCase.refactorTestData(oldTDName, newTDName);
+            testCase.refactorTestData(oldTDName, newTDName, scopeToken);
         }
+    }
+
+    /**
+     * Rewrites every whole-input Test Data reference to {@code originalName} in this scenario's
+     * test cases to {@code finalName:Column@Shared}. Used by "Make As Shared TestData".
+     *
+     * @return number of test steps changed
+     */
+    public int retagTestDataReferencesToShared(String originalName, String finalName) {
+        int count = 0;
+        for (TestCase testCase : testCases) {
+            count += testCase.retagTestDataReferencesToShared(originalName, finalName);
+        }
+        return count;
     }
 
     public void refactorTestDataColumn(
@@ -638,8 +661,17 @@ public class Scenario extends DataModel {
         String oldColumnName,
         String newColumnName
     ) {
+        refactorTestDataColumn(testDataName, oldColumnName, newColumnName, null);
+    }
+
+    public void refactorTestDataColumn(
+        String testDataName,
+        String oldColumnName,
+        String newColumnName,
+        String scopeToken
+    ) {
         for (TestCase testCase : testCases) {
-            testCase.refactorTestDataColumn(testDataName, oldColumnName, newColumnName);
+            testCase.refactorTestDataColumn(testDataName, oldColumnName, newColumnName, scopeToken);
         }
     }
 
@@ -697,8 +729,11 @@ public class Scenario extends DataModel {
         Scenario existing = getProject().getTestPlanScenarioByName(newName);
         if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName)) {
-                getProject().refactorScenario(name, newName);
+                String oldName = name;
+                // Update name before refactoring so getLocation() resolves to the
+                // already-renamed directory when this scenario's own test cases are loaded.
                 name = newName;
+                getProject().refactorScenario(oldName, newName, source);
                 return true;
             }
         }
@@ -714,15 +749,23 @@ public class Scenario extends DataModel {
 
     public Boolean renameReusable(String newName) {
         Project p = getProject();
-        // Clean up stale reusable scenarios first
+        // Clean up stale reusable scenarios first. Never evict `this`: a scenario
+        // that hasn't had a test case saved yet has no directory on disk although
+        // it's perfectly valid, and evicting it here would permanently drop it
+        // from the project's canonical list even though it stays visible in the
+        // tree (which holds its own reference), causing later "reusable not
+        // available" false positives until the project is reloaded.
         List<Scenario> reusables = p.getReusableScenarios();
-        reusables.removeIf(s -> !new File(s.getLocation()).exists());
+        reusables.removeIf(s -> s != this && !new File(s.getLocation()).exists());
 
         Scenario existing = p.getReusableScenarioByName(newName);
         if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName)) {
-                p.refactorScenario(name, newName);
+                String oldName = name;
+                // Update name before refactoring so getLocation() resolves to the
+                // already-renamed directory when this scenario's own test cases are loaded.
                 name = newName;
+                p.refactorScenario(oldName, newName, source);
                 return true;
             }
         }
@@ -738,14 +781,19 @@ public class Scenario extends DataModel {
      */
     public Boolean renameSharedReusable(String newName) {
         Project p = getProject();
-        // Clean up stale shared reusable scenarios first
+        // Clean up stale shared reusable scenarios first. Never evict `this` --
+        // see renameReusable() for why a not-yet-persisted scenario's missing
+        // directory must not cause it to be dropped from the project's list.
         List<Scenario> sharedReusables = p.getSharedScenarios();
-        sharedReusables.removeIf(s -> !new File(s.getLocation()).exists());
+        sharedReusables.removeIf(s -> s != this && !new File(s.getLocation()).exists());
 
         if (p.getSharedReusableScenarioByName(newName) == null) {
             if (FileUtils.renameFile(getLocation(), newName)) {
-                p.refactorScenario(name, newName);
+                String oldName = name;
+                // Update name before refactoring so getLocation() resolves to the
+                // already-renamed directory when this scenario's own test cases are loaded.
                 name = newName;
+                p.refactorScenario(oldName, newName, source);
                 return true;
             }
         }

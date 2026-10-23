@@ -9,7 +9,16 @@ public class Validator {
     // Stricter list for reusable component names: blocks comma, dot, colon, brackets, percent, hash
     private static final String REUSABLE_EXCLUDE_LIST = "\\S*[,|\\.|:|\\[|\\]|%|#]\\S*";
 
+    // Conservative cap on name length: these names become path segments nested several
+    // directories deep (Project/Scenario/TestData/Environment/...), so keeping individual
+    // segments well under the ~255 byte filesystem/component limit (and Windows' 260 char
+    // MAX_PATH) leaves enough headroom for the rest of the path.
+    public static final int MAX_NAME_LENGTH = 100;
+
     public static boolean isValidName(String text) {
+        if (text == null || text.length() > MAX_NAME_LENGTH) {
+            return false;
+        }
         Pattern pattern = Pattern.compile(
             "# Match a valid Windows filename (unspecified file system).          \n" +
             "^                                    # Anchor to start of string.        \n" +
@@ -45,5 +54,42 @@ public class Validator {
         }
         // Must pass basic name validation AND additional reusable-specific restrictions
         return isValidName(text) && !text.matches(REUSABLE_EXCLUDE_LIST);
+    }
+
+    // TestData datasheet/column names: alphanumeric plus '-' and '_' only, up to 50 chars.
+    public static final int MAX_TESTDATA_NAME_LENGTH = 50;
+    private static final Pattern TESTDATA_NAME_PATTERN = Pattern.compile("^[A-Za-z0-9_-]+$");
+
+    /**
+     * Validates a TestData datasheet or column name: alphanumeric characters with only
+     * '-' and '_' allowed as special characters, up to {@value #MAX_TESTDATA_NAME_LENGTH} chars.
+     *
+     * @param text the name to validate
+     * @return true if the name is valid for a TestData datasheet/column, false otherwise
+     */
+    public static boolean isValidTestDataName(String text) {
+        return (
+            text != null &&
+            text.length() <= MAX_TESTDATA_NAME_LENGTH &&
+            TESTDATA_NAME_PATTERN.matcher(text).matches()
+        );
+    }
+
+    /**
+     * Name reserved for the Global Data store ({@code GlobalData.csv}), which every Test Data
+     * provider excludes from its normal sheet listing/loading. A datasheet named this collides
+     * with that reserved file on disk and silently disappears from the Test Data tabs on reload.
+     */
+    public static final String RESERVED_GLOBAL_DATA_NAME = "GlobalData";
+
+    /**
+     * Validates a TestData <em>datasheet</em> (not column) name: must pass
+     * {@link #isValidTestDataName(String)} and must not be the reserved {@code GlobalData} name.
+     *
+     * @param text the sheet name to validate
+     * @return true if the name is valid for a TestData datasheet, false otherwise
+     */
+    public static boolean isValidTestDataSheetName(String text) {
+        return (isValidTestDataName(text) && !RESERVED_GLOBAL_DATA_NAME.equalsIgnoreCase(text));
     }
 }

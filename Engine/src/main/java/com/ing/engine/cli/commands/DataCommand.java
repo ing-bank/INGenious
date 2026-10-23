@@ -1,5 +1,10 @@
 package com.ing.engine.cli.commands;
 
+import com.ing.datalib.component.EnvTestData;
+import com.ing.datalib.component.Project;
+import com.ing.datalib.component.TestData;
+import com.ing.datalib.testdata.model.Record;
+import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.engine.cli.INGeniousCLI;
 import java.io.*;
 import java.util.*;
@@ -21,7 +26,11 @@ import picocli.CommandLine.ParentCommand;
         DataCommand.ShowCommand.class,
         DataCommand.GetCommand.class,
         DataCommand.SetCommand.class,
-        DataCommand.ImportCommand.class
+        DataCommand.ImportCommand.class,
+        DataCommand.SheetCommand.class,
+        DataCommand.RowCommand.class,
+        DataCommand.ColumnCommand.class,
+        DataCommand.EnvCommand.class
     }
 )
 public class DataCommand implements Callable<Integer> {
@@ -35,6 +44,35 @@ public class DataCommand implements Callable<Integer> {
     }
 
     /**
+     * Resolves the app-root Shared Test Data directory (Shared/SharedTestData), global across
+     * all projects. Mirrors Project.getSharedTestDataPath() without depending on Datalib.
+     */
+    static File sharedTestDataDir() {
+        return new File(new File(System.getProperty("user.dir"), "Shared"), "SharedTestData");
+    }
+
+    /**
+     * Resolves a (possibly scope-tagged) sheet reference to its CSV file. {@code "Foo@Shared"}
+     * -> {@code <workspace>/Shared/SharedTestData/Foo.csv}; {@code "Foo@Project"} / {@code "Foo"}
+     * -> {@code <project>/TestData/Foo.csv}.
+     */
+    static File resolveSheetCsv(String projectPath, String taggedSheet) {
+        String s = taggedSheet == null ? "" : taggedSheet.trim();
+        if (s.endsWith("@Shared")) {
+            String name = s.substring(0, s.length() - "@Shared".length()).trim();
+            File parent = new File(projectPath).getParentFile();
+            File sharedRoot = parent != null
+                ? new File(new File(parent, "Shared"), "SharedTestData")
+                : sharedTestDataDir();
+            return new File(sharedRoot, name + ".csv");
+        }
+        if (s.endsWith("@Project")) {
+            s = s.substring(0, s.length() - "@Project".length()).trim();
+        }
+        return new File(new File(projectPath, "TestData"), s + ".csv");
+    }
+
+    /**
      * List data sheets/environments.
      */
     @Command(name = "list", description = "List data sheets")
@@ -45,20 +83,31 @@ public class DataCommand implements Callable<Integer> {
         @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
+        @Option(
+            names = { "--shared" },
+            description = "List sheets from Shared Test Data instead of the project"
+        )
+        private boolean shared;
+
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
 
-            String path = projectPath != null ? projectPath : cli.getProjectPath();
-            if (path == null || path.isEmpty()) {
-                cli.printError("Project path required.");
-                return 1;
+            File testDataDir;
+            if (shared) {
+                testDataDir = sharedTestDataDir();
+            } else {
+                String path = projectPath != null ? projectPath : cli.getProjectPath();
+                if (path == null || path.isEmpty()) {
+                    cli.printError("Project path required.");
+                    return 1;
+                }
+                testDataDir = new File(path, "TestData");
             }
 
             try {
-                File testDataDir = new File(path, "TestData");
                 if (!testDataDir.exists()) {
-                    cli.printWarning("No test data found.");
+                    cli.printWarning(shared ? "No shared test data found." : "No test data found.");
                     return 0;
                 }
 
@@ -125,21 +174,33 @@ public class DataCommand implements Callable<Integer> {
         @Option(names = { "--limit" }, description = "Number of rows to show", defaultValue = "20")
         private int limit;
 
+        @Option(
+            names = { "--shared" },
+            description = "Show a sheet from Shared Test Data instead of the project"
+        )
+        private boolean shared;
+
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
 
-            String path = projectPath != null ? projectPath : cli.getProjectPath();
-            if (path == null || path.isEmpty()) {
-                cli.printError("Project path required.");
-                return 1;
+            File testDataDir;
+            if (shared) {
+                testDataDir = sharedTestDataDir();
+            } else {
+                String path = projectPath != null ? projectPath : cli.getProjectPath();
+                if (path == null || path.isEmpty()) {
+                    cli.printError("Project path required.");
+                    return 1;
+                }
+                testDataDir = new File(path, "TestData");
             }
 
             try {
-                File dataFile = new File(path, "TestData/" + sheetName);
+                File dataFile = new File(testDataDir, sheetName);
                 if (!dataFile.exists()) {
                     // Try with .csv extension
-                    dataFile = new File(path, "TestData/" + sheetName + ".csv");
+                    dataFile = new File(testDataDir, sheetName + ".csv");
                 }
 
                 if (!dataFile.exists()) {
@@ -201,25 +262,35 @@ public class DataCommand implements Callable<Integer> {
                 return 1;
             }
 
-            // Parse reference: Sheet:Column:Row or Sheet.Column[Row]
-            String[] parts = reference.split(":");
+            // Parse reference: Sheet:Column:Row, optionally tagged with a trailing
+            // @Project/@Shared scope suffix.
+            String tag = "";
+            String ref = reference;
+            if (ref.endsWith("@Shared")) {
+                tag = "@Shared";
+                ref = ref.substring(0, ref.length() - tag.length());
+            } else if (ref.endsWith("@Project")) {
+                tag = "@Project";
+                ref = ref.substring(0, ref.length() - tag.length());
+            }
+            String[] parts = ref.split(":");
             if (parts.length != 3) {
-                cli.printError("Invalid reference format. Use: Sheet:Column:Row");
+                cli.printError("Invalid reference format. Use: Sheet:Column:Row[@Project|@Shared]");
                 return 1;
             }
 
-            String sheet = parts[0];
+            String sheet = parts[0].trim() + tag;
             String column = parts[1];
             int row;
             try {
-                row = Integer.parseInt(parts[2]);
+                row = Integer.parseInt(parts[2].trim());
             } catch (NumberFormatException e) {
                 cli.printError("Invalid row number: " + parts[2]);
                 return 1;
             }
 
             try {
-                File dataFile = new File(path, "TestData/" + sheet + ".csv");
+                File dataFile = resolveSheetCsv(path, sheet);
                 if (!dataFile.exists()) {
                     cli.printError("Data sheet not found: " + sheet);
                     return 1;
@@ -301,24 +372,33 @@ public class DataCommand implements Callable<Integer> {
                 return 1;
             }
 
-            String[] parts = reference.split(":");
+            String tag = "";
+            String ref = reference;
+            if (ref.endsWith("@Shared")) {
+                tag = "@Shared";
+                ref = ref.substring(0, ref.length() - tag.length());
+            } else if (ref.endsWith("@Project")) {
+                tag = "@Project";
+                ref = ref.substring(0, ref.length() - tag.length());
+            }
+            String[] parts = ref.split(":");
             if (parts.length != 3) {
-                cli.printError("Invalid reference format. Use: Sheet:Column:Row");
+                cli.printError("Invalid reference format. Use: Sheet:Column:Row[@Project|@Shared]");
                 return 1;
             }
 
-            String sheet = parts[0];
+            String sheet = parts[0].trim() + tag;
             String column = parts[1];
             int targetRow;
             try {
-                targetRow = Integer.parseInt(parts[2]);
+                targetRow = Integer.parseInt(parts[2].trim());
             } catch (NumberFormatException e) {
                 cli.printError("Invalid row number: " + parts[2]);
                 return 1;
             }
 
             try {
-                File dataFile = new File(path, "TestData/" + sheet + ".csv");
+                File dataFile = resolveSheetCsv(path, sheet);
                 if (!dataFile.exists()) {
                     cli.printError("Data sheet not found: " + sheet);
                     return 1;
@@ -445,5 +525,473 @@ public class DataCommand implements Callable<Integer> {
                 return 1;
             }
         }
+    }
+
+    // -----------------------------------------------------------------
+    // Sheet management
+    // -----------------------------------------------------------------
+
+    @Command(
+        name = "sheet",
+        description = "Manage test data sheets",
+        subcommands = { SheetCommand.CreateCommand.class }
+    )
+    public static class SheetCommand implements Callable<Integer> {
+        @ParentCommand
+        private DataCommand parent;
+
+        @Override
+        public Integer call() {
+            System.out.println(
+                "Use 'ingenious data sheet <subcommand>' - see 'ingenious data sheet --help'"
+            );
+            return 0;
+        }
+
+        @Command(name = "create", description = "Create a new test data sheet")
+        public static class CreateCommand implements Callable<Integer> {
+            @ParentCommand
+            private SheetCommand parent;
+
+            @Parameters(index = "0", description = "Sheet name")
+            private String sheetName;
+
+            @Option(names = { "-p", "--project" }, description = "Project path")
+            private String projectPath;
+
+            @Option(names = { "-e", "--env" }, description = "Target environment (default: all)")
+            private String envName;
+
+            @Override
+            public Integer call() {
+                INGeniousCLI cli = INGeniousCLI.getInstance();
+                String path = projectPath != null ? projectPath : cli.getProjectPath();
+                if (path == null || path.isEmpty()) {
+                    cli.printError("Project path required.");
+                    return 1;
+                }
+                try {
+                    Project project = new Project(path);
+                    EnvTestData env = project.getTestData();
+                    Collection<TestData> targets = pickEnvs(env, envName);
+                    if (targets.isEmpty()) {
+                        cli.printError("Environment not found: " + envName);
+                        return 1;
+                    }
+                    int added = 0;
+                    for (TestData td : targets) {
+                        if (td.getByName(sheetName) != null) continue;
+                        td.addTestData(td.getNewTestData(sheetName));
+                        added++;
+                    }
+                    env.save();
+                    project.save();
+                    cli.printSuccess(
+                        "Created data sheet '" + sheetName + "' in " + added + " environment(s)."
+                    );
+                    return 0;
+                } catch (Exception e) {
+                    cli.printError("Failed to create sheet: " + e.getMessage());
+                    return 1;
+                }
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // Row management
+    // -----------------------------------------------------------------
+
+    @Command(
+        name = "row",
+        description = "Manage rows inside a data sheet",
+        subcommands = { RowCommand.AddCommand.class }
+    )
+    public static class RowCommand implements Callable<Integer> {
+        @ParentCommand
+        private DataCommand parent;
+
+        @Override
+        public Integer call() {
+            System.out.println(
+                "Use 'ingenious data row <subcommand>' - see 'ingenious data row --help'"
+            );
+            return 0;
+        }
+
+        @Command(
+            name = "add",
+            description = "Add a row binding a (Scenario, TestCase) - or reusable scenario/component - to a data sheet"
+        )
+        public static class AddCommand implements Callable<Integer> {
+            @ParentCommand
+            private RowCommand parent;
+
+            @Parameters(index = "0", description = "Sheet name")
+            private String sheetName;
+
+            @Option(
+                names = { "--scenario" },
+                required = true,
+                description = "Scenario name (or reusable-scenario name if --reusable)"
+            )
+            private String scenarioName;
+
+            @Option(
+                names = { "--testcase" },
+                required = true,
+                description = "Test case name (or reusable-component name if --reusable)"
+            )
+            private String testCaseName;
+
+            @Option(
+                names = { "--reusable" },
+                description = "Treat scenario/testcase as a reusable-component reference"
+            )
+            private boolean reusable;
+
+            @Option(names = { "--iteration" }, description = "Iteration number", defaultValue = "1")
+            private String iteration;
+
+            @Option(
+                names = { "--sub-iteration" },
+                description = "Sub-iteration number",
+                defaultValue = "1"
+            )
+            private String subIteration;
+
+            @Option(
+                names = { "-c", "--col" },
+                description = "Column value as name=value (repeatable)"
+            )
+            private List<String> cols;
+
+            @Option(names = { "-p", "--project" }, description = "Project path")
+            private String projectPath;
+
+            @Option(names = { "-e", "--env" }, description = "Target environment (default: all)")
+            private String envName;
+
+            @Override
+            public Integer call() {
+                INGeniousCLI cli = INGeniousCLI.getInstance();
+                String path = projectPath != null ? projectPath : cli.getProjectPath();
+                if (path == null || path.isEmpty()) {
+                    cli.printError("Project path required.");
+                    return 1;
+                }
+                try {
+                    Project project = new Project(path);
+                    EnvTestData env = project.getTestData();
+                    Collection<TestData> targets = pickEnvs(env, envName);
+                    if (targets.isEmpty()) {
+                        cli.printError("Environment not found: " + envName);
+                        return 1;
+                    }
+                    int added = 0;
+                    for (TestData td : targets) {
+                        TestDataModel model = td.getByName(sheetName);
+                        if (model == null) {
+                            model = td.addTestData(td.getNewTestData(sheetName));
+                        }
+                        model.loadTableModel();
+                        Record rec = model.addRecord();
+                        // Scenario/Flow are positionally 0/1; setters keep us format-agnostic.
+                        String scnDisplay = reusable ? ("(R) " + scenarioName) : scenarioName;
+                        rec.setScenario(scnDisplay);
+                        rec.setTestcase(testCaseName);
+                        rec.setIteration(iteration);
+                        rec.setSubIteration(subIteration);
+                        // Extra column values
+                        if (cols != null) {
+                            int rowIdx = model.getRowCount() - 1;
+                            for (String kv : cols) {
+                                int eq = kv.indexOf('=');
+                                if (eq <= 0) continue;
+                                String k = kv.substring(0, eq).trim();
+                                String v = kv.substring(eq + 1);
+                                int colIdx = model.getColumnIndex(k);
+                                if (colIdx < 0) {
+                                    model.addColumn(k);
+                                    colIdx = model.getColumnIndex(k);
+                                }
+                                if (colIdx >= 0) model.setValueAt(v, rowIdx, colIdx);
+                            }
+                        }
+                        added++;
+                    }
+                    env.save();
+                    project.save();
+                    cli.printSuccess(
+                        "Added row in " + added + " environment(s) to sheet '" + sheetName + "'"
+                    );
+                    return 0;
+                } catch (Exception e) {
+                    cli.printError("Failed to add row: " + e.getMessage());
+                    return 1;
+                }
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // Column management
+    // -----------------------------------------------------------------
+
+    @Command(
+        name = "column",
+        description = "Manage columns of a data sheet",
+        subcommands = { ColumnCommand.AddCommand.class }
+    )
+    public static class ColumnCommand implements Callable<Integer> {
+        @ParentCommand
+        private DataCommand parent;
+
+        @Override
+        public Integer call() {
+            System.out.println(
+                "Use 'ingenious data column <subcommand>' - see 'ingenious data column --help'"
+            );
+            return 0;
+        }
+
+        @Command(
+            name = "add",
+            description = "Add a column to a data sheet (all environments or a specific one)"
+        )
+        public static class AddCommand implements Callable<Integer> {
+            @ParentCommand
+            private ColumnCommand parent;
+
+            @Parameters(index = "0", description = "Sheet name")
+            private String sheetName;
+
+            @Parameters(index = "1", description = "Column name")
+            private String columnName;
+
+            @Option(names = { "-p", "--project" }, description = "Project path")
+            private String projectPath;
+
+            @Option(
+                names = { "-e", "--env" },
+                description = "Limit to one environment (default: all)"
+            )
+            private String envName;
+
+            @Override
+            public Integer call() {
+                INGeniousCLI cli = INGeniousCLI.getInstance();
+                String path = projectPath != null ? projectPath : cli.getProjectPath();
+                if (path == null || path.isEmpty()) {
+                    cli.printError("Project path required.");
+                    return 1;
+                }
+                try {
+                    Project project = new Project(path);
+                    EnvTestData env = project.getTestData();
+                    Collection<TestData> targets = pickEnvs(env, envName);
+                    if (targets.isEmpty()) {
+                        cli.printError("Environment not found: " + envName);
+                        return 1;
+                    }
+                    int touched = 0;
+                    for (TestData td : targets) {
+                        TestDataModel model = td.getByName(sheetName);
+                        if (model == null) {
+                            model = td.addTestData(td.getNewTestData(sheetName));
+                        }
+                        model.loadTableModel();
+                        if (model.getColumnIndex(columnName) < 0) {
+                            model.addColumn(columnName);
+                            touched++;
+                        }
+                    }
+                    env.save();
+                    project.save();
+                    cli.printSuccess(
+                        "Added column '" + columnName + "' in " + touched + " environment(s)."
+                    );
+                    return 0;
+                } catch (Exception e) {
+                    cli.printError("Failed to add column: " + e.getMessage());
+                    return 1;
+                }
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // Environment management
+    // -----------------------------------------------------------------
+
+    @Command(
+        name = "env",
+        description = "Manage test data environments",
+        subcommands = {
+            EnvCommand.ListCommand.class,
+            EnvCommand.CreateCommand.class,
+            EnvCommand.DeleteCommand.class
+        }
+    )
+    public static class EnvCommand implements Callable<Integer> {
+        @ParentCommand
+        private DataCommand parent;
+
+        @Override
+        public Integer call() {
+            System.out.println(
+                "Use 'ingenious data env <subcommand>' - see 'ingenious data env --help'"
+            );
+            return 0;
+        }
+
+        @Command(name = "list", description = "List environments")
+        public static class ListCommand implements Callable<Integer> {
+            @ParentCommand
+            private EnvCommand parent;
+
+            @Option(names = { "-p", "--project" }, description = "Project path")
+            private String projectPath;
+
+            @Override
+            public Integer call() {
+                INGeniousCLI cli = INGeniousCLI.getInstance();
+                String path = projectPath != null ? projectPath : cli.getProjectPath();
+                if (path == null || path.isEmpty()) {
+                    cli.printError("Project path required.");
+                    return 1;
+                }
+                try {
+                    Project project = new Project(path);
+                    Set<String> envs = project.getTestData().getEnvironments();
+                    if (envs.isEmpty()) {
+                        cli.printInfo("No environments configured.");
+                        return 0;
+                    }
+                    for (String e : envs) System.out.println(e);
+                    return 0;
+                } catch (Exception e) {
+                    cli.printError("Failed to list envs: " + e.getMessage());
+                    return 1;
+                }
+            }
+        }
+
+        @Command(
+            name = "create",
+            description = "Create a new environment (optionally cloning from another)"
+        )
+        public static class CreateCommand implements Callable<Integer> {
+            @ParentCommand
+            private EnvCommand parent;
+
+            @Parameters(index = "0", description = "Environment name")
+            private String envName;
+
+            @Option(
+                names = { "--from" },
+                description = "Clone all sheets from this existing environment"
+            )
+            private String cloneFrom;
+
+            @Option(
+                names = { "--with-global" },
+                description = "When cloning, also clone global data"
+            )
+            private boolean withGlobal;
+
+            @Option(names = { "-p", "--project" }, description = "Project path")
+            private String projectPath;
+
+            @Override
+            public Integer call() {
+                INGeniousCLI cli = INGeniousCLI.getInstance();
+                String path = projectPath != null ? projectPath : cli.getProjectPath();
+                if (path == null || path.isEmpty()) {
+                    cli.printError("Project path required.");
+                    return 1;
+                }
+                try {
+                    Project project = new Project(path);
+                    EnvTestData env = project.getTestData();
+                    if (cloneFrom != null && !cloneFrom.isEmpty()) {
+                        TestData src = env.getTestDataFor(cloneFrom);
+                        if (src == null) {
+                            cli.printError("Source env not found: " + cloneFrom);
+                            return 1;
+                        }
+                        List<String> sheets = new ArrayList<>();
+                        for (TestDataModel m : src.getTestDataList()) sheets.add(m.getName());
+                        env.createNewEnvironment(envName, cloneFrom, sheets, withGlobal);
+                    } else {
+                        env.createNewEnvironment(envName);
+                    }
+                    env.save();
+                    project.save();
+                    cli.printSuccess("Created environment: " + envName);
+                    return 0;
+                } catch (Exception e) {
+                    cli.printError("Failed to create env: " + e.getMessage());
+                    return 1;
+                }
+            }
+        }
+
+        @Command(name = "delete", description = "Delete an environment")
+        public static class DeleteCommand implements Callable<Integer> {
+            @ParentCommand
+            private EnvCommand parent;
+
+            @Parameters(index = "0", description = "Environment name")
+            private String envName;
+
+            @Option(names = { "--force", "-f" }, description = "Skip confirmation")
+            private boolean force;
+
+            @Option(names = { "-p", "--project" }, description = "Project path")
+            private String projectPath;
+
+            @Override
+            public Integer call() {
+                INGeniousCLI cli = INGeniousCLI.getInstance();
+                String path = projectPath != null ? projectPath : cli.getProjectPath();
+                if (path == null || path.isEmpty()) {
+                    cli.printError("Project path required.");
+                    return 1;
+                }
+                if (!force) {
+                    cli.printWarning("Use --force to confirm deletion of environment: " + envName);
+                    return 1;
+                }
+                try {
+                    Project project = new Project(path);
+                    EnvTestData env = project.getTestData();
+                    if (env.getTestDataFor(envName) == null) {
+                        cli.printError("Environment not found: " + envName);
+                        return 1;
+                    }
+                    env.deleteEnvironment(envName);
+                    env.save();
+                    project.save();
+                    cli.printSuccess("Deleted environment: " + envName);
+                    return 0;
+                } catch (Exception e) {
+                    cli.printError("Failed to delete env: " + e.getMessage());
+                    return 1;
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns the {@link TestData} containers to operate on. {@code null}
+     * or "all" returns every configured environment.
+     */
+    public static Collection<TestData> pickEnvs(EnvTestData env, String envName) {
+        if (envName == null || envName.isEmpty() || "all".equalsIgnoreCase(envName)) {
+            return env.getAllEnvironments();
+        }
+        TestData td = env.getTestDataFor(envName);
+        return td == null ? Collections.emptyList() : Collections.singletonList(td);
     }
 }

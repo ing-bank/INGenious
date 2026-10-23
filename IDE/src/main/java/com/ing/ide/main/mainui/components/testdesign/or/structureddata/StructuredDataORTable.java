@@ -495,6 +495,13 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
                     StructuredDataORTable.this
                 )
             );
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(6, 0),
+                    new java.awt.Dimension(6, 0),
+                    new java.awt.Dimension(6, 32767)
+                )
+            );
         }
 
         public void setTitleSuffix(String suffix) {

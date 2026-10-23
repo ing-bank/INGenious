@@ -4,7 +4,10 @@ import com.ing.engine.commands.browser.CommonMethods;
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.util.ArrayList;
@@ -111,6 +114,14 @@ public class StringOperations extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "\"Hello\",%text%,{data:greeting}",
+        inputHelp = "comma-separated string fragments; supports %var%, {sheet:column}, and \"text\"",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%result%",
+        conditionHelp = "output variable name in %var% format"
+    )
     public void Concat() {
         if (!Condition.isBlank()) {
             concatList = CommandControl.smartCommaSplitter(Input);
@@ -198,6 +209,14 @@ public class StringOperations extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "\"  Hello World  \"",
+        inputHelp = "string to trim; supports %var%, {sheet:column}, and \"text\"",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%trimmedText%",
+        conditionHelp = "output variable name in %var% format"
+    )
     public void Trim() {
         if (!Condition.isBlank()) {
             String s = getVarValue(Input);
@@ -265,6 +284,14 @@ public class StringOperations extends General {
         desc = "Substring String input within testcase",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "\"Hello World\",0,5",
+        inputHelp = "string, start index, and optional end index (e.g. Hello World, 0, 5); supports %var%, {sheet:column}, and \"text\"",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%result%",
+        conditionHelp = "output variable name in %var% format"
     )
     public void Substring() {
         if (!Condition.isBlank()) {
@@ -368,6 +395,14 @@ public class StringOperations extends General {
         desc = "Replace String input within testcase",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "\"Hello World\",\"World\",\"Universe\",\"first\"",
+        inputHelp = "string, search text, replacement text, and optional replace type first/all (e.g. Hello World, World, Universe, first); supports %var%, {sheet:column}, and \"text\"",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%result%",
+        conditionHelp = "output variable name in %var% format"
     )
     public void Replace() {
         if (!Condition.isBlank()) {
@@ -485,6 +520,14 @@ public class StringOperations extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "\"HELLO WORLD\"",
+        inputHelp = "string to convert to lower case; supports %var%, {sheet:column}, and \"text\"",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%lowerText%",
+        conditionHelp = "output variable name in %var% format"
+    )
     public void ToLower() {
         if (!Condition.isBlank()) {
             String s = getVarValue(Input);
@@ -549,6 +592,14 @@ public class StringOperations extends General {
         desc = "Converts String input to upper case within testcase",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "\"hello world\"",
+        inputHelp = "string to convert to upper case; supports %var%, {sheet:column}, and \"text\"",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%upperText%",
+        conditionHelp = "output variable name in %var% format"
     )
     public void ToUpper() {
         if (!Condition.isBlank()) {
@@ -617,6 +668,14 @@ public class StringOperations extends General {
         desc = "Split String input within testcase",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "\"one,two,three\",\",\",1",
+        inputHelp = "string, delimiter, index, and optional split limit (e.g. Hello World, , , 2); supports %var%, {sheet:column}, and \"text\"",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%result%",
+        conditionHelp = "output variable name in %var% format"
     )
     public void Split() {
         if (!Condition.isBlank()) {
@@ -737,6 +796,14 @@ public class StringOperations extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "\"Hello World\",\"l\"",
+        inputHelp = "string and single-character target (e.g. Hello World, l); supports %var%, {sheet:column}, and \"text\"",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%count%",
+        conditionHelp = "output variable name in %var% format"
+    )
     public void GetOccurence() {
         if (!Condition.isBlank()) {
             String strGetOcc = "";
@@ -832,6 +899,14 @@ public class StringOperations extends General {
         desc = "Get length of String input within testcase",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "\"Hello World\"",
+        inputHelp = "string whose length should be calculated; supports %var%, {sheet:column}, and \"text\"",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%length%",
+        conditionHelp = "output variable name in %var% format"
     )
     public void GetLength() {
         if (!Condition.isBlank()) {

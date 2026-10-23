@@ -1,5 +1,6 @@
 package com.ing.datalib.undoredo;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
@@ -20,8 +21,10 @@ public class GroupUndoableEdit extends CommonUndoableEdit {
         List<UndoableEdit> groupEdits
     ) {
         super(model, progress);
-        Collections.reverse(groupEdits);
-        this.groupEdits = groupEdits;
+        // Defensive copy: the caller's list is a reused, mutable buffer that gets
+        // cleared on the next startGroupEdit(), which would corrupt this edit's history.
+        this.groupEdits = new ArrayList<>(groupEdits);
+        Collections.reverse(this.groupEdits);
     }
 
     @Override

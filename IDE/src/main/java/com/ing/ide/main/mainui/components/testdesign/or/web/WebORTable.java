@@ -14,7 +14,10 @@ import com.ing.ide.main.utils.table.XTable;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -41,6 +44,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -82,6 +86,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         roleCellEditor = new RoleCellEditor();
 
         // Create custom XTable that returns role editor for Role attribute
+        // and restricts header divider dragging to only between Attribute and Value columns
         table =
             new XTable() {
 
@@ -95,6 +100,45 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
                         }
                     }
                     return super.getCellEditor(row, column);
+                }
+
+                @Override
+                protected JTableHeader createDefaultTableHeader() {
+                    return new JTableHeader(columnModel) {
+
+                        @Override
+                        public void setResizingColumn(TableColumn resizingColumn) {
+                            // Only column 0 (Attribute) can be resized by dragging header dividers
+                            if (
+                                resizingColumn != null &&
+                                (
+                                    getColumnModel().getColumnCount() < 1 ||
+                                    resizingColumn != getColumnModel().getColumn(0)
+                                )
+                            ) {
+                                return;
+                            }
+                            super.setResizingColumn(resizingColumn);
+                        }
+
+                        @Override
+                        public void setCursor(Cursor cursor) {
+                            if (cursor != null && cursor.getType() == Cursor.E_RESIZE_CURSOR) {
+                                if (getResizingColumn() == null) {
+                                    Point p = getMousePosition();
+                                    if (p != null && getColumnModel().getColumnCount() > 0) {
+                                        Rectangle r0 = getHeaderRect(0);
+                                        int boundary = r0.x + r0.width;
+                                        if (Math.abs(p.x - boundary) > 6) {
+                                            super.setCursor(Cursor.getDefaultCursor());
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                            super.setCursor(cursor);
+                        }
+                    };
                 }
             };
         frameToolbar = new FrameToolBar();
@@ -112,6 +156,16 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         add(panel, BorderLayout.CENTER);
         add(toolBar, BorderLayout.NORTH);
         table.setComponentPopupMenu(popupMenu);
+
+        table.addComponentListener(
+            new ComponentAdapter() {
+
+                @Override
+                public void componentResized(ComponentEvent e) {
+                    adjustColumnsToViewport();
+                }
+            }
+        );
 
         ORTableInsertRowPrompt.install(
             table,
@@ -143,26 +197,27 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
 
     private void configureColumns() {
         if (table.getColumnCount() >= 3) {
-            table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+            table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
-            // Column 0: Attribute - narrow width
-            TableColumn attrCol = table.getColumnModel().getColumn(0);
+            TableColumnModel columnModel = table.getColumnModel();
+
+            // Column 0: Attribute - resizable by user
+            TableColumn attrCol = columnModel.getColumn(0);
             attrCol.setCellRenderer(new PropertyAttributeRenderer());
-            attrCol.setPreferredWidth(100);
             attrCol.setMinWidth(60);
-            attrCol.setMaxWidth(150);
+            attrCol.setPreferredWidth(120);
 
             // Column 1: Value - takes remaining space (flexible)
-            TableColumn valueCol = table.getColumnModel().getColumn(1);
-            valueCol.setPreferredWidth(150);
+            TableColumn valueCol = columnModel.getColumn(1);
             valueCol.setMinWidth(50);
-            valueCol.setMaxWidth(350);
+            valueCol.setPreferredWidth(300);
 
-            // Column 2: Exact - fixed width, centered
-            TableColumn exactCol = table.getColumnModel().getColumn(2);
-            exactCol.setPreferredWidth(50);
+            // Column 2: Exact - fixed width, non-resizable, centered on the far right
+            TableColumn exactCol = columnModel.getColumn(2);
             exactCol.setMinWidth(50);
             exactCol.setMaxWidth(50);
+            exactCol.setPreferredWidth(50);
+            exactCol.setWidth(50);
             exactCol.setResizable(false);
 
             // Center-aligned header for Exact column
@@ -617,15 +672,6 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
                     table.requestFocusInWindow();
                 }
             );
-            table.addComponentListener(
-                new ComponentAdapter() {
-
-                    @Override
-                    public void componentResized(ComponentEvent e) {
-                        adjustColumnsToViewport();
-                    }
-                }
-            );
         }
 
         @Override
@@ -647,7 +693,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         }
     }
 
-    private void adjustColumnsToViewport() {
+    public void adjustColumnsToViewport() {
         if (table.getColumnCount() < 3) return;
 
         TableColumnModel m = table.getColumnModel();
@@ -656,23 +702,37 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         TableColumn value = m.getColumn(1);
         TableColumn exact = m.getColumn(2);
 
-        int exactWidth = exact.getMinWidth();
-        int attrMin = attr.getMinWidth();
-        int valueMin = value.getMinWidth();
+        int exactWidth = 50;
+        exact.setMinWidth(exactWidth);
+        exact.setMaxWidth(exactWidth);
+        exact.setPreferredWidth(exactWidth);
+        exact.setWidth(exactWidth);
+        exact.setResizable(false);
 
-        int viewportWidth = table.getParent().getWidth();
+        int viewportWidth = table.getParent() != null
+            ? table.getParent().getWidth()
+            : table.getWidth();
+        if (viewportWidth <= 0) return;
+
         int available = viewportWidth - exactWidth;
+        if (available <= 0) return;
 
-        if (available > (attrMin + valueMin)) {
-            int attrWidth = Math.min(150, available / 3);
-            int valueWidth = available - attrWidth;
-
-            attr.setPreferredWidth(attrWidth);
-            value.setPreferredWidth(valueWidth);
+        int attrWidth = attr.getWidth();
+        if (attrWidth <= 0 || attrWidth < attr.getMinWidth()) {
+            attrWidth = Math.max(attr.getMinWidth(), Math.min(140, available / 3));
         } else {
-            attr.setPreferredWidth(attrMin);
-            value.setPreferredWidth(Math.max(0, available - attrMin));
+            attrWidth =
+                Math.max(attr.getMinWidth(), Math.min(available - value.getMinWidth(), attrWidth));
         }
+        int valueWidth = Math.max(value.getMinWidth(), available - attrWidth);
+
+        attr.setPreferredWidth(attrWidth);
+        attr.setWidth(attrWidth);
+
+        value.setPreferredWidth(valueWidth);
+        value.setWidth(valueWidth);
+
+        table.doLayout();
     }
 
     class ToolBar extends JToolBar {
@@ -724,6 +784,13 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
             frameToggle.setToolTipText("Show/Hide Frame Property");
             frameToggle.setActionCommand("Toggle Frame");
             add(frameToggle);
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(6, 0),
+                    new java.awt.Dimension(6, 0),
+                    new java.awt.Dimension(6, 32767)
+                )
+            );
         }
 
         public void setTitleSuffix(String suffix) {

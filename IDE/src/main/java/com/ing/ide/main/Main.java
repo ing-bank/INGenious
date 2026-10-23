@@ -60,6 +60,24 @@ public class Main {
         // Suppress JavaFX warnings
         System.setProperty("javafx.verbose", "false");
         System.setProperty("prism.verbose", "false");
+        configureJavaFxRendering();
+    }
+
+    private static void configureJavaFxRendering() {
+        // Every JavaFX surface here is a Swing-embedded JFXPanel, which rasterises its
+        // scene at Prism's render scale and lets Swing blit the resulting image. On a
+        // mixed-DPI setup (HiDPI primary display + a standard/non-HD external screen)
+        // Prism renders each panel at the HiDPI scale and Swing then downscales it on
+        // the non-HD screen, uniformly blurring all JavaFX text, icons, borders and
+        // buttons. Forcing a 1x render scale keeps embedded JavaFX crisp on non-HD
+        // screens. Override with -Dprism.allowhidpi=true on HiDPI-only machines.
+        setDefaultSystemProperty("prism.allowhidpi", "false");
+    }
+
+    private static void setDefaultSystemProperty(String key, String value) {
+        if (System.getProperty(key) == null) {
+            System.setProperty(key, value);
+        }
     }
 
     public static void main(String[] args) {
@@ -232,7 +250,6 @@ public class Main {
         System.out.println(
             bo + l + "              ═══════════════════════════════════════════════════════════" + r
         );
-        System.out.println(bo + w + "               ✦  P L A Y W R I G H T   S T U D I O  ✦" + r);
         System.out.println(
             bo + b + "                              Version " + About.getBuildVersion() + r
         );
@@ -306,6 +323,13 @@ public class Main {
                                 frame.setVisible(true);
                                 // Swap Swing chrome for JavaFX CSS-styled chrome
                                 frame.initFXChrome();
+                                // First-run archetype selector disabled.
+                                // Manual access is still available via:
+                                // - Settings -> Archetype Configurations
+                                // - Help -> Manage Archetypes
+                                // com.ing.ide.main.settings.ArchetypeManagerDialog.maybeShowFirstRun(
+                                //     frame
+                                // );
                             }
                         );
                         delayTimer.setRepeats(false);
@@ -364,6 +388,8 @@ public class Main {
             FlatLaf.updateUI();
             // Sync JavaFX theme
             FXTheme.toggleTheme(isDarkMode);
+            // Sync the live-streaming Console webview(s)
+            com.ing.ide.main.utils.ConsoleWebView.applyThemeToAll(isDarkMode);
         } catch (Exception ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "Failed to toggle theme", ex);
         }
@@ -581,6 +607,7 @@ public class Main {
         UIManager.put("ing.webserviceStopForeground", Color.decode("#8D6E00"));
         UIManager.put("ing.webserviceRequestForeground", Color.decode("#00994D"));
         UIManager.put("ing.reusableForeground", Color.decode("#349651"));
+        UIManager.put("ing.mutedForeground", Color.decode("#9AA0A6"));
         UIManager.put("ing.errorForeground", Color.decode("#D32F2F"));
         UIManager.put("ing.borderFocus", Color.decode("#13BEFF"));
         UIManager.put("ing.borderThumb", Color.decode("#9E9E9E"));
@@ -856,6 +883,7 @@ public class Main {
         UIManager.put("ing.webserviceStopForeground", Color.decode("#FFD54F"));
         UIManager.put("ing.webserviceRequestForeground", Color.decode("#81C784"));
         UIManager.put("ing.reusableForeground", Color.decode("#66BB6A"));
+        UIManager.put("ing.mutedForeground", Color.decode("#7E8894"));
         UIManager.put("ing.errorForeground", Color.decode("#EF5350"));
         UIManager.put("ing.borderFocus", Color.decode("#BB86FC"));
         UIManager.put("ing.borderThumb", Color.decode("#4A4555"));
@@ -947,7 +975,7 @@ public class Main {
             .getLogger(Main.class.getName())
             .log(
                 Level.INFO,
-                "INGenious Playwright Studio has been Terminated - [ Total Time : {0} ]",
+                "INGenious has been Terminated - [ Total Time : {0} ]",
                 STOP_WATCH.toString()
             );
     }

@@ -20,4 +20,7 @@ public @interface Action {
     InputType condition() default InputType.NO;
 
     String desc() default "";
+
+    /** Marks an action as superseded and scheduled for removal in a future release. */
+    boolean deprecated() default false;
 }

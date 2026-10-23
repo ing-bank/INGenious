@@ -1,100 +1,70 @@
 package com.ing.ide.main.utils;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import javax.swing.AbstractAction;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.util.function.Consumer;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
-import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 
 public class ConsolePanel extends JPanel {
-    private static final Font FONT = new Font(Font.MONOSPACED, Font.PLAIN, 12);
-    private final JTextComponent consoleView;
-    private final StyledDocument document;
-    private final SimpleAttributeSet defaultAttributes;
-    private final SimpleAttributeSet errorAttributes;
+    private final ConsoleWebView webView;
 
     public ConsolePanel() {
         setLayout(new BorderLayout());
-        consoleView = new JTextPane();
-        document = ((JTextPane) consoleView).getStyledDocument();
-        defaultAttributes = new SimpleAttributeSet();
-        errorAttributes = new SimpleAttributeSet();
-        StyleConstants.setForeground(errorAttributes, Color.RED);
-
-        int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
-
-        consoleView
-            .getInputMap()
-            .put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
-        consoleView
-            .getInputMap()
-            .put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
-        consoleView
-            .getInputMap()
-            .put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
-        consoleView
-            .getActionMap()
-            .put(
-                "selectAll",
-                new AbstractAction() {
-
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        consoleView.selectAll();
-                    }
-                }
-            );
-        consoleView.setEditable(false);
-        consoleView.setFont(FONT);
-        add(new JScrollPane(consoleView), BorderLayout.CENTER);
+        webView = new ConsoleWebView();
+        add(webView.getComponent(), BorderLayout.CENTER);
     }
 
+    /** Redirects System.out/System.err to the console for the duration of a run. */
     public void start() {
         clear();
-        MessageConsole messageConsole = new MessageConsole(consoleView, true);
-        messageConsole.redirectOut();
-        messageConsole.redirectErr(Color.RED);
+        // Tells Engine (Control/SummaryReport) that output is being captured by this
+        // HTML console, not a real terminal, so it should print its compact/tagged
+        // pill-friendly forms instead of hand-padded box-drawing ASCII art - System.
+        // console() alone isn't reliable here since the IDE itself may have been
+        // launched from a terminal (e.g. during development).
+        System.setProperty("ingenious.console.webview", "true");
+        System.setOut(new PrintStream(new LineOutputStream(this::appendLine), true));
+        System.setErr(new PrintStream(new LineOutputStream(this::appendErrorLine), true));
     }
 
     public void clear() {
-        SwingUtilities.invokeLater(() -> consoleView.setText(""));
+        SwingUtilities.invokeLater(webView::clear);
     }
 
     public void appendLine(String text) {
-        append(text, defaultAttributes);
+        webView.appendLine(text);
     }
 
     public void appendErrorLine(String text) {
-        append(text, errorAttributes);
+        webView.appendErrorLine(text);
     }
 
-    private void append(String text, SimpleAttributeSet attributes) {
-        String line = text == null ? "null" : text;
-        SwingUtilities.invokeLater(
-            () -> {
-                try {
-                    document.insertString(
-                        document.getLength(),
-                        line + System.lineSeparator(),
-                        attributes
-                    );
-                    consoleView.setCaretPosition(document.getLength());
-                } catch (BadLocationException ex) {
-                    throw new IllegalStateException("Unable to append to console", ex);
-                }
+    /** Buffers written bytes and emits one {@code lineConsumer} call per completed line. */
+    private static final class LineOutputStream extends OutputStream {
+        private final Consumer<String> lineConsumer;
+        private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        LineOutputStream(Consumer<String> lineConsumer) {
+            this.lineConsumer = lineConsumer;
+        }
+
+        @Override
+        public synchronized void write(int b) {
+            if (b == '\n') {
+                flushLine();
+            } else if (b != '\r') {
+                buffer.write(b);
             }
-        );
+        }
+
+        private void flushLine() {
+            String line = buffer.toString(StandardCharsets.UTF_8);
+            buffer.reset();
+            lineConsumer.accept(line);
+        }
     }
 }

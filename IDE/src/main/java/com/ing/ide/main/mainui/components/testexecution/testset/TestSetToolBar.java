@@ -18,6 +18,7 @@ public class TestSetToolBar extends JToolBar {
     private JButton runButton;
     private JButton saveButton;
     private SearchBox searchField;
+    private JToggleButton consoleButton;
 
     public TestSetToolBar(ActionListener tdProxy) {
         this.actionListener = tdProxy;
@@ -38,6 +39,10 @@ public class TestSetToolBar extends JToolBar {
 
     public void setSave(Boolean flag) {
         saveButton.setEnabled(flag);
+    }
+
+    public void setConsoleSelected(boolean selected) {
+        consoleButton.setSelected(selected);
     }
 
     public void focusSearch() {
@@ -89,13 +94,12 @@ public class TestSetToolBar extends JToolBar {
     }
 
     private JToggleButton createToggleButton() {
-        JToggleButton console = new JToggleButton(
-            Utils.getIconByResourceName("/ui/resources/toolbar/console")
-        );
-        console.setActionCommand("Console");
-        console.setToolTipText("Show/Hide Console Box");
-        console.addActionListener(actionListener);
-        return console;
+        consoleButton =
+            new JToggleButton(Utils.getIconByResourceName("/ui/resources/toolbar/console"));
+        consoleButton.setActionCommand("Console");
+        consoleButton.setToolTipText("Show/Hide Console Box");
+        consoleButton.addActionListener(actionListener);
+        return consoleButton;
     }
 
     void startMode() {

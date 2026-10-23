@@ -3,11 +3,15 @@ package com.ing.engine.commands.browser;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.LiveRecordingHook;
 import com.ing.engine.core.LiveRecordingService;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.engine.execution.run.TestCaseRunner;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.exception.ForcedException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.microsoft.playwright.Page.GoBackOptions;
@@ -32,6 +36,15 @@ public class Basic extends General {
         desc = "Open the Url [<Data>] in the Browser",
         input = InputType.YES,
         condition = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.URL,
+        inputExample = "@https://example.com",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        inputHelp = "URL to open (e.g. @https://example.com)",
+        conditionHelp = "optional navigation timeout in ms (e.g. 5000)",
+        help = "URL to open. Condition = optional navigation timeout in ms."
     )
     public void Open() {
         Boolean pageTimeOut = false;
@@ -72,6 +85,12 @@ public class Basic extends General {
         input = InputType.NO,
         condition = InputType.OPTIONAL
     )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional navigation timeout in ms (e.g. 5000)"
+    )
     public void GoForward() {
         GoForwardOptions goForwardOptions = new GoForwardOptions();
         try {
@@ -92,6 +111,12 @@ public class Basic extends General {
         desc = "Navigate to the previous page in history",
         input = InputType.NO,
         condition = InputType.OPTIONAL
+    )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional navigation timeout in ms (e.g. 5000)"
     )
     public void GoBack() {
         GoBackOptions goBackOptions = new GoBackOptions();
@@ -118,6 +143,12 @@ public class Basic extends General {
         input = InputType.NO,
         condition = InputType.OPTIONAL
     )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "5000",
+        conditionHelp = "optional reload timeout in ms (e.g. 5000)"
+    )
     public void Reload() {
         ReloadOptions reloadOptions = new ReloadOptions();
         try {
@@ -138,6 +169,11 @@ public class Basic extends General {
         desc = "Start Recorder from the current page",
         input = InputType.NO,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void RecordFromHere() {
         try {
@@ -261,6 +297,11 @@ public class Basic extends General {
         input = InputType.NO,
         condition = InputType.NO
     )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void ClosePage() {
         try {
             Page.close();
@@ -277,6 +318,11 @@ public class Basic extends General {
         desc = "Close the Browser Context",
         input = InputType.NO,
         condition = InputType.NO
+    )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void CloseBrowserContext() {
         try {
@@ -297,6 +343,13 @@ public class Basic extends General {
         object = ObjectType.BROWSER,
         desc = "Set Default Timeout (in milliseconds)",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TIMEOUT_MS,
+        inputExample = "@5000",
+        inputHelp = "default action timeout in milliseconds",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void setDefaultTimeout() {
         if (Data != null && Data.matches("[0-9]+")) {
@@ -320,6 +373,13 @@ public class Basic extends General {
         object = ObjectType.BROWSER,
         desc = "Set Assertion Timeout (in milliseconds)",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TIMEOUT_MS,
+        inputExample = "@5000",
+        inputHelp = "default assertion timeout in milliseconds",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void setAssertionTimeout() {
         if (Data != null && Data.matches("[0-9]+")) {
@@ -345,6 +405,13 @@ public class Basic extends General {
         desc = "Changes the browser size into [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@1366,768",
+        inputHelp = "viewport size as width,height (e.g. @1366,768)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void setViewPortSize() {
         try {
             if (Data.matches("\\d+,\\d+")) {
@@ -366,6 +433,13 @@ public class Basic extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Store the [<Object>] element's text into the Runtime variable: [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%elemText%",
+        inputHelp = "runtime variable name in %var% format",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void storeElementTextinVariable() {
         String text = "";
@@ -393,16 +467,22 @@ public class Basic extends General {
         desc = "Store the [<Object>] element's text into datasheet:columname [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "Sheet1:ElementText",
+        inputHelp = "datasheet target as Sheet:Column",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void storeElementTextinDataSheet() {
         String text = "";
         String strObj = Input;
         try {
             text = Locator.textContent();
 
-            if (strObj.matches(".*:.*")) {
-                String sheetName = strObj.split(":", 2)[0];
-                String columnName = strObj.split(":", 2)[1];
-                userData.putData(sheetName, columnName, text);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
+                userData.putData(sheetDetail[0], sheetDetail[1], text);
                 Report.updateTestLog(
                     Action,
                     "Element text [" + text + "] is stored in " + strObj,
@@ -426,6 +506,13 @@ public class Basic extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Store the [<Object>] element's inner HTML into the Runtime variable: [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%elemHtml%",
+        inputHelp = "runtime variable name in %var% format",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void storeElementInnerHTMLinVariable() {
         String text = "";
@@ -453,16 +540,22 @@ public class Basic extends General {
         desc = "Store the [<Object>] element's inner HTML into datasheet:columname [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "Sheet1:InnerHtml",
+        inputHelp = "datasheet target as Sheet:Column",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void storeElementInnerHTMLinDataSheet() {
         String text = "";
         String strObj = Input;
         try {
             text = Locator.innerHTML();
 
-            if (strObj.matches(".*:.*")) {
-                String sheetName = strObj.split(":", 2)[0];
-                String columnName = strObj.split(":", 2)[1];
-                userData.putData(sheetName, columnName, text);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
+                userData.putData(sheetDetail[0], sheetDetail[1], text);
                 Report.updateTestLog(
                     Action,
                     "Element's inner HTML [" + text + "] is stored in " + strObj,
@@ -486,6 +579,13 @@ public class Basic extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Store the [<Object>] element's inner Text into the Runtime variable: [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%elemInnerText%",
+        inputHelp = "runtime variable name in %var% format",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void storeElementInnerTextinVariable() {
         String text = "";
@@ -513,16 +613,22 @@ public class Basic extends General {
         desc = "Store the [<Object>] element's inner Text into datasheet:columname [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "Sheet1:InnerText",
+        inputHelp = "datasheet target as Sheet:Column",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void storeElementInnerTextinDataSheet() {
         String text = "";
         String strObj = Input;
         try {
             text = Locator.innerText();
 
-            if (strObj.matches(".*:.*")) {
-                String sheetName = strObj.split(":", 2)[0];
-                String columnName = strObj.split(":", 2)[1];
-                userData.putData(sheetName, columnName, text);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
+                userData.putData(sheetDetail[0], sheetDetail[1], text);
                 Report.updateTestLog(
                     Action,
                     "Element's inner Text [" + text + "] is stored in " + strObj,
@@ -546,6 +652,13 @@ public class Basic extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Store the [<Object>] element's input Value into the Runtime variable: [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%elemValue%",
+        inputHelp = "runtime variable name in %var% format",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void storeElementInputValueinVariable() {
         String text = "";
@@ -573,16 +686,22 @@ public class Basic extends General {
         desc = "Store the [<Object>] element's input Value into datasheet:columname [<Data>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "Sheet1:InputValue",
+        inputHelp = "datasheet target as Sheet:Column",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void storeElementInputValueinDataSheet() {
         String text = "";
         String strObj = Input;
         try {
             text = Locator.inputValue();
 
-            if (strObj.matches(".*:.*")) {
-                String sheetName = strObj.split(":", 2)[0];
-                String columnName = strObj.split(":", 2)[1];
-                userData.putData(sheetName, columnName, text);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
+                userData.putData(sheetDetail[0], sheetDetail[1], text);
                 Report.updateTestLog(
                     Action,
                     "Element's input Value [" + text + "] is stored in " + strObj,
@@ -608,6 +727,14 @@ public class Basic extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@data-testid",
+        inputHelp = "attribute name to read",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%attrValue%",
+        conditionHelp = "runtime variable name in %var% format"
+    )
     public void storeElementAttributeinVariable() {
         try {
             addVar(Condition, Locator.getAttribute(Data));
@@ -625,6 +752,13 @@ public class Basic extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Store [<Object>] element's  value  into Runtime variable: -> [<Data>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%elemValue%",
+        inputHelp = "runtime variable name in %var% format",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void storeElementValueinVariable() {
         try {
@@ -654,6 +788,14 @@ public class Basic extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "Sheet1:CssValue",
+        inputHelp = "datasheet target as Sheet:Column",
+        condition = ConditionKind.TEXT,
+        conditionExample = "color",
+        conditionHelp = "CSS property name to read"
+    )
     public void storeElementCSSValueinVariable() {
         String cssValue = "";
         String strObj = Input;
@@ -664,10 +806,9 @@ public class Basic extends General {
                     Condition +
                     "')"
                 );
-            if (strObj.matches(".*:.*")) {
-                String sheetName = strObj.split(":", 2)[0];
-                String columnName = strObj.split(":", 2)[1];
-                userData.putData(sheetName, columnName, cssValue);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
+                userData.putData(sheetDetail[0], sheetDetail[1], cssValue);
                 Report.updateTestLog(
                     Action,
                     "Element's '" + Condition + "' value [" + cssValue + "] is stored in " + strObj,

@@ -65,10 +65,10 @@ public class TestCasePopupMenu extends JPopupMenu {
         add(Utils.createMenuItem("Copy", "Ctrl+C", Keystroke.COPY, actionListener));
         add(Utils.createMenuItem("Paste", "Ctrl+V", Keystroke.PASTE, actionListener));
         addSeparator();
-        add(Utils.createMenuItem("Create Reusable", actionListener));
+        add(Utils.createMenuItem("Create User Intent", actionListener));
 
         JMenu goToMenu = new JMenu("Go To");
-        goToMenu.add(Utils.createMenuItem("Go To Reusable", actionListener));
+        goToMenu.add(Utils.createMenuItem("Go To User Intent", actionListener));
         goToMenu.add(Utils.createMenuItem("Go To Object", actionListener));
         goToMenu.add(Utils.createMenuItem("Go To TestData", actionListener));
         add(goToMenu);

@@ -9,8 +9,11 @@ import com.ibm.msg.client.wmq.WMQConstants;
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.jayway.jsonpath.JsonPath;
@@ -67,6 +70,7 @@ public class QueueOperations extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(input = ArgType.INTEGER, inputExample = "@1414", help = "Queue manager listener port.")
     public void setPort() {
         try {
             jmsPort.put(key, Integer.valueOf(Data));
@@ -343,6 +347,11 @@ public class QueueOperations extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Hello",
+        help = "Message body text (JSON/XML/plain); parameterize with {Sheet:Column} where supported."
+    )
     public void setText() {
         try {
             createConnectionFactory();
@@ -458,34 +467,9 @@ public class QueueOperations extends Command {
     }
 
     private String handleDataSheetVariables(String payloadstring) {
-        List<String> sheetlist = Control
-            .getCurrentProject()
-            .getTestData()
-            .getTestDataFor(Control.exe.runEnv())
-            .getTestDataNames();
-        for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
-            if (payloadstring.contains("{" + sheetlist.get(sheet) + ":")) {
-                com.ing.datalib.testdata.model.TestDataModel tdModel = Control
-                    .getCurrentProject()
-                    .getTestData()
-                    .getTestDataByName(sheetlist.get(sheet));
-                List<String> columns = tdModel.getColumns();
-                for (int col = 0; col < columns.size(); col++) {
-                    if (
-                        payloadstring.contains(
-                            "{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}"
-                        )
-                    ) {
-                        payloadstring =
-                            payloadstring.replace(
-                                "{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
-                                userData.getData(sheetlist.get(sheet), columns.get(col))
-                            );
-                    }
-                }
-            }
-        }
-        return payloadstring;
+        // Resolves {Sheet:Column} / {Sheet:Column@Project} / {Sheet:Column@Shared} tokens;
+        // unknown tokens are left literal.
+        return TestDataToken.resolveEmbeddedTokens(payloadstring, userData);
     }
 
     private String handleuserDefinedVariables(String payloadstring) {
@@ -511,13 +495,12 @@ public class QueueOperations extends Command {
     public void storeQueueXMLtagInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
                     String xmlText = receivedMessage.get(key);
                     DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
                     DocumentBuilder dBuilder;
@@ -529,7 +512,7 @@ public class QueueOperations extends Command {
                     XPath xPath = XPathFactory.newInstance().newXPath();
                     String expression = Condition;
                     String value = (String) xPath.compile(expression).evaluate(doc);
-                    userData.putData(sheetName, columnName, value);
+                    userData.putData(sheetDetail[0], sheetDetail[1], value);
                     Report.updateTestLog(
                         Action,
                         "Element text [" + value + "] is stored in " + strObj,
@@ -765,17 +748,16 @@ public class QueueOperations extends Command {
     public void storeQueueJSONtagInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
                     String response = receivedMessage.get(key);
                     String jsonpath = Condition;
                     String value = JsonPath.read(response, jsonpath).toString();
-                    userData.putData(sheetName, columnName, value);
+                    userData.putData(sheetDetail[0], sheetDetail[1], value);
                     Report.updateTestLog(
                         Action,
                         "Element text [" + value + "] is stored in " + strObj,

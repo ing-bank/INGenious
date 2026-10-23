@@ -22,6 +22,10 @@ npm-debug.log
 /Dist/release
 /Dist/release/**
 
+# Docs folders
+/Engine/docs/
+/IDE/docs/
+
 #Plugins
 /Resources/Plugins/**
 
@@ -39,5 +43,14 @@ nb-configuration.xml
 .DS_Store
 Thumbs.db
 
+# Local VS Code MCP configuration
+/.vscode/mcp.json
+
 # other files
 recent.items
+.*/settings.json
+# INGenious AI CLI runtime state (session, history, undo journal)
+.ingenious/
+
+# UI migrator skill templates (local-only changes, not committed)
+/Resources/ai/skills/ingenious-ui-migrator/

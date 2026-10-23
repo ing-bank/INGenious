@@ -1,5 +1,7 @@
 package com.ing.ide.main.mainui.components.testdesign.testdata;
 
+import com.ing.datalib.component.EnvTestData;
+import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestData;
@@ -11,10 +13,9 @@ import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.utils.TabTitleEditListener;
 import com.ing.ide.main.utils.Utils;
+import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.main.utils.table.FrozenColumnScrollPane;
-import com.ing.ide.main.utils.table.JTableUtils;
 import com.ing.ide.main.utils.table.XTable;
-import com.ing.ide.main.utils.table.XTableUtils;
 import com.ing.ide.util.Canvas;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Utility;
@@ -22,8 +23,12 @@ import com.ing.ide.util.Validator;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -40,7 +45,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -51,6 +55,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
@@ -69,8 +74,12 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private static final String TAB_ORDER_SEPARATOR = "\u001F";
     private static final String ENV_TAB_ORDER_KEY = "ui.testdata.env.order";
     private static final String TESTDATA_TAB_ORDER_PREFIX = "ui.testdata.env.tabs.";
+    private static final String SHARED_ENV_TAB_ORDER_KEY = "ui.sharedtestdata.env.order";
+    private static final String SHARED_TESTDATA_TAB_ORDER_PREFIX = "ui.sharedtestdata.env.tabs.";
 
     private final TestDesign testDesign;
+
+    private final boolean shared;
 
     private final XJTabbedPane envTab;
 
@@ -87,7 +96,17 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private final StylizedEnvironment environmentPanel;
 
     public TestDataComponent(TestDesign sProxy) {
+        this(sProxy, false);
+    }
+
+    /**
+     * @param sProxy owning test design
+     * @param shared when true, this component browses/edits Shared Test Data
+     *     (Project.getSharedTestData()) instead of the project's own test data
+     */
+    public TestDataComponent(TestDesign sProxy, boolean shared) {
         this.testDesign = sProxy;
+        this.shared = shared;
         envTab = new XJTabbedPane();
         toolBar = new TestDataToolBar(this);
         popupMenu = new TestDataPopupMenu(this);
@@ -131,9 +150,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
             @Override
             public void actionPerformed(ActionEvent ae) {
-                String newName = getValue("newValue").toString();
+                String newName = getValue("newValue").toString().trim();
                 Boolean returnVal = false;
-                if (Validator.isValidName(newName)) {
+                if (newName.isEmpty()) {
+                    Notification.show("Environment name is required.");
+                } else if (!Validator.isValidName(newName)) {
+                    Notification.show("'" + newName + "' is not a valid environment name.");
+                } else {
                     returnVal = renameEnvironment(newName);
                 }
                 putValue("rename", returnVal);
@@ -148,7 +171,11 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             public void actionPerformed(ActionEvent ae) {
                 String newName = getValue("newValue").toString();
                 Boolean returnVal = false;
-                if (Validator.isValidName(newName)) {
+                if (!Validator.isValidTestDataName(newName)) {
+                    showInvalidTestDataNameNotification();
+                } else if (!Validator.isValidTestDataSheetName(newName)) {
+                    showReservedTestDataNameNotification();
+                } else {
                     TestDataTablePanel panel = getSelectedData();
                     if (panel != null) {
                         returnVal = panel.rename(getValue("newValue").toString());
@@ -176,15 +203,89 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         environmentPanel.reset();
         envTab.removeAll();
         loadTestData();
+        // Force UI refresh to ensure tabs are displayed
+        envTab.revalidate();
+        envTab.repaint();
+    }
+
+    /**
+     * Returns the environment test data this component browses/edits - the project's own
+     * test data, or, when this is the Shared Test Data tab, the app-root shared test data.
+     */
+    private EnvTestData envTestData() {
+        return shared
+            ? testDesign.getProject().getSharedTestData()
+            : testDesign.getProject().getTestData();
     }
 
     private void loadTestData() {
         if (testDesign.getProject() != null) {
-            for (TestData sTestData : getEnvironmentsInSavedOrder()) {
+            var allEnvs = getEnvironmentsInSavedOrder();
+            Logger
+                .getLogger(TestDataComponent.class.getName())
+                .log(Level.FINE, "Loading {0} environments into Test Data UI", allEnvs.size());
+            for (TestData sTestData : allEnvs) {
                 envTab.addTab(sTestData.getEnviroment(), createNewTestDataTab(sTestData));
             }
             addAddNewTab();
         }
+    }
+
+    /**
+     * Adds newly imported environments to the UI without requiring a full reload.
+     * This method checks which environments exist in the data model but not in the UI tabs,
+     * and adds tabs for those missing environments.
+     *
+     * <p>This should be called after environment import to ensure the UI reflects
+     * all imported environments immediately.</p>
+     *
+     * @param importedEnvNames list of environment names that were imported
+     */
+    public void addImportedEnvironments(List<String> importedEnvNames) {
+        if (
+            testDesign.getProject() == null ||
+            importedEnvNames == null ||
+            importedEnvNames.isEmpty()
+        ) {
+            return;
+        }
+
+        // Get current UI tab names (excluding the "+" add tab)
+        Set<String> existingTabNames = new java.util.HashSet<>();
+        for (int i = 0; i < envTab.getTabCount(); i++) {
+            String title = envTab.getTitleAt(i);
+            if (title != null && !title.isEmpty()) {
+                existingTabNames.add(title);
+            }
+        }
+
+        // Add tabs for imported environments that don't have UI tabs yet
+        for (String envName : importedEnvNames) {
+            if (!existingTabNames.contains(envName)) {
+                TestData envTestData = testDesign
+                    .getProject()
+                    .getTestData()
+                    .getTestDataFor(envName);
+                if (envTestData != null) {
+                    // Insert before the "+" add tab (at tabCount - 1)
+                    int insertIndex = Math.max(0, envTab.getTabCount() - 1);
+                    envTab.insertTab(
+                        envTestData.getEnviroment(),
+                        null,
+                        createNewTestDataTab(envTestData),
+                        null,
+                        insertIndex
+                    );
+                    Logger
+                        .getLogger(TestDataComponent.class.getName())
+                        .log(Level.INFO, "Added imported environment tab: {0}", envName);
+                }
+            }
+        }
+
+        // Force UI refresh
+        envTab.revalidate();
+        envTab.repaint();
     }
 
     /**
@@ -196,10 +297,8 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
      * @return ordered environment test data list
      */
     private List<TestData> getEnvironmentsInSavedOrder() {
-        List<TestData> allEnvironments = new ArrayList<>(
-            testDesign.getProject().getTestData().getAllEnvironments()
-        );
-        List<String> savedOrder = getSavedOrder(ENV_TAB_ORDER_KEY);
+        List<TestData> allEnvironments = new ArrayList<>(envTestData().getAllEnvironments());
+        List<String> savedOrder = getSavedOrder(envTabOrderKey());
         if (savedOrder.isEmpty()) {
             return allEnvironments;
         }
@@ -298,7 +397,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         for (int i = 0; i < envTab.getTabCount() - 1; i++) {
             order.add(envTab.getTitleAt(i));
         }
-        saveOrder(ENV_TAB_ORDER_KEY, order);
+        saveOrder(envTabOrderKey(), order);
     }
 
     private void persistTestDataTabOrder(String envName, JTabbedPane testdataTab) {
@@ -317,7 +416,15 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     private String getTestDataTabOrderKey(String envName) {
-        return TESTDATA_TAB_ORDER_PREFIX + envName;
+        return (shared ? SHARED_TESTDATA_TAB_ORDER_PREFIX : TESTDATA_TAB_ORDER_PREFIX) + envName;
+    }
+
+    /**
+     * Settings key for the environment tab order. The Project and Shared Test Data tabs each
+     * keep their own order so reordering one does not disturb the other.
+     */
+    private String envTabOrderKey() {
+        return shared ? SHARED_ENV_TAB_ORDER_KEY : ENV_TAB_ORDER_KEY;
     }
 
     /**
@@ -421,15 +528,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             panel.load();
             toolBar.switchOptionsForGlobalData(!panel.isGlobalData);
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            toolBar.setSearchText(panel.std.getName(), envName);
+            toolBar.setSearchText(panel.std.getName(), envName, shared);
         }
     }
 
     private void addNewTestData(Object source) {
         JTabbedPane tab = (JTabbedPane) source;
-        TestDataModel model = testDesign
-            .getProject()
-            .getTestData()
+        TestDataModel model = envTestData()
             .getTestDataFor(envTab.getTitleAt(envTab.getSelectedIndex()))
             .addTestData();
         TestCase testcase = testDesign.getTestCaseComp().getCurrentTestCase();
@@ -437,10 +542,28 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             model.addRecord();
             model.getRecords().get(0).setScenario(testcase.getScenario().getName());
             model.getRecords().get(0).setTestcase(testcase.getName());
+            model.getRecords().get(0).setScope(scopeTokenFor(testcase.getScenario()));
             model.getRecords().get(0).setIteration("1");
             model.getRecords().get(0).setSubIteration("1");
         }
         addToLastTab(tab, model);
+    }
+
+    /**
+     * Maps a scenario's scope to the raw Scope token stored against Test Data records:
+     * "" for Test Plan, "[Project]" for Project Reusables, "[Shared]" for Shared Reusables.
+     */
+    private String scopeTokenFor(Scenario scenario) {
+        if (scenario == null) {
+            return "";
+        }
+        if (scenario.isSharedReusableScenario()) {
+            return "[Shared]";
+        }
+        if (scenario.isReusableScenario()) {
+            return "[Project]";
+        }
+        return "";
     }
 
     public void testDataAdded(String env, TestDataModel tdModel) {
@@ -487,16 +610,17 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         if (!panel.isGlobalData) {
             int index = tab.getSelectedIndex();
             String name = tab.getTitleAt(index);
-            int option = JOptionPane.showConfirmDialog(
-                null,
-                "Are you sure want to delete the TestData [" + name + "]",
-                "Delete TestData",
-                JOptionPane.YES_NO_OPTION
-            );
-            if (option == JOptionPane.YES_OPTION) {
-                Boolean flag = testDesign
-                    .getProject()
-                    .getTestData()
+            boolean proceed = shared
+                ? confirmSharedTestDataChange("Delete", "datasheet '" + name + "'")
+                : JOptionPane.showConfirmDialog(
+                    null,
+                    "Are you sure want to delete the TestData [" + name + "]",
+                    "Delete TestData",
+                    JOptionPane.YES_NO_OPTION
+                ) ==
+                JOptionPane.YES_OPTION;
+            if (proceed) {
+                Boolean flag = envTestData()
                     .getTestDataFor(envTab.getTitleAt(envTab.getSelectedIndex()))
                     .deleteTestData(name);
                 if (flag) {
@@ -523,17 +647,53 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 oldName
             );
 
-            if (newName != null && !newName.trim().isEmpty() && Validator.isValidName(newName)) {
-                panel.rename(newName);
+            if (newName == null) {
+                return;
             }
+            newName = newName.trim();
+            if (newName.isEmpty()) {
+                return;
+            }
+            if (!Validator.isValidTestDataName(newName)) {
+                showInvalidTestDataNameNotification();
+                return;
+            }
+            if (!Validator.isValidTestDataSheetName(newName)) {
+                showReservedTestDataNameNotification();
+                return;
+            }
+            panel.rename(newName);
         }
+    }
+
+    /**
+     * Shows the naming rule shared by TestData datasheet and column names.
+     */
+    private void showInvalidTestDataNameNotification() {
+        Notification.show(
+            "Name must be alphanumeric (only '-' and '_' allowed as special characters), " +
+            "up to " +
+            Validator.MAX_TESTDATA_NAME_LENGTH +
+            " characters"
+        );
+    }
+
+    /**
+     * Shown when a datasheet rename targets the reserved {@code GlobalData} name.
+     */
+    private void showReservedTestDataNameNotification() {
+        Notification.show(
+            "'" +
+            Validator.RESERVED_GLOBAL_DATA_NAME +
+            "' is a reserved name and cannot be used for a datasheet"
+        );
     }
 
     private void reopenTestData() {
         int index = envTab.getSelectedIndex();
         String envName = envTab.getTitleAt(index);
         envTab.removeTabAt(index);
-        TestData sTestData = testDesign.getProject().getTestData().getTestDataFor(envName);
+        TestData sTestData = envTestData().getTestDataFor(envName);
         envTab.insertTab(
             sTestData.getEnviroment(),
             null,
@@ -561,7 +721,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private TestData getCurrentEnviromentData() {
         if (envTab.getSelectedComponent() instanceof JTabbedPane) {
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            return testDesign.getProject().getTestData().getTestDataFor(envName);
+            return envTestData().getTestDataFor(envName);
         }
         return null;
     }
@@ -651,6 +811,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 case "Go To TestCase":
                     tdPanel.goToSelectedTestCase();
                     break;
+                case "Make As Shared TestData":
+                    makeSelectedSheetShared(tdPanel);
+                    break;
             }
         }
     }
@@ -714,39 +877,60 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     Set<String> getListOfEnvironements() {
-        return testDesign.getProject().getTestData().getEnvironments();
+        return getListOfEnvironements(shared);
+    }
+
+    Set<String> getListOfEnvironements(boolean fromShared) {
+        return scopeStore(fromShared).getEnvironments();
     }
 
     List<String> getListOfTestDatas(String env) {
+        return getListOfTestDatas(env, shared);
+    }
+
+    List<String> getListOfTestDatas(String env, boolean fromShared) {
         List<String> tdL = new ArrayList<>();
-        for (AbstractDataModel std : testDesign
-            .getProject()
-            .getTestData()
-            .getTestDataFor(env)
-            .getTestDataList()) {
-            tdL.add(std.getName());
+        TestData td = scopeStore(fromShared).getTestDataFor(env);
+        if (td != null) {
+            for (AbstractDataModel std : td.getTestDataList()) {
+                tdL.add(std.getName());
+            }
         }
         return tdL;
     }
 
+    /**
+     * Whether this component browses/edits Shared Test Data rather than the project's own -
+     * used by {@link StylizedEnvironment} to default its Project/Shared scope picker.
+     */
+    boolean isShared() {
+        return shared;
+    }
+
+    private EnvTestData scopeStore(boolean fromShared) {
+        return fromShared
+            ? testDesign.getProject().getSharedTestData()
+            : testDesign.getProject().getTestData();
+    }
+
     private void addNewEnvironment(TestData sTestData) {
+        int index = envTab.getTabCount() - 1;
         envTab.insertTab(
             sTestData.getEnviroment(),
             null,
             createNewTestDataTab(sTestData),
             null,
-            envTab.getTabCount() - 1
+            index
         );
+        // Switch focus to the new tab, otherwise the "+" tab stays selected and creation looks like a no-op.
+        envTab.setSelectedIndex(index);
     }
 
     private void addInAllEnvironement() {
         TestDataTablePanel panel = getSelectedData();
         if (!panel.isGlobalData) {
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            testDesign
-                .getProject()
-                .getTestData()
-                .duplicateSheetsInOtherEnv(envName, (TestDataModel) panel.std);
+            envTestData().duplicateSheetsInOtherEnv(envName, (TestDataModel) panel.std);
             reloadAllExcept(envTab.getSelectedIndex());
         }
     }
@@ -766,7 +950,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             envTab.insertTab(
                 envName,
                 null,
-                createNewTestDataTab(testDesign.getProject().getTestData().getTestDataFor(envName)),
+                createNewTestDataTab(envTestData().getTestDataFor(envName)),
                 null,
                 index
             );
@@ -788,21 +972,44 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         List<String> duplicateSheets,
         Boolean globalDataAsWell
     ) {
-        if (testDesign.getProject().getTestData().getTestDataFor(envName) == null) {
+        return addNewEnvironment(
+            envName,
+            duplicateDataFromEnv,
+            duplicateSheets,
+            globalDataAsWell,
+            shared
+        );
+    }
+
+    /**
+     * @param duplicateFromShared which store {@code duplicateDataFromEnv} is read from - lets a
+     *     new Project environment duplicate sheets from an existing Shared Test Data environment
+     *     (or vice versa), not just from within this component's own scope.
+     */
+    Boolean addNewEnvironment(
+        String envName,
+        String duplicateDataFromEnv,
+        List<String> duplicateSheets,
+        Boolean globalDataAsWell,
+        boolean duplicateFromShared
+    ) {
+        if (envTestData().getTestDataFor(envName) == null) {
             if (duplicateDataFromEnv == null) {
-                testDesign.getProject().getTestData().createNewEnvironment(envName);
+                envTestData().createNewEnvironment(envName);
             } else {
-                testDesign
-                    .getProject()
-                    .getTestData()
+                envTestData()
                     .createNewEnvironment(
                         envName,
+                        scopeStore(duplicateFromShared),
                         duplicateDataFromEnv,
                         duplicateSheets,
                         globalDataAsWell
                     );
             }
-            addNewEnvironment(testDesign.getProject().getTestData().getTestDataFor(envName));
+            // Persist immediately: an unsaved environment is lost if a sheet reload (e.g. after a
+            // rename elsewhere) re-reads test data from disk before the project is next saved.
+            envTestData().save();
+            addNewEnvironment(envTestData().getTestDataFor(envName));
             return true;
         } else {
             Notification.show("An Environment with name '" + envName + "' is already present");
@@ -814,10 +1021,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         if (!tdPanel.isGlobalData) {
             List<String> colList = tdPanel.getSelectedColumns();
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            testDesign
-                .getProject()
-                .getTestData()
-                .duplicateColumnInOtherEnv(envName, (TestDataModel) tdPanel.std, colList);
+            envTestData().duplicateColumnInOtherEnv(envName, (TestDataModel) tdPanel.std, colList);
         }
     }
 
@@ -825,10 +1029,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         if (!tdPanel.isGlobalData) {
             int[] rows = tdPanel.table.getSelectedRows();
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            testDesign
-                .getProject()
-                .getTestData()
-                .duplicateRowsInOtherEnv(envName, (TestDataModel) tdPanel.std, rows);
+            envTestData().duplicateRowsInOtherEnv(envName, (TestDataModel) tdPanel.std, rows);
         }
     }
 
@@ -846,6 +1047,37 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     }
                     envTab.revalidate();
                     envTab.repaint();
+                }
+            }
+        );
+    }
+
+    /**
+     * Shows the Multiple Environment view, making all environment tabs visible.
+     * This is equivalent to manually selecting TestData → Multiple Environment,
+     * but only activates the view if it's not already shown (no toggling).
+     *
+     * <p>Use this method after environment imports to immediately show
+     * all imported environments without requiring user navigation.</p>
+     */
+    public void showMultipleEnvironmentView() {
+        SwingUtilities.invokeLater(
+            () -> {
+                // Only show if not already in Multiple Environment view
+                if (!envTab.isShowTabsHeader()) {
+                    envTab.setShowTabsHeader(true);
+                    // Select the first imported environment or Default if none
+                    for (int i = 0; i < envTab.getTabCount(); i++) {
+                        if (envTab.getTitleAt(i).equals("Default")) {
+                            envTab.setSelectedIndex(i);
+                            break;
+                        }
+                    }
+                    envTab.revalidate();
+                    envTab.repaint();
+                    Logger
+                        .getLogger(TestDataComponent.class.getName())
+                        .log(Level.INFO, "Switched to Multiple Environment view");
                 }
             }
         );
@@ -888,52 +1120,66 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     private Boolean renameEnvironment(String newName) {
         String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-        if (!envName.equals("Default") && !envName.equals(newName.trim())) {
-            boolean renamed = testDesign
+        if (envName.equals("Default")) {
+            Notification.show("The 'Default' environment cannot be renamed.");
+            return false;
+        }
+        if (envName.equals(newName.trim())) {
+            return false;
+        }
+        if (envTestData().getTestDataFor(newName) != null) {
+            Notification.show("An Environment with name '" + newName + "' is already present");
+            return false;
+        }
+        if (!confirmSharedTestDataChange("Rename", "environment '" + envName + "'")) {
+            return false;
+        }
+        boolean renamed = envTestData().renameEnvironment(envName, newName);
+        if (!renamed) {
+            Notification.show("Couldn't rename Environment '" + envName + "' to '" + newName + "'");
+        }
+        if (renamed) {
+            String oldKey = getTestDataTabOrderKey(envName);
+            String newKey = getTestDataTabOrderKey(newName);
+            String oldValue = testDesign
                 .getProject()
-                .getTestData()
-                .renameEnvironment(envName, newName);
-            if (renamed) {
-                String oldKey = getTestDataTabOrderKey(envName);
-                String newKey = getTestDataTabOrderKey(newName);
-                String oldValue = testDesign
+                .getProjectSettings()
+                .getUserDefinedSettings()
+                .getProperty(oldKey);
+            if (oldValue != null) {
+                testDesign
                     .getProject()
                     .getProjectSettings()
                     .getUserDefinedSettings()
-                    .getProperty(oldKey);
-                if (oldValue != null) {
-                    testDesign
-                        .getProject()
-                        .getProjectSettings()
-                        .getUserDefinedSettings()
-                        .setProperty(newKey, oldValue);
-                    testDesign
-                        .getProject()
-                        .getProjectSettings()
-                        .getUserDefinedSettings()
-                        .remove(oldKey);
-                    testDesign.getProject().getProjectSettings().getUserDefinedSettings().save();
-                }
-                persistEnvironmentTabOrder();
+                    .setProperty(newKey, oldValue);
+                testDesign
+                    .getProject()
+                    .getProjectSettings()
+                    .getUserDefinedSettings()
+                    .remove(oldKey);
+                testDesign.getProject().getProjectSettings().getUserDefinedSettings().save();
             }
-            return renamed;
+            persistEnvironmentTabOrder();
         }
-        return false;
+        return renamed;
     }
 
     private void deleteEnvironment() {
         String envName = envTab.getTitleAt(envTab.getSelectedIndex());
         if (!envName.equals("Default")) {
-            int option = JOptionPane.showConfirmDialog(
-                null,
-                "Are you sure want to delete Environment [" + envName + "]",
-                "Delete Environent",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE
-            );
-            if (option == JOptionPane.YES_OPTION) {
+            boolean proceed = shared
+                ? confirmSharedTestDataChange("Delete", "environment '" + envName + "'")
+                : JOptionPane.showConfirmDialog(
+                    null,
+                    "Are you sure want to delete Environment [" + envName + "]",
+                    "Delete Environent",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+                ) ==
+                JOptionPane.YES_OPTION;
+            if (proceed) {
                 envTab.removeTabAt(envTab.getSelectedIndex());
-                testDesign.getProject().getTestData().deleteEnvironment(envName);
+                envTestData().deleteEnvironment(envName);
                 testDesign
                     .getProject()
                     .getProjectSettings()
@@ -952,6 +1198,45 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 testDesign.getProject().getImpactedTestDataTestCases(tdPanel.std.getName()),
                 tdPanel.std.getName()
             );
+    }
+
+    /**
+     * On the Shared Test Data panel, confirms a rename / delete that other projects may
+     * depend on, listing them from {@code Shared/SharedTestData/projects.items} (the same
+     * cross-project reference check Shared Reusables and the Shared Object Repository use).
+     * Always returns {@code true} for the project's own Test Data (no prompt).
+     *
+     * @param verb "Rename" / "Delete"
+     * @param what e.g. {@code "datasheet 'Login'"} / {@code "environment 'QA'"}
+     * @return {@code true} to proceed
+     */
+    private boolean confirmSharedTestDataChange(String verb, String what) {
+        if (!shared || testDesign.getProject() == null) {
+            return true;
+        }
+        List<String> projects = testDesign.getProject().getOtherProjectsUsingSharedTestData();
+        String message;
+        if (projects.isEmpty()) {
+            message = verb + " shared Test Data " + what + "?";
+        } else {
+            message =
+                verb +
+                " shared Test Data " +
+                what +
+                ".\n\nIt is referenced by these project(s):\n\n  " +
+                String.join("\n  ", projects) +
+                "\n\nThey may break. Continue?";
+        }
+        return (
+            JOptionPane.showConfirmDialog(
+                this,
+                message,
+                "Shared Test Data",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+            ) ==
+            JOptionPane.YES_OPTION
+        );
     }
 
     public Boolean navigateToTestData(String sheetName, String columnName) {
@@ -975,6 +1260,31 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         return false;
     }
 
+    /**
+     * Reloads every currently-open TestData sheet view across all environments so that
+     * Scenario/TestCase names already displayed (e.g. rows referencing a Project or Shared
+     * reusable TestCase) reflect a rename performed elsewhere in the project.
+     *
+     * <p>Sheets with unsaved edits are skipped: reloading re-reads from disk and would
+     * otherwise discard in-progress changes (e.g. a just-created, not-yet-saved environment).</p>
+     */
+    public void refreshOpenTestData() {
+        for (int i = 0; i < envTab.getTabCount(); i++) {
+            Object envComponent = envTab.getComponentAt(i);
+            if (envComponent instanceof JTabbedPane) {
+                JTabbedPane tab = (JTabbedPane) envComponent;
+                for (int j = 0; j < tab.getTabCount(); j++) {
+                    if (tab.getComponentAt(j) instanceof TestDataTablePanel) {
+                        TestDataTablePanel panel = (TestDataTablePanel) tab.getComponentAt(j);
+                        if (panel.std.isSaved()) {
+                            panel.reload();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public void importTestData(File file) {
         String name = org.apache.commons.io.FilenameUtils.getName(file.getName());
         TestDataModel model = getCurrentEnviromentData().getByNameIgnoreCase(name);
@@ -985,6 +1295,378 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         } else {
             model = getCurrentEnviromentData().importTestData(file);
             addToLastTab((JTabbedPane) envTab.getSelectedComponent(), model);
+        }
+    }
+
+    /**
+     * Imports {@code file} as a new datasheet into each of {@code targetEnvironments}, then
+     * refreshes the affected environment tabs. Environments that already contain a datasheet
+     * with the same name are skipped, and the outcome is reported via a notification.
+     *
+     * <p>Unlike {@link #importTestData(File)}, this works regardless of which environment tab is
+     * currently selected and can target the Shared Test Data component too.</p>
+     *
+     * @param file source datasheet file
+     * @param targetEnvironments environment names to import into
+     */
+    public void importTestData(File file, List<String> targetEnvironments) {
+        if (file == null || targetEnvironments == null || targetEnvironments.isEmpty()) {
+            return;
+        }
+        Map<String, TestDataModel> imported = envTestData()
+            .importTestData(file, targetEnvironments);
+        for (String env : imported.keySet()) {
+            reloadEnvironment(env);
+        }
+
+        String sheet = file.getName();
+        List<String> skipped = new ArrayList<>(targetEnvironments);
+        skipped.removeAll(imported.keySet());
+        if (imported.isEmpty()) {
+            Notification.show(
+                "'" +
+                sheet +
+                "' not imported - a datasheet with that name already exists in: " +
+                String.join(", ", skipped)
+            );
+        } else if (skipped.isEmpty()) {
+            Notification.show(
+                "Imported '" + sheet + "' into: " + String.join(", ", imported.keySet())
+            );
+        } else {
+            Notification.show(
+                "Imported '" +
+                sheet +
+                "' into: " +
+                String.join(", ", imported.keySet()) +
+                "  |  skipped (already present): " +
+                String.join(", ", skipped)
+            );
+        }
+    }
+
+    // ─── "Make As Shared TestData" ────────────────────────────────────────────
+
+    /** Outcome of the "also move the Project Reusable components?" prompt. */
+    private static final class PromoteChoice {
+        /** true when the user dismissed the prompt - the whole operation is aborted. */
+        boolean cancelled;
+        /** Project Reusable components the user chose to convert to Shared Reusables (empty when declined). */
+        final List<TestCase> toPromote = new ArrayList<>();
+        /** components left behind because the user said No (empty when there were none / Yes). */
+        final List<TestCase> leftBehind = new ArrayList<>();
+    }
+
+    /**
+     * Moves the selected project datasheet into Shared Test Data and rewrites every reference
+     * to it (Test Plan, Project Reusables, Shared Reusables) to a {@code [Shared]} reference.
+     * Offered only on the project's own Test Data panel, never the Shared one.
+     */
+    private void makeSelectedSheetShared(TestDataTablePanel tdPanel) {
+        if (shared || tdPanel == null || testDesign.getProject() == null) {
+            return;
+        }
+        if (tdPanel.isGlobalData) {
+            Notification.showWarning(
+                "Global Data cannot be moved on its own - use the environment's " +
+                "\"Make As Shared TestData\"."
+            );
+            return;
+        }
+        String sheetName = tdPanel.std.getName();
+        String envName = envTab.getTitleAt(envTab.getSelectedIndex());
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Move Test Data '" +
+            sheetName +
+            "' from environment '" +
+            envName +
+            "' to Shared Test Data?\n" +
+            "References to it will be updated to [Shared].",
+            "Make As Shared TestData",
+            JOptionPane.YES_NO_OPTION
+        );
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        PromoteChoice choice = askMoveTestCasesToShared(
+            testDesign.getProject().getPromotableTestCasesForSheet(sheetName)
+        );
+        if (choice.cancelled) {
+            return;
+        }
+
+        try {
+            Project.MakeSharedTestDataResult result = testDesign
+                .getProject()
+                .makeTestDataSheetShared(envName, sheetName, choice.toPromote);
+            offerToMovePromotedTestCaseObjectsToShared(result.promoted);
+            notifyResult(result, choice.leftBehind);
+        } catch (IOException ex) {
+            Logger.getLogger(TestDataComponent.class.getName()).log(Level.SEVERE, null, ex);
+            Notification.showError(
+                "Could not move '" + sheetName + "' to Shared Test Data: " + ex.getMessage()
+            );
+        }
+        refreshAfterMakeShared();
+    }
+
+    /**
+     * Re-reads the project from disk and rebuilds every Test Design view so the scenario /
+     * test case / Test Data auto-suggests pick up test cases that were also promoted to
+     * Shared Reusables - mirroring what the tree "Make As Shared Reusable" flow does
+     * ({@code getProject().reload(); load();}).
+     *
+     * <p>The currently open test case editor (if any) keeps its pre-reload {@code TestCase}
+     * instance otherwise - {@code TestCaseComponent.load()} doesn't touch it - so it would
+     * keep showing stale Input/reference values (and, if that very test case was moved to
+     * Shared Reusables, a now-deleted file path). Re-resolve it by scenario/test case name
+     * across the reloaded project's scopes and rebind the table to the fresh instance.</p>
+     */
+    private void refreshAfterMakeShared() {
+        TestCase openTestCase = testDesign.getTestCaseComp().getCurrentTestCase();
+        String openScenarioName = openTestCase == null
+            ? null
+            : openTestCase.getScenario().getName();
+        String openTestCaseName = openTestCase == null ? null : openTestCase.getName();
+
+        if (testDesign.getProject() != null) {
+            testDesign.getProject().reload();
+        }
+        testDesign.load();
+
+        if (openScenarioName != null) {
+            TestCase refreshed = findTestCaseAcrossScopes(openScenarioName, openTestCaseName);
+            if (refreshed != null) {
+                testDesign.getTestCaseComp().loadTableModelForSelection(refreshed);
+            }
+        }
+    }
+
+    private TestCase findTestCaseAcrossScopes(String scenarioName, String testCaseName) {
+        if (testDesign.getProject() == null) {
+            return null;
+        }
+        for (Scenario scenario : testDesign.getProject().getAllScenarios()) {
+            if (scenario.getName().equals(scenarioName)) {
+                TestCase tc = scenario.getTestCaseByName(testCaseName);
+                if (tc != null) {
+                    return tc;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Moves the selected project Test Data environment - all its datasheets and its Global
+     * Data - into Shared Test Data, then removes the environment from the project ({@code
+     * Default} is kept but emptied).
+     */
+    private void makeSelectedEnvironmentShared() {
+        if (shared || testDesign.getProject() == null) {
+            return;
+        }
+        int index = envTab.getSelectedIndex();
+        if (index < 0 || index == envTab.getTabCount() - 1) {
+            return;
+        }
+        String envName = envTab.getTitleAt(index);
+        TestData envData = envTestData().getTestDataFor(envName);
+        if (envData == null) {
+            return;
+        }
+        boolean hasSheets = !envData.getTestDataList().isEmpty();
+        if (envData.getGlobalData() != null) {
+            envData.getGlobalData().loadTableModel();
+        }
+        boolean hasGlobal =
+            envData.getGlobalData() != null && envData.getGlobalData().getRowCount() > 0;
+        if (!hasSheets && !hasGlobal) {
+            Notification.showWarning("Environment '" + envName + "' has no Test Data to move.");
+            return;
+        }
+        String fate = "The environment stays but is emptied.";
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Move ALL Test Data and Global Data of environment '" +
+            envName +
+            "' to Shared Test Data?\n" +
+            fate +
+            "\nAll references to the moved sheets will be updated to [Shared].",
+            "Make As Shared TestData",
+            JOptionPane.YES_NO_OPTION
+        );
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        List<TestCase> promotable = new ArrayList<>();
+        for (TestDataModel model : envData.getTestDataList()) {
+            promotable.addAll(
+                testDesign.getProject().getPromotableTestCasesForSheet(model.getName())
+            );
+        }
+        PromoteChoice choice = askMoveTestCasesToShared(promotable);
+        if (choice.cancelled) {
+            return;
+        }
+
+        try {
+            Project.MakeSharedTestDataResult result = testDesign
+                .getProject()
+                .makeEnvironmentTestDataShared(envName, choice.toPromote);
+            offerToMovePromotedTestCaseObjectsToShared(result.promoted);
+            notifyResult(result, choice.leftBehind);
+        } catch (IOException ex) {
+            Logger.getLogger(TestDataComponent.class.getName()).log(Level.SEVERE, null, ex);
+            Notification.showError(
+                "Could not move environment '" +
+                envName +
+                "' to Shared Test Data: " +
+                ex.getMessage()
+            );
+        }
+        refreshAfterMakeShared();
+    }
+
+    /**
+     * After referencing test cases have been promoted to Shared Reusables, reuse the Project
+     * tree's helper to detect the project-scoped Object Repository items those test cases use
+     * and prompt to move them to the Shared OR as well - the same second step the normal
+     * "Make As Shared Reusable" flow runs.
+     */
+    private void offerToMovePromotedTestCaseObjectsToShared(List<TestCase> promoted) {
+        if (promoted == null || promoted.isEmpty()) {
+            return;
+        }
+        try {
+            testDesign.getProjectTree().confirmAndMoveProjectObjectsForTestCases(promoted);
+        } catch (Exception ex) {
+            Logger
+                .getLogger(TestDataComponent.class.getName())
+                .log(Level.WARNING, "Optional object move after test case promotion failed", ex);
+        }
+    }
+
+    /**
+     * Asks whether the Project Reusable components (project-level reusable components) tied
+     * to the datasheet(s) being moved (they use it, or hold its data rows) should also be
+     * converted to Shared Reusables so other consumers of the shared data can run them. Test
+     * Plan test cases are never offered here - they aren't reusable components other
+     * projects/users could invoke, so they're left referencing the moved sheet as {@code
+     * [Shared]} without a prompt.
+     *
+     * <p>Yes converts them and rewrites their references to {@code [Shared]}; No moves only the
+     * Test Data and records the left-behind components so the caller can warn about them;
+     * dismissing the dialog aborts the whole operation.</p>
+     *
+     * @param promotable candidate Project Reusable components (any order, may contain duplicates)
+     * @return the user's choice
+     */
+    private PromoteChoice askMoveTestCasesToShared(List<TestCase> promotable) {
+        PromoteChoice choice = new PromoteChoice();
+        List<TestCase> distinct = new ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (TestCase tc : promotable) {
+            if (tc.getScenario() == null || !tc.getScenario().isReusableScenario()) {
+                continue;
+            }
+            if (seen.add(tc.getScenario().getName() + " / " + tc.getName())) {
+                distinct.add(tc);
+            }
+        }
+        if (distinct.isEmpty()) {
+            return choice;
+        }
+
+        StringBuilder list = new StringBuilder();
+        for (TestCase tc : distinct) {
+            list
+                .append(tc.getScenario().getScopeLabel())
+                .append(":  ")
+                .append(tc.getScenario().getName())
+                .append("  /  ")
+                .append(tc.getName())
+                .append('\n');
+        }
+        javax.swing.JTextArea area = new javax.swing.JTextArea(list.toString().trim());
+        area.setEditable(false);
+        area.setOpaque(false);
+        JScrollPane scroll = new JScrollPane(area);
+        scroll.setPreferredSize(
+            new java.awt.Dimension(460, Math.min(220, 24 + distinct.size() * 18))
+        );
+
+        JPanel panel = new JPanel(new BorderLayout(0, 6));
+        panel.add(
+            new JLabel(
+                "<html>" +
+                distinct.size() +
+                " impacted Project Reusable component(s) use the Test Data being moved:</html>"
+            ),
+            BorderLayout.NORTH
+        );
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(
+            new JLabel(
+                "<html><br>Also move these test case(s) to <b>Shared Reusables</b> (their " +
+                "references updated to [Shared])?<br>" +
+                "Choosing <b>No</b> moves only the Test Data &mdash; other users of the shared " +
+                "data may not be able to run the test case(s) above.<br>" +
+                "Closing this dialog cancels the whole operation.</html>"
+            ),
+            BorderLayout.SOUTH
+        );
+
+        int option = JOptionPane.showConfirmDialog(
+            this,
+            panel,
+            "Make As Shared TestData",
+            JOptionPane.YES_NO_OPTION
+        );
+        if (option == JOptionPane.YES_OPTION) {
+            choice.toPromote.addAll(distinct);
+        } else if (option == JOptionPane.NO_OPTION) {
+            choice.leftBehind.addAll(distinct);
+        } else {
+            // Dialog dismissed (Esc / window close) - abort everything.
+            choice.cancelled = true;
+        }
+        return choice;
+    }
+
+    private void notifyResult(Project.MakeSharedTestDataResult result, List<TestCase> leftBehind) {
+        List<String> parts = new ArrayList<>();
+        for (java.util.Map.Entry<String, String> e : result.movedSheets.entrySet()) {
+            parts.add(
+                e.getKey().equals(e.getValue()) ? e.getKey() : e.getKey() + " → " + e.getValue()
+            );
+        }
+        StringBuilder m = new StringBuilder("Moved to Shared Test Data: ");
+        m.append(parts.isEmpty() ? "(none)" : String.join(", ", parts));
+        m.append(".  ").append(result.referenceUpdates).append(" reference(s) updated");
+        if (!result.promoted.isEmpty()) {
+            m
+                .append("; ")
+                .append(result.promoted.size())
+                .append(" test case(s) converted to Shared Reusables");
+        }
+        m.append('.');
+        Notification.showSuccess(m.toString());
+
+        if (leftBehind != null && !leftBehind.isEmpty()) {
+            List<String> names = new ArrayList<>();
+            for (TestCase tc : leftBehind) {
+                names.add(tc.getScenario().getName() + " / " + tc.getName());
+            }
+            Notification.showWarning(
+                leftBehind.size() +
+                " test case(s) were NOT moved to Shared Reusables - other users of the shared " +
+                "Test Data may not be able to run them: " +
+                String.join(", ", names)
+            );
         }
     }
 
@@ -1034,17 +1716,30 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     @Override
                     public boolean isCellEditable(int row, int column) {
                         if (!isGlobalData) {
-                            // Scope column (model column 2) is always read-only and auto-populated
-                            if (column == 2) {
-                                return false;
-                            }
-                            // For frozen table columns in FrozenColumnScrollPane, check model column
+                            // This table only shows dynamic columns (model index >= frozenColumnCount),
+                            // so the raw view column must never be compared to model-column constants
+                            // like the Scope column (model index 2) directly.
                             int modelColumn = column + frozenColumnCount;
                             if (modelColumn == 2) {
                                 return false;
                             }
                         }
                         return super.isCellEditable(row, column);
+                    }
+
+                    @Override
+                    public void copy() {
+                        TestDataTablePanel.this.copy();
+                    }
+
+                    @Override
+                    public void cut() {
+                        TestDataTablePanel.this.cut();
+                    }
+
+                    @Override
+                    public void paste() {
+                        TestDataTablePanel.this.paste();
                     }
                 };
             if (isGlobalData) {
@@ -1058,7 +1753,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             }
             tDAutoSuggest = new TestDataAutoSuggest(testDesign.getProject(), table);
             table.setDragEnabled(true);
-            table.setTransferHandler(new TestDataDnD());
+            table.setTransferHandler(new TestDataDnD(shared));
             table.setComponentPopupMenu(popupMenu);
 
             table.addMouseListener(
@@ -1087,8 +1782,17 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
                 // Apply popup menu to fixed table as well
                 frozenScrollPane.getFixedTable().setComponentPopupMenu(popupMenu);
-                // Set cell editor provider for fixed columns (columns 0-4: Scenario, Flow, Scope, Iteration, SubIteration)
 
+                // Add clipboard key adapter to fixed table
+                frozenScrollPane
+                    .getFixedTable()
+                    .addKeyListener(
+                        new com.ing.ide.main.utils.keys.ClipboardKeyAdapter(
+                            frozenScrollPane.getFixedTable()
+                        )
+                    );
+
+                // Set cell editor provider for fixed columns (columns 0-4: Scenario, Flow, Scope, Iteration, SubIteration)
                 frozenScrollPane.setCellEditorProvider(
                     (row, column, defaultEditor) ->
                         tDAutoSuggest.getCellEditorFor(column, defaultEditor)
@@ -1188,14 +1892,18 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
                 @Override
                 public void actionPerformed(ActionEvent ae) {
+                    String newValue = getValue("newvalue").toString().trim();
+                    if (!Validator.isValidTestDataName(newValue)) {
+                        showInvalidTestDataNameNotification();
+                        putValue("rename", false);
+                        return;
+                    }
                     assignThePreviouslySelected();
-                    Boolean flag = testDesign
-                        .getProject()
-                        .getTestData()
+                    Boolean flag = envTestData()
                         .renameTestDataColumn(
                             std.getName(),
                             getValue("oldvalue").toString(),
-                            getValue("newvalue").toString()
+                            newValue
                         );
                     putValue("rename", flag);
                     if (flag) {
@@ -1217,8 +1925,18 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         }
 
         private void encrypt() {
+            if (!isGlobalData && frozenScrollPane != null) {
+                JTable fixedTable = frozenScrollPane.getFixedTable();
+                if (fixedTable != null && fixedTable.getSelectedColumn() >= 0) {
+                    Notification.show(
+                        "Cannot encrypt cells in the fixed area. Select cells in the scrollable area only."
+                    );
+                    return;
+                }
+            }
             int[] cols = table.getSelectedColumns();
             int[] rows = table.getSelectedRows();
+            std.getUndoManager().startGroupEdit();
             for (int row : rows) {
                 for (int col : cols) {
                     if (row != -1 && col != -1) {
@@ -1226,8 +1944,6 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                             if (col == 0) {
                                 continue;
                             }
-                        } else if (col < frozenColumnCount) {
-                            continue;
                         }
                         String data = Objects.toString(table.getValueAt(row, col), "");
                         if (data != null && !data.isEmpty()) {
@@ -1236,11 +1952,39 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     }
                 }
             }
+            std.getUndoManager().stopGroupEdit();
+        }
+
+        private int getSelectedRowAcrossTables() {
+            int row = table.getSelectedRow();
+            if (
+                row == -1 &&
+                !isGlobalData &&
+                frozenScrollPane != null &&
+                frozenScrollPane.getFixedTable() != null
+            ) {
+                row = frozenScrollPane.getFixedTable().getSelectedRow();
+            }
+            return row;
+        }
+
+        private int[] getSelectedRowsAcrossTables() {
+            int[] rows = table.getSelectedRows();
+            if (
+                (rows == null || rows.length == 0) &&
+                !isGlobalData &&
+                frozenScrollPane != null &&
+                frozenScrollPane.getFixedTable() != null
+            ) {
+                rows = frozenScrollPane.getFixedTable().getSelectedRows();
+            }
+            return rows;
         }
 
         private void moveRowUp() {
-            if (table.getSelectedRows().length > 0) {
-                List<Integer> rows = Utils.getSorted(table.getSelectedRows());
+            int[] selectedRows = getSelectedRowsAcrossTables();
+            if (selectedRows != null && selectedRows.length > 0) {
+                List<Integer> rows = Utils.getSorted(selectedRows);
                 int from = rows.get(0);
                 int to = rows.get(rows.size() - 1);
                 if (std.moveRowsUp(from, to)) {
@@ -1250,8 +1994,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         }
 
         private void moveRowDown() {
-            if (table.getSelectedRows().length > 0) {
-                List<Integer> rows = Utils.getSorted(table.getSelectedRows());
+            int[] selectedRows = getSelectedRowsAcrossTables();
+            if (selectedRows != null && selectedRows.length > 0) {
+                List<Integer> rows = Utils.getSorted(selectedRows);
                 int from = rows.get(0);
                 int to = rows.get(rows.size() - 1);
                 if (std.moveRowsDown(from, to)) {
@@ -1263,14 +2008,246 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         private void ccp(String type) {
             switch (type) {
                 case "Cut":
-                    table.cut();
+                    cut();
                     break;
                 case "Copy":
-                    table.copy();
+                    copy();
                     break;
                 case "Paste":
-                    table.paste();
+                    paste();
                     break;
+            }
+        }
+
+        private void copy() {
+            copyToClipboard(false);
+        }
+
+        private void cut() {
+            copyToClipboard(true);
+        }
+
+        private void copyToClipboard(boolean isCut) {
+            stopCellEditing();
+            int[] selectedRows = table.getSelectedRows();
+            if (
+                (selectedRows == null || selectedRows.length == 0) &&
+                frozenScrollPane != null &&
+                frozenScrollPane.getFixedTable() != null
+            ) {
+                selectedRows = frozenScrollPane.getFixedTable().getSelectedRows();
+            }
+            if (selectedRows == null || selectedRows.length == 0) {
+                return;
+            }
+
+            List<Integer> modelColumnsToCopy = new ArrayList<>();
+
+            if (
+                isGlobalData || frozenScrollPane == null || frozenScrollPane.getFixedTable() == null
+            ) {
+                int[] selectedCols = table.getSelectedColumns();
+                if (selectedCols == null || selectedCols.length == 0) {
+                    return;
+                }
+                for (int viewCol : selectedCols) {
+                    int modelCol = table.convertColumnIndexToModel(viewCol);
+                    if (modelCol >= 0 && modelCol < std.getColumnCount()) {
+                        modelColumnsToCopy.add(modelCol);
+                    }
+                }
+            } else {
+                JTable fixedTable = frozenScrollPane.getFixedTable();
+                int[] fixedSelectedCols = fixedTable.getSelectedColumns();
+                int[] mainSelectedCols = table.getSelectedColumns();
+
+                boolean hasFixed = fixedSelectedCols != null && fixedSelectedCols.length > 0;
+                boolean hasMain = mainSelectedCols != null && mainSelectedCols.length > 0;
+
+                if (!hasFixed && !hasMain) {
+                    return;
+                }
+
+                if (hasFixed && hasMain) {
+                    // Allow contiguous selections that span the fixed + scrollable split.
+                    // Merge both selection ranges and de-duplicate model columns before copying.
+                    for (int viewCol : fixedSelectedCols) {
+                        int modelCol = fixedTable.convertColumnIndexToModel(viewCol);
+                        if (modelCol >= 0 && modelCol < std.getColumnCount()) {
+                            if (!modelColumnsToCopy.contains(modelCol)) {
+                                modelColumnsToCopy.add(modelCol);
+                            }
+                        }
+                    }
+                    for (int viewCol : mainSelectedCols) {
+                        int modelCol = viewCol + frozenColumnCount;
+                        if (modelCol >= 0 && modelCol < std.getColumnCount()) {
+                            if (!modelColumnsToCopy.contains(modelCol)) {
+                                modelColumnsToCopy.add(modelCol);
+                            }
+                        }
+                    }
+                } else if (hasFixed) {
+                    for (int viewCol : fixedSelectedCols) {
+                        int modelCol = fixedTable.convertColumnIndexToModel(viewCol);
+                        if (modelCol >= 0 && modelCol < std.getColumnCount()) {
+                            modelColumnsToCopy.add(modelCol);
+                        }
+                    }
+                } else {
+                    for (int viewCol : mainSelectedCols) {
+                        int modelCol = viewCol + frozenColumnCount;
+                        if (modelCol >= 0 && modelCol < std.getColumnCount()) {
+                            modelColumnsToCopy.add(modelCol);
+                        }
+                    }
+                }
+            }
+
+            if (modelColumnsToCopy.isEmpty()) {
+                return;
+            }
+
+            modelColumnsToCopy.sort(Integer::compareTo);
+
+            if (isCut) {
+                std.getUndoManager().startGroupEdit();
+            }
+
+            StringBuilder excelStr = new StringBuilder();
+            for (int i = 0; i < selectedRows.length; i++) {
+                int row = selectedRows[i];
+                for (int j = 0; j < modelColumnsToCopy.size(); j++) {
+                    int col = modelColumnsToCopy.get(j);
+                    excelStr.append(escape(std.getValueAt(row, col)));
+                    if (isCut && std.isCellEditable(row, col)) {
+                        std.setValueAt("", row, col);
+                    }
+                    if (j < modelColumnsToCopy.size() - 1) {
+                        excelStr.append("\t");
+                    }
+                }
+                excelStr.append("\n");
+            }
+
+            if (isCut) {
+                std.getUndoManager().stopGroupEdit();
+            }
+
+            StringSelection sel = new StringSelection(excelStr.toString());
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(sel, sel);
+        }
+
+        private String escape(Object cell) {
+            return Objects.toString(cell, "").replace("\n", " ").replace("\t", " ");
+        }
+
+        private void paste() {
+            stopCellEditing();
+            String pasteString;
+            try {
+                pasteString =
+                    (String) Toolkit
+                        .getDefaultToolkit()
+                        .getSystemClipboard()
+                        .getContents(null)
+                        .getTransferData(DataFlavor.stringFlavor);
+            } catch (Exception e) {
+                Logger
+                    .getLogger(TestDataComponent.class.getName())
+                    .log(Level.WARNING, "Invalid Paste Type", e);
+                return;
+            }
+
+            if (pasteString == null || pasteString.isEmpty()) {
+                return;
+            }
+
+            int startRow = 0;
+            int[] selectedRows = table.getSelectedRows();
+            if (selectedRows != null && selectedRows.length > 0) {
+                startRow = selectedRows[0];
+            } else if (
+                frozenScrollPane != null &&
+                frozenScrollPane.getFixedTable() != null &&
+                frozenScrollPane.getFixedTable().getSelectedRowCount() > 0
+            ) {
+                startRow = frozenScrollPane.getFixedTable().getSelectedRows()[0];
+            } else if (std.getRowCount() > 0) {
+                startRow = std.getRowCount() - 1;
+            }
+
+            String[] lines = pasteString.replace("\r", "").split("\n");
+            if (lines.length == 0) {
+                return;
+            }
+
+            int firstLineCols = lines[0].split("\t", -1).length;
+            int startCol = 0;
+
+            if (!isGlobalData && frozenScrollPane != null) {
+                JTable fixedTable = frozenScrollPane.getFixedTable();
+                int fixedSelectedCol = fixedTable != null ? fixedTable.getSelectedColumn() : -1;
+                int mainSelectedCol = table.getSelectedColumn();
+
+                if (firstLineCols >= std.getColumnCount()) {
+                    startCol = 0;
+                } else if (fixedTable != null && fixedTable.hasFocus() && fixedSelectedCol >= 0) {
+                    startCol = fixedSelectedCol;
+                } else if (table.hasFocus() && mainSelectedCol >= 0) {
+                    startCol = mainSelectedCol + frozenColumnCount;
+                } else if (fixedSelectedCol >= 0) {
+                    startCol = fixedSelectedCol;
+                } else if (mainSelectedCol >= 0) {
+                    startCol = mainSelectedCol + frozenColumnCount;
+                } else {
+                    startCol = frozenColumnCount;
+                }
+            } else {
+                int mainSelectedCol = table.getSelectedColumn();
+                startCol = (mainSelectedCol >= 0) ? mainSelectedCol : 0;
+            }
+
+            std.getUndoManager().startGroupEdit();
+            try {
+                for (int i = 0; i < lines.length; i++) {
+                    String line = lines[i];
+                    if (line.isEmpty() && i == lines.length - 1) {
+                        continue;
+                    }
+                    String[] cells = line.split("\t", -1);
+                    int targetRow = startRow + i;
+                    while (std.getRowCount() <= targetRow) {
+                        std.addRecord();
+                    }
+                    for (int j = 0; j < cells.length; j++) {
+                        int targetCol = startCol + j;
+                        if (targetCol < std.getColumnCount()) {
+                            std.setValueAt(cells[j], targetRow, targetCol);
+                        }
+                    }
+                }
+            } finally {
+                std.getUndoManager().stopGroupEdit();
+            }
+
+            int rowsPasted = lines.length;
+            if (lines.length > 0 && lines[lines.length - 1].isEmpty()) {
+                rowsPasted = lines.length - 1;
+            }
+            if (rowsPasted > 0) {
+                int endRow = Math.min(startRow + rowsPasted - 1, std.getRowCount() - 1);
+                if (endRow >= startRow && startRow < std.getRowCount()) {
+                    table.setRowSelectionInterval(startRow, endRow);
+                    if (frozenScrollPane != null && frozenScrollPane.getFixedTable() != null) {
+                        frozenScrollPane.getFixedTable().setRowSelectionInterval(startRow, endRow);
+                    }
+                }
+            }
+
+            table.repaint();
+            if (frozenScrollPane != null && frozenScrollPane.getFixedTable() != null) {
+                frozenScrollPane.getFixedTable().repaint();
             }
         }
 
@@ -1278,10 +2255,12 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             String oldName = std.getName();
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
 
+            if (!confirmSharedTestDataChange("Rename", "datasheet '" + oldName + "'")) {
+                return false;
+            }
+
             // Check for duplicates in other environments
-            List<String> otherEnvsWithSameName = testDesign
-                .getProject()
-                .getTestData()
+            List<String> otherEnvsWithSameName = envTestData()
                 .findOtherEnvironmentsWithDatasheet(oldName, envName);
 
             if (!otherEnvsWithSameName.isEmpty()) {
@@ -1302,12 +2281,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
                 if (selectedEnvs == null) {
                     // User chose to rename current environment only
-                    if (
-                        testDesign
-                            .getProject()
-                            .getTestData()
-                            .renameTestData(oldName, newName, envName)
-                    ) {
+                    if (envTestData().renameTestData(oldName, newName, envName)) {
                         renameTestDataTabs(oldName, newName);
                         return true;
                     } else {
@@ -1322,12 +2296,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     List<String> allEnvs = new ArrayList<>(selectedEnvs);
                     allEnvs.add(envName);
 
-                    if (
-                        testDesign
-                            .getProject()
-                            .getTestData()
-                            .renameTestDataAcrossEnvironments(oldName, newName, allEnvs)
-                    ) {
+                    if (envTestData().renameTestDataAcrossEnvironments(oldName, newName, allEnvs)) {
                         // Update tabs in all affected environments
                         renameTestDataTabsInEnvironments(oldName, newName, allEnvs);
                         return true;
@@ -1342,9 +2311,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 }
             } else {
                 // No duplicates in other environments, proceed with normal rename
-                if (
-                    testDesign.getProject().getTestData().renameTestData(oldName, newName, envName)
-                ) {
+                if (envTestData().renameTestData(oldName, newName, envName)) {
                     renameTestDataTabs(oldName, newName);
                     return true;
                 } else {
@@ -1362,10 +2329,16 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         private void reload() {
             stopCellEditing();
             std.load();
+            // Re-sync the toolbar's saved indicator and the frozen-column view with the
+            // reloaded model, mirroring load(); std.load() alone only fires a structure event.
+            changeSave(std.isSaved());
+            if (!isGlobalData && frozenScrollPane != null) {
+                frozenScrollPane.updateModel();
+            }
         }
 
         private void addLastRow() {
-            int row = table.getSelectedRow();
+            int row = getSelectedRowAcrossTables();
             int column = table.getSelectedColumn();
             if (row == table.getRowCount() - 1 && column == table.getColumnCount() - 1) {
                 addRow();
@@ -1374,33 +2347,122 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
         private void addRow() {
             stopCellEditing();
+            int mainCol = table.getSelectedColumn();
+            int fixedCol = (
+                    !isGlobalData &&
+                    frozenScrollPane != null &&
+                    frozenScrollPane.getFixedTable() != null
+                )
+                ? frozenScrollPane.getFixedTable().getSelectedColumn()
+                : -1;
+            boolean focusOnFixed =
+                (
+                    !isGlobalData &&
+                    frozenScrollPane != null &&
+                    frozenScrollPane.getFixedTable() != null &&
+                    frozenScrollPane.getFixedTable().hasFocus()
+                );
+
+            int insertIndex = std.getRowCount();
             std.addRecord();
+            selectRowAndColumn(insertIndex, mainCol, fixedCol, focusOnFixed);
         }
 
         private void insertRowBelow() {
             stopCellEditing();
-            if (table.getSelectedRow() != -1 && table.getSelectedRow() + 1 < table.getRowCount()) {
-                std.addRecord(table.getSelectedRow() + 1);
+            int row = getSelectedRowAcrossTables();
+            int mainCol = table.getSelectedColumn();
+            int fixedCol = (
+                    !isGlobalData &&
+                    frozenScrollPane != null &&
+                    frozenScrollPane.getFixedTable() != null
+                )
+                ? frozenScrollPane.getFixedTable().getSelectedColumn()
+                : -1;
+            boolean focusOnFixed =
+                (
+                    !isGlobalData &&
+                    frozenScrollPane != null &&
+                    frozenScrollPane.getFixedTable() != null &&
+                    frozenScrollPane.getFixedTable().hasFocus()
+                );
+
+            int insertIndex;
+            if (row != -1 && row + 1 < std.getRowCount()) {
+                insertIndex = row + 1;
+                std.addRecord(insertIndex);
             } else {
+                insertIndex = std.getRowCount();
                 std.addRecord();
             }
+            selectRowAndColumn(insertIndex, mainCol, fixedCol, focusOnFixed);
         }
 
         private void insertRow() {
             stopCellEditing();
-            if (table.getSelectedRow() != -1) {
-                std.addRecord(table.getSelectedRow());
+            int row = getSelectedRowAcrossTables();
+            if (row != -1) {
+                int mainCol = table.getSelectedColumn();
+                int fixedCol = (
+                        !isGlobalData &&
+                        frozenScrollPane != null &&
+                        frozenScrollPane.getFixedTable() != null
+                    )
+                    ? frozenScrollPane.getFixedTable().getSelectedColumn()
+                    : -1;
+                boolean focusOnFixed =
+                    (
+                        !isGlobalData &&
+                        frozenScrollPane != null &&
+                        frozenScrollPane.getFixedTable() != null &&
+                        frozenScrollPane.getFixedTable().hasFocus()
+                    );
+
+                std.addRecord(row);
+                selectRowAndColumn(row, mainCol, fixedCol, focusOnFixed);
             }
+        }
+
+        private void selectRowAndColumn(int row, int mainCol, int fixedCol, boolean focusOnFixed) {
+            if (std.getRowCount() == 0) {
+                return;
+            }
+            int safeRow = Math.max(0, Math.min(row, std.getRowCount() - 1));
+            table.setRowSelectionInterval(safeRow, safeRow);
+            if (
+                !isGlobalData &&
+                frozenScrollPane != null &&
+                frozenScrollPane.getFixedTable() != null
+            ) {
+                JTable fixedTable = frozenScrollPane.getFixedTable();
+                fixedTable.setRowSelectionInterval(safeRow, safeRow);
+                if (fixedCol >= 0 && fixedCol < fixedTable.getColumnCount()) {
+                    fixedTable.setColumnSelectionInterval(fixedCol, fixedCol);
+                }
+                if (focusOnFixed) {
+                    fixedTable.requestFocusInWindow();
+                }
+                fixedTable.repaint();
+            }
+            if (mainCol >= 0 && mainCol < table.getColumnCount()) {
+                table.setColumnSelectionInterval(mainCol, mainCol);
+                if (!focusOnFixed) {
+                    table.requestFocusInWindow();
+                }
+            }
+            table.repaint();
         }
 
         private void replicateRow() {
             stopCellEditing();
-            int[] selectedRows = table.getSelectedRows();
-            int lastIndex = selectedRows[selectedRows.length - 1];
-            int added = 0;
-            for (int row : selectedRows) {
-                std.replicateRecord(row, lastIndex + 1 + added);
-                added++;
+            int[] selectedRows = getSelectedRowsAcrossTables();
+            if (selectedRows != null && selectedRows.length > 0) {
+                int lastIndex = selectedRows[selectedRows.length - 1];
+                int added = 0;
+                for (int row : selectedRows) {
+                    std.replicateRecord(row, lastIndex + 1 + added);
+                    added++;
+                }
             }
         }
 
@@ -1409,19 +2471,16 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             stopCellEditing();
 
             if (!isGlobalData && frozenScrollPane != null) {
-                // Check if focus is on fixed table - don't allow adding column there
                 JTable fixedTable = frozenScrollPane.getFixedTable();
-                int fixedSelectedCol = fixedTable.getSelectedColumn();
-                if (fixedSelectedCol >= 0) {
-                    // Fixed column selected - do nothing, user cannot add column here
+                if (fixedTable != null && fixedTable.getSelectedColumn() >= 0) {
                     Notification.show(
                         "Cannot add columns in the fixed area. Select a column in the scrollable area or add at the end."
                     );
                     return;
                 }
 
-                // Check if a column is selected in the main (scrollable) table
                 int mainSelectedCol = table.getSelectedColumn();
+
                 if (mainSelectedCol >= 0) {
                     // Main table view column needs offset: model = view + frozenColumnCount
                     int insertIndex = mainSelectedCol + frozenColumnCount + 1;
@@ -1447,18 +2506,37 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         private void clearValues() {
             stopCellEditing();
             if (table.getSelectedRowCount() > 0) {
-                std.clearValues(table.getSelectedRows(), table.getSelectedColumns());
+                std.clearValues(table.getSelectedRows(), getSelectedModelColumns());
+            }
+        }
+
+        private void clearValuesFromFixedTable() {
+            stopCellEditing();
+
+            if (
+                isGlobalData || frozenScrollPane == null || frozenScrollPane.getFixedTable() == null
+            ) {
+                clearValues();
+                return;
+            }
+
+            JTable fixedTable = frozenScrollPane.getFixedTable();
+            if (fixedTable.getSelectedRowCount() > 0) {
+                std.clearValues(table.getSelectedRows(), getSelectedModelColumnsFromFixedTable());
             }
         }
 
         private void deleteSelectedRows() {
             stopCellEditing();
-            List<Integer> rowList = Utils.getReverseSorted(table.getSelectedRows());
-            std.getUndoManager().startGroupEdit();
-            for (Integer row : rowList) {
-                std.removeRecord(row);
+            int[] selectedRows = getSelectedRowsAcrossTables();
+            if (selectedRows != null && selectedRows.length > 0) {
+                List<Integer> rowList = Utils.getReverseSorted(selectedRows);
+                std.getUndoManager().startGroupEdit();
+                for (Integer row : rowList) {
+                    std.removeRecord(row);
+                }
+                std.getUndoManager().stopGroupEdit();
             }
-            std.getUndoManager().stopGroupEdit();
         }
 
         private void deleteSelectedColumns() {
@@ -1501,10 +2579,33 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
         private List<String> getSelectedColumns() {
             List<String> colList = new ArrayList<>();
-            for (int col : table.getSelectedColumns()) {
+            for (int col : getSelectedModelColumns()) {
                 colList.add(std.getColumnName(col));
             }
             return colList;
+        }
+
+        private int[] getSelectedModelColumns() {
+            int[] selectedColumns = table.getSelectedColumns();
+            int[] modelColumns = new int[selectedColumns.length];
+
+            for (int i = 0; i < selectedColumns.length; i++) {
+                modelColumns[i] = table.convertColumnIndexToModel(selectedColumns[i]);
+            }
+
+            return modelColumns;
+        }
+
+        private int[] getSelectedModelColumnsFromFixedTable() {
+            JTable fixedTable = frozenScrollPane.getFixedTable();
+            int[] selectedColumns = fixedTable.getSelectedColumns();
+            int[] modelColumns = new int[selectedColumns.length];
+
+            for (int i = 0; i < selectedColumns.length; i++) {
+                modelColumns[i] = fixedTable.convertColumnIndexToModel(selectedColumns[i]);
+            }
+
+            return modelColumns;
         }
 
         private TableModel createCustomTableModel(
@@ -1633,156 +2734,411 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         }
 
         private void addTableProps() {
-            table.setActionFor(
-                "MoveUp",
-                new AbstractAction() {
+            bindTableActions(table, false);
+            if (
+                !isGlobalData &&
+                frozenScrollPane != null &&
+                frozenScrollPane.getFixedTable() != null
+            ) {
+                bindTableActions(frozenScrollPane.getFixedTable(), true);
+            }
+        }
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        moveRowUp();
+        private void bindTableActions(JTable targetTable, boolean isFixed) {
+            int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.DELETE, "Clear");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.INSERT_ROW, "Insert");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.ADD_ROW, "Add");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.ADD_ROWP, "Add");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.ADD_ROWX, "Add");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.REMOVE_ROW, "Delete");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.REMOVE_ROWX, "Delete");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.ADD_COL, "Add Column");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.ADD_COLP, "Add Column");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.ADD_COLX, "Add Column");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.REMOVE_COL, "Delete Column");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.REMOVE_COLX, "Delete Column");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.RIGHT, "Move Column Right");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.LEFT, "Move Column Left");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.COPY_ABOVE, "Copy Above");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.REPLICATE_ROW, "Replicate");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.SAVE, "Save");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.F5, "Reload");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.OPEN, "Open");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.FIND, "Search");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.UP, "MoveUp");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.DOWN, "MoveDown");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.UNDO, "Undo");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.REDO, "Redo");
+
+            targetTable
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+            targetTable
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+            targetTable
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.COPY, "Copy");
+            targetTable.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(Keystroke.CUT, "Cut");
+            targetTable
+                .getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+                .put(Keystroke.PASTE, "Paste");
+
+            targetTable
+                .getActionMap()
+                .put(
+                    "MoveUp",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            moveRowUp();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "MoveDown",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "MoveDown",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        moveRowDown();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            moveRowDown();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Insert",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Insert",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        insertRow();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            insertRow();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Add",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Add",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        insertRowBelow();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            insertRowBelow();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Delete",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Delete",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        deleteSelectedRows();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            deleteSelectedRows();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Clear",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Clear",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent ae) {
-                        clearValues();
+                        @Override
+                        public void actionPerformed(ActionEvent ae) {
+                            if (isFixed) {
+                                clearValuesFromFixedTable();
+                            } else {
+                                clearValues();
+                            }
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Add Column",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Add Column",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        addColumn();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            addColumn();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Delete Column",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Delete Column",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        deleteSelectedColumns();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            deleteSelectedColumns();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Replicate",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Replicate",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        replicateRow();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            replicateRow();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Save",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Save",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        save();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            save();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Reload",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Reload",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        reload();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            reload();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Open",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Open",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        openWithSystemEditor();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            openWithSystemEditor();
+                        }
                     }
-                }
-            );
-            table.setActionFor(
-                "Search",
-                new AbstractAction() {
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Search",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        toolBar.focusSearch();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            toolBar.focusSearch();
+                        }
                     }
-                }
-            );
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Copy Above",
+                    new AbstractAction() {
 
-            table.setActionFor(
-                "Copy Above",
-                new AbstractAction() {
-
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        copyAbove();
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            copyAbove();
+                        }
                     }
-                }
-            );
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Copy",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            copy();
+                        }
+                    }
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "copy",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            copy();
+                        }
+                    }
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Cut",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            cut();
+                        }
+                    }
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "cut",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            cut();
+                        }
+                    }
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Paste",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            paste();
+                        }
+                    }
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "paste",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            paste();
+                        }
+                    }
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Undo",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            if (std.getUndoManager() != null) {
+                                std.getUndoManager().undo();
+                            }
+                        }
+                    }
+                );
+            targetTable
+                .getActionMap()
+                .put(
+                    "Redo",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            if (std.getUndoManager() != null) {
+                                std.getUndoManager().redo();
+                            }
+                        }
+                    }
+                );
         }
 
         private void copyAbove() {
             stopCellEditing();
-            int row = table.getSelectedRow();
+            int row = getSelectedRowAcrossTables();
             if (row > 0) {
-                for (int col : table.getSelectedColumns()) {
-                    String value = Objects.toString(table.getValueAt(row - 1, col), "");
-                    table.setValueAt(value, row, col);
+                if (table.getSelectedColumnCount() > 0) {
+                    for (int col : table.getSelectedColumns()) {
+                        String value = Objects.toString(table.getValueAt(row - 1, col), "");
+                        table.setValueAt(value, row, col);
+                    }
+                }
+                if (
+                    !isGlobalData &&
+                    frozenScrollPane != null &&
+                    frozenScrollPane.getFixedTable() != null
+                ) {
+                    JTable fixedTable = frozenScrollPane.getFixedTable();
+                    if (fixedTable.getSelectedColumnCount() > 0) {
+                        for (int col : fixedTable.getSelectedColumns()) {
+                            if (fixedTable.isCellEditable(row, col)) {
+                                String value = Objects.toString(
+                                    fixedTable.getValueAt(row - 1, col),
+                                    ""
+                                );
+                                fixedTable.setValueAt(value, row, col);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1794,12 +3150,14 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
         private void goToSelectedTestCase() {
             if (!isGlobalData) {
-                if (table.getSelectedRow() != -1) {
+                int selectedRow = getSelectedRowAcrossTables();
+                if (selectedRow != -1) {
                     Boolean invalid = false;
                     // For test data with FrozenColumnScrollPane, columns 0-4 are in the fixed table
                     // We need to read Scenario (column 0) and TestCase (column 1) from the fixed table
-                    int selectedRow = table.getSelectedRow();
-                    JTable sourceTable = frozenScrollPane.getFixedTable();
+                    JTable sourceTable = frozenScrollPane != null
+                        ? frozenScrollPane.getFixedTable()
+                        : table;
                     String scenVal = Objects.toString(sourceTable.getValueAt(selectedRow, 0), "");
                     String tcVal = Objects.toString(sourceTable.getValueAt(selectedRow, 1), "");
                     if (!scenVal.isEmpty() && !tcVal.isEmpty()) {
@@ -1844,14 +3202,22 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         }
 
         private void assignThePreviouslySelected() {
-            previousRowSelection = table.getSelectedRow();
+            previousRowSelection = getSelectedRowAcrossTables();
             previousColumnSelection = table.getSelectedColumn();
         }
 
         private void selectThePreviouslySelected() {
             if (previousRowSelection != -1 && previousColumnSelection != -1) {
-                table.setRowSelectionInterval(previousRowSelection, previousRowSelection);
-                table.setColumnSelectionInterval(previousColumnSelection, previousColumnSelection);
+                if (
+                    table.getRowCount() > previousRowSelection &&
+                    table.getColumnCount() > previousColumnSelection
+                ) {
+                    table.setRowSelectionInterval(previousRowSelection, previousRowSelection);
+                    table.setColumnSelectionInterval(
+                        previousColumnSelection,
+                        previousColumnSelection
+                    );
+                }
             }
         }
 
@@ -1941,6 +3307,15 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
             add(addNew);
             add(addInAll);
+            // Promoting a sheet to Shared Test Data only makes sense from the project's own
+            // Test Data panel, not the Shared one.
+            if (!shared) {
+                JMenuItem makeShared = new JMenuItem("Make As Shared TestData");
+                makeShared.setActionCommand("Make As Shared TestData");
+                makeShared.addActionListener(TestDataComponent.this);
+                addSeparator();
+                add(makeShared);
+            }
             addSeparator();
             add(search);
             addSeparator();
@@ -1985,6 +3360,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             reopen.addActionListener(this);
 
             add(addNew);
+            if (!shared) {
+                JMenuItem makeShared = new JMenuItem("Make As Shared TestData");
+                makeShared.setActionCommand("Make Env As Shared TestData");
+                makeShared.addActionListener(this);
+                addSeparator();
+                add(makeShared);
+            }
             addSeparator();
             add(close);
             add(delete);
@@ -1999,6 +3381,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 case "Add New Enivronment":
                     envTab.setSelectedIndex(envTab.getTabCount() - 1);
                     environmentPanel.selectTextBox();
+                    break;
+                case "Make Env As Shared TestData":
+                    makeSelectedEnvironmentShared();
                     break;
                 case "Close Enivronment":
                     if (envTab.getSelectedIndex() != envTab.getTabCount() - 1) {

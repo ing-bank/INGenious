@@ -5,8 +5,12 @@ import com.github.javafaker.Faker;
 import com.github.javafaker.Internet;
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.text.SimpleDateFormat;
@@ -28,6 +32,13 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Set Faker locale for testing", input = InputType.YES)
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@en-US",
+        inputHelp = "Required. Locale to use for subsequently generated fake data, e.g. en-US, de-DE, fr-FR.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void setLocale() {
         try {
             String locale = Data;
@@ -52,14 +63,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void streetAddress() {
         try {
             String strObj = Input;
             String streetAddress = faker.get(key).address().streetAddress();
             Report.updateTestLog(Action, "Generated data: " + streetAddress, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, streetAddress);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], streetAddress);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -78,14 +103,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void streetName() {
         try {
             String strObj = Input;
             String streetName = faker.get(key).address().streetName();
             Report.updateTestLog(Action, "Generated data: " + streetName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, streetName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], streetName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -104,14 +143,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void secondaryAddress() {
         try {
             String strObj = Input;
             String secondaryAddress = faker.get(key).address().secondaryAddress();
             Report.updateTestLog(Action, "Generated data: " + secondaryAddress, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, secondaryAddress);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], secondaryAddress);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -130,14 +183,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void buildingNumber() {
         try {
             String strObj = Input;
             String buildingNumber = faker.get(key).address().buildingNumber();
             Report.updateTestLog(Action, "Generated data: " + buildingNumber, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, buildingNumber);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], buildingNumber);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -156,14 +223,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void city() {
         try {
             String strObj = Input;
             String city = faker.get(key).address().city();
             Report.updateTestLog(Action, "Generated data: " + city, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, city);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], city);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -182,14 +263,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void cityPrefix() {
         try {
             String strObj = Input;
             String cityPrefix = faker.get(key).address().cityPrefix();
             Report.updateTestLog(Action, "Generated data: " + cityPrefix, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, cityPrefix);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], cityPrefix);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -208,14 +303,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void citySuffix() {
         try {
             String strObj = Input;
             String citySuffix = faker.get(key).address().citySuffix();
             Report.updateTestLog(Action, "Generated data: " + citySuffix, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, citySuffix);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], citySuffix);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -234,14 +343,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void zipCode() {
         try {
             String strObj = Input;
             String zipCode = faker.get(key).address().zipCode();
             Report.updateTestLog(Action, "Generated data: " + zipCode, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, zipCode);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], zipCode);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -260,15 +383,30 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@CA",
+        conditionHelp = "Required. Two-letter US state abbreviation, e.g. CA, NY."
+    )
     public void zipCodeByState() {
         try {
             String strObj = Input;
             String stateAbbreviation = Condition;
             String zipCodeByState = faker.get(key).address().zipCodeByState(stateAbbreviation);
             Report.updateTestLog(Action, "Generated data: " + zipCodeByState, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, zipCodeByState);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], zipCodeByState);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -287,14 +425,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void state() {
         try {
             String strObj = Input;
             String state = faker.get(key).address().state();
             Report.updateTestLog(Action, "Generated data: " + state, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, state);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], state);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -313,14 +465,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void stateAbbreviation() {
         try {
             String strObj = Input;
             String stateAbbreviation = faker.get(key).address().stateAbbr();
             Report.updateTestLog(Action, "Generated data: " + stateAbbreviation, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, stateAbbreviation);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], stateAbbreviation);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -339,14 +505,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void country() {
         try {
             String strObj = Input;
             String country = faker.get(key).address().country();
             Report.updateTestLog(Action, "Generated data: " + country, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, country);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], country);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -365,14 +545,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void countryCode() {
         try {
             String strObj = Input;
             String countryCode = faker.get(key).address().countryCode();
             Report.updateTestLog(Action, "Generated data: " + countryCode, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, countryCode);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], countryCode);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -391,14 +585,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void latitude() {
         try {
             String strObj = Input;
             String latitude = faker.get(key).address().latitude();
             Report.updateTestLog(Action, "Generated data: " + latitude, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, latitude);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], latitude);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -417,14 +625,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void longitude() {
         try {
             String strObj = Input;
             String longitude = faker.get(key).address().longitude();
             Report.updateTestLog(Action, "Generated data: " + longitude, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, longitude);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], longitude);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -443,14 +665,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void fullAddress() {
         try {
             String strObj = Input;
             String fullAddress = faker.get(key).address().fullAddress();
             Report.updateTestLog(Action, "Generated data: " + fullAddress, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, fullAddress);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], fullAddress);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -469,15 +705,30 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@90210",
+        conditionHelp = "Required. Zip code to resolve the county for."
+    )
     public void countryByZipCode() {
         try {
             String strObj = Input;
             String zipCode = Condition;
             String countryByZipCode = faker.get(key).address().countyByZipCode(zipCode);
             Report.updateTestLog(Action, "Generated data: " + countryByZipCode, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, countryByZipCode);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], countryByZipCode);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -496,15 +747,29 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void streetAddressIncludeSecondary() {
         try {
             String strObj = Input;
             boolean includeSecondary = true;
             String streetAddress = faker.get(key).address().streetAddress(includeSecondary);
             Report.updateTestLog(Action, "Generated data: " + streetAddress, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, streetAddress);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], streetAddress);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -523,14 +788,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void streetAddressNumber() {
         try {
             String strObj = Input;
             String streetAddressNumber = faker.get(key).address().streetAddressNumber();
             Report.updateTestLog(Action, "Generated data: " + streetAddressNumber, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, streetAddressNumber);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], streetAddressNumber);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -549,14 +828,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void streetPrefix() {
         try {
             String strObj = Input;
             String streetPrefix = faker.get(key).address().streetPrefix();
             Report.updateTestLog(Action, "Generated data: " + streetPrefix, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, streetPrefix);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], streetPrefix);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -575,14 +868,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void streetSuffix() {
         try {
             String strObj = Input;
             String streetSuffix = faker.get(key).address().streetSuffix();
             Report.updateTestLog(Action, "Generated data: " + streetSuffix, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, streetSuffix);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], streetSuffix);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -601,14 +908,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void timezone() {
         try {
             String strObj = Input;
             String timezone = faker.get(key).address().timeZone();
             Report.updateTestLog(Action, "Generated data: " + timezone, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, timezone);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], timezone);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -627,14 +948,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void cityName() {
         try {
             String strObj = Input;
             String cityName = faker.get(key).address().cityName();
             Report.updateTestLog(Action, "Generated data: " + cityName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, cityName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], cityName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -653,14 +988,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void addressFirstName() {
         try {
             String strObj = Input;
             String firstName = faker.get(key).address().firstName();
             Report.updateTestLog(Action, "Generated data: " + firstName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, firstName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], firstName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -679,14 +1028,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void addressLastName() {
         try {
             String strObj = Input;
             String lastName = faker.get(key).address().lastName();
             Report.updateTestLog(Action, "Generated data: " + lastName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, lastName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], lastName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -705,14 +1068,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void god() {
         try {
             String strObj = Input;
             String god = faker.get(key).ancient().god();
             Report.updateTestLog(Action, "Generated data: " + god, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, god);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], god);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -731,14 +1108,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void primordial() {
         try {
             String strObj = Input;
             String primordial = faker.get(key).ancient().primordial();
             Report.updateTestLog(Action, "Generated data: " + primordial, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, primordial);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], primordial);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -757,14 +1148,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void titan() {
         try {
             String strObj = Input;
             String titan = faker.get(key).ancient().titan();
             Report.updateTestLog(Action, "Generated data: " + titan, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, titan);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], titan);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -783,14 +1188,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void hero() {
         try {
             String strObj = Input;
             String hero = faker.get(key).ancient().hero();
             Report.updateTestLog(Action, "Generated data: " + hero, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, hero);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], hero);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -809,14 +1228,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void appName() {
         try {
             String strObj = Input;
             String appName = faker.get(key).app().name();
             Report.updateTestLog(Action, "Generated data: " + appName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, appName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], appName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -835,14 +1268,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void appVersion() {
         try {
             String strObj = Input;
             String appVersion = faker.get(key).app().version();
             Report.updateTestLog(Action, "Generated data: " + appVersion, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, appVersion);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], appVersion);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -861,14 +1308,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void appAuthor() {
         try {
             String strObj = Input;
             String appAuthor = faker.get(key).app().author();
             Report.updateTestLog(Action, "Generated data: " + appAuthor, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, appAuthor);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], appAuthor);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -887,14 +1348,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void artistName() {
         try {
             String strObj = Input;
             String artistName = faker.get(key).artist().name();
             Report.updateTestLog(Action, "Generated data: " + artistName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, artistName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], artistName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -913,14 +1388,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void avatarUrl() {
         try {
             String strObj = Input;
             String avatarUrl = faker.get(key).avatar().image();
             Report.updateTestLog(Action, "Generated data: " + avatarUrl, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, avatarUrl);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], avatarUrl);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -939,14 +1428,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void aircraft() {
         try {
             String strObj = Input;
             String aircraft = faker.get(key).aviation().aircraft();
             Report.updateTestLog(Action, "Generated data: " + aircraft, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, aircraft);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], aircraft);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -965,14 +1468,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void airport() {
         try {
             String strObj = Input;
             String airport = faker.get(key).aviation().airport();
             Report.updateTestLog(Action, "Generated data: " + airport, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, airport);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], airport);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -991,14 +1508,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void metar() {
         try {
             String strObj = Input;
             String metar = faker.get(key).aviation().METAR();
             Report.updateTestLog(Action, "Generated data: " + metar, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, metar);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], metar);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1017,14 +1548,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void characterBackToTheFuture() {
         try {
             String strObj = Input;
             String character = faker.get(key).backToTheFuture().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, character);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], character);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1043,14 +1588,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteBackToTheFuture() {
         try {
             String strObj = Input;
             String quote = faker.get(key).backToTheFuture().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1069,14 +1628,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void dateBackToTheFuture() {
         try {
             String strObj = Input;
             String date = faker.get(key).backToTheFuture().date();
             Report.updateTestLog(Action, "Generated data: " + date, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, date);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], date);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1095,14 +1668,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void beerName() {
         try {
             String strObj = Input;
             String beerName = faker.get(key).beer().name();
             Report.updateTestLog(Action, "Generated data: " + beerName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, beerName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], beerName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1121,14 +1708,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void beerStyle() {
         try {
             String strObj = Input;
             String beerStyle = faker.get(key).beer().style();
             Report.updateTestLog(Action, "Generated data: " + beerStyle, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, beerStyle);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], beerStyle);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1147,14 +1748,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void beerHop() {
         try {
             String strObj = Input;
             String beerHop = faker.get(key).beer().hop();
             Report.updateTestLog(Action, "Generated data: " + beerHop, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, beerHop);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], beerHop);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1173,14 +1788,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void beerYeast() {
         try {
             String strObj = Input;
             String beerYeast = faker.get(key).beer().yeast();
             Report.updateTestLog(Action, "Generated data: " + beerYeast, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, beerYeast);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], beerYeast);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1199,14 +1828,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void beerMalt() {
         try {
             String strObj = Input;
             String beerMalt = faker.get(key).beer().malt();
             Report.updateTestLog(Action, "Generated data: " + beerMalt, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, beerMalt);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], beerMalt);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1225,14 +1868,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void bookTitle() {
         try {
             String strObj = Input;
             String bookTitle = faker.get(key).book().title();
             Report.updateTestLog(Action, "Generated data: " + bookTitle, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, bookTitle);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], bookTitle);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1251,14 +1908,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void bookAuthor() {
         try {
             String strObj = Input;
             String bookAuthor = faker.get(key).book().author();
             Report.updateTestLog(Action, "Generated data: " + bookAuthor, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, bookAuthor);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], bookAuthor);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1277,14 +1948,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void bookGenre() {
         try {
             String strObj = Input;
             String bookGenre = faker.get(key).book().genre();
             Report.updateTestLog(Action, "Generated data: " + bookGenre, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, bookGenre);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], bookGenre);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1303,14 +1988,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void bookPublisher() {
         try {
             String strObj = Input;
             String bookPublisher = faker.get(key).book().publisher();
             Report.updateTestLog(Action, "Generated data: " + bookPublisher, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, bookPublisher);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], bookPublisher);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1329,14 +2028,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void randomBool() {
         try {
             String strObj = Input;
             boolean randomBool = faker.get(key).bool().bool();
             Report.updateTestLog(Action, "Generated data: " + randomBool, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Boolean.toString(randomBool));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Boolean.toString(randomBool));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1355,14 +2068,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void creditCardNumber() {
         try {
             String strObj = Input;
             String creditCardNumber = faker.get(key).business().creditCardNumber();
             Report.updateTestLog(Action, "Generated data: " + creditCardNumber, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, creditCardNumber);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], creditCardNumber);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1381,14 +2108,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void creditCardType() {
         try {
             String strObj = Input;
             String creditCardType = faker.get(key).business().creditCardType();
             Report.updateTestLog(Action, "Generated data: " + creditCardType, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, creditCardType);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], creditCardType);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1407,14 +2148,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void creditCardExpiry() {
         try {
             String strObj = Input;
             String creditCardExpiry = faker.get(key).business().creditCardExpiry();
             Report.updateTestLog(Action, "Generated data: " + creditCardExpiry, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, creditCardExpiry);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], creditCardExpiry);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1433,14 +2188,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void catName() {
         try {
             String strObj = Input;
             String catName = faker.get(key).cat().name();
             Report.updateTestLog(Action, "Generated data: " + catName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, catName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], catName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1459,14 +2228,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void catBreed() {
         try {
             String strObj = Input;
             String catBreed = faker.get(key).cat().breed();
             Report.updateTestLog(Action, "Generated data: " + catBreed, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, catBreed);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], catBreed);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1485,14 +2268,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void catRegistry() {
         try {
             String strObj = Input;
             String catRegistry = faker.get(key).cat().registry();
             Report.updateTestLog(Action, "Generated data: " + catRegistry, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, catRegistry);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], catRegistry);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1511,14 +2308,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void chuckNorrisFact() {
         try {
             String strObj = Input;
             String chuckNorrisFact = faker.get(key).chuckNorris().fact();
             Report.updateTestLog(Action, "Generated data: " + chuckNorrisFact, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, chuckNorrisFact);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], chuckNorrisFact);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1537,14 +2348,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void isbn10() {
         try {
             String strObj = Input;
             String isbn10 = faker.get(key).code().isbn10();
             Report.updateTestLog(Action, "Generated data: " + isbn10, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, isbn10);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], isbn10);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1563,14 +2388,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void isbn13() {
         try {
             String strObj = Input;
             String isbn13 = faker.get(key).code().isbn13();
             Report.updateTestLog(Action, "Generated data: " + isbn13, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, isbn13);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], isbn13);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1589,14 +2428,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void gtin8() {
         try {
             String strObj = Input;
             String gtin8 = faker.get(key).code().gtin8();
             Report.updateTestLog(Action, "Generated data: " + gtin8, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, gtin8);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], gtin8);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1615,14 +2468,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void gtin13() {
         try {
             String strObj = Input;
             String gtin13 = faker.get(key).code().gtin13();
             Report.updateTestLog(Action, "Generated data: " + gtin13, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, gtin13);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], gtin13);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1641,14 +2508,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void ean8() {
         try {
             String strObj = Input;
             String ean8 = faker.get(key).code().ean8();
             Report.updateTestLog(Action, "Generated data: " + ean8, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, ean8);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], ean8);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1667,14 +2548,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void ean13() {
         try {
             String strObj = Input;
             String ean13 = faker.get(key).code().ean13();
             Report.updateTestLog(Action, "Generated data: " + ean13, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, ean13);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], ean13);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1693,14 +2588,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void asin() {
         try {
             String strObj = Input;
             String issn = faker.get(key).code().asin();
             Report.updateTestLog(Action, "Generated data: " + issn, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, issn);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], issn);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1719,14 +2628,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void imei() {
         try {
             String strObj = Input;
             String issn = faker.get(key).code().imei();
             Report.updateTestLog(Action, "Generated data: " + issn, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, issn);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], issn);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1745,14 +2668,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void isbnGroup() {
         try {
             String strObj = Input;
             String isbnGroup = faker.get(key).code().isbnGroup();
             Report.updateTestLog(Action, "Generated data: " + isbnGroup, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, isbnGroup);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], isbnGroup);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1771,14 +2708,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void isbnGs1() {
         try {
             String strObj = Input;
             String isbnGs1 = faker.get(key).code().isbnGs1();
             Report.updateTestLog(Action, "Generated data: " + isbnGs1, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, isbnGs1);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], isbnGs1);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1797,14 +2748,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void isbnRegistrant() {
         try {
             String strObj = Input;
             String isbnRegistrant = faker.get(key).code().isbnRegistrant();
             Report.updateTestLog(Action, "Generated data: " + isbnRegistrant, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, isbnRegistrant);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], isbnRegistrant);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1823,15 +2788,29 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void isbn10WithSeparator() {
         try {
             String strObj = Input;
             boolean separator = true;
             String isbn10 = faker.get(key).code().isbn10(separator);
             Report.updateTestLog(Action, "Generated data: " + isbn10, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, isbn10);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], isbn10);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1850,15 +2829,29 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void isbn13WithSeparator() {
         try {
             String strObj = Input;
             boolean separator = true;
             String isbn13 = faker.get(key).code().isbn13(separator);
             Report.updateTestLog(Action, "Generated data: " + isbn13, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, isbn13);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], isbn13);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1877,14 +2870,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void colorName() {
         try {
             String strObj = Input;
             String colorName = faker.get(key).color().name();
             Report.updateTestLog(Action, "Generated data: " + colorName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, colorName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], colorName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1903,14 +2910,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void hex() {
         try {
             String strObj = Input;
             String hex = "color" + faker.get(key).color().hex();
             Report.updateTestLog(Action, "Generated data: " + hex, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, hex);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], hex);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1929,15 +2950,29 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void hexIncludeHashSign() {
         try {
             String strObj = Input;
             boolean includeHashSign = true;
             String hex = "color" + faker.get(key).color().hex(includeHashSign);
             Report.updateTestLog(Action, "Generated data: " + hex, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, hex);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], hex);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1956,14 +2991,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void productName() {
         try {
             String strObj = Input;
             String productName = faker.get(key).commerce().productName();
             Report.updateTestLog(Action, "Generated data: " + productName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, productName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], productName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -1982,14 +3031,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void commerceDepartment() {
         try {
             String strObj = Input;
             String department = faker.get(key).commerce().department();
             Report.updateTestLog(Action, "Generated data: " + department, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, department);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], department);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2008,14 +3071,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void commercePrice() {
         try {
             String strObj = Input;
             String price = faker.get(key).commerce().price();
             Report.updateTestLog(Action, "Generated data: " + price, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, price);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], price);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2034,6 +3111,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10:100",
+        conditionHelp = "Required. Min:Max price range, e.g. 10:100."
+    )
     public void priceWithinRange() {
         try {
             String strObj = Input;
@@ -2043,9 +3128,16 @@ public class SyntheticDataGenerator extends Command {
             Double max = Double.parseDouble(inputMax);
             String price = faker.get(key).commerce().price(min, max);
             Report.updateTestLog(Action, "Generated data: " + price, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, price);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], price);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2064,14 +3156,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void commerceMaterial() {
         try {
             String strObj = Input;
             String material = faker.get(key).commerce().material();
             Report.updateTestLog(Action, "Generated data: " + material, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, material);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], material);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2090,14 +3196,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void commerceColor() {
         try {
             String strObj = Input;
             String color = faker.get(key).commerce().color();
             Report.updateTestLog(Action, "Generated data: " + color, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, color);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], color);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2116,14 +3236,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void promotionCode() {
         try {
             String strObj = Input;
             String promotionCode = faker.get(key).commerce().promotionCode();
             Report.updateTestLog(Action, "Generated data: " + promotionCode, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, promotionCode);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], promotionCode);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2142,6 +3276,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@6",
+        conditionHelp = "Required. Number of digits in the generated promotion code."
+    )
     public void promotionCodeWithDigits() {
         try {
             String strObj = Input;
@@ -2149,9 +3291,16 @@ public class SyntheticDataGenerator extends Command {
             Integer digits = Integer.parseInt(digitStr);
             String promotionCode = faker.get(key).commerce().promotionCode(digits);
             Report.updateTestLog(Action, "Generated data: " + promotionCode, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, promotionCode);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], promotionCode);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2170,14 +3319,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void companyName() {
         try {
             String strObj = Input;
             String companyName = faker.get(key).company().name();
             Report.updateTestLog(Action, "Generated data: " + companyName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, companyName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], companyName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2196,14 +3359,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void companyIndustry() {
         try {
             String strObj = Input;
             String companyIndustry = faker.get(key).company().industry();
             Report.updateTestLog(Action, "Generated data: " + companyIndustry, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, companyIndustry);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], companyIndustry);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2222,14 +3399,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void companyCatchPhrase() {
         try {
             String strObj = Input;
             String companyCatchPhrase = faker.get(key).company().catchPhrase();
             Report.updateTestLog(Action, "Generated data: " + companyCatchPhrase, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, companyCatchPhrase);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], companyCatchPhrase);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2248,14 +3439,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void companyBuzzword() {
         try {
             String strObj = Input;
             String companyBuzzword = faker.get(key).company().buzzword();
             Report.updateTestLog(Action, "Generated data: " + companyBuzzword, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, companyBuzzword);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], companyBuzzword);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2274,14 +3479,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void companyBS() {
         try {
             String strObj = Input;
             String bs = faker.get(key).company().bs();
             Report.updateTestLog(Action, "Generated data: " + bs, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, bs);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], bs);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2300,14 +3519,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void companyLogo() {
         try {
             String strObj = Input;
             String logo = faker.get(key).company().logo();
             Report.updateTestLog(Action, "Generated data: " + logo, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, logo);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], logo);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2326,14 +3559,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void profession() {
         try {
             String strObj = Input;
             String profession = faker.get(key).company().profession();
             Report.updateTestLog(Action, "Generated data: " + profession, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, profession);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], profession);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2352,14 +3599,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void companySuffix() {
         try {
             String strObj = Input;
             String suffix = faker.get(key).company().suffix();
             Report.updateTestLog(Action, "Generated data: " + suffix, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, suffix);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], suffix);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2378,14 +3639,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void companyUrl() {
         try {
             String strObj = Input;
             String url = faker.get(key).company().url();
             Report.updateTestLog(Action, "Generated data: " + url, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, url);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], url);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2404,14 +3679,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void capital() {
         try {
             String strObj = Input;
             String capital = faker.get(key).country().capital();
             Report.updateTestLog(Action, "Generated data: " + capital, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, capital);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], capital);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2430,14 +3719,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void countryCode2() {
         try {
             String strObj = Input;
             String countryCode2 = faker.get(key).country().countryCode2();
             Report.updateTestLog(Action, "Generated data: " + countryCode2, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, countryCode2);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], countryCode2);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2456,14 +3759,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void countryCode3() {
         try {
             String strObj = Input;
             String countryCode3 = faker.get(key).country().countryCode3();
             Report.updateTestLog(Action, "Generated data: " + countryCode3, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, countryCode3);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], countryCode3);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2482,14 +3799,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void countryCurrency() {
         try {
             String strObj = Input;
             String currency = faker.get(key).country().currency();
             Report.updateTestLog(Action, "Generated data: " + currency, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, currency);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], currency);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2508,14 +3839,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void countryCurrencyCode() {
         try {
             String strObj = Input;
             String currencyCode = faker.get(key).country().currencyCode();
             Report.updateTestLog(Action, "Generated data: " + currencyCode, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, currencyCode);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], currencyCode);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2534,14 +3879,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void flag() {
         try {
             String strObj = Input;
             String flag = faker.get(key).country().flag();
             Report.updateTestLog(Action, "Generated data: " + flag, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, flag);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], flag);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2560,14 +3919,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void countryName() {
         try {
             String strObj = Input;
             String name = faker.get(key).country().name();
             Report.updateTestLog(Action, "Generated data: " + name, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, name);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], name);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2586,14 +3959,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void md5() {
         try {
             String strObj = Input;
             String md5 = faker.get(key).crypto().md5();
             Report.updateTestLog(Action, "Generated data: " + md5, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, md5);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], md5);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2612,14 +3999,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void sha1() {
         try {
             String strObj = Input;
             String sha1 = faker.get(key).crypto().sha1();
             Report.updateTestLog(Action, "Generated data: " + sha1, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, sha1);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], sha1);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2638,14 +4039,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void sha256() {
         try {
             String strObj = Input;
             String sha256 = faker.get(key).crypto().sha256();
             Report.updateTestLog(Action, "Generated data: " + sha256, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, sha256);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], sha256);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2664,14 +4079,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void sha512() {
         try {
             String strObj = Input;
             String sha512 = faker.get(key).crypto().sha512();
             Report.updateTestLog(Action, "Generated data: " + sha512, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, sha512);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], sha512);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2690,14 +4119,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void currencyName() {
         try {
             String strObj = Input;
             String currency = faker.get(key).currency().name();
             Report.updateTestLog(Action, "Generated data: " + currency, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, currency);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], currency);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2716,14 +4159,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void currencyCode() {
         try {
             String strObj = Input;
             String currencyCode = faker.get(key).currency().code();
             Report.updateTestLog(Action, "Generated data: " + currencyCode, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, currencyCode);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], currencyCode);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2742,6 +4199,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10:DAYS",
+        conditionHelp = "Required. MaxAmount:TimeUnit, e.g. 10:DAYS (TimeUnit is a java.util.concurrent.TimeUnit name)."
+    )
     public void futureUpto() {
         try {
             String strObj = Input;
@@ -2751,9 +4216,16 @@ public class SyntheticDataGenerator extends Command {
             TimeUnit unit = TimeUnit.valueOf(unitStr);
             Date futureDate = faker.get(key).date().future(atMost, unit);
             Report.updateTestLog(Action, "Generated data: " + futureDate, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, futureDate.toString());
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], futureDate.toString());
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2772,6 +4244,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@30:10:DAYS",
+        conditionHelp = "Required. MaxAmount:MinAmount:TimeUnit, e.g. 30:10:DAYS."
+    )
     public void futureWithinRange() {
         try {
             String strObj = Input;
@@ -2783,9 +4263,16 @@ public class SyntheticDataGenerator extends Command {
             TimeUnit unit = TimeUnit.valueOf(unitStr);
             Date futureDate = faker.get(key).date().future(atMost, minimum, unit);
             Report.updateTestLog(Action, "Generated data: " + futureDate, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, futureDate.toString());
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], futureDate.toString());
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2804,6 +4291,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10:DAYS:21/09/2026",
+        conditionHelp = "Required. MaxAmount:TimeUnit:ReferenceDate(dd/MM/yyyy)."
+    )
     public void futureUptoBasedOnRefDate() {
         try {
             String strObj = Input;
@@ -2816,9 +4311,16 @@ public class SyntheticDataGenerator extends Command {
             Date referenceDate = formatter.parse(dateStr);
             Date futureDate = faker.get(key).date().future(atMost, unit, referenceDate);
             Report.updateTestLog(Action, "Generated data: " + futureDate, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, futureDate.toString());
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], futureDate.toString());
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2837,6 +4339,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10:DAYS",
+        conditionHelp = "Required. MaxAmount:TimeUnit, e.g. 10:DAYS."
+    )
     public void pastUpto() {
         try {
             String strObj = Input;
@@ -2846,9 +4356,16 @@ public class SyntheticDataGenerator extends Command {
             TimeUnit unit = TimeUnit.valueOf(unitStr);
             Date pastDate = faker.get(key).date().past(atMost, unit);
             Report.updateTestLog(Action, "Generated data: " + pastDate, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, pastDate.toString());
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], pastDate.toString());
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2867,6 +4384,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@30:10:DAYS",
+        conditionHelp = "Required. MaxAmount:MinAmount:TimeUnit, e.g. 30:10:DAYS."
+    )
     public void pastWithinRange() {
         try {
             String strObj = Input;
@@ -2878,9 +4403,16 @@ public class SyntheticDataGenerator extends Command {
             TimeUnit unit = TimeUnit.valueOf(unitStr);
             Date pastDate = faker.get(key).date().past(atMost, minimum, unit);
             Report.updateTestLog(Action, "Generated data: " + pastDate, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, pastDate.toString());
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], pastDate.toString());
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2899,6 +4431,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10:DAYS:21/09/2026",
+        conditionHelp = "Required. MaxAmount:TimeUnit:ReferenceDate(dd/MM/yyyy)."
+    )
     public void pastUptoBasedOnRefDate() {
         try {
             String strObj = Input;
@@ -2911,9 +4451,16 @@ public class SyntheticDataGenerator extends Command {
             Date referenceDate = formatter.parse(dateStr);
             Date pastDate = faker.get(key).date().past(atMost, unit, referenceDate);
             Report.updateTestLog(Action, "Generated data: " + pastDate, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, pastDate.toString());
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], pastDate.toString());
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2932,6 +4479,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@01/01/2020:31/12/2020",
+        conditionHelp = "Required. FromDate:ToDate in dd/MM/yyyy format."
+    )
     public void dateBetween() {
         try {
             String strObj = Input;
@@ -2942,9 +4497,16 @@ public class SyntheticDataGenerator extends Command {
             Date endDate = formatter.parse(to);
             Date betweenDate = faker.get(key).date().between(startDate, endDate);
             Report.updateTestLog(Action, "Generated data: " + betweenDate, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, betweenDate.toString());
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], betweenDate.toString());
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2963,14 +4525,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void birthday() {
         try {
             String strObj = Input;
             Date birthdayDate = faker.get(key).date().birthday();
             Report.updateTestLog(Action, "Generated data: " + birthdayDate, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, birthdayDate.toString());
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], birthdayDate.toString());
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -2989,6 +4565,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@18:65",
+        conditionHelp = "Required. MinAge:MaxAge, e.g. 18:65."
+    )
     public void birthdayWithinRange() {
         try {
             String strObj = Input;
@@ -2998,9 +4582,16 @@ public class SyntheticDataGenerator extends Command {
             int maxAge = Integer.parseInt(to);
             Date birthdayDate = faker.get(key).date().birthday(minAge, maxAge);
             Report.updateTestLog(Action, "Generated data: " + birthdayDate, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, birthdayDate.toString());
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], birthdayDate.toString());
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3019,14 +4610,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void race() {
         try {
             String strObj = Input;
             String race = faker.get(key).demographic().race();
             Report.updateTestLog(Action, "Generated data: " + race, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, race);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], race);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3045,14 +4650,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void educationalAttainment() {
         try {
             String strObj = Input;
             String educationalAttainment = faker.get(key).demographic().educationalAttainment();
             Report.updateTestLog(Action, "Generated data: " + educationalAttainment, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, educationalAttainment);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], educationalAttainment);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3071,14 +4690,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void sex() {
         try {
             String strObj = Input;
             String sex = faker.get(key).demographic().sex();
             Report.updateTestLog(Action, "Generated data: " + sex, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, sex);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], sex);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3097,14 +4730,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void maritalStatus() {
         try {
             String strObj = Input;
             String maritalStatus = faker.get(key).demographic().maritalStatus();
             Report.updateTestLog(Action, "Generated data: " + maritalStatus, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, maritalStatus);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], maritalStatus);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3123,14 +4770,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void demonym() {
         try {
             String strObj = Input;
             String demonym = faker.get(key).demographic().demonym();
             Report.updateTestLog(Action, "Generated data: " + demonym, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, demonym);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], demonym);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3149,14 +4810,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void dogName() {
         try {
             String strObj = Input;
             String name = faker.get(key).dog().name();
             Report.updateTestLog(Action, "Generated data: " + name, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, name);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], name);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3175,14 +4850,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void dogBreed() {
         try {
             String strObj = Input;
             String breed = faker.get(key).dog().breed();
             Report.updateTestLog(Action, "Generated data: " + breed, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, breed);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], breed);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3201,14 +4890,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void dogSound() {
         try {
             String strObj = Input;
             String sound = faker.get(key).dog().sound();
             Report.updateTestLog(Action, "Generated data: " + sound, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, sound);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], sound);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3227,14 +4930,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void dogAge() {
         try {
             String strObj = Input;
             String age = faker.get(key).dog().age();
             Report.updateTestLog(Action, "Generated data: " + age, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, age);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], age);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3253,14 +4970,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void dogCoatLength() {
         try {
             String strObj = Input;
             String coatLength = faker.get(key).dog().coatLength();
             Report.updateTestLog(Action, "Generated data: " + coatLength, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, coatLength);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], coatLength);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3279,14 +5010,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void dogSize() {
         try {
             String strObj = Input;
             String size = faker.get(key).dog().size();
             Report.updateTestLog(Action, "Generated data: " + size, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, size);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], size);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3305,14 +5050,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void dogGender() {
         try {
             String strObj = Input;
             String gender = faker.get(key).dog().gender();
             Report.updateTestLog(Action, "Generated data: " + gender, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, gender);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], gender);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3331,14 +5090,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void memePhrase() {
         try {
             String strObj = Input;
             String memePhrase = faker.get(key).dog().memePhrase();
             Report.updateTestLog(Action, "Generated data: " + memePhrase, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, memePhrase);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], memePhrase);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3357,14 +5130,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void characterDragonBall() {
         try {
             String strObj = Input;
             String character = faker.get(key).dragonBall().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, character);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], character);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3383,14 +5170,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void university() {
         try {
             String strObj = Input;
             String university = faker.get(key).educator().university();
             Report.updateTestLog(Action, "Generated data: " + university, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, university);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], university);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3409,14 +5210,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void course() {
         try {
             String strObj = Input;
             String course = faker.get(key).educator().course();
             Report.updateTestLog(Action, "Generated data: " + course, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, course);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], course);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3435,14 +5250,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void campus() {
         try {
             String strObj = Input;
             String campus = faker.get(key).educator().campus();
             Report.updateTestLog(Action, "Generated data: " + campus, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, campus);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], campus);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3461,14 +5290,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void secondarySchool() {
         try {
             String strObj = Input;
             String secondarySchool = faker.get(key).educator().secondarySchool();
             Report.updateTestLog(Action, "Generated data: " + secondarySchool, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, secondarySchool);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], secondarySchool);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3487,14 +5330,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void esportsTeam() {
         try {
             String strObj = Input;
             String team = faker.get(key).esports().team();
             Report.updateTestLog(Action, "Generated data: " + team, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, team);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], team);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3513,14 +5370,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void esportsPlayer() {
         try {
             String strObj = Input;
             String player = faker.get(key).esports().player();
             Report.updateTestLog(Action, "Generated data: " + player, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, player);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], player);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3539,14 +5410,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void esportsGame() {
         try {
             String strObj = Input;
             String game = faker.get(key).esports().game();
             Report.updateTestLog(Action, "Generated data: " + game, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, game);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], game);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3565,14 +5450,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void esportsEvent() {
         try {
             String strObj = Input;
             String event = faker.get(key).esports().event();
             Report.updateTestLog(Action, "Generated data: " + event, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, event);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], event);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3591,14 +5490,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void esportsLeague() {
         try {
             String strObj = Input;
             String league = faker.get(key).esports().league();
             Report.updateTestLog(Action, "Generated data: " + league, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, league);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], league);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3617,14 +5530,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void fileName() {
         try {
             String strObj = Input;
             String fileName = faker.get(key).file().fileName();
             Report.updateTestLog(Action, "Generated data: " + fileName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, fileName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], fileName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3643,6 +5570,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@dir:name:txt:_",
+        conditionHelp = "Required. Dir:Name:Extension:Separator (any segment may be blank)."
+    )
     public void fileNameWithDetails() {
         try {
             String strObj = Input;
@@ -3655,9 +5590,16 @@ public class SyntheticDataGenerator extends Command {
                 .file()
                 .fileName(dirOrNull, nameOrNull, extensionOrNull, separatorOrNull);
             Report.updateTestLog(Action, "Generated data: " + fileName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, fileName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], fileName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3676,14 +5618,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void mimeType() {
         try {
             String strObj = Input;
             String mimeType = faker.get(key).file().mimeType();
             Report.updateTestLog(Action, "Generated data: " + mimeType, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, mimeType);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], mimeType);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3699,16 +5655,30 @@ public class SyntheticDataGenerator extends Command {
     @Action(
         object = ObjectType.DATA,
         desc = "Generate a random file name with an optional file extension",
-        input = InputType.NO
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
     )
     public void fileNameWithExtension() {
         try {
             String strObj = Input;
             String fileNameWithExtension = faker.get(key).file().extension();
             Report.updateTestLog(Action, "Generated data: " + fileNameWithExtension, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, fileNameWithExtension);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], fileNameWithExtension);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3727,14 +5697,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void financeCreditCardNumber() {
         try {
             String strObj = Input;
             String creditCard = faker.get(key).finance().creditCard();
             Report.updateTestLog(Action, "Generated data: " + creditCard, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, creditCard);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], creditCard);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3753,6 +5737,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@VISA",
+        conditionHelp = "Required. A com.github.javafaker.CreditCardType constant name, e.g. VISA, MASTERCARD, AMERICAN_EXPRESS."
+    )
     public void creditCardNumberBasedOnType() {
         try {
             String strObj = Input;
@@ -3760,9 +5752,16 @@ public class SyntheticDataGenerator extends Command {
             CreditCardType creditCardType = CreditCardType.valueOf(type);
             String creditCard = faker.get(key).finance().creditCard(creditCardType);
             Report.updateTestLog(Action, "Generated data: " + creditCard, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, creditCard);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], creditCard);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3781,14 +5780,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void bic() {
         try {
             String strObj = Input;
             String bic = faker.get(key).finance().bic();
             Report.updateTestLog(Action, "Generated data: " + bic, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, bic);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], bic);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3807,14 +5820,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void iban() {
         try {
             String strObj = Input;
             String iban = faker.get(key).finance().iban();
             Report.updateTestLog(Action, "Generated data: " + iban, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, iban);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], iban);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3833,15 +5860,30 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@DE",
+        conditionHelp = "Required. Two-letter country code for the IBAN, e.g. DE, FR."
+    )
     public void ibanByCountry() {
         try {
             String strObj = Input;
             String countryCode = Condition;
             String iban = faker.get(key).finance().iban(countryCode);
             Report.updateTestLog(Action, "Generated data: " + iban, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, iban);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], iban);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3860,14 +5902,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void ingredient() {
         try {
             String strObj = Input;
             String ingredient = faker.get(key).food().ingredient();
             Report.updateTestLog(Action, "Generated data: " + ingredient, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, ingredient);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], ingredient);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3886,14 +5942,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void spice() {
         try {
             String strObj = Input;
             String spice = faker.get(key).food().spice();
             Report.updateTestLog(Action, "Generated data: " + spice, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, spice);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], spice);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3912,14 +5982,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void measurement() {
         try {
             String strObj = Input;
             String measurement = faker.get(key).food().measurement();
             Report.updateTestLog(Action, "Generated data: " + measurement, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, measurement);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], measurement);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3938,14 +6022,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void characterFriends() {
         try {
             String strObj = Input;
             String character = faker.get(key).friends().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, character);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], character);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3964,14 +6062,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void locationFriends() {
         try {
             String strObj = Input;
             String location = faker.get(key).friends().location();
             Report.updateTestLog(Action, "Generated data: " + location, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, location);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], location);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -3990,14 +6102,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteFriends() {
         try {
             String strObj = Input;
             String quote = faker.get(key).friends().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4016,14 +6142,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void funnyName() {
         try {
             String strObj = Input;
             String name = faker.get(key).funnyName().name();
             Report.updateTestLog(Action, "Generated data: " + name, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, name);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], name);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4042,14 +6182,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void characterGOT() {
         try {
             String strObj = Input;
             String character = faker.get(key).gameOfThrones().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, character);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], character);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4068,14 +6222,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void houseGOT() {
         try {
             String strObj = Input;
             String house = faker.get(key).gameOfThrones().house();
             Report.updateTestLog(Action, "Generated data: " + house, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, house);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], house);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4094,14 +6262,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void cityGOT() {
         try {
             String strObj = Input;
             String city = faker.get(key).gameOfThrones().city();
             Report.updateTestLog(Action, "Generated data: " + city, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, city);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], city);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4120,14 +6302,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void dragonGOT() {
         try {
             String strObj = Input;
             String dragon = faker.get(key).gameOfThrones().dragon();
             Report.updateTestLog(Action, "Generated data: " + dragon, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, dragon);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], dragon);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4146,14 +6342,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteGOT() {
         try {
             String strObj = Input;
             String quote = faker.get(key).gameOfThrones().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4172,14 +6382,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void hackerAbbreviation() {
         try {
             String strObj = Input;
             String abbreviation = faker.get(key).hacker().abbreviation();
             Report.updateTestLog(Action, "Generated data: " + abbreviation, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, abbreviation);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], abbreviation);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4198,14 +6422,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void hackerAdjective() {
         try {
             String strObj = Input;
             String adjective = faker.get(key).hacker().adjective();
             Report.updateTestLog(Action, "Generated data: " + adjective, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, adjective);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], adjective);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4224,14 +6462,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void hackerNoun() {
         try {
             String strObj = Input;
             String noun = faker.get(key).hacker().noun();
             Report.updateTestLog(Action, "Generated data: " + noun, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, noun);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], noun);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4250,14 +6502,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void hackerVerb() {
         try {
             String strObj = Input;
             String verb = faker.get(key).hacker().verb();
             Report.updateTestLog(Action, "Generated data: " + verb, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, verb);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], verb);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4276,14 +6542,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void hackerIngVerb() {
         try {
             String strObj = Input;
             String ingVerb = faker.get(key).hacker().ingverb();
             Report.updateTestLog(Action, "Generated data: " + ingVerb, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, ingVerb);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], ingVerb);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4302,14 +6582,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void characterHarryPotter() {
         try {
             String strObj = Input;
             String character = faker.get(key).harryPotter().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, character);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], character);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4328,14 +6622,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void locationHarryPotter() {
         try {
             String strObj = Input;
             String location = faker.get(key).harryPotter().location();
             Report.updateTestLog(Action, "Generated data: " + location, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, location);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], location);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4354,14 +6662,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteHarryPotter() {
         try {
             String strObj = Input;
             String quote = faker.get(key).harryPotter().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4380,14 +6702,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void bookHarryPotter() {
         try {
             String strObj = Input;
             String book = faker.get(key).harryPotter().book();
             Report.updateTestLog(Action, "Generated data: " + book, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, book);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], book);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4406,14 +6742,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void hipsterWord() {
         try {
             String strObj = Input;
             String word = faker.get(key).hipster().word();
             Report.updateTestLog(Action, "Generated data: " + word, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, word);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], word);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4432,14 +6782,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void characterHitchhiker() {
         try {
             String strObj = Input;
             String character = faker.get(key).hitchhikersGuideToTheGalaxy().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, character);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], character);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4458,14 +6822,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void locationHitchhiker() {
         try {
             String strObj = Input;
             String location = faker.get(key).hitchhikersGuideToTheGalaxy().location();
             Report.updateTestLog(Action, "Generated data: " + location, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, location);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], location);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4484,14 +6862,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void marvinQuoteHitchhiker() {
         try {
             String strObj = Input;
             String quote = faker.get(key).hitchhikersGuideToTheGalaxy().marvinQuote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4510,14 +6902,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteHitchhiker() {
         try {
             String strObj = Input;
             String quote = faker.get(key).hitchhikersGuideToTheGalaxy().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4536,14 +6942,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void planetHitchhiker() {
         try {
             String strObj = Input;
             String planet = faker.get(key).hitchhikersGuideToTheGalaxy().planet();
             Report.updateTestLog(Action, "Generated data: " + planet, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, planet);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], planet);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4562,14 +6982,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void specieHitchhiker() {
         try {
             String strObj = Input;
             String species = faker.get(key).hitchhikersGuideToTheGalaxy().specie();
             Report.updateTestLog(Action, "Generated data: " + species, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, species);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], species);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4588,14 +7022,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void starshipHitchhiker() {
         try {
             String strObj = Input;
             String starShip = faker.get(key).hitchhikersGuideToTheGalaxy().starship();
             Report.updateTestLog(Action, "Generated data: " + starShip, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, starShip);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], starShip);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4614,14 +7062,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void characterHobbit() {
         try {
             String strObj = Input;
             String character = faker.get(key).hobbit().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, character);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], character);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4640,14 +7102,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void locationHobbit() {
         try {
             String strObj = Input;
             String location = faker.get(key).hobbit().location();
             Report.updateTestLog(Action, "Generated data: " + location, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, location);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], location);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4666,14 +7142,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteHobbit() {
         try {
             String strObj = Input;
             String quote = faker.get(key).hobbit().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4692,14 +7182,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void thorinsCompanyHobbit() {
         try {
             String strObj = Input;
             String company = faker.get(key).hobbit().thorinsCompany();
             Report.updateTestLog(Action, "Generated data: " + company, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, company);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], company);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4718,14 +7222,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void characterHowIMetYourMother() {
         try {
             String strObj = Input;
             String character = faker.get(key).howIMetYourMother().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, character);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], character);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4744,14 +7262,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteHowIMetYourMother() {
         try {
             String strObj = Input;
             String quote = faker.get(key).howIMetYourMother().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4770,14 +7302,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void catchPhraseHowIMetYourMother() {
         try {
             String strObj = Input;
             String catchphrase = faker.get(key).howIMetYourMother().catchPhrase();
             Report.updateTestLog(Action, "Generated data: " + catchphrase, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, catchphrase);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], catchphrase);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4796,14 +7342,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void highFiveHowIMetYourMother() {
         try {
             String strObj = Input;
             String highFive = faker.get(key).howIMetYourMother().highFive();
             Report.updateTestLog(Action, "Generated data: " + highFive, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, highFive);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], highFive);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4822,14 +7382,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void validIdNumber() {
         try {
             String strObj = Input;
             String validId = faker.get(key).idNumber().valid();
             Report.updateTestLog(Action, "Generated data: " + validId, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, validId);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], validId);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4848,14 +7422,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void invalidIdNumber() {
         try {
             String strObj = Input;
             String invalidId = faker.get(key).idNumber().invalid();
             Report.updateTestLog(Action, "Generated data: " + invalidId, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, invalidId);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], invalidId);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4874,14 +7462,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void validSsn() {
         try {
             String strObj = Input;
             String validSsn = faker.get(key).idNumber().validSvSeSsn();
             Report.updateTestLog(Action, "Generated data: " + validSsn, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, validSsn);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], validSsn);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4900,14 +7502,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void invalidSsn() {
         try {
             String strObj = Input;
             String invalidSsn = faker.get(key).idNumber().invalidSvSeSsn();
             Report.updateTestLog(Action, "Generated data: " + invalidSsn, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, invalidSsn);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], invalidSsn);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4926,14 +7542,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void ssnValid() {
         try {
             String strObj = Input;
             String ssnValid = faker.get(key).idNumber().ssnValid();
             Report.updateTestLog(Action, "Generated data: " + ssnValid, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, ssnValid);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], ssnValid);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4952,14 +7582,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void emailAddress() {
         try {
             String strObj = Input;
             String email = faker.get(key).internet().emailAddress();
             Report.updateTestLog(Action, "Generated data: " + email, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, email);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], email);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -4978,15 +7622,30 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@john.doe",
+        conditionHelp = "Required. Local part to use before the @ in the generated email address."
+    )
     public void emailAddressWithLocalPart() {
         try {
             String strObj = Input;
             String localPart = Condition;
             String email = faker.get(key).internet().emailAddress(localPart);
             Report.updateTestLog(Action, "Generated data: " + email, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, email);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], email);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5005,14 +7664,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void safeEmailAddress() {
         try {
             String strObj = Input;
             String safeEmail = faker.get(key).internet().safeEmailAddress();
             Report.updateTestLog(Action, "Generated data: " + safeEmail, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, safeEmail);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], safeEmail);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5031,15 +7704,30 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@john.doe",
+        conditionHelp = "Required. Local part to use before the @ in the generated safe email address."
+    )
     public void safeEmailAddressWithLocalPart() {
         try {
             String strObj = Input;
             String localPart = Condition;
             String safeEmail = faker.get(key).internet().safeEmailAddress(localPart);
             Report.updateTestLog(Action, "Generated data: " + safeEmail, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, safeEmail);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], safeEmail);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5058,14 +7746,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void domainName() {
         try {
             String strObj = Input;
             String domainName = faker.get(key).internet().domainName();
             Report.updateTestLog(Action, "Generated data: " + domainName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, domainName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], domainName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5084,14 +7786,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void domainSuffix() {
         try {
             String strObj = Input;
             String domainSuffix = faker.get(key).internet().domainSuffix();
             Report.updateTestLog(Action, "Generated data " + domainSuffix, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, domainSuffix);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], domainSuffix);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5110,14 +7826,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void domainWord() {
         try {
             String strObj = Input;
             String domainWord = faker.get(key).internet().domainWord();
             Report.updateTestLog(Action, "Generated data: " + domainWord, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, domainWord);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], domainWord);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5136,14 +7866,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void internetUrl() {
         try {
             String strObj = Input;
             String url = faker.get(key).internet().url();
             Report.updateTestLog(Action, "Generated data: " + url, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, url);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], url);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5162,14 +7906,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void ipV4Address() {
         try {
             String strObj = Input;
             String ipV4 = faker.get(key).internet().ipV4Address();
             Report.updateTestLog(Action, "Generated data: " + ipV4, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, ipV4);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], ipV4);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5188,14 +7946,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void ipV6Address() {
         try {
             String strObj = Input;
             String ipV6 = faker.get(key).internet().ipV6Address();
             Report.updateTestLog(Action, "Generated data: " + ipV6, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, ipV6);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], ipV6);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5214,14 +7986,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void ipV4Cidr() {
         try {
             String strObj = Input;
             String ipV4 = faker.get(key).internet().ipV4Cidr();
             Report.updateTestLog(Action, "Generated data: " + ipV4, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, ipV4);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], ipV4);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5240,14 +8026,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void ipV6Cidr() {
         try {
             String strObj = Input;
             String ipV6 = faker.get(key).internet().ipV6Cidr();
             Report.updateTestLog(Action, "Generated data: " + ipV6, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, ipV6);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], ipV6);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5266,14 +8066,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void macAddress() {
         try {
             String strObj = Input;
             String macAddress = faker.get(key).internet().macAddress();
             Report.updateTestLog(Action, "Generated data: " + macAddress, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, macAddress);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], macAddress);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5292,15 +8106,29 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void macAddressWithPrefix() {
         try {
             String strObj = Input;
             String prefix = "A32";
             String macAddress = faker.get(key).internet().macAddress(prefix);
             Report.updateTestLog(Action, "Generated data: " + macAddress, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, macAddress);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], macAddress);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5319,14 +8147,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void privateIpV4Address() {
         try {
             String strObj = Input;
             String ipV4 = faker.get(key).internet().privateIpV4Address();
             Report.updateTestLog(Action, "Generated data: " + ipV4, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, ipV4);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], ipV4);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5345,14 +8187,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void publicIpV6Address() {
         try {
             String strObj = Input;
             String ipV6 = faker.get(key).internet().publicIpV4Address();
             Report.updateTestLog(Action, "Generated data: " + ipV6, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, ipV6);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], ipV6);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5371,14 +8227,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void internetAvatar() {
         try {
             String strObj = Input;
             String avatar = faker.get(key).internet().avatar();
             Report.updateTestLog(Action, "Generated data: " + avatar, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, avatar);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], avatar);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5397,14 +8267,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void internetImage() {
         try {
             String strObj = Input;
             String image = faker.get(key).internet().image();
             Report.updateTestLog(Action, "Generated data: " + image, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, image);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], image);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5423,6 +8307,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@640:480:false:profile",
+        conditionHelp = "Required. Width:Height:Gray:Text, e.g. 640:480:false:profile."
+    )
     public void internetImageWithSpecs() {
         try {
             String strObj = Input;
@@ -5435,9 +8327,16 @@ public class SyntheticDataGenerator extends Command {
             Boolean gray = Boolean.valueOf(grayStr);
             String image = faker.get(key).internet().image(width, height, gray, text);
             Report.updateTestLog(Action, "Generated data: " + image, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, image);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], image);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5456,6 +8355,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@8:16",
+        conditionHelp = "Required. MinLength:MaxLength, e.g. 8:16."
+    )
     public void internetPasswordWithLength() {
         try {
             String strObj = Input;
@@ -5465,9 +8372,16 @@ public class SyntheticDataGenerator extends Command {
             int maxLength = Integer.parseInt(maxStr);
             String password = faker.get(key).internet().password(minLength, maxLength);
             Report.updateTestLog(Action, "Generated data: " + password, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, password);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], password);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5486,14 +8400,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void internetPassword() {
         try {
             String strObj = Input;
             String password = faker.get(key).internet().password();
             Report.updateTestLog(Action, "Generated data: " + password, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, password);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], password);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5512,15 +8440,29 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void internetPasswordWithDigits() {
         try {
             String strObj = Input;
             boolean includeDigit = true;
             String password = faker.get(key).internet().password(includeDigit);
             Report.updateTestLog(Action, "Generated data: " + password, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, password);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], password);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5539,6 +8481,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@8:16",
+        conditionHelp = "Required. MinLength:MaxLength, e.g. 8:16 (uppercase always included)."
+    )
     public void internetPasswordWithLengthUppercase() {
         try {
             String strObj = Input;
@@ -5552,9 +8502,16 @@ public class SyntheticDataGenerator extends Command {
                 .internet()
                 .password(minLength, maxLength, includeUppercase);
             Report.updateTestLog(Action, "Generated data: " + password, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, password);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], password);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5573,6 +8530,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@8:16",
+        conditionHelp = "Required. MinLength:MaxLength, e.g. 8:16 (uppercase and special chars always included)."
+    )
     public void internetPasswordWithLengthUppercaseSpecial() {
         try {
             String strObj = Input;
@@ -5587,9 +8552,16 @@ public class SyntheticDataGenerator extends Command {
                 .internet()
                 .password(minLength, maxLength, includeUppercase, includeSpecial);
             Report.updateTestLog(Action, "Generated data: " + password, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, password);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], password);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5608,6 +8580,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@8:16",
+        conditionHelp = "Required. MinLength:MaxLength, e.g. 8:16 (uppercase, special chars and digits always included)."
+    )
     public void internetPasswordwithUppercaseSpecialDigit() {
         try {
             String strObj = Input;
@@ -5623,9 +8603,16 @@ public class SyntheticDataGenerator extends Command {
                 .internet()
                 .password(minLength, maxLength, includeUppercase, includeSpecial, includeDigit);
             Report.updateTestLog(Action, "Generated data: " + password, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, password);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], password);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5644,14 +8631,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void slug() {
         try {
             String strObj = Input;
             String slug = faker.get(key).internet().slug();
             Report.updateTestLog(Action, "Generated data: " + slug, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, slug);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], slug);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5670,6 +8671,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@word1:word2:-",
+        conditionHelp = "Required. Colon-separated words followed by the glue character, e.g. word1:word2:-."
+    )
     public void slugWithSpecs() {
         try {
             String strObj = Input;
@@ -5682,9 +8691,16 @@ public class SyntheticDataGenerator extends Command {
             String glueOrNull = Condition.split(":", count + 1)[count];
             String slug = faker.get(key).internet().slug(wordsOrNull, glueOrNull);
             Report.updateTestLog(Action, "Generated data: " + slug, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, slug);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], slug);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5703,6 +8719,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@CHROME",
+        conditionHelp = "Required. A com.github.javafaker.Internet.UserAgent constant name, e.g. CHROME, FIREFOX, SAFARI."
+    )
     public void userAgentWithAgentType() {
         try {
             String strObj = Input;
@@ -5710,9 +8734,16 @@ public class SyntheticDataGenerator extends Command {
             Internet.UserAgent userAgent = Internet.UserAgent.valueOf(option);
             String userAgent1 = faker.get(key).internet().userAgent(userAgent);
             Report.updateTestLog(Action, "Generated data: " + userAgent1, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, userAgent1);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], userAgent1);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5731,14 +8762,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void userAgentAny() {
         try {
             String strObj = Input;
             String userAgentAny = faker.get(key).internet().userAgentAny();
             Report.updateTestLog(Action, "Generated data: " + userAgentAny, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, userAgentAny);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], userAgentAny);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5757,14 +8802,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void internetUUID() {
         try {
             String strObj = Input;
             String uuid = faker.get(key).internet().uuid();
             Report.updateTestLog(Action, "Generated data: " + uuid, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, uuid);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], uuid);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5783,14 +8842,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void jobTitle() {
         try {
             String strObj = Input;
             String jobTitle = faker.get(key).job().title();
             Report.updateTestLog(Action, "Generated data: " + jobTitle, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, jobTitle);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], jobTitle);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5809,14 +8882,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void jobField() {
         try {
             String strObj = Input;
             String jobField = faker.get(key).job().field();
             Report.updateTestLog(Action, "Generated data: " + jobField, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, jobField);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], jobField);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5835,14 +8922,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void jobKeySkills() {
         try {
             String strObj = Input;
             String keySkill = faker.get(key).job().keySkills();
             Report.updateTestLog(Action, "Generated data: " + keySkill, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, keySkill);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], keySkill);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5861,14 +8962,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void jobSeniority() {
         try {
             String strObj = Input;
             String seniority = faker.get(key).job().seniority();
             Report.updateTestLog(Action, "Generated data: " + seniority, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, seniority);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], seniority);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5887,14 +9002,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void jobPosition() {
         try {
             String strObj = Input;
             String position = faker.get(key).job().position();
             Report.updateTestLog(Action, "Generated data: " + position, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, position);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], position);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5913,14 +9042,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void championLOL() {
         try {
             String strObj = Input;
             String champion = faker.get(key).leagueOfLegends().champion();
             Report.updateTestLog(Action, "Generated data: " + champion, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, champion);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], champion);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5939,14 +9082,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void summonerSpellLOL() {
         try {
             String strObj = Input;
             String summonerSpell = faker.get(key).leagueOfLegends().summonerSpell();
             Report.updateTestLog(Action, "Generated data: " + summonerSpell, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, summonerSpell);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], summonerSpell);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5965,14 +9122,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void masteriesLOL() {
         try {
             String strObj = Input;
             String mastery = faker.get(key).leagueOfLegends().masteries();
             Report.updateTestLog(Action, "Generated data: " + mastery, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, mastery);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], mastery);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -5991,14 +9162,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteLOL() {
         try {
             String strObj = Input;
             String quote = faker.get(key).leagueOfLegends().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6017,14 +9202,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void rankLOL() {
         try {
             String strObj = Input;
             String rank = faker.get(key).leagueOfLegends().rank();
             Report.updateTestLog(Action, "Generated data: " + rank, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, rank);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], rank);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6043,14 +9242,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void locationLOL() {
         try {
             String strObj = Input;
             String location = faker.get(key).leagueOfLegends().location();
             Report.updateTestLog(Action, "Generated data: " + location, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, location);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], location);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6069,14 +9282,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void characterLebowski() {
         try {
             String strObj = Input;
             String character = faker.get(key).lebowski().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, character);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], character);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6095,14 +9322,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteLebowski() {
         try {
             String strObj = Input;
             String quote = faker.get(key).lebowski().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6121,14 +9362,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void actorLebowski() {
         try {
             String strObj = Input;
             String actor = faker.get(key).lebowski().actor();
             Report.updateTestLog(Action, "Generated data: " + actor, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, actor);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], actor);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6147,14 +9402,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void characterLordOfTheRings() {
         try {
             String strObj = Input;
             String character = faker.get(key).lordOfTheRings().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, character);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], character);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6173,14 +9442,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void locationLordOfTheRings() {
         try {
             String strObj = Input;
             String location = faker.get(key).lordOfTheRings().location();
             Report.updateTestLog(Action, "Generated data: " + location, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, location);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], location);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6199,14 +9482,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void loremWord() {
         try {
             String strObj = Input;
             String word = faker.get(key).lorem().word();
             Report.updateTestLog(Action, "Generated data: " + word, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, word);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], word);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6225,14 +9522,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void loremWords() {
         try {
             String strObj = Input;
             List<String> word = faker.get(key).lorem().words();
             Report.updateTestLog(Action, "Generated data: " + word, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, word.toString());
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], word.toString());
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6251,6 +9562,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@5",
+        conditionHelp = "Required. Number of words to generate."
+    )
     public void loremWordsWithCount() {
         try {
             String strObj = Input;
@@ -6258,9 +9577,16 @@ public class SyntheticDataGenerator extends Command {
             int count = Integer.parseInt(countStr);
             List<String> words = faker.get(key).lorem().words(count);
             Report.updateTestLog(Action, "Generated data: " + words, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, words.toString());
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], words.toString());
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6279,14 +9605,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void sentence() {
         try {
             String strObj = Input;
             String sentence = faker.get(key).lorem().sentence();
             Report.updateTestLog(Action, "Generated data: " + sentence, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, sentence);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], sentence);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6305,6 +9645,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10",
+        conditionHelp = "Required. Number of words in the sentence."
+    )
     public void sentenceWithCount() {
         try {
             String strObj = Input;
@@ -6316,9 +9664,16 @@ public class SyntheticDataGenerator extends Command {
                 "Generated data: " + sentence + ": " + sentence,
                 Status.DONE
             );
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, sentence);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], sentence);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6337,6 +9692,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10:3",
+        conditionHelp = "Required. WordCount:RandomWordsToAdd."
+    )
     public void sentenceWithCountAndRandomWords() {
         try {
             String strObj = Input;
@@ -6350,9 +9713,16 @@ public class SyntheticDataGenerator extends Command {
                 "Generated data: " + sentence + ": " + sentence,
                 Status.DONE
             );
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, sentence);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], sentence);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6371,6 +9741,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@3",
+        conditionHelp = "Required. Number of sentences to generate."
+    )
     public void sentences() {
         try {
             String strObj = Input;
@@ -6382,9 +9760,16 @@ public class SyntheticDataGenerator extends Command {
                 "Generated data: " + sentence + ": " + sentence,
                 Status.DONE
             );
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, sentence);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], sentence);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6403,14 +9788,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void paragraph() {
         try {
             String strObj = Input;
             String paragraph = faker.get(key).lorem().paragraph();
             Report.updateTestLog(Action, "Generated data: " + paragraph, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, paragraph);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], paragraph);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6429,6 +9828,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@3",
+        conditionHelp = "Required. Number of sentences in the paragraph."
+    )
     public void paragraphWithSentenceCount() {
         try {
             String strObj = Input;
@@ -6440,9 +9847,16 @@ public class SyntheticDataGenerator extends Command {
                 "Generated data: " + sentenceCount + ": " + paragraph,
                 Status.DONE
             );
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, paragraph);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], paragraph);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6461,6 +9875,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@3",
+        conditionHelp = "Required. Number of paragraphs to generate."
+    )
     public void paragraphsWithParagraphCount() {
         try {
             String strObj = Input;
@@ -6468,9 +9890,16 @@ public class SyntheticDataGenerator extends Command {
             int paragraphCount = Integer.parseInt(paragraphCountStr);
             List<String> paragraphs = faker.get(key).lorem().paragraphs(paragraphCount);
             Report.updateTestLog(Action, "Generated data: " + paragraphs, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, paragraphs.toString());
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], paragraphs.toString());
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6489,14 +9918,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void loremCharacter() {
         try {
             String strObj = Input;
             char character = faker.get(key).lorem().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Character.toString(character));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Character.toString(character));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6515,14 +9958,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void loremCharacters() {
         try {
             String strObj = Input;
             String characters = faker.get(key).lorem().characters();
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, characters);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], characters);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6541,15 +9998,29 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void loremCharacterIncludeUpperCase() {
         try {
             String strObj = Input;
             boolean includeUppercase = true;
             char character = faker.get(key).lorem().character(includeUppercase);
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Character.toString(character));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Character.toString(character));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6568,15 +10039,29 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void loremCharactersIncludeUpperCase() {
         try {
             String strObj = Input;
             boolean includeUppercase = true;
             String characters = faker.get(key).lorem().characters(includeUppercase);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, characters);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], characters);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6595,6 +10080,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10",
+        conditionHelp = "Required. Fixed number of characters to generate."
+    )
     public void loremCharactersWithNumberOfChars() {
         try {
             String strObj = Input;
@@ -6602,9 +10095,16 @@ public class SyntheticDataGenerator extends Command {
             int fixedNumberOfCharacters = Integer.parseInt(charsStr);
             String characters = faker.get(key).lorem().characters(fixedNumberOfCharacters);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, characters);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], characters);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6623,6 +10123,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10",
+        conditionHelp = "Required. Fixed number of characters to generate (uppercase allowed)."
+    )
     public void loremCharactersWithNumberOfCharsUpperCase() {
         try {
             String strObj = Input;
@@ -6634,9 +10142,16 @@ public class SyntheticDataGenerator extends Command {
                 .lorem()
                 .characters(fixedNumberOfCharacters, includeUppercase);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, characters);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], characters);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6655,6 +10170,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10",
+        conditionHelp = "Required. Fixed number of characters to generate (uppercase and digits allowed)."
+    )
     public void loremCharactersWithNumberOfCharsUpperCaseDigit() {
         try {
             String strObj = Input;
@@ -6667,9 +10190,16 @@ public class SyntheticDataGenerator extends Command {
                 .lorem()
                 .characters(fixedNumberOfCharacters, includeUppercase, includeDigit);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, characters);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], characters);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6688,6 +10218,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@5:10",
+        conditionHelp = "Required. MinLength:MaxLength."
+    )
     public void loremCharactersWithinLength() {
         try {
             String strObj = Input;
@@ -6697,9 +10235,16 @@ public class SyntheticDataGenerator extends Command {
             int maximumLength = Integer.parseInt(maxStr);
             String characters = faker.get(key).lorem().characters(minimumLength, maximumLength);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, characters);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], characters);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6718,6 +10263,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@5:10",
+        conditionHelp = "Required. MinLength:MaxLength (uppercase allowed)."
+    )
     public void loremCharactersWithinLengthUpperCase() {
         try {
             String strObj = Input;
@@ -6731,9 +10284,16 @@ public class SyntheticDataGenerator extends Command {
                 .lorem()
                 .characters(minimumLength, maximumLength, includeUppercase);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, characters);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], characters);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6752,6 +10312,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@5:10",
+        conditionHelp = "Required. MinLength:MaxLength (uppercase and digits allowed)."
+    )
     public void loremCharactersWithinLengthUpperCaseDigit() {
         try {
             String strObj = Input;
@@ -6766,9 +10334,16 @@ public class SyntheticDataGenerator extends Command {
                 .lorem()
                 .characters(minimumLength, maximumLength, includeUppercase, includeDigit);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, characters);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], characters);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6787,6 +10362,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10",
+        conditionHelp = "Required. Number of letters to generate."
+    )
     public void loremFixedString() {
         try {
             String strObj = Input;
@@ -6794,9 +10377,16 @@ public class SyntheticDataGenerator extends Command {
             int numberOfLetters = Integer.parseInt(countStr);
             String characters = faker.get(key).lorem().characters(numberOfLetters);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, characters);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], characters);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6815,14 +10405,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteMatz() {
         try {
             String strObj = Input;
             String quote = faker.get(key).matz().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6841,14 +10445,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void diseaseName() {
         try {
             String strObj = Input;
             String disease = faker.get(key).medical().diseaseName();
             Report.updateTestLog(Action, "Generated data: " + disease, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, disease);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], disease);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6867,14 +10485,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void hospitalName() {
         try {
             String strObj = Input;
             String hospital = faker.get(key).medical().hospitalName();
             Report.updateTestLog(Action, "Generated data: " + hospital, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, hospital);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], hospital);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6893,14 +10525,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void medicineName() {
         try {
             String strObj = Input;
             String medication = faker.get(key).medical().medicineName();
             Report.updateTestLog(Action, "Generated data: " + medication, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, medication);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], medication);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6919,14 +10565,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void symptoms() {
         try {
             String strObj = Input;
             String symptom = faker.get(key).medical().symptoms();
             Report.updateTestLog(Action, "Generated data: " + symptom, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, symptom);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], symptom);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6945,14 +10605,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void musicGenre() {
         try {
             String strObj = Input;
             String genre = faker.get(key).music().genre();
             Report.updateTestLog(Action, "Generated data: " + genre, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, genre);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], genre);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6971,14 +10645,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void musicalInstrument() {
         try {
             String strObj = Input;
             String instrument = faker.get(key).music().instrument();
             Report.updateTestLog(Action, "Generated data: " + instrument, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, instrument);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], instrument);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -6997,14 +10685,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void musicChord() {
         try {
             String strObj = Input;
             String chord = faker.get(key).music().chord();
             Report.updateTestLog(Action, "Generated data: " + chord, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, chord);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], chord);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7023,14 +10725,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void musicKey() {
         try {
             String strObj = Input;
             String musicKey = faker.get(key).music().key();
             Report.updateTestLog(Action, "Generated data: " + key, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, key);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], key);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7049,14 +10765,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void firstName() {
         try {
             String strObj = Input;
             String firstName = faker.get(key).name().firstName();
             Report.updateTestLog(Action, "Generated data: " + firstName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, firstName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], firstName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7075,14 +10805,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void lastName() {
         try {
             String strObj = Input;
             String lastName = faker.get(key).name().lastName();
             Report.updateTestLog(Action, "Generated data: " + lastName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, lastName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], lastName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7101,14 +10845,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void fullName() {
         try {
             String strObj = Input;
             String fullName = faker.get(key).name().fullName();
             Report.updateTestLog(Action, "Generated data: " + fullName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, fullName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], fullName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7127,14 +10885,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void namePrefix() {
         try {
             String strObj = Input;
             String prefix = faker.get(key).name().prefix();
             Report.updateTestLog(Action, "Generated data: " + prefix, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, prefix);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], prefix);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7153,14 +10925,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void nameSuffix() {
         try {
             String strObj = Input;
             String suffix = faker.get(key).name().suffix();
             Report.updateTestLog(Action, "Generated data: " + suffix, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, suffix);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], suffix);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7179,14 +10965,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void nameTitle() {
         try {
             String strObj = Input;
             String title = faker.get(key).name().title();
             Report.updateTestLog(Action, "Generated data: " + title, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, title);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], title);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7205,14 +11005,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void username() {
         try {
             String strObj = Input;
             String username = faker.get(key).name().username();
             Report.updateTestLog(Action, "Generated data: " + username, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, username);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], username);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7232,14 +11046,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void name() {
         try {
             String strObj = Input;
             String name = faker.get(key).name().name();
             Report.updateTestLog(Action, "Generated data: " + name, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, name);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], name);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7258,14 +11086,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void nameWithMiddleName() {
         try {
             String strObj = Input;
             String name = faker.get(key).name().nameWithMiddle();
             Report.updateTestLog(Action, "Generated data: " + name, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, name);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], name);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7284,14 +11126,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void digit() {
         try {
             String strObj = Input;
             String digit = faker.get(key).number().digit();
             Report.updateTestLog(Action, "Generated data: " + digit, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, digit);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], digit);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7310,6 +11166,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@5",
+        conditionHelp = "Required. Number of digits to generate."
+    )
     public void digits() {
         try {
             String strObj = Input;
@@ -7317,9 +11181,16 @@ public class SyntheticDataGenerator extends Command {
             int count = Integer.parseInt(countStr);
             String digit = faker.get(key).number().digits(count);
             Report.updateTestLog(Action, "Generated data: " + digit, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, digit);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], digit);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7338,14 +11209,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void randomNumber() {
         try {
             String strObj = Input;
             long randomNumber = faker.get(key).number().randomNumber();
             Report.updateTestLog(Action, "Generated data: " + randomNumber, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Long.toString(randomNumber));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Long.toString(randomNumber));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7364,14 +11249,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void randomDigit() {
         try {
             String strObj = Input;
             int randomDigit = faker.get(key).number().randomDigit();
             Report.updateTestLog(Action, "Generated data: " + randomDigit, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Integer.toString(randomDigit));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Integer.toString(randomDigit));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7390,14 +11289,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void randomDigitNot0() {
         try {
             String strObj = Input;
             int randomDigit = faker.get(key).number().randomDigitNotZero();
             Report.updateTestLog(Action, "Generated data: " + randomDigit, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Integer.toString(randomDigit));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Integer.toString(randomDigit));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7416,6 +11329,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@1:100",
+        conditionHelp = "Required. Min:Max integer range."
+    )
     public void randomIntegerNumberBetween() {
         try {
             String strObj = Input;
@@ -7425,9 +11346,16 @@ public class SyntheticDataGenerator extends Command {
             int max = Integer.parseInt(inputMax);
             int randomNumber = faker.get(key).number().numberBetween(min, max);
             Report.updateTestLog(Action, "Generated data: " + randomNumber, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Integer.toString(randomNumber));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Integer.toString(randomNumber));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7446,6 +11374,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@1:100",
+        conditionHelp = "Required. Min:Max long range."
+    )
     public void randomLongNumberBetween() {
         try {
             String strObj = Input;
@@ -7455,9 +11391,16 @@ public class SyntheticDataGenerator extends Command {
             long max = Long.parseLong(inputMax);
             long randomNumber = faker.get(key).number().numberBetween(min, max);
             Report.updateTestLog(Action, "Generated data: " + randomNumber, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Long.toString(randomNumber));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Long.toString(randomNumber));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7476,6 +11419,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@2:1:100",
+        conditionHelp = "Required. MaxDecimals:Min:Max."
+    )
     public void randomDoubleBetweenIntegers() {
         try {
             String strObj = Input;
@@ -7487,9 +11438,16 @@ public class SyntheticDataGenerator extends Command {
             int max = Integer.parseInt(inputMax);
             Double randomNumber = faker.get(key).number().randomDouble(maxNumOfDecimals, min, max);
             Report.updateTestLog(Action, "Generated data: " + randomNumber, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Double.toString(randomNumber));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Double.toString(randomNumber));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7508,6 +11466,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@2:1:100",
+        conditionHelp = "Required. MaxDecimals:Min:Max."
+    )
     public void randomDoubleBetweenLong() {
         try {
             String strObj = Input;
@@ -7519,9 +11485,16 @@ public class SyntheticDataGenerator extends Command {
             long max = Long.parseLong(inputMax);
             Double randomNumber = faker.get(key).number().randomDouble(maxNumOfDecimals, min, max);
             Report.updateTestLog(Action, "Generated data: " + randomNumber, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Double.toString(randomNumber));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Double.toString(randomNumber));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7540,6 +11513,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@5",
+        conditionHelp = "Required. Number of digits in the generated number."
+    )
     public void randomNumberWithNoOfDigits() {
         try {
             String strObj = Input;
@@ -7548,9 +11529,16 @@ public class SyntheticDataGenerator extends Command {
             boolean strict = true;
             long randomNumber = faker.get(key).number().randomNumber(numOfDigits, strict);
             Report.updateTestLog(Action, "Generated data: " + randomNumber, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Long.toString(randomNumber));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Long.toString(randomNumber));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7569,14 +11557,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void optionFromBoolean() {
         try {
             String strObj = Input;
             boolean randomBoolean = faker.get(key).options().option(Boolean.TRUE, Boolean.FALSE);
             Report.updateTestLog(Action, "Generated data: " + randomBoolean, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Boolean.toString(randomBoolean));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Boolean.toString(randomBoolean));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7595,6 +11597,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@1:2:3",
+        conditionHelp = "Required. Colon-separated list of integers to pick from."
+    )
     public void optionFromIntegers() {
         try {
             String strObj = Input;
@@ -7606,9 +11616,16 @@ public class SyntheticDataGenerator extends Command {
             }
             Integer randomNumber = faker.get(key).options().option(numbersList);
             Report.updateTestLog(Action, "Generated data: " + randomNumber, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Long.toString(randomNumber));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Long.toString(randomNumber));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7627,6 +11644,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@1.1:2.2:3.3",
+        conditionHelp = "Required. Colon-separated list of doubles to pick from."
+    )
     public void optionFromDoubles() {
         try {
             String strObj = Input;
@@ -7638,9 +11663,16 @@ public class SyntheticDataGenerator extends Command {
             }
             Double randomDouble = faker.get(key).options().option(doubleList);
             Report.updateTestLog(Action, "Generated data: " + randomDouble, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Double.toString(randomDouble));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Double.toString(randomDouble));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7659,6 +11691,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@1:2:3",
+        conditionHelp = "Required. Colon-separated list of longs to pick from."
+    )
     public void optionFromLong() {
         try {
             String strObj = Input;
@@ -7670,9 +11710,16 @@ public class SyntheticDataGenerator extends Command {
             }
             Long randomDouble = faker.get(key).options().option(longList);
             Report.updateTestLog(Action, "Generated data: " + randomDouble, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Long.toString(randomDouble));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Long.toString(randomDouble));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7691,6 +11738,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@red:green:blue",
+        conditionHelp = "Required. Colon-separated list of strings to pick from."
+    )
     public void optionFromStrings() {
         try {
             String strObj = Input;
@@ -7702,9 +11757,16 @@ public class SyntheticDataGenerator extends Command {
             }
             String randomString = faker.get(key).options().option(stringList);
             Report.updateTestLog(Action, "Generated data: " + randomString, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, randomString);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], randomString);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7723,6 +11785,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@red:green:blue",
+        conditionHelp = "Required. Colon-separated list of strings to cycle through."
+    )
     public void nextElementStringArray() {
         try {
             String strObj = Input;
@@ -7734,9 +11804,16 @@ public class SyntheticDataGenerator extends Command {
             }
             String element = faker.get(key).options().nextElement(stringList);
             Report.updateTestLog(Action, "Generated data: " + element, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, element);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], element);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7784,14 +11861,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void heroOverWatch() {
         try {
             String strObj = Input;
             String hero = faker.get(key).overwatch().hero();
             Report.updateTestLog(Action, "Generated data: " + hero, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, hero);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], hero);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7810,14 +11901,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void locationOverWatch() {
         try {
             String strObj = Input;
             String location = faker.get(key).overwatch().location();
             Report.updateTestLog(Action, "Generated data: " + location, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, location);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], location);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7836,14 +11941,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteOverWatch() {
         try {
             String strObj = Input;
             String quote = faker.get(key).overwatch().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7862,14 +11981,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void phoneNumber() {
         try {
             String strObj = Input;
             String phoneNumber = faker.get(key).phoneNumber().phoneNumber();
             Report.updateTestLog(Action, "Generated data: " + phoneNumber, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, phoneNumber);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], phoneNumber);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7888,14 +12021,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void cellPhone() {
         try {
             String strObj = Input;
             String phoneNumber = faker.get(key).phoneNumber().cellPhone();
             Report.updateTestLog(Action, "Generated data: " + phoneNumber, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, phoneNumber);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], phoneNumber);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7914,14 +12061,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void namePokemon() {
         try {
             String strObj = Input;
             String pokemonName = faker.get(key).pokemon().name();
             Report.updateTestLog(Action, "Generated data: " + pokemonName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, pokemonName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], pokemonName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7940,14 +12101,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void locationPokemon() {
         try {
             String strObj = Input;
             String pokemonLocation = faker.get(key).pokemon().location();
             Report.updateTestLog(Action, "Generated data: " + pokemonLocation, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, pokemonLocation);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], pokemonLocation);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7966,14 +12141,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void randomHex() {
         try {
             String strObj = Input;
             String hex = faker.get(key).random().hex();
             Report.updateTestLog(Action, "Generated data: " + hex, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, hex);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], hex);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -7992,6 +12181,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@8",
+        conditionHelp = "Required. Length of the generated hex string."
+    )
     public void randomHexWithLength() {
         try {
             String strObj = Input;
@@ -7999,9 +12196,16 @@ public class SyntheticDataGenerator extends Command {
             int length = Integer.parseInt(lengthStr);
             String hex = faker.get(key).random().hex(length);
             Report.updateTestLog(Action, "Generated data: " + hex, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, hex);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], hex);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8020,6 +12224,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@100",
+        conditionHelp = "Required. Exclusive upper bound for the generated integer."
+    )
     public void randomNextIntWithLength() {
         try {
             String strObj = Input;
@@ -8027,9 +12239,16 @@ public class SyntheticDataGenerator extends Command {
             int num = Integer.parseInt(numStr);
             int randomInt = faker.get(key).random().nextInt(num);
             Report.updateTestLog(Action, "Generated data: " + randomInt, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Integer.toString(randomInt));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Integer.toString(randomInt));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8048,6 +12267,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@1:100",
+        conditionHelp = "Required. Min:Max integer range."
+    )
     public void randomNextIntInRange() {
         try {
             String strObj = Input;
@@ -8057,9 +12284,16 @@ public class SyntheticDataGenerator extends Command {
             int max = Integer.parseInt(maxStr);
             int randomInt = faker.get(key).random().nextInt(min, max);
             Report.updateTestLog(Action, "Generated data: " + randomInt, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Integer.toString(randomInt));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Integer.toString(randomInt));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8078,14 +12312,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void randomNextLong() {
         try {
             String strObj = Input;
             long randomLong = faker.get(key).random().nextLong();
             Report.updateTestLog(Action, "Generated data: " + randomLong, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Long.toString(randomLong));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Long.toString(randomLong));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8104,6 +12352,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@100",
+        conditionHelp = "Required. Exclusive upper bound for the generated long."
+    )
     public void randomNextLongWithLength() {
         try {
             String strObj = Input;
@@ -8111,9 +12367,16 @@ public class SyntheticDataGenerator extends Command {
             long num = Long.parseLong(numStr);
             long randomLong = faker.get(key).random().nextLong(num);
             Report.updateTestLog(Action, "Generated data: " + randomLong, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Long.toString(randomLong));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Long.toString(randomLong));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8132,14 +12395,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void randomNextBoolean() {
         try {
             String strObj = Input;
             boolean randomBoolean = faker.get(key).random().nextBoolean();
             Report.updateTestLog(Action, "Generated data: " + randomBoolean, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Boolean.toString(randomBoolean));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Boolean.toString(randomBoolean));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8158,14 +12435,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void randomNextDouble() {
         try {
             String strObj = Input;
             Double randomDouble = faker.get(key).random().nextDouble();
             Report.updateTestLog(Action, "Generated data: " + randomDouble, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, Double.toString(randomDouble));
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], Double.toString(randomDouble));
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8184,14 +12475,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void characterRickAndMorty() {
         try {
             String strObj = Input;
             String character = faker.get(key).rickAndMorty().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, character);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], character);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8210,14 +12515,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void locationRickAndMorty() {
         try {
             String strObj = Input;
             String location = faker.get(key).rickAndMorty().location();
             Report.updateTestLog(Action, "Generated data: " + location, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, location);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], location);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8236,14 +12555,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteRickAndMorty() {
         try {
             String strObj = Input;
             String quote = faker.get(key).rickAndMorty().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8262,14 +12595,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteRobin() {
         try {
             String strObj = Input;
             String quote = faker.get(key).robin().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8288,14 +12635,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void nameRockBand() {
         try {
             String strObj = Input;
             String name = faker.get(key).rockBand().name();
             Report.updateTestLog(Action, "Generated data: " + name, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, name);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], name);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8314,14 +12675,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteHamlet() {
         try {
             String strObj = Input;
             String hamletQuote = faker.get(key).shakespeare().hamletQuote();
             Report.updateTestLog(Action, "Generated data: " + hamletQuote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, hamletQuote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], hamletQuote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8340,14 +12715,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteAsYouLikeIt() {
         try {
             String strObj = Input;
             String asYouLikeItQuote = faker.get(key).shakespeare().asYouLikeItQuote();
             Report.updateTestLog(Action, "Generated data: " + asYouLikeItQuote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, asYouLikeItQuote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], asYouLikeItQuote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8366,14 +12755,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteKingRichard() {
         try {
             String strObj = Input;
             String kingRichardQuote = faker.get(key).shakespeare().kingRichardIIIQuote();
             Report.updateTestLog(Action, "Generated data: " + kingRichardQuote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, kingRichardQuote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], kingRichardQuote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8392,14 +12795,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteRomeoAndJuliet() {
         try {
             String strObj = Input;
             String romeoAndJulietQuote = faker.get(key).shakespeare().romeoAndJulietQuote();
             Report.updateTestLog(Action, "Generated data: " + romeoAndJulietQuote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, romeoAndJulietQuote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], romeoAndJulietQuote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8418,14 +12835,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void slackEmoji() {
         try {
             String strObj = Input;
             String emoji = faker.get(key).slackEmoji().emoji();
             Report.updateTestLog(Action, "Generated data: " + emoji, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, emoji);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], emoji);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8444,14 +12875,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void slackEmojiPeople() {
         try {
             String strObj = Input;
             String peopleEmoji = faker.get(key).slackEmoji().people();
             Report.updateTestLog(Action, "Generated data: " + peopleEmoji, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, peopleEmoji);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], peopleEmoji);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8470,14 +12915,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void slackEmojiNature() {
         try {
             String strObj = Input;
             String natureEmoji = faker.get(key).slackEmoji().nature();
             Report.updateTestLog(Action, "Generated data: " + natureEmoji, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, natureEmoji);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], natureEmoji);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8496,14 +12955,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void slackEmojiFoodAndDrink() {
         try {
             String strObj = Input;
             String foodAndDrinkEmoji = faker.get(key).slackEmoji().foodAndDrink();
             Report.updateTestLog(Action, "Generated data: " + foodAndDrinkEmoji, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, foodAndDrinkEmoji);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], foodAndDrinkEmoji);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8522,14 +12995,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void slackEmojiCelebration() {
         try {
             String strObj = Input;
             String celebrationEmoji = faker.get(key).slackEmoji().celebration();
             Report.updateTestLog(Action, "Generated data: " + celebrationEmoji, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, celebrationEmoji);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], celebrationEmoji);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8548,14 +13035,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void slackEmojiActivity() {
         try {
             String strObj = Input;
             String activityEmoji = faker.get(key).slackEmoji().activity();
             Report.updateTestLog(Action, "Generated data: " + activityEmoji, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, activityEmoji);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], activityEmoji);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8574,14 +13075,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void slackEmojiTravelAndPlaces() {
         try {
             String strObj = Input;
             String travelAndPlacesEmoji = faker.get(key).slackEmoji().travelAndPlaces();
             Report.updateTestLog(Action, "Generated data: " + travelAndPlacesEmoji, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, travelAndPlacesEmoji);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], travelAndPlacesEmoji);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8600,14 +13115,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void slackEmojiObjectsAndSymbols() {
         try {
             String strObj = Input;
             String objectsAndSymbolsEmoji = faker.get(key).slackEmoji().objectsAndSymbols();
             Report.updateTestLog(Action, "Generated data: " + objectsAndSymbolsEmoji, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, objectsAndSymbolsEmoji);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], objectsAndSymbolsEmoji);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8626,14 +13155,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void slackEmojiCustom() {
         try {
             String strObj = Input;
             String customEmoji = faker.get(key).slackEmoji().custom();
             Report.updateTestLog(Action, "Generated data: " + customEmoji, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, customEmoji);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], customEmoji);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8652,14 +13195,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void planet() {
         try {
             String strObj = Input;
             String planet = faker.get(key).space().planet();
             Report.updateTestLog(Action, "Generated data: " + planet, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, planet);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], planet);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8678,14 +13235,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void moon() {
         try {
             String strObj = Input;
             String moon = faker.get(key).space().moon();
             Report.updateTestLog(Action, "Generated data: " + moon, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, moon);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], moon);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8704,14 +13275,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void galaxy() {
         try {
             String strObj = Input;
             String galaxy = faker.get(key).space().galaxy();
             Report.updateTestLog(Action, "Generated data: " + galaxy, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, galaxy);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], galaxy);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8730,14 +13315,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void nebula() {
         try {
             String strObj = Input;
             String nebula = faker.get(key).space().nebula();
             Report.updateTestLog(Action, "Generated data: " + nebula, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, nebula);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], nebula);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8756,14 +13355,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void starCluster() {
         try {
             String strObj = Input;
             String starCluster = faker.get(key).space().starCluster();
             Report.updateTestLog(Action, "Generated data: " + starCluster, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, starCluster);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], starCluster);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8782,14 +13395,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void constellation() {
         try {
             String strObj = Input;
             String constellation = faker.get(key).space().constellation();
             Report.updateTestLog(Action, "Generated data: " + constellation, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, constellation);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], constellation);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8808,14 +13435,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void star() {
         try {
             String strObj = Input;
             String star = faker.get(key).space().star();
             Report.updateTestLog(Action, "Generated data: " + star, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, star);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], star);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8834,14 +13475,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void spaceAgency() {
         try {
             String strObj = Input;
             String agency = faker.get(key).space().agency();
             Report.updateTestLog(Action, "Generated data: " + agency, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, agency);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], agency);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8860,14 +13515,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void spaceAgencyAbbreviation() {
         try {
             String strObj = Input;
             String agencyAbbreviation = faker.get(key).space().agencyAbbreviation();
             Report.updateTestLog(Action, "Generated data: " + agencyAbbreviation, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, agencyAbbreviation);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], agencyAbbreviation);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8886,14 +13555,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void spaceCompany() {
         try {
             String strObj = Input;
             String company = faker.get(key).space().company();
             Report.updateTestLog(Action, "Generated data: " + company, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, company);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], company);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8912,14 +13595,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void distanceMeasurement() {
         try {
             String strObj = Input;
             String distanceMeasurement = faker.get(key).space().distanceMeasurement();
             Report.updateTestLog(Action, "Generated data: " + distanceMeasurement, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, distanceMeasurement);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], distanceMeasurement);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8938,14 +13635,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void meteorite() {
         try {
             String strObj = Input;
             String meteorite = faker.get(key).space().meteorite();
             Report.updateTestLog(Action, "Generated data: " + meteorite, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, meteorite);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], meteorite);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8964,14 +13675,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void nasaSpaceCraft() {
         try {
             String strObj = Input;
             String spaceCraft = faker.get(key).space().nasaSpaceCraft();
             Report.updateTestLog(Action, "Generated data: " + spaceCraft, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, spaceCraft);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], spaceCraft);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -8990,14 +13715,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void characterStarTrek() {
         try {
             String strObj = Input;
             String character = faker.get(key).starTrek().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, character);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], character);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9016,14 +13755,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void locationStarTrek() {
         try {
             String strObj = Input;
             String location = faker.get(key).starTrek().location();
             Report.updateTestLog(Action, "Generated data: " + location, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, location);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], location);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9042,14 +13795,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void specieStarTrek() {
         try {
             String strObj = Input;
             String species = faker.get(key).starTrek().specie();
             Report.updateTestLog(Action, "Generated data: " + species, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, species);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], species);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9068,14 +13835,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void villainStarTrek() {
         try {
             String strObj = Input;
             String villain = faker.get(key).starTrek().villain();
             Report.updateTestLog(Action, "Generated data: " + villain, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, villain);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], villain);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9094,14 +13875,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void nyseSymbol() {
         try {
             String strObj = Input;
             String nyse = faker.get(key).stock().nyseSymbol();
             Report.updateTestLog(Action, "Generated data: " + nyse, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, nyse);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], nyse);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9120,14 +13915,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void nsdqSymbol() {
         try {
             String strObj = Input;
             String nsdq = faker.get(key).stock().nsdqSymbol();
             Report.updateTestLog(Action, "Generated data: " + nsdq, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, nsdq);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], nsdq);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9146,14 +13955,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void superheroName() {
         try {
             String strObj = Input;
             String name = faker.get(key).superhero().name();
             Report.updateTestLog(Action, "Generated data: " + name, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, name);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], name);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9172,14 +13995,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void superheroPower() {
         try {
             String strObj = Input;
             String power = faker.get(key).superhero().power();
             Report.updateTestLog(Action, "Generated data: " + power, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, power);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], power);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9198,14 +14035,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void superheroPrefix() {
         try {
             String strObj = Input;
             String prefix = faker.get(key).superhero().prefix();
             Report.updateTestLog(Action, "Generated data: " + prefix, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, prefix);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], prefix);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9224,14 +14075,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void superheroSuffix() {
         try {
             String strObj = Input;
             String suffix = faker.get(key).superhero().suffix();
             Report.updateTestLog(Action, "Generated data: " + suffix, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, suffix);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], suffix);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9250,14 +14115,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void superheroDescriptor() {
         try {
             String strObj = Input;
             String descriptor = faker.get(key).superhero().descriptor();
             Report.updateTestLog(Action, "Generated data: " + descriptor, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, descriptor);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], descriptor);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9276,14 +14155,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void teamName() {
         try {
             String strObj = Input;
             String teamName = faker.get(key).team().name();
             Report.updateTestLog(Action, "Generated data: " + teamName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, teamName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], teamName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9302,14 +14195,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void teamSport() {
         try {
             String strObj = Input;
             String sport = faker.get(key).team().sport();
             Report.updateTestLog(Action, "Generated data: " + sport, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, sport);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], sport);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9328,14 +14235,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void teamState() {
         try {
             String strObj = Input;
             String state = faker.get(key).team().state();
             Report.updateTestLog(Action, "Generated data: " + state, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, state);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], state);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9354,14 +14275,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void teamCreature() {
         try {
             String strObj = Input;
             String creature = faker.get(key).team().creature();
             Report.updateTestLog(Action, "Generated data: " + creature, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, creature);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], creature);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9380,14 +14315,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void characterTwinPeaks() {
         try {
             String strObj = Input;
             String character = faker.get(key).twinPeaks().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, character);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], character);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9406,14 +14355,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void locationTwinPeaks() {
         try {
             String strObj = Input;
             String location = faker.get(key).twinPeaks().location();
             Report.updateTestLog(Action, "Generated data: " + location, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, location);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], location);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9432,14 +14395,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteTwinPeaks() {
         try {
             String strObj = Input;
             String quote = faker.get(key).twinPeaks().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9458,14 +14435,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void universityName() {
         try {
             String strObj = Input;
             String universityName = faker.get(key).university().name();
             Report.updateTestLog(Action, "Generated data: " + universityName, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, universityName);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], universityName);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9484,14 +14475,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void universityPrefix() {
         try {
             String strObj = Input;
             String universityPrefix = faker.get(key).university().prefix();
             Report.updateTestLog(Action, "Generated data: " + universityPrefix, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, universityPrefix);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], universityPrefix);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9510,14 +14515,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void universitySuffix() {
         try {
             String strObj = Input;
             String universitySuffix = faker.get(key).university().suffix();
             Report.updateTestLog(Action, "Generated data: " + universitySuffix, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, universitySuffix);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], universitySuffix);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9536,14 +14555,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void weatherDescription() {
         try {
             String strObj = Input;
             String description = faker.get(key).weather().description();
             Report.updateTestLog(Action, "Generated data: " + description, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, description);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], description);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9562,14 +14595,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void temperatureCelsius() {
         try {
             String strObj = Input;
             String temperature = faker.get(key).weather().temperatureCelsius();
             Report.updateTestLog(Action, "Generated data: " + temperature, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, temperature);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], temperature);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9588,14 +14635,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void temperatureFahrenheit() {
         try {
             String strObj = Input;
             String temperature = faker.get(key).weather().temperatureFahrenheit();
             Report.updateTestLog(Action, "Generated data: " + temperature, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, temperature);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], temperature);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9614,6 +14675,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@10:30",
+        conditionHelp = "Required. MinTemp:MaxTemp in Celsius."
+    )
     public void temperatureCelsiusWithinRange() {
         try {
             String strObj = Input;
@@ -9623,9 +14692,16 @@ public class SyntheticDataGenerator extends Command {
             int maxTemp = Integer.parseInt(maxTempStr);
             String temperature = faker.get(key).weather().temperatureCelsius(minTemp, maxTemp);
             Report.updateTestLog(Action, "Generated data: " + temperature, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, temperature);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], temperature);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9644,6 +14720,14 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@50:90",
+        conditionHelp = "Required. MinTemp:MaxTemp in Fahrenheit."
+    )
     public void temperatureFahrenheitWithinRange() {
         try {
             String strObj = Input;
@@ -9653,9 +14737,16 @@ public class SyntheticDataGenerator extends Command {
             int maxTemp = Integer.parseInt(maxTempStr);
             String temperature = faker.get(key).weather().temperatureFahrenheit(minTemp, maxTemp);
             Report.updateTestLog(Action, "Generated data: " + temperature, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, temperature);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], temperature);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9674,14 +14765,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void characterWitcher() {
         try {
             String strObj = Input;
             String character = faker.get(key).witcher().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, character);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], character);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9700,14 +14805,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void locationWitcher() {
         try {
             String strObj = Input;
             String location = faker.get(key).witcher().location();
             Report.updateTestLog(Action, "Generated data: " + location, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, location);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], location);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9726,14 +14845,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteWitcher() {
         try {
             String strObj = Input;
             String quote = faker.get(key).witcher().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9752,14 +14885,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void witcher() {
         try {
             String strObj = Input;
             String item = faker.get(key).witcher().witcher();
             Report.updateTestLog(Action, "Generated data: " + item, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, item);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], item);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9778,14 +14925,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void monsterWitcher() {
         try {
             String strObj = Input;
             String monster = faker.get(key).witcher().monster();
             Report.updateTestLog(Action, "Generated data: " + monster, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, monster);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], monster);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9804,14 +14965,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void schoolWitcher() {
         try {
             String strObj = Input;
             String school = faker.get(key).witcher().school();
             Report.updateTestLog(Action, "Generated data: " + school, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, school);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], school);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9830,14 +15005,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void quoteYoda() {
         try {
             String strObj = Input;
             String quote = faker.get(key).yoda().quote();
             Report.updateTestLog(Action, "Generated data: " + quote, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, quote);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], quote);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9856,14 +15045,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void characterZelda() {
         try {
             String strObj = Input;
             String character = faker.get(key).zelda().character();
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, character);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], character);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9882,14 +15085,28 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.NO
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.NONE,
+        conditionHelp = "No condition required."
+    )
     public void gameZelda() {
         try {
             String strObj = Input;
             String game = faker.get(key).zelda().game();
             Report.updateTestLog(Action, "Generated data: " + game, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, game);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], game);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9908,15 +15125,30 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@#{Name.first_name}",
+        conditionHelp = "Required. A Faker expression string to evaluate."
+    )
     public void expression() {
         try {
             String strObj = Input;
             String expression = Condition;
             String evaluated = faker.get(key).expression(expression);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, evaluated);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], evaluated);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9935,15 +15167,30 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@????-#####",
+        conditionHelp = "Required. A bothify pattern (? = letter, # = digit)."
+    )
     public void bothify() {
         try {
             String strObj = Input;
             String pattern = Condition;
             String evaluated = faker.get(key).bothify(pattern);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, evaluated);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], evaluated);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9961,6 +15208,14 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random expression based on input pattern",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@????-#####",
+        conditionHelp = "Required. A bothify pattern (? = letter, # = digit); letters are uppercased."
     )
     public void bothifyWithUpper() {
         try {
@@ -9969,9 +15224,16 @@ public class SyntheticDataGenerator extends Command {
             boolean isUpper = true;
             String evaluated = faker.get(key).bothify(pattern, isUpper);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, evaluated);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], evaluated);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -9990,15 +15252,30 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@????",
+        conditionHelp = "Required. A letterify pattern (? = letter)."
+    )
     public void letterify() {
         try {
             String strObj = Input;
             String pattern = Condition;
             String evaluated = faker.get(key).letterify(pattern);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, evaluated);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], evaluated);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -10016,6 +15293,14 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random expression based on input pattern",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@????",
+        conditionHelp = "Required. A letterify pattern (? = letter); letters are uppercased."
     )
     public void letterifyWithUpper() {
         try {
@@ -10024,9 +15309,16 @@ public class SyntheticDataGenerator extends Command {
             boolean isUpper = true;
             String evaluated = faker.get(key).letterify(pattern, isUpper);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, evaluated);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], evaluated);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -10044,6 +15336,14 @@ public class SyntheticDataGenerator extends Command {
         desc = "Generate a random expression based on input pattern",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@#####",
+        conditionHelp = "Required. A numerify pattern (# = digit)."
     )
     public void numerify() {
         try {
@@ -10051,9 +15351,16 @@ public class SyntheticDataGenerator extends Command {
             String pattern = Condition;
             String evaluated = faker.get(key).numerify(pattern);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, evaluated);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], evaluated);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())
@@ -10072,15 +15379,30 @@ public class SyntheticDataGenerator extends Command {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "MyData:GeneratedValue",
+        inputHelp = "Required. Sheet:Column destination where the generated value is stored, e.g. MyData:GeneratedValue.",
+        condition = ConditionKind.TEXT,
+        conditionExample = "@[A-Z]{5}",
+        conditionHelp = "Required. A regular expression to generate a matching string from."
+    )
     public void regexify() {
         try {
             String strObj = Input;
             String pattern = Condition;
             String evaluated = faker.get(key).regexify(pattern);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, evaluated);
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail == null) {
+                Report.updateTestLog(
+                    Action,
+                    "Incorrect input format; expected Sheet:Column",
+                    Status.DEBUG
+                );
+                return;
+            }
+            userData.putData(sheetDetail[0], sheetDetail[1], evaluated);
         } catch (Exception ex) {
             Logger
                 .getLogger(this.getClass().getName())

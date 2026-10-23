@@ -3,8 +3,12 @@ package com.ing.engine.commands.webservice;
 import com.ing.datalib.settings.DriverProperties;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.ing.ingenious.api.types.RequestMethodType;
@@ -96,6 +100,12 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.OPTIONAL
     )
+    @Args(
+        input = ArgType.JSON_BODY,
+        condition = ConditionKind.ALIAS_API,
+        conditionExample = "#PetStore",
+        help = "Raw PUT body (JSON); parameterize values with {Sheet:Column}. Condition = optional #apiAlias."
+    )
     public void putRestRequest() {
         try {
             createHttpRequest(RequestMethodType.PUT);
@@ -130,6 +140,12 @@ public class Webservice extends GeneralWebservice {
         input = InputType.OPTIONAL,
         condition = InputType.OPTIONAL
     )
+    @Args(
+        input = ArgType.JSON_BODY,
+        condition = ConditionKind.ALIAS_API,
+        conditionExample = "#PetStore",
+        help = "Raw POST body (JSON, optional); parameterize values with {Sheet:Column}. Condition = optional #apiAlias."
+    )
     public void postRestRequest() {
         try {
             createHttpRequest(RequestMethodType.POST);
@@ -161,6 +177,12 @@ public class Webservice extends GeneralWebservice {
         desc = "POST SOAP Request ",
         input = InputType.YES,
         condition = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.XML_BODY,
+        condition = ConditionKind.ALIAS_API,
+        conditionExample = "#PetStore",
+        help = "Raw SOAP envelope (XML). Condition = optional #apiAlias."
     )
     public void postSoapRequest() {
         try {
@@ -194,6 +216,12 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.OPTIONAL
     )
+    @Args(
+        input = ArgType.JSON_BODY,
+        condition = ConditionKind.ALIAS_API,
+        conditionExample = "#PetStore",
+        help = "Raw PATCH body (JSON); parameterize values with {Sheet:Column}. Condition = optional #apiAlias."
+    )
     public void patchRestRequest() {
         try {
             createHttpRequest(RequestMethodType.PATCH);
@@ -226,6 +254,11 @@ public class Webservice extends GeneralWebservice {
         input = InputType.NO,
         condition = InputType.OPTIONAL
     )
+    @Args(
+        condition = ConditionKind.ALIAS_API,
+        conditionExample = "#PetStore",
+        help = "No input. Condition = optional #apiAlias selecting the API config."
+    )
     public void getRestRequest() {
         try {
             createHttpRequest(RequestMethodType.GET);
@@ -251,6 +284,11 @@ public class Webservice extends GeneralWebservice {
      * @see #setEndPoint()
      */
     @Action(object = ObjectType.WEBSERVICE, desc = "DELETE Rest Request ", input = InputType.NO)
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void deleteRestRequest() {
         try {
             createHttpRequest(RequestMethodType.DELETE);
@@ -277,6 +315,10 @@ public class Webservice extends GeneralWebservice {
      * @see #setEndPoint()
      */
     @Action(object = ObjectType.WEBSERVICE, desc = "DELETE with Payload ", input = InputType.YES)
+    @Args(
+        input = ArgType.JSON_BODY,
+        help = "Raw DELETE body (JSON); parameterize values with {Sheet:Column}."
+    )
     public void deleteWithPayload() {
         try {
             createHttpRequest(RequestMethodType.DELETEWITHPAYLOAD);
@@ -300,6 +342,12 @@ public class Webservice extends GeneralWebservice {
      * </ul>
      */
     @Action(object = ObjectType.WEBSERVICE, desc = "Assert Response Code ", input = InputType.YES)
+    @Args(
+        input = ArgType.HTTP_STATUS,
+        inputExample = "@200",
+        inputHelp = "expected HTTP status code (e.g. @200)",
+        help = "Expected HTTP status code (100-599); prefix literals with @."
+    )
     public void assertResponseCode() {
         try {
             if (responsecodes.get(key).equals(Data)) {
@@ -334,6 +382,12 @@ public class Webservice extends GeneralWebservice {
         object = ObjectType.WEBSERVICE,
         desc = "Assert Response Body contains ",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@created",
+        inputHelp = "expected substring in the response body (e.g. @created)",
+        help = "Expected substring in the response body; prefix literals with @."
     )
     public void assertResponsebodycontains() {
         try {
@@ -371,6 +425,15 @@ public class Webservice extends GeneralWebservice {
         desc = "Assert JSON Element Equals ",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Leanne Graham",
+        condition = ConditionKind.TEXT,
+        conditionExample = "$.user.name",
+        inputHelp = "expected value (e.g. @Leanne Graham)",
+        conditionHelp = "JSONPath to the element (e.g. $.user.name)",
+        help = "Input = expected value (@literal). Condition = JSONPath to the element."
     )
     public void assertJSONelementEquals() {
         try {
@@ -416,6 +479,15 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Graham",
+        condition = ConditionKind.TEXT,
+        conditionExample = "$.user.email",
+        inputHelp = "expected substring (e.g. @Graham)",
+        conditionHelp = "JSONPath to the element (e.g. $.user.email)",
+        help = "Input = expected substring (@literal). Condition = JSONPath to the element."
+    )
     public void assertJSONelementContains() {
         try {
             String response = responsebodies.get(key);
@@ -460,20 +532,28 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "ApiData:UserId",
+        condition = ConditionKind.TEXT,
+        conditionExample = "$.id",
+        inputHelp = "destination Sheet:Column (e.g. ApiData:UserId)",
+        conditionHelp = "JSONPath to the element (e.g. $.id)",
+        help = "Input = Sheet:Column destination. Condition = JSONPath to the element."
+    )
     public void storeJSONelementInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
                     String response = responsebodies.get(key);
                     String jsonpath = Condition;
                     String value = JsonPath.read(response, jsonpath).toString();
-                    userData.putData(sheetName, columnName, value);
+                    userData.putData(sheetDetail[0], sheetDetail[1], value);
                     Report.updateTestLog(
                         Action,
                         "Element text [" + value + "] is stored in " + strObj,
@@ -522,32 +602,28 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "ApiData:UserId",
+        condition = ConditionKind.TEXT,
+        conditionExample = "//user/@id",
+        inputHelp = "destination Sheet:Column (e.g. ApiData:UserId)",
+        conditionHelp = "XPath to the element (e.g. //user/@id)",
+        help = "Input = Sheet:Column destination. Condition = XPath to the element."
+    )
     public void storeXMLelementInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
                     String xmlText = responsebodies.get(key);
-                    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder dBuilder;
-                    InputSource inputSource = new InputSource();
-                    inputSource.setCharacterStream(new StringReader(xmlText));
-                    dBuilder = dbFactory.newDocumentBuilder();
-                    Document doc = dBuilder.parse(inputSource);
-                    doc.getDocumentElement().normalize();
-                    XPath xPath = XPathFactory.newInstance().newXPath();
                     String expression = Condition;
-                    NodeList nodeList = (NodeList) xPath
-                        .compile(expression)
-                        .evaluate(doc, XPathConstants.NODESET);
-                    Node nNode = nodeList.item(0);
-                    String value = nNode.getNodeValue();
-                    userData.putData(sheetName, columnName, value);
+                    String value = WebserviceActionsHelper.evaluateXPathValue(xmlText, expression);
+                    userData.putData(sheetDetail[0], sheetDetail[1], value);
                     Report.updateTestLog(
                         Action,
                         "Element text [" + value + "] is stored in " + strObj,
@@ -601,11 +677,20 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "$.data.token",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%myVar%",
+        inputHelp = "JSONPath to the element (e.g. $.data.token)",
+        conditionHelp = "destination variable in %var% format (e.g. %myVar%)",
+        help = "Input = JSONPath. Condition = destination variable name."
+    )
     public void storeJSONelement() {
         try {
             String variableName = Condition;
             String jsonpath = Data;
-            if (variableName.matches("%.*%")) {
+            if (WebserviceActionsHelper.isValidVariableFormat(variableName)) {
                 addVar(variableName, JsonPath.read(responsebodies.get(key), jsonpath).toString());
                 Report.updateTestLog(Action, "JSON element value stored", Status.DONE);
             } else {
@@ -636,24 +721,24 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "//response/token",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%myVar%",
+        inputHelp = "XPath to the element (e.g. //response/token)",
+        conditionHelp = "destination variable in %var% format (e.g. %myVar%)",
+        help = "Input = XPath. Condition = destination variable name."
+    )
     public void storeXMLelement() {
         try {
             String variableName = Condition;
             String expression = Data;
-            if (variableName.matches("%.*%")) {
-                DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder dBuilder;
-                InputSource inputSource = new InputSource();
-                inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-                dBuilder = dbFactory.newDocumentBuilder();
-                Document doc = dBuilder.parse(inputSource);
-                doc.getDocumentElement().normalize();
-                XPath xPath = XPathFactory.newInstance().newXPath();
-                NodeList nodeList = (NodeList) xPath
-                    .compile(expression)
-                    .evaluate(doc, XPathConstants.NODESET);
-                Node nNode = nodeList.item(0);
-                String value = nNode.getNodeValue();
+            if (WebserviceActionsHelper.isValidVariableFormat(variableName)) {
+                String value = WebserviceActionsHelper.evaluateXPathValue(
+                    responsebodies.get(key),
+                    expression
+                );
                 addVar(variableName, value);
                 Report.updateTestLog(Action, "XML element value stored", Status.DONE);
             } else {
@@ -689,17 +774,23 @@ public class Webservice extends GeneralWebservice {
         desc = "Store Response Message In DataSheet ",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "ApiData:ResponseBody",
+        inputHelp = "destination Sheet:Column (e.g. ApiData:ResponseBody)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void storeResponseBodyInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
-                    userData.putData(sheetName, columnName, responsebodies.get(key));
+                    userData.putData(sheetDetail[0], sheetDetail[1], responsebodies.get(key));
                     Report.updateTestLog(
                         Action,
                         "Response body is stored in " + strObj,
@@ -748,22 +839,22 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@success",
+        condition = ConditionKind.TEXT,
+        conditionExample = "//response/status",
+        inputHelp = "expected value (e.g. @success)",
+        conditionHelp = "XPath to the element (e.g. //response/status)",
+        help = "Input = expected value. Condition = XPath to the element."
+    )
     public void assertXMLelementEquals() {
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder;
-            InputSource inputSource = new InputSource();
-            inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-            dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(inputSource);
-            doc.getDocumentElement().normalize();
-            XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = Condition;
-            NodeList nodeList = (NodeList) xPath
-                .compile(expression)
-                .evaluate(doc, XPathConstants.NODESET);
-            Node nNode = nodeList.item(0);
-            String value = nNode.getNodeValue();
+            String value = WebserviceActionsHelper.evaluateXPathValue(
+                responsebodies.get(key),
+                expression
+            );
             if (value.equals(Data)) {
                 Report.updateTestLog(
                     Action,
@@ -809,22 +900,22 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@success",
+        condition = ConditionKind.TEXT,
+        conditionExample = "//response/message",
+        inputHelp = "expected substring (e.g. @success)",
+        conditionHelp = "XPath to the element (e.g. //response/message)",
+        help = "Input = expected substring. Condition = XPath to the element."
+    )
     public void assertXMLelementContains() {
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder;
-            InputSource inputSource = new InputSource();
-            inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-            dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(inputSource);
-            doc.getDocumentElement().normalize();
-            XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = Condition;
-            NodeList nodeList = (NodeList) xPath
-                .compile(expression)
-                .evaluate(doc, XPathConstants.NODESET);
-            Node nNode = nodeList.item(0);
-            String value = nNode.getNodeValue();
+            String value = WebserviceActionsHelper.evaluateXPathValue(
+                responsebodies.get(key),
+                expression
+            );
             if (value.contains(Data)) {
                 Report.updateTestLog(
                     Action,
@@ -870,6 +961,13 @@ public class Webservice extends GeneralWebservice {
         desc = "Set End Point ",
         input = InputType.YES,
         condition = InputType.OPTIONAL
+    )
+    @Args(
+        input = ArgType.URL,
+        inputExample = "@https://api.example.com/users",
+        condition = ConditionKind.ALIAS_API,
+        conditionExample = "#PetStore",
+        help = "Endpoint URL (supports {Sheet:Column}/%var%). Condition = optional #apiAlias."
     )
     public void setEndPoint() {
         try {
@@ -920,29 +1018,22 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.INTEGER,
+        inputExample = "@3",
+        condition = ConditionKind.TEXT,
+        conditionExample = "$.users[*]",
+        inputHelp = "expected element count (e.g. @3)",
+        conditionHelp = "JSONPath selection to count (e.g. $.users[*])",
+        help = "Input = expected count. Condition = JSONPath expression."
+    )
     public void assertJSONelementCount() {
         try {
             String response = responsebodies.get(key);
-            int actualObjectCount = 0;
-            JSONParser parser = new JSONParser();
-            JSONObject json = (JSONObject) parser.parse(response);
-            try {
-                Map<String, String> objectMap = JsonPath.read(json, Condition);
-                actualObjectCount = objectMap.keySet().size();
-            } catch (Exception ex) {
-                try {
-                    JSONArray objectMap = JsonPath.read(json, Condition);
-                    actualObjectCount = objectMap.size();
-                } catch (Exception ex1) {
-                    try {
-                        net.minidev.json.JSONArray objectMap = JsonPath.read(json, Condition);
-                        actualObjectCount = objectMap.size();
-                    } catch (Exception ex2) {
-                        String objectMap = JsonPath.read(json, Condition);
-                        actualObjectCount = 1;
-                    }
-                }
-            }
+            int actualObjectCount = WebserviceActionsHelper.getJsonElementCount(
+                response,
+                Condition
+            );
 
             int expectedObjectCount = Integer.parseInt(Data);
             if (actualObjectCount == expectedObjectCount) {
@@ -987,17 +1078,26 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "$.items[*]",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%count%",
+        inputHelp = "JSONPath selection to count (e.g. $.items[*])",
+        conditionHelp = "destination variable in %var% format (e.g. %count%)",
+        help = "Input = JSONPath expression. Condition = destination variable name."
+    )
     public void storeJsonElementCount() {
         try {
             String variableName = Condition;
             Condition = Data;
 
-            if (variableName.matches("%.*%")) {
+            if (WebserviceActionsHelper.isValidVariableFormat(variableName)) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    int actualObjectCountInteger = 1; //getJsonElementCount();
+                    int actualObjectCountInteger = getJsonElementCount();
                     String actualObjectCount = Integer.toString(actualObjectCountInteger);
                     addVar(variableName, actualObjectCount);
                     Report.updateTestLog(
@@ -1040,30 +1140,7 @@ public class Webservice extends GeneralWebservice {
      * @throws org.json.simple.parser.ParseException if JSON parsing fails
      */
     public int getJsonElementCount() throws org.json.simple.parser.ParseException {
-        int actualObjectCount = 0;
-
-        JSONParser parser = new JSONParser();
-
-        JSONObject json = (JSONObject) parser.parse(responsebodies.get(key));
-
-        try {
-            Map<String, String> objectMap = JsonPath.read(json, Condition);
-            actualObjectCount = objectMap.keySet().size();
-        } catch (Exception ex) {
-            try {
-                JSONArray objectMap = JsonPath.read(json, Condition);
-                actualObjectCount = objectMap.size();
-            } catch (Exception ex1) {
-                try {
-                    net.minidev.json.JSONArray objectMap = JsonPath.read(json, Condition);
-                    actualObjectCount = objectMap.size();
-                } catch (Exception ex2) {
-                    String objectMap = JsonPath.read(json, Condition);
-                    actualObjectCount = 1;
-                }
-            }
-        }
-        return actualObjectCount;
+        return WebserviceActionsHelper.getJsonElementCount(responsebodies.get(key), Condition);
     }
 
     /**
@@ -1082,19 +1159,27 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "ApiData:ItemCount",
+        condition = ConditionKind.TEXT,
+        conditionExample = "$.products[*]",
+        inputHelp = "destination Sheet:Column (e.g. ApiData:ItemCount)",
+        conditionHelp = "JSONPath selection to count (e.g. $.products[*])",
+        help = "Input = Sheet:Column destination. Condition = JSONPath expression."
+    )
     public void storeJsonElementCountInDataSheet() {
         try {
             String strObj = Input;
-            if (strObj.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(strObj);
+            if (sheetDetail != null) {
                 try {
                     System.out.println(
                         "Updating value in SubIteration " + userData.getSubIteration()
                     );
-                    String sheetName = strObj.split(":", 2)[0];
-                    String columnName = strObj.split(":", 2)[1];
-                    int actualObjectCountInteger = 1; //getJsonElementCount();
+                    int actualObjectCountInteger = getJsonElementCount();
                     String actualObjectCount = Integer.toString(actualObjectCountInteger);
-                    userData.putData(sheetName, columnName, actualObjectCount);
+                    userData.putData(sheetDetail[0], sheetDetail[1], actualObjectCount);
                     Report.updateTestLog(
                         Action,
                         "Element count [" + actualObjectCount + "] is stored in " + strObj,
@@ -1139,33 +1224,16 @@ public class Webservice extends GeneralWebservice {
      * @see #setEndPoint()
      */
     @Action(object = ObjectType.WEBSERVICE, desc = "Add Header ", input = InputType.YES)
+    @Args(
+        input = ArgType.HEADER_KV,
+        inputExample = "@Content-Type=application/json",
+        help = "HTTP header as Name=Value; prefix literals with @."
+    )
     public void addHeader() {
         try {
-            List<String> sheetlist = Control
-                .getCurrentProject()
-                .getTestData()
-                .getTestDataFor(Control.exe.runEnv())
-                .getTestDataNames();
-            for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
-                if (Data.contains("{" + sheetlist.get(sheet) + ":")) {
-                    com.ing.datalib.testdata.model.TestDataModel tdModel = Control
-                        .getCurrentProject()
-                        .getTestData()
-                        .getTestDataByName(sheetlist.get(sheet));
-                    List<String> columns = tdModel.getColumns();
-                    for (int col = 0; col < columns.size(); col++) {
-                        if (
-                            Data.contains("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}")
-                        ) {
-                            Data =
-                                Data.replace(
-                                    "{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
-                                    userData.getData(sheetlist.get(sheet), columns.get(col))
-                                );
-                        }
-                    }
-                }
-            }
+            // Resolves {Sheet:Column} / {Sheet:Column@Project} / {Sheet:Column@Shared} tokens
+            // in the header value; unknown tokens are left literal.
+            Data = TestDataToken.resolveEmbeddedTokens(Data, userData);
 
             Collection<Object> valuelist = Control
                 .getCurrentProject()
@@ -1230,6 +1298,13 @@ public class Webservice extends GeneralWebservice {
      * </ul>
      */
     @Action(object = ObjectType.WEBSERVICE, desc = "Add Parameters ", input = InputType.YES)
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@page=1",
+        inputHelp = "URL parameter in key=value format (e.g. @page=1)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void addURLParam() {
         try {
             if (urlParams.containsKey(key)) {
@@ -1264,6 +1339,15 @@ public class Webservice extends GeneralWebservice {
         desc = "Store Header Element in Variable",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Content-Type",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%headerValue%",
+        inputHelp = "header name to read (e.g. @Content-Type)",
+        conditionHelp = "destination variable in %var% format (e.g. %headerValue%)",
+        help = "Input = header name. Condition = destination variable."
     )
     public void storeHeaderByNameInVariable() {
         try {
@@ -1307,7 +1391,7 @@ public class Webservice extends GeneralWebservice {
             }
 
             // Validate variable format
-            if (variableName.matches("%.*%")) {
+            if (WebserviceActionsHelper.isValidVariableFormat(variableName)) {
                 String headerValue = currentHeaders.get(headerName);
                 addVar(variableName, headerValue);
                 Report.updateTestLog(
@@ -1347,6 +1431,15 @@ public class Webservice extends GeneralWebservice {
         desc = "Store Header value in Datasheet",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "ApiData:ContentType",
+        condition = ConditionKind.TEXT,
+        conditionExample = "Content-Type",
+        inputHelp = "destination Sheet:Column (e.g. ApiData:ContentType)",
+        conditionHelp = "header name to read (e.g. Content-Type)",
+        help = "Input = Sheet:Column destination. Condition = header name."
     )
     public void storeHeaderByNameInDatasheet() {
         try {
@@ -1389,7 +1482,8 @@ public class Webservice extends GeneralWebservice {
             }
 
             // Early return if input format is invalid
-            if (!Input.matches(".*:.*")) {
+            String[] sheetDetail = TestDataToken.parse(Input);
+            if (sheetDetail == null) {
                 Report.updateTestLog(
                     Action,
                     "Invalid input format [" + Input + "]. Expected format: sheetName:ColumnName",
@@ -1399,21 +1493,19 @@ public class Webservice extends GeneralWebservice {
             }
 
             try {
-                String sheetName = Input.split(":", 2)[0];
-                String columnName = Input.split(":", 2)[1];
                 String headerValue = currentHeaders.get(headerName);
 
                 // Store header value in datasheet
-                userData.putData(sheetName, columnName, headerValue);
+                userData.putData(sheetDetail[0], sheetDetail[1], headerValue);
 
                 Report.updateTestLog(
                     Action,
                     "Header value [" +
                     headerValue +
                     "] stored in datasheet [" +
-                    sheetName +
+                    sheetDetail[0] +
                     ":" +
-                    columnName +
+                    sheetDetail[1] +
                     "]",
                     Status.DONE
                 );
@@ -1449,6 +1541,15 @@ public class Webservice extends GeneralWebservice {
         desc = "Assert header",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@application/json",
+        condition = ConditionKind.TEXT,
+        conditionExample = "Content-Type",
+        inputHelp = "expected substring in header value (e.g. @application/json)",
+        conditionHelp = "header name to check (e.g. Content-Type)",
+        help = "Input = expected substring. Condition = header name."
     )
     public void assertHeaderValueContains() {
         try {
@@ -1526,6 +1627,15 @@ public class Webservice extends GeneralWebservice {
         desc = "Assert header",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@application/json",
+        condition = ConditionKind.TEXT,
+        conditionExample = "Content-Type",
+        inputHelp = "expected exact header value (e.g. @application/json)",
+        conditionHelp = "header name to check (e.g. Content-Type)",
+        help = "Input = expected exact value. Condition = header name."
     )
     public void assertHeaderValueEquals() {
         try {
@@ -1631,6 +1741,11 @@ public class Webservice extends GeneralWebservice {
      * </ul>
      */
     @Action(object = ObjectType.WEBSERVICE, desc = "Close the connection ", input = InputType.NO)
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void closeConnection() {
         try {
             // httpConnections.get(key).disconnect();
@@ -1672,12 +1787,21 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@sessionId",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%cookieValue%",
+        inputHelp = "cookie name to extract from response headers (e.g. @sessionId)",
+        conditionHelp = "destination variable in %var% format (e.g. %cookieValue%)",
+        help = "Input = cookie name. Condition = destination variable name."
+    )
     public void storeResponseCookiesInVariable() {
         try {
             String cookieKey = Data;
             String variableName = Condition;
 
-            if (!variableName.matches("%.*%")) {
+            if (!WebserviceActionsHelper.isValidVariableFormat(variableName)) {
                 Report.updateTestLog(
                     Action,
                     "Variable format is not correct. Should be %variableName%",
@@ -1768,6 +1892,15 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@error",
+        condition = ConditionKind.TEXT,
+        conditionExample = "$.message",
+        inputHelp = "substring that must not be present (e.g. @error)",
+        conditionHelp = "JSONPath to the element (e.g. $.message)",
+        help = "Input = forbidden substring. Condition = JSONPath to the element."
+    )
     public void assertJSONelementNotContains() {
         try {
             String response = responsebodies.get(key);
@@ -1812,6 +1945,15 @@ public class Webservice extends GeneralWebservice {
         desc = "Assert JSON Element Not Equals ",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@FAILED",
+        condition = ConditionKind.TEXT,
+        conditionExample = "$.status",
+        inputHelp = "value that must not match (e.g. @FAILED)",
+        conditionHelp = "JSONPath to the element (e.g. $.status)",
+        help = "Input = forbidden value. Condition = JSONPath to the element."
     )
     public void assertJSONelementNotEquals() {
         try {
@@ -1858,22 +2000,22 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@FAILED",
+        condition = ConditionKind.TEXT,
+        conditionExample = "//status",
+        inputHelp = "value that must not match (e.g. @FAILED)",
+        conditionHelp = "XPath to the element (e.g. //status)",
+        help = "Input = forbidden value. Condition = XPath to the element."
+    )
     public void assertXMLelementNotEquals() {
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder;
-            InputSource inputSource = new InputSource();
-            inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-            dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(inputSource);
-            doc.getDocumentElement().normalize();
-            XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = Condition;
-            NodeList nodeList = (NodeList) xPath
-                .compile(expression)
-                .evaluate(doc, XPathConstants.NODESET);
-            Node nNode = nodeList.item(0);
-            String value = nNode.getNodeValue();
+            String value = WebserviceActionsHelper.evaluateXPathValue(
+                responsebodies.get(key),
+                expression
+            );
             if (!value.equals(Data)) {
                 Report.updateTestLog(
                     Action,
@@ -1920,22 +2062,22 @@ public class Webservice extends GeneralWebservice {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@error",
+        condition = ConditionKind.TEXT,
+        conditionExample = "//response/message",
+        inputHelp = "substring that must not be present (e.g. @error)",
+        conditionHelp = "XPath to the element (e.g. //response/message)",
+        help = "Input = forbidden substring. Condition = XPath to the element."
+    )
     public void assertXMLelementNotContains() {
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder;
-            InputSource inputSource = new InputSource();
-            inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
-            dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(inputSource);
-            doc.getDocumentElement().normalize();
-            XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = Condition;
-            NodeList nodeList = (NodeList) xPath
-                .compile(expression)
-                .evaluate(doc, XPathConstants.NODESET);
-            Node nNode = nodeList.item(0);
-            String value = nNode.getNodeValue();
+            String value = WebserviceActionsHelper.evaluateXPathValue(
+                responsebodies.get(key),
+                expression
+            );
             if (!value.contains(Data)) {
                 Report.updateTestLog(
                     Action,
@@ -1979,6 +2121,13 @@ public class Webservice extends GeneralWebservice {
         object = ObjectType.WEBSERVICE,
         desc = "Assert Response Body Not Contains ",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@error",
+        inputHelp = "substring that must not be present in the response body (e.g. @error)",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void assertResponsebodyNotContains() {
         try {

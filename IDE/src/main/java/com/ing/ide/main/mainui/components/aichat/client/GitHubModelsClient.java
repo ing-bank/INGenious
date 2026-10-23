@@ -1,10 +1,12 @@
 package com.ing.ide.main.mainui.components.aichat.client;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.ide.main.mainui.components.aichat.model.ChatCompletionRequest;
 import com.ing.ide.main.mainui.components.aichat.model.ChatCompletionResponse;
+import com.ing.ide.main.mainui.components.aichat.model.ChatMessage;
 import com.ing.ide.main.mainui.components.aichat.model.ModelInfo;
 import com.ing.ide.main.mainui.components.aichat.model.TokenUsage;
 import java.io.BufferedReader;
@@ -37,8 +39,34 @@ public class GitHubModelsClient {
     private static final String CATALOG_URL = "https://models.github.ai/catalog/models";
     private static final String CHAT_URL = "https://models.github.ai/inference/chat/completions";
 
+    // Endpoints are instance fields for testability; always GitHub Models.
+    private String catalogUrl = CATALOG_URL;
+    private String chatUrl = CHAT_URL;
+
+    /** True when a bearer token should be sent. */
+    private static boolean hasToken(String token) {
+        return token != null && !token.isBlank();
+    }
+
     private final ObjectMapper mapper = new ObjectMapper()
-    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .addMixIn(ChatMessage.class, NoCreditUsageMixin.class);
+
+    /**
+     * Keeps the IDE-only credit bookkeeping of {@link ChatMessage} out of the
+     * OpenAI-compatible request payload; it is persisted with the chat history
+     * but is not part of the API schema.
+     */
+    private abstract static class NoCreditUsageMixin {
+        @JsonIgnore
+        private String creditUsage;
+
+        @JsonIgnore
+        abstract String getCreditUsage();
+
+        @JsonIgnore
+        abstract void setCreditUsage(String creditUsage);
+    }
 
     private final HttpClient httpClient = HttpClient
         .newBuilder()
@@ -85,14 +113,16 @@ public class GitHubModelsClient {
      * @param token GitHub access token with the {@code models} scope
      */
     public List<ModelInfo> catalog(String token) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest
+        HttpRequest.Builder catalogBuilder = HttpRequest
             .newBuilder()
-            .uri(URI.create(CATALOG_URL))
+            .uri(URI.create(catalogUrl))
             .header("Accept", "application/json")
-            .header("Authorization", "Bearer " + token)
             .timeout(Duration.ofSeconds(30))
-            .GET()
-            .build();
+            .GET();
+        if (hasToken(token)) {
+            catalogBuilder.header("Authorization", "Bearer " + token);
+        }
+        HttpRequest request = catalogBuilder.build();
         HttpResponse<String> response = httpClient.send(
             request,
             HttpResponse.BodyHandlers.ofString()
@@ -123,15 +153,17 @@ public class GitHubModelsClient {
     public ChatCompletionResponse complete(String token, ChatCompletionRequest request)
         throws IOException, InterruptedException {
         request.setStream(false);
-        HttpRequest httpRequest = HttpRequest
+        HttpRequest.Builder completeBuilder = HttpRequest
             .newBuilder()
-            .uri(URI.create(CHAT_URL))
+            .uri(URI.create(chatUrl))
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer " + token)
             .timeout(Duration.ofSeconds(120))
-            .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(request)))
-            .build();
+            .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(request)));
+        if (hasToken(token)) {
+            completeBuilder.header("Authorization", "Bearer " + token);
+        }
+        HttpRequest httpRequest = completeBuilder.build();
         HttpResponse<String> response = httpClient.send(
             httpRequest,
             HttpResponse.BodyHandlers.ofString()
@@ -158,15 +190,17 @@ public class GitHubModelsClient {
         request.setStream(true);
         request.requestStreamingUsage();
         try {
-            HttpRequest httpRequest = HttpRequest
+            HttpRequest.Builder streamBuilder = HttpRequest
                 .newBuilder()
-                .uri(URI.create(CHAT_URL))
+                .uri(URI.create(chatUrl))
                 .header("Accept", "text/event-stream")
                 .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer " + token)
                 .timeout(Duration.ofMinutes(5))
-                .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(request)))
-                .build();
+                .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(request)));
+            if (hasToken(token)) {
+                streamBuilder.header("Authorization", "Bearer " + token);
+            }
+            HttpRequest httpRequest = streamBuilder.build();
 
             HttpResponse<InputStream> response = httpClient.send(
                 httpRequest,

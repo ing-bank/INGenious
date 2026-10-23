@@ -2,8 +2,11 @@ package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.util.logging.Level;
@@ -19,6 +22,13 @@ public class DragTo extends General {
         object = ObjectType.PLAYWRIGHT,
         desc = "Drag Source Object to Target",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@HomePage,DropArea",
+        inputHelp = "target reference as PageName,ObjectName",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void DragElementTo() {
         try {

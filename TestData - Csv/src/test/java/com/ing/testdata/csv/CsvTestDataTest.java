@@ -2,12 +2,14 @@ package com.ing.testdata.csv;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.ing.datalib.testdata.model.Record;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -168,6 +170,79 @@ public class CsvTestDataTest {
         assertThat(sharedSubIters).containsExactly("1");
     }
 
+    /**
+     * Regression test: when the same Scenario/TestCase name exists in more than one scope
+     * (Test Plan / Project Reusables / Shared Reusables), renaming the test case in one scope
+     * must only update the row for that scope, leaving same-named rows in other scopes intact.
+     */
+    @Test
+    public void testRefactorTestCaseOnlyUpdatesMatchingScope() throws IOException {
+        File csvFile = tempDir.resolve("ScopedTestCase.csv").toFile();
+        try (FileWriter fw = new FileWriter(csvFile)) {
+            fw.write("Scenario,Flow,Scope,Iteration,SubIteration\n");
+            fw.write("Login,TC_Login,,1,1\n");
+            fw.write("Login,TC_Login,[Project],1,1\n");
+            fw.write("Login,TC_Login,[Shared],1,1\n");
+        }
+
+        CsvTestData td = new CsvTestData(csvFile.getAbsolutePath());
+        td.loadRecords(csvFile);
+
+        td.refactorTestCase("Login", "TC_Login", "TC_LoginRenamed", "[Project]");
+
+        List<Record> records = td.getRecords();
+        assertThat(records.get(0).getTestcase()).isEqualTo("TC_Login");
+        assertThat(records.get(1).getTestcase()).isEqualTo("TC_LoginRenamed");
+        assertThat(records.get(2).getTestcase()).isEqualTo("TC_Login");
+    }
+
+    /**
+     * Regression test: same as above but for scenario rename.
+     */
+    @Test
+    public void testRefactorScenarioOnlyUpdatesMatchingScope() throws IOException {
+        File csvFile = tempDir.resolve("ScopedScenario.csv").toFile();
+        try (FileWriter fw = new FileWriter(csvFile)) {
+            fw.write("Scenario,Flow,Scope,Iteration,SubIteration\n");
+            fw.write("Login,TC_Login,,1,1\n");
+            fw.write("Login,TC_Login,[Project],1,1\n");
+            fw.write("Login,TC_Login,[Shared],1,1\n");
+        }
+
+        CsvTestData td = new CsvTestData(csvFile.getAbsolutePath());
+        td.loadRecords(csvFile);
+
+        td.refactorScenario("Login", "LoginRenamed", "[Shared]");
+
+        List<Record> records = td.getRecords();
+        assertThat(records.get(0).getScenario()).isEqualTo("Login");
+        assertThat(records.get(1).getScenario()).isEqualTo("Login");
+        assertThat(records.get(2).getScenario()).isEqualTo("LoginRenamed");
+    }
+
+    /**
+     * The existing unscoped overloads (scope == null) must keep matching rows regardless of
+     * scope, to preserve prior behavior for callers that don't care about scope collisions.
+     */
+    @Test
+    public void testRefactorTestCaseWithNullScopeUpdatesAllScopes() throws IOException {
+        File csvFile = tempDir.resolve("UnscopedTestCase.csv").toFile();
+        try (FileWriter fw = new FileWriter(csvFile)) {
+            fw.write("Scenario,Flow,Scope,Iteration,SubIteration\n");
+            fw.write("Login,TC_Login,,1,1\n");
+            fw.write("Login,TC_Login,[Project],1,1\n");
+        }
+
+        CsvTestData td = new CsvTestData(csvFile.getAbsolutePath());
+        td.loadRecords(csvFile);
+
+        td.refactorTestCase("Login", "TC_Login", "TC_LoginRenamed");
+
+        List<Record> records = td.getRecords();
+        assertThat(records.get(0).getTestcase()).isEqualTo("TC_LoginRenamed");
+        assertThat(records.get(1).getTestcase()).isEqualTo("TC_LoginRenamed");
+    }
+
     @Test
     public void testSaveChanges() throws IOException {
         File csvFile = tempDir.resolve("save.csv").toFile();
@@ -184,5 +259,55 @@ public class CsvTestDataTest {
 
         String content = new String(Files.readAllBytes(csvFile.toPath()));
         assertThat(content).contains("Col1");
+    }
+
+    /**
+     * Reload (AbstractDataModel.load()) against a model whose backing file does not exist must
+     * NOT wipe the in-memory rows/columns - that turned the "Reload" button into "clear sheet"
+     * for a never-saved (or mislocated) datasheet.
+     */
+    @Test
+    public void testReloadDoesNotClearWhenBackingFileMissing() {
+        String location = tempDir.resolve("never-saved.csv").toString();
+        CsvTestData td = new CsvTestData(location);
+        td.setColumns(
+            java.util.Arrays.asList(
+                "Scenario",
+                "Flow",
+                "Scope",
+                "Iteration",
+                "SubIteration",
+                "Data1"
+            )
+        );
+        td.addRecord();
+        td.setValueAt("scn", 0, 0);
+        td.setValueAt("typed-but-unsaved", 0, 5);
+
+        td.load();
+
+        assertThat(td.getRowCount()).isEqualTo(1);
+        assertThat(td.getValueAt(0, 5)).isEqualTo("typed-but-unsaved");
+        assertThat(td.getColumnCount()).isEqualTo(6);
+    }
+
+    @Test
+    public void testReloadRestoresLastSavedStateWhenFileExists() throws IOException {
+        File csvFile = tempDir.resolve("reload.csv").toFile();
+        try (FileWriter fw = new FileWriter(csvFile)) {
+            fw.write("Scenario,Flow,Scope,Iteration,SubIteration,Data1\n");
+            fw.write("scn,flw,,1,1,SAVED\n");
+        }
+
+        CsvTestData td = new CsvTestData(csvFile.getAbsolutePath());
+        td.loadTableModel();
+        assertThat(td.getValueAt(0, 5)).isEqualTo("SAVED");
+
+        // Unsaved edit, then Reload -> back to the on-disk value.
+        td.setValueAt("EDITED", 0, 5);
+        td.load();
+
+        assertThat(td.getRowCount()).isEqualTo(1);
+        assertThat(td.getValueAt(0, 5)).isEqualTo("SAVED");
     }
 }

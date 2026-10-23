@@ -23,12 +23,14 @@ import javax.swing.UIManager;
  */
 public class ActionRenderer extends AbstractRenderer {
     final String actionNotPresent = "Action not available/Not a valid action";
-    final String reusableNotPresent = "Reusable is not available in the Project";
-    final String reusableHasError = "Reusable has IDE validation error(s)";
-    final String reusableNotPresentScoped = "Reusable is not available in %s scope";
+    final String reusableNotPresent = "User Intent is not available in the Project";
+    final String reusableHasError = "User Intent has IDE validation error(s)";
+    final String reusableNotPresentScoped = "User Intent is not available in %s scope";
+    final String deprecatedActionTooltip =
+        "This action is soon to be deprecated. Use a named Kafka Configuration (#alias) instead.";
 
     public ActionRenderer() {
-        super("Action Shouldn't be empty.It should be either an action or Reusable");
+        super("Action Shouldn't be empty.It should be either an action or User Intent");
     }
 
     @Override
@@ -62,7 +64,11 @@ public class ActionRenderer extends AbstractRenderer {
             } else if ((step.getObject().equals("Execute"))) {
                 setExecute(comp);
             } else if (isActionValid(step, value)) {
-                setDefault(comp);
+                if (isDeprecatedAction(value)) {
+                    setDeprecated(comp, deprecatedActionTooltip);
+                } else {
+                    setDefault(comp);
+                }
             } else {
                 setNotPresent(comp, actionNotPresent);
             }
@@ -119,6 +125,17 @@ public class ActionRenderer extends AbstractRenderer {
     }
 
     /**
+     * Checks whether the given action is annotated {@code deprecated = true},
+     * meaning it has been superseded (e.g. by a named Kafka Configuration) and
+     * is scheduled for removal in a future release.
+     */
+    private boolean isDeprecatedAction(Object value) {
+        String action = Objects.toString(value, "").trim();
+        com.ing.ingenious.api.annotation.Action annotation = MethodInfoManager.getActionFor(action);
+        return annotation != null && annotation.deprecated();
+    }
+
+    /**
      * Validates if the given action is valid for the test step's object type.
      * <p>
      * Execute objects always accept any action. For other objects, checks if the action
@@ -145,8 +162,9 @@ public class ActionRenderer extends AbstractRenderer {
         }
 
         if (isWebObject(step)) {
+            // Web OR pages are also valid targets for mobile (APP) actions during WebView execution
             return MethodInfoManager
-                .getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB)
+                .getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB, ObjectType.APP)
                 .contains(action);
         }
 

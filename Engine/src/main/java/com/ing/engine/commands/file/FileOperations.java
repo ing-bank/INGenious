@@ -3,8 +3,12 @@ package com.ing.engine.commands.file;
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.io.File;
@@ -28,6 +32,13 @@ public class FileOperations extends General {
         input = InputType.YES,
         condition = InputType.OPTIONAL
     ) // MyFiles/
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "Hello {name}\nYour id is {id}",
+        inputHelp = "file content or template text to populate before saving; can also be a path to an existing template file",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void populateData() {
         try {
             String fileName = getVar("%fileName%");
@@ -80,34 +91,9 @@ public class FileOperations extends General {
     }
 
     private String handleDataSheetVariables(String fileContent) {
-        List<String> sheetlist = Control
-            .getCurrentProject()
-            .getTestData()
-            .getTestDataFor(Control.exe.runEnv())
-            .getTestDataNames();
-        for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
-            if (fileContent.contains("{" + sheetlist.get(sheet) + ":")) {
-                com.ing.datalib.testdata.model.TestDataModel tdModel = Control
-                    .getCurrentProject()
-                    .getTestData()
-                    .getTestDataByName(sheetlist.get(sheet));
-                List<String> columns = tdModel.getColumns();
-                for (int col = 0; col < columns.size(); col++) {
-                    if (
-                        fileContent.contains(
-                            "{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}"
-                        )
-                    ) {
-                        fileContent =
-                            fileContent.replace(
-                                "{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
-                                userData.getData(sheetlist.get(sheet), columns.get(col))
-                            );
-                    }
-                }
-            }
-        }
-        return fileContent;
+        // Resolves {Sheet:Column} / {Sheet:Column@Project} / {Sheet:Column@Shared} tokens;
+        // unknown tokens are left literal.
+        return TestDataToken.resolveEmbeddedTokens(fileContent, userData);
     }
 
     private String handleuserDefinedVariables(String fileContent) {

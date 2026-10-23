@@ -172,13 +172,16 @@ public class BrunoImporter implements CollectionImporter {
                     break;
                 case "headers":
                     for (Map.Entry<String, String> e : b.entries.entrySet()) {
+                        String key = e.getKey();
+                        boolean enabled = !key.startsWith("~");
+                        if (!enabled) key = key.substring(1).trim();
                         req
                             .getHeaders()
                             .add(
                                 new KeyValuePair(
-                                    ImportUtils.rewriteVariables(e.getKey()),
+                                    ImportUtils.rewriteVariables(key),
                                     ImportUtils.rewriteVariables(e.getValue()),
-                                    true
+                                    enabled
                                 )
                             );
                     }

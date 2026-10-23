@@ -1,0 +1,24 @@
+{
+  "version": "2.3",
+  "copy_type": "source",
+  "modules_analyzed": 7,
+  "files_changed": 45,
+  "files_added": 12,
+  "files_deleted": 3,
+  "lines_added": 2340,
+  "lines_removed": 456,
+  "categories": {
+    "feature_enhancement": 12,
+    "bug_fix": 8,
+    "configuration": 15,
+    "integration": 5,
+    "performance": 3,
+    "ui_reporting": 2,
+    "framework_core": 10
+  },
+  "risk_levels": {
+    "high": 5,
+    "medium": 15,
+    "low": 25
+  }
+}

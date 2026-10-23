@@ -419,6 +419,13 @@ public class SapORTable extends JPanel implements ActionListener {
             addSeparator();
             add(Utils.createButton("Move Rows Up", "up", "Ctrl+Up", SapORTable.this));
             add(Utils.createButton("Move Rows Down", "down", "Ctrl+Down", SapORTable.this));
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(6, 0),
+                    new java.awt.Dimension(6, 0),
+                    new java.awt.Dimension(6, 32767)
+                )
+            );
         }
     }
 

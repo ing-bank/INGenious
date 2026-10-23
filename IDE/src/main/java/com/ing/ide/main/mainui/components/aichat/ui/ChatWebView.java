@@ -83,14 +83,107 @@ public class ChatWebView {
         runScript("endAssistant();");
     }
 
+    /**
+     * Appends a small credit-consumption badge beneath the last message, so the
+     * cost of each prompt stays visible in the transcript (including reloaded
+     * conversations, where the footer no longer applies).
+     */
+    public void appendUsage(String text) {
+        if (text == null || text.isBlank()) {
+            return;
+        }
+        runScript("appendUsage(" + jsString(MarkdownRenderer.escape(text)) + ");");
+    }
+
     /** Removes all messages from the transcript. */
     public void clear() {
         runScript("clearAll();");
     }
 
+    /** Shows an animated "Thinking.." placeholder while awaiting a response. */
+    public void showThinking() {
+        runScript("showThinking();");
+    }
+
+    /** Removes the "Thinking.." placeholder. */
+    public void hideThinking() {
+        runScript("hideThinking();");
+    }
+
     /** Shows a transient error bubble. */
     public void showError(String text) {
         runScript("appendError(" + jsString(MarkdownRenderer.escape(text)) + ");");
+    }
+
+    /** Appends a collapsible "used tool" row in the running state. */
+    public void appendToolCall(String id, String toolName, String argsSummary) {
+        runScript(
+            "appendToolCall(" +
+            jsString(id) +
+            "," +
+            jsString(toolName) +
+            "," +
+            jsString(argsSummary) +
+            ");"
+        );
+    }
+
+    /** Marks a previously-appended tool row as done or error, with detail JSON. */
+    public void resolveToolCall(String id, String resultSummary, boolean isError, String detail) {
+        runScript(
+            "resolveToolCall(" +
+            jsString(id) +
+            "," +
+            jsString(resultSummary) +
+            "," +
+            (isError ? "true" : "false") +
+            "," +
+            jsString(detail) +
+            ");"
+        );
+    }
+
+    /**
+     * Appends a coloured "Summary" card with status pills (OK/WARN/FAIL/INFO
+     * counts) and a compact tool-call footnote for the turn. Deliberately does
+     * NOT itemize every tool call — that's noise, not a user-facing outcome;
+     * the assistant's own answer already explains what happened.
+     */
+    public void appendActivityReport(com.ing.engine.aicli.ai.ActivityReport.Result r) {
+        if (r == null || r.totalCalls == 0) {
+            return;
+        }
+        runScript("appendActivity(" + jsString(buildActivityHtml(r)) + ");");
+    }
+
+    private static String buildActivityHtml(com.ing.engine.aicli.ai.ActivityReport.Result r) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<div class='act-head'>Summary</div>");
+        StringBuilder pills = new StringBuilder();
+        if (r.okCount > 0) {
+            pills.append("<span class='pill ok'>").append(r.okCount).append(" OK</span>");
+        }
+        if (r.infoCount > 0) {
+            pills.append("<span class='pill info'>").append(r.infoCount).append(" INFO</span>");
+        }
+        if (r.warnCount > 0) {
+            pills.append("<span class='pill warn'>").append(r.warnCount).append(" WARN</span>");
+        }
+        if (r.failCount > 0) {
+            pills.append("<span class='pill fail'>").append(r.failCount).append(" FAIL</span>");
+        }
+        if (pills.length() > 0) {
+            sb.append("<div class='act-pills'>").append(pills).append("</div>");
+        }
+        String foot = r.totalCalls + (r.totalCalls == 1 ? " tool call" : " tool calls");
+        if (r.minorCount > 0) {
+            foot += " \u00b7 " + r.minorCount + " lookup" + (r.minorCount == 1 ? "" : "s");
+        }
+        if (r.retryCount > 0) {
+            foot += " \u00b7 " + r.retryCount + " self-corrected";
+        }
+        sb.append("<div class='act-foot'>").append(MarkdownRenderer.escape(foot)).append("</div>");
+        return sb.toString();
     }
 
     private void runScript(String script) {
@@ -129,37 +222,155 @@ public class ChatWebView {
         return "'" + escaped + "'";
     }
 
+    /**
+     * Builds a {@code @font-face} rule for the bundled INGMe font if the TTF is
+     * present at runtime, so the WebView can use it. Falls back to the default
+     * font when the file is unavailable.
+     */
+    private String ingMeFontFace() {
+        // Load the bundled INGMe TTF from the classpath and inline it as a base64
+        // data URI so the JavaFX WebView renders it regardless of working dir.
+        String[] paths = { "/ui/resources/fonts/ingme_regular.ttf", "/fonts/ingme_regular.ttf" };
+        for (String p : paths) {
+            try (java.io.InputStream in = ChatWebView.class.getResourceAsStream(p)) {
+                if (in != null) {
+                    byte[] bytes = in.readAllBytes();
+                    String b64 = java.util.Base64.getEncoder().encodeToString(bytes);
+                    return (
+                        "@font-face{font-family:'INGMe';font-display:block;" +
+                        "src:url('data:font/ttf;base64," +
+                        b64 +
+                        "') format('truetype');}"
+                    );
+                }
+            } catch (Exception ex) {
+                // try next path / fall back to the default font
+            }
+        }
+        return "";
+    }
+
     private String baseHtml() {
+        String fontFace = ingMeFontFace();
         return (
             "<!DOCTYPE html><html><head><meta charset='utf-8'>" +
             "<style>" +
-            "body{font-family:'Segoe UI',sans-serif;font-size:13px;margin:0;padding:12px;" +
-            "background:#1e1e1e;color:#e0e0e0;}" +
-            ".msg{margin:8px 0;padding:10px 12px;border-radius:8px;max-width:92%;" +
-            "white-space:normal;word-wrap:break-word;}" +
-            ".user{background:#0e639c;color:#fff;margin-left:auto;}" +
-            ".assistant{background:#2d2d2d;border:1px solid #3a3a3a;}" +
-            ".error{background:#5a1d1d;border:1px solid #7a2a2a;color:#ffd0d0;}" +
+            fontFace +
+            "*{box-sizing:border-box;}" +
+            "body{font-family:'INGMe','Segoe UI',sans-serif;font-size:13.5px;line-height:1.55;" +
+            "margin:0;padding:14px 12px;background:#faf9fc;color:#1e1e1e;" +
+            "-webkit-font-smoothing:antialiased;}" +
+            ".msg{position:relative;margin:10px 0;padding:12px 15px;border-radius:14px;max-width:88%;" +
+            "white-space:normal;word-wrap:break-word;overflow-wrap:anywhere;overflow:hidden;" +
+            "animation:fadeIn .25s ease;}" +
+            "@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}" +
+            ".user{background:linear-gradient(135deg,#9a6bff,#7a45f0);color:#ffffff;margin-left:auto;" +
+            "border-bottom-right-radius:4px;box-shadow:0 2px 8px rgba(122,69,240,.28);}" +
+            ".assistant{background:#ffffff;border:1px solid #ece4fa;color:#1e1e1e;" +
+            "border-bottom-left-radius:4px;box-shadow:0 2px 10px rgba(90,50,160,.08);}" +
+            ".error{background:#fdecea;border:1px solid #f3b5b0;color:#b3261e;border-radius:12px;}" +
             ".role{font-size:11px;opacity:0.6;margin-bottom:4px;text-transform:uppercase;}" +
-            "pre{background:#0d0d0d;padding:10px;border-radius:6px;overflow-x:auto;}" +
-            "code{font-family:'Consolas',monospace;font-size:12px;}" +
-            "p{margin:4px 0;} ul,ol{margin:4px 0 4px 20px;}" +
+            "table{border-collapse:collapse;margin:10px 0;font-size:12.5px;width:auto;" +
+            "border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);}" +
+            "th,td{border:1px solid #e4dbf5;padding:6px 12px;text-align:left;}" +
+            "th{background:#f0e8ff;color:#4a2b9c;font-weight:600;}" +
+            "tr:nth-child(even) td{background:#faf8ff;}" +
+            ".lnk{color:#6b3fd4;text-decoration:underline;cursor:pointer;}" +
+            "a{color:#6b3fd4;text-decoration:none;} a:hover{text-decoration:underline;}" +
+            ".user a,.user .lnk{color:#ffffff;}" +
+            ".thinking{display:flex;align-items:center;gap:6px;color:#6a6a6a;font-style:italic;}" +
+            ".thinking .dot{width:6px;height:6px;border-radius:50%;background:#B487FF;" +
+            "display:inline-block;animation:blink 1.2s infinite ease-in-out;}" +
+            ".thinking .dot:nth-child(2){animation-delay:0.2s;}" +
+            ".thinking .dot:nth-child(3){animation-delay:0.4s;}" +
+            "@keyframes blink{0%,80%,100%{opacity:0.2;}40%{opacity:1;}}" +
+            "pre{background:#2b2540;padding:12px 14px;border-radius:10px;overflow-x:auto;" +
+            "color:#f3f0ff;margin:10px 0;box-shadow:0 2px 8px rgba(43,37,64,.25);}" +
+            "pre code{color:#f3f0ff;font-size:12.5px;background:none;padding:0;}" +
+            "code{font-family:'Consolas','SFMono-Regular',monospace;font-size:12.5px;" +
+            "background:#efe9fb;color:#6234c9;padding:1px 6px;border-radius:5px;}" +
+            ".user code{background:rgba(255,255,255,.22);color:#ffffff;}" +
+            "p{margin:7px 0;} p:first-child{margin-top:0;} p:last-child{margin-bottom:0;}" +
+            "ul,ol{margin:7px 0 7px 22px;} li{margin:3px 0;} ul li::marker{color:#7a45f0;}" +
+            "h1,h2,h3,h4{margin:12px 0 6px;line-height:1.3;font-weight:600;color:#3a2b6b;}" +
+            "h1{font-size:18px;} h2{font-size:16px;} h3{font-size:14px;} h4{font-size:13px;}" +
+            "h1,h2{border-bottom:1px solid #ece4fa;padding-bottom:4px;}" +
+            "strong{color:#4a2b9c;font-weight:600;} .user strong{color:#ffffff;}" +
+            "blockquote{margin:8px 0;padding:6px 12px;border-left:3px solid #b79cff;" +
+            "background:#f6f2ff;color:#4a4560;border-radius:0 6px 6px 0;}" +
+            "hr{border:none;border-top:1px solid #e4dbf5;margin:12px 0;}" +
+            ".toolcall{margin:4px 0;padding:4px 8px;font-size:12px;border-radius:6px;" +
+            "background:#f3f3f3;border:1px solid #d0d7de;cursor:pointer;color:#333;}" +
+            ".toolcall .tname{font-family:'Consolas',monospace;color:#0a7d6b;}" +
+            ".toolcall .targs{opacity:0.7;margin-left:6px;}" +
+            ".toolcall .ticon{margin-right:6px;}" +
+            ".toolcall.done{border-color:#2d5a2d;} .toolcall.done .ticon{color:#2e7d32;}" +
+            ".toolcall.err{border-color:#c0392b;} .toolcall.err .ticon{color:#c0392b;}" +
+            ".tdetail{display:none;margin:2px 0 6px 0;padding:8px;font-size:11px;" +
+            "font-family:'Consolas',monospace;white-space:pre-wrap;word-break:break-word;" +
+            "background:#f0f1f3;border-radius:6px;color:#2a6b2a;}" +
+            ".tdetail.open{display:block;}" +
+            ".activity{margin:8px 0;padding:10px 12px;border-radius:8px;" +
+            "background:#faf7ff;border:1px solid #e0d3f7;}" +
+            ".act-head{font-size:11px;text-transform:uppercase;letter-spacing:.5px;" +
+            "color:#6b3fd4;font-weight:bold;margin-bottom:8px;}" +
+            ".act-pills{margin-top:8px;}" +
+            ".pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;" +
+            "font-weight:bold;margin-right:6px;}" +
+            ".pill.ok{background:#e6f4ea;color:#1e7e34;}.pill.info{background:#e3f2fd;color:#0277bd;}" +
+            ".pill.warn{background:#fff4e5;color:#b26a00;}.pill.fail{background:#fdecea;color:#c62828;}" +
+            ".act-foot{margin-top:8px;font-size:11px;color:#8a8a8a;}" +
+            ".usage{margin:-4px 0 10px 4px;font-size:11px;color:#7a6f92;display:flex;" +
+            "align-items:center;gap:5px;}" +
+            ".usage .ucoin{color:#b08400;}" +
+            ".approval{margin:8px 0;padding:10px 12px;border-radius:8px;" +
+            "background:#3a2f16;border-left:3px solid #d7a017;color:#f0e0b0;}" +
+            ".approval b{color:#ffd479;}" +
+            ".approval .btns{margin-top:8px;}" +
+            ".approval button{margin-right:8px;padding:4px 12px;border:none;border-radius:4px;" +
+            "cursor:pointer;font-size:12px;}" +
+            ".approval .apply{background:#2d7d2d;color:#fff;}" +
+            ".approval .skip{background:#5a5a5a;color:#fff;}" +
             "</style></head><body><div id='chat'></div>" +
             "<script>" +
             "var chat=document.getElementById('chat');var cur=null;" +
             "function scroll(){window.scrollTo(0,document.body.scrollHeight);}" +
-            "function appendMessage(role,html){var d=document.createElement('div');" +
-            "d.className='msg '+role;d.innerHTML=\"<div class='role'>\"+role+\"</div>\"+html;" +
+            "function hideThinking(){var t=document.getElementById('thinking');" +
+            "if(t){t.parentNode.removeChild(t);}}" +
+            "function showThinking(){if(document.getElementById('thinking')){return;}" +
+            "var d=document.createElement('div');d.className='msg assistant thinking';d.id='thinking';" +
+            "d.innerHTML=\"<span>Thinking..</span><span class='dot'></span>\"+" +
+            "\"<span class='dot'></span><span class='dot'></span>\";chat.appendChild(d);scroll();}" +
+            "function appendMessage(role,html){hideThinking();var d=document.createElement('div');" +
+            "d.className='msg '+role;d.innerHTML=html;" +
             "chat.appendChild(d);scroll();}" +
-            "function appendError(text){var d=document.createElement('div');" +
+            "function appendActivity(html){hideThinking();var d=document.createElement('div');" +
+            "d.className='activity';d.innerHTML=html;chat.appendChild(d);scroll();}" +
+            "function appendUsage(text){var d=document.createElement('div');" +
+            "d.className='usage';d.innerHTML=\"<span class='ucoin'>\\u25C9</span><span>\"+text+" +
+            "\"</span>\";chat.appendChild(d);scroll();}" +
+            "function appendError(text){hideThinking();var d=document.createElement('div');" +
             "d.className='msg error';d.innerHTML=text;chat.appendChild(d);scroll();}" +
-            "function beginAssistant(){cur=document.createElement('div');" +
-            "cur.className='msg assistant';cur.innerHTML=\"<div class='role'>assistant</div>" +
-            "<div class='body'></div>\";chat.appendChild(cur);scroll();}" +
+            "function beginAssistant(){hideThinking();cur=document.createElement('div');" +
+            "cur.className='msg assistant';cur.innerHTML=\"<div class='body'></div>\";" +
+            "chat.appendChild(cur);scroll();}" +
             "function updateAssistant(html){if(cur){cur.querySelector('.body').innerHTML=html;" +
             "scroll();}}" +
             "function endAssistant(){cur=null;}" +
             "function clearAll(){chat.innerHTML='';cur=null;}" +
+            "function toggleDetail(id){var d=document.getElementById('td-'+id);" +
+            "if(d){d.classList.toggle('open');}}" +
+            "function appendToolCall(id,name,args){hideThinking();var r=document.createElement('div');" +
+            "r.className='toolcall';r.id='tc-'+id;r.setAttribute('onclick',\"toggleDetail('\"+id+\"')\");" +
+            "r.innerHTML=\"<span class='ticon'>\\u25CC</span><span class='tname'>\"+name+" +
+            "\"</span><span class='targs'>\"+args+\"</span>\";chat.appendChild(r);" +
+            "var d=document.createElement('div');d.className='tdetail';d.id='td-'+id;" +
+            "chat.appendChild(d);scroll();}" +
+            "function resolveToolCall(id,summary,isErr,detail){var r=document.getElementById('tc-'+id);" +
+            "if(r){r.classList.add(isErr?'err':'done');" +
+            "r.querySelector('.ticon').innerHTML=isErr?'\\u2717':'\\u2713';" +
+            "r.querySelector('.targs').innerHTML=summary;}" +
+            "var d=document.getElementById('td-'+id);if(d){d.textContent=detail;}scroll();}" +
             "</script></body></html>"
         );
     }

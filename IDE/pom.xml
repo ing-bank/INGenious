@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.ing</groupId>
 		<artifactId>ingenious-playwright</artifactId>
-		<version>3.1.0</version>
+		<version>4.0.0</version>
 	</parent>
 	<artifactId>ingenious-ide</artifactId>
 	<packaging>jar</packaging>
@@ -184,6 +184,11 @@
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
 			<version>${json-simple.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>

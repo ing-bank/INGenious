@@ -2,9 +2,13 @@ package com.ing.engine.commands.database;
 
 import com.ing.datalib.testdata.view.TestDataView;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.data.TestDataToken;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.annotation.Args;
 import com.ing.ingenious.api.dto.DMLResult;
 import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.ArgType;
+import com.ing.ingenious.api.types.ConditionKind;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.sql.DatabaseMetaData;
@@ -34,6 +38,11 @@ public class Database extends General {
         object = ObjectType.DATABASE,
         desc = "Initiate the DB transaction",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.ALIAS_DB,
+        inputExample = "#PostgresMain",
+        help = "Database connection alias (#dbAlias) from project DB settings."
     )
     public void initDBConnection() {
         try {
@@ -82,6 +91,11 @@ public class Database extends General {
         desc = "Execute the Query in [<Input>]",
         input = InputType.YES
     )
+    @Args(
+        input = ArgType.SQL,
+        inputExample = "@SELECT * FROM users",
+        help = "SQL SELECT statement (raw query)."
+    )
     public void executeSelectQuery() {
         try {
             executeSelect();
@@ -102,6 +116,11 @@ public class Database extends General {
         object = ObjectType.DATABASE,
         desc = "Execute the Query in [<Input>]",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.SQL,
+        inputExample = "@UPDATE users SET active=1",
+        help = "SQL DML statement (INSERT/UPDATE/DELETE)."
     )
     public void executeDMLQuery() {
         try {
@@ -138,6 +157,14 @@ public class Database extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@expectedValue",
+        inputHelp = "expected value to assert exists in the database",
+        condition = ConditionKind.TEXT,
+        conditionExample = "USER_NAME",
+        conditionHelp = "database column name (e.g., USER_NAME); optional row can be appended as column,row"
+    )
     public void assertDBResult() {
         if (assertDB(Condition, Data)) {
             Report.updateTestLog(Action, "Value " + Data + " exist in the Database", Status.PASSNS);
@@ -160,6 +187,14 @@ public class Database extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%dbValue%",
+        inputHelp = "runtime variable name in %var% format to store the DB value into",
+        condition = ConditionKind.TEXT,
+        conditionExample = "USER_NAME",
+        conditionHelp = "database column name (e.g., USER_NAME); optional row can be appended as column,row"
+    )
     public void storeValueInGlobalVariable() {
         if (storeValue(Input, Condition, true)) {
             Report.updateTestLog(Action, "Stored in Global variable", Status.PASSNS);
@@ -175,6 +210,14 @@ public class Database extends General {
         desc = "Store it in the variable from the DB column [<Condition>] ",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "%dbValue%",
+        inputHelp = "runtime variable name in %var% format to store the DB value into",
+        condition = ConditionKind.TEXT,
+        conditionExample = "USER_NAME",
+        conditionHelp = "database column name (e.g., USER_NAME); optional row can be appended as column,row"
     )
     public void storeValueInVariable() {
         if (storeValue(Input, Condition, false)) {
@@ -192,12 +235,28 @@ public class Database extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "DbData:UserName",
+        condition = ConditionKind.TEXT,
+        conditionExample = "USER_NAME",
+        help = "Input = Sheet:Column destination. Condition = DB column name."
+    )
     public void storeDBValueinDataSheet() {
         try {
             if (Condition != null && Input != null) {
                 int rowIndex = 1;
                 result.first();
-                String[] sheetDetail = Input.split(":");
+                // Accepts Sheet:Column, Sheet:Column@Project and Sheet:Column@Shared.
+                String[] sheetDetail = TestDataToken.parse(Input);
+                if (sheetDetail == null) {
+                    Report.updateTestLog(
+                        Action,
+                        "Incorrect input format; expected Sheet:Column",
+                        Status.FAILNS
+                    );
+                    return;
+                }
                 String sheetName = sheetDetail[0];
                 String columnName = sheetDetail[1];
                 String value;
@@ -239,6 +298,11 @@ public class Database extends General {
      * Closes the database connection and updates the test log with the result.
      */
     @Action(object = ObjectType.DATABASE, desc = "Close the DB Connection")
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
     public void closeDBConnection() {
         try {
             if (closeConnection()) {
@@ -258,6 +322,13 @@ public class Database extends General {
         object = ObjectType.DATABASE,
         desc = "Verify Table values with the Test Data sheet ",
         input = InputType.YES
+    )
+    @Args(
+        input = ArgType.DATA_REF,
+        inputExample = "TestSheet",
+        inputHelp = "test data sheet name to verify against the database",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
     )
     public void verifyWithDataSheet() {
         String sheetName = Data;
@@ -297,6 +368,13 @@ public class Database extends General {
         desc = "Query and save the result in variable(s) ",
         input = InputType.YES,
         condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.SQL,
+        inputExample = "@SELECT name FROM users",
+        condition = ConditionKind.TEXT,
+        conditionExample = "%userName%",
+        help = "Input = SQL SELECT. Condition = runtime variable name to store into."
     )
     public void storeResultInVariable() {
         String variableName = Condition;
@@ -342,6 +420,14 @@ public class Database extends General {
         input = InputType.YES,
         condition = InputType.YES
     )
+    @Args(
+        input = ArgType.SQL,
+        inputExample = "@SELECT name FROM users",
+        inputHelp = "SQL SELECT statement to execute (e.g., @SELECT name FROM users)",
+        condition = ConditionKind.TEXT,
+        conditionExample = "DbSheet",
+        conditionHelp = "destination datasheet name (e.g., DbSheet) to store the query result"
+    )
     public void storeResultInDataSheet() {
         try {
             executeSelect();
@@ -382,5 +468,193 @@ public class Database extends General {
                 Status.FAILNS
             );
         }
+    }
+
+    /**
+     * Asserts that the last SELECT returned exactly the expected number of rows.
+     */
+    @Action(
+        object = ObjectType.DATABASE,
+        desc = "Assert the result has [<Input>] row(s)",
+        input = InputType.YES
+    )
+    @Args(
+        input = ArgType.INTEGER,
+        inputExample = "@3",
+        inputHelp = "expected number of rows returned by the last SELECT",
+        condition = ConditionKind.NONE,
+        conditionHelp = "no condition required"
+    )
+    public void assertRowCount() {
+        try {
+            if (result == null) {
+                Report.updateTestLog(
+                    Action,
+                    "No query result available. Run a SELECT first.",
+                    Status.FAILNS
+                );
+                return;
+            }
+            int expected = Integer.parseInt(Data.trim());
+            result.last();
+            int actual = result.getRow();
+            result.beforeFirst();
+            if (actual == expected) {
+                Report.updateTestLog(Action, "Row count is " + actual, Status.PASSNS);
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "Expected " + expected + " row(s) but found " + actual,
+                    Status.FAILNS
+                );
+            }
+        } catch (NumberFormatException ex) {
+            Report.updateTestLog(Action, "Invalid expected row count: " + Data, Status.FAILNS);
+        } catch (SQLException ex) {
+            Report.updateTestLog(Action, "Error counting rows: " + ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    /**
+     * Asserts that the value at a specific column (and optional row) equals the input exactly.
+     */
+    @Action(
+        object = ObjectType.DATABASE,
+        desc = "Assert the value [<Input>] equals column [<Condition>]",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    @Args(
+        input = ArgType.TEXT,
+        inputExample = "@Ervin Howell",
+        inputHelp = "exact expected value",
+        condition = ConditionKind.TEXT,
+        conditionExample = "user_name,2",
+        conditionHelp = "column name, optionally column,row (1-based; default row 1)"
+    )
+    public void assertColumnValueEquals() {
+        try {
+            String[] cr = parseColumnRow(Condition);
+            String column = cr[0];
+            int row = Integer.parseInt(cr[1]);
+            if (getColumnIndex(column) == -1) {
+                Report.updateTestLog(Action, "Column " + column + " doesn't exist", Status.FAILNS);
+                return;
+            }
+            if (!result.absolute(row)) {
+                Report.updateTestLog(Action, "Row " + row + " doesn't exist", Status.FAILNS);
+                return;
+            }
+            String actual = result.getString(column);
+            boolean equal = (Data == null) ? (actual == null) : Data.equals(actual);
+            if (equal) {
+                Report.updateTestLog(
+                    Action,
+                    "Value at " + column + " row " + row + " equals " + Data,
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "Expected [" +
+                    Data +
+                    "] but found [" +
+                    actual +
+                    "] at " +
+                    column +
+                    " row " +
+                    row,
+                    Status.FAILNS
+                );
+            }
+        } catch (SQLException ex) {
+            Report.updateTestLog(Action, "Error: " + ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    /**
+     * Asserts that the value at a specific column (and optional row) is SQL NULL.
+     */
+    @Action(
+        object = ObjectType.DATABASE,
+        desc = "Assert the value in column [<Condition>] is NULL",
+        condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "email,3",
+        conditionHelp = "column name, optionally column,row (1-based; default row 1)"
+    )
+    public void assertColumnValueIsNull() {
+        assertNullness(true);
+    }
+
+    /**
+     * Asserts that the value at a specific column (and optional row) is not SQL NULL.
+     */
+    @Action(
+        object = ObjectType.DATABASE,
+        desc = "Assert the value in column [<Condition>] is NOT NULL",
+        condition = InputType.YES
+    )
+    @Args(
+        inputHelp = "no input required",
+        condition = ConditionKind.TEXT,
+        conditionExample = "email,1",
+        conditionHelp = "column name, optionally column,row (1-based; default row 1)"
+    )
+    public void assertColumnValueIsNotNull() {
+        assertNullness(false);
+    }
+
+    private void assertNullness(boolean expectNull) {
+        try {
+            String[] cr = parseColumnRow(Condition);
+            String column = cr[0];
+            int row = Integer.parseInt(cr[1]);
+            if (getColumnIndex(column) == -1) {
+                Report.updateTestLog(Action, "Column " + column + " doesn't exist", Status.FAILNS);
+                return;
+            }
+            if (!result.absolute(row)) {
+                Report.updateTestLog(Action, "Row " + row + " doesn't exist", Status.FAILNS);
+                return;
+            }
+            result.getObject(column);
+            boolean isNull = result.wasNull();
+            if (isNull == expectNull) {
+                Report.updateTestLog(
+                    Action,
+                    "Value at " +
+                    column +
+                    " row " +
+                    row +
+                    " is " +
+                    (expectNull ? "NULL" : "NOT NULL"),
+                    Status.PASSNS
+                );
+            } else {
+                Report.updateTestLog(
+                    Action,
+                    "Value at " + column + " row " + row + " is " + (isNull ? "NULL" : "NOT NULL"),
+                    Status.FAILNS
+                );
+            }
+        } catch (SQLException ex) {
+            Report.updateTestLog(Action, "Error: " + ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    /** Splits a {@code column} or {@code column,row} condition into [column, row]. */
+    private String[] parseColumnRow(String condition) {
+        String col = condition == null ? "" : condition.trim();
+        String row = "1";
+        if (condition != null && condition.contains(",")) {
+            String[] s = condition.split(",", 2);
+            col = s[0].trim();
+            row = s[1].trim();
+        }
+        return new String[] { col, row };
     }
 }
