@@ -1,11 +1,13 @@
 package com.ing.ide.main.mainui.components.dbworkbench.connections;
 
+import com.ing.ide.main.mainui.components.dbworkbench.util.DBWorkbenchColors;
 import com.ing.ide.main.mainui.components.dbworkbench.util.JdbcExecutor;
 import com.ing.util.encryption.Encryption;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -28,6 +30,8 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * Modal add/edit form for a single database connection, with a Test Connection
@@ -50,20 +54,69 @@ public class ConnectionDialog extends JDialog {
     private static final int MAX_TIMEOUT_SECONDS = 86400;
 
     /** Vendor presets: label -> {driver, connection-string template}. */
+    /**
+     * Vendor presets: label -> {driver, connection-string template, recommended jar,
+     * maven coordinates}. The recommended jars mirror the driver dependencies declared
+     * (and commented as "Additional Database Drivers") in {@code Engine/pom.xml}.
+     */
     private static final String[][] VENDORS = {
-        { "Custom", "", "" },
-        { "PostgreSQL", "org.postgresql.Driver", "jdbc:postgresql://<host>:5432/<database>" },
-        { "MySQL", "com.mysql.cj.jdbc.Driver", "jdbc:mysql://<host>:3306/<database>" },
-        { "MariaDB", "org.mariadb.jdbc.Driver", "jdbc:mariadb://<host>:3306/<database>" },
+        { "Custom", "", "", "", "" },
+        {
+            "PostgreSQL",
+            "org.postgresql.Driver",
+            "jdbc:postgresql://<host>:5432/<database>",
+            "postgresql-42.7.4.jar",
+            "org.postgresql:postgresql:42.7.4"
+        },
+        {
+            "MySQL",
+            "com.mysql.cj.jdbc.Driver",
+            "jdbc:mysql://<host>:3306/<database>",
+            "mysql-connector-j-26.7.0.jar",
+            "com.mysql:mysql-connector-j:26.7.0"
+        },
+        {
+            "MariaDB",
+            "org.mariadb.jdbc.Driver",
+            "jdbc:mariadb://<host>:3306/<database>",
+            "mariadb-java-client-3.5.10.jar",
+            "org.mariadb.jdbc:mariadb-java-client:3.5.10"
+        },
         {
             "SQL Server",
             "com.microsoft.sqlserver.jdbc.SQLServerDriver",
-            "jdbc:sqlserver://<host>:1433;databaseName=<database>"
+            "jdbc:sqlserver://<host>:1433;databaseName=<database>",
+            "mssql-jdbc-13.2.1.jre11.jar",
+            "com.microsoft.sqlserver:mssql-jdbc:13.2.1.jre11"
         },
-        { "Oracle", "oracle.jdbc.OracleDriver", "jdbc:oracle:thin:@<host>:1521:<sid>" },
-        { "H2", "org.h2.Driver", "jdbc:h2:mem:testdb" },
-        { "SQLite", "org.sqlite.JDBC", "jdbc:sqlite:<path-to-file>.db" },
-        { "DB2", "com.ibm.db2.jcc.DB2Driver", "jdbc:db2://<host>:50000/<database>" }
+        {
+            "Oracle",
+            "oracle.jdbc.OracleDriver",
+            "jdbc:oracle:thin:@<host>:1521:<sid>",
+            "ojdbc11-23.26.1.0.0.jar",
+            "com.oracle.database.jdbc:ojdbc11:23.26.1.0.0"
+        },
+        {
+            "H2",
+            "org.h2.Driver",
+            "jdbc:h2:mem:testdb",
+            "h2-2.3.232.jar",
+            "com.h2database:h2:2.3.232"
+        },
+        {
+            "SQLite",
+            "org.sqlite.JDBC",
+            "jdbc:sqlite:<path-to-file>.db",
+            "sqlite-jdbc-3.53.4.0.jar",
+            "org.xerial:sqlite-jdbc:3.53.4.0"
+        },
+        {
+            "DB2",
+            "com.ibm.db2.jcc.DB2Driver",
+            "jdbc:db2://<host>:50000/<database>",
+            "jcc-11.5.0.0.jar",
+            "com.ibm.db2:jcc:11.5.0.0"
+        }
     };
 
     private final JdbcExecutor executor;
@@ -74,6 +127,7 @@ public class ConnectionDialog extends JDialog {
     private final JTextField aliasField = new JTextField();
     private final JComboBox<String> vendorCombo = new JComboBox<>();
     private final JTextField driverField = new JTextField();
+    private final JLabel driverStatusLabel = new JLabel();
     private final JTextField connStringField = new JTextField();
     private final JTextField userField = new JTextField();
     private final JPasswordField passwordField = new JPasswordField();
@@ -103,7 +157,8 @@ public class ConnectionDialog extends JDialog {
         if (editMode) {
             populate(existingAlias, existing);
         }
-        setSize(600, 480);
+        updateDriverStatus();
+        setSize(560, 450);
         setLocationRelativeTo(owner);
     }
 
@@ -120,10 +175,35 @@ public class ConnectionDialog extends JDialog {
         }
         vendorCombo.addActionListener(e -> applyVendorTemplate());
 
+        driverStatusLabel.setForeground(DBWorkbenchColors.FAIL_RED);
+        driverStatusLabel.setFont(driverStatusLabel.getFont().deriveFont(Font.PLAIN, 11f));
+        driverField
+            .getDocument()
+            .addDocumentListener(
+                new DocumentListener() {
+
+                    @Override
+                    public void insertUpdate(DocumentEvent e) {
+                        updateDriverStatus();
+                    }
+
+                    @Override
+                    public void removeUpdate(DocumentEvent e) {
+                        updateDriverStatus();
+                    }
+
+                    @Override
+                    public void changedUpdate(DocumentEvent e) {
+                        updateDriverStatus();
+                    }
+                }
+            );
+
         int row = 0;
         addRow(form, g, row++, "Alias (name):", aliasField, true);
         addRow(form, g, row++, "Vendor:", vendorCombo, false);
         addRow(form, g, row++, "Driver class:", driverField, true);
+        addStatusRow(form, g, row++, driverStatusLabel);
         addRow(form, g, row++, "Connection string:", connStringField, true);
         addRow(form, g, row++, "User:", userField, false);
         addRow(form, g, row++, "Password:", passwordField, false);
@@ -203,6 +283,17 @@ public class ConnectionDialog extends JDialog {
         form.add(field, g);
     }
 
+    /** Adds a full-width hint row aligned with the field column. */
+    private void addStatusRow(JPanel form, GridBagConstraints g, int row, JLabel status) {
+        Insets original = g.insets;
+        g.insets = new Insets(0, 6, 6, 6);
+        g.gridx = 1;
+        g.gridy = row;
+        g.weightx = 1;
+        form.add(status, g);
+        g.insets = original;
+    }
+
     /**
      * Fills in the driver for the chosen vendor. The connection string is only
      * replaced when it is still empty or is another vendor's untouched template,
@@ -243,6 +334,59 @@ public class ConnectionDialog extends JDialog {
         if (c.startsWith("jdbc:sqlite")) return "SQLite";
         if (c.startsWith("jdbc:db2")) return "DB2";
         return "Custom";
+    }
+
+    /**
+     * Shows a hint under the driver class field when the configured driver is not on
+     * the IDE classpath, naming the jar that has to be added to make it available.
+     */
+    private void updateDriverStatus() {
+        String driver = driverField.getText().trim();
+        if (driver.isEmpty() || isDriverAvailable(driver)) {
+            driverStatusLabel.setText("");
+            driverStatusLabel.setToolTipText(null);
+            return;
+        }
+        String[] vendor = findVendorByDriver(driver);
+        if (vendor == null) {
+            driverStatusLabel.setText(wrapped("No suitable driver found for " + driver + "."));
+            driverStatusLabel.setToolTipText(null);
+            return;
+        }
+        driverStatusLabel.setText(
+            wrapped(
+                "No suitable driver found for " +
+                vendor[0] +
+                ". Recommended jar: " +
+                vendor[3] +
+                "."
+            )
+        );
+        driverStatusLabel.setToolTipText("Maven coordinates: " + vendor[4]);
+    }
+
+    /** Wraps the hint so long jar names stay readable inside the dialog width. */
+    private static String wrapped(String message) {
+        return "<html><body style='width:330px'>" + message + "</body></html>";
+    }
+
+    private static boolean isDriverAvailable(String driverClass) {
+        try {
+            Class.forName(driverClass, false, Thread.currentThread().getContextClassLoader());
+            return true;
+        } catch (ClassNotFoundException | LinkageError e) {
+            return false;
+        }
+    }
+
+    /** Returns the vendor preset whose driver class matches, or {@code null}. */
+    private static String[] findVendorByDriver(String driverClass) {
+        for (String[] v : VENDORS) {
+            if (!v[1].isEmpty() && v[1].equalsIgnoreCase(driverClass)) {
+                return v;
+            }
+        }
+        return null;
     }
 
     private void populate(String alias, Properties p) {
