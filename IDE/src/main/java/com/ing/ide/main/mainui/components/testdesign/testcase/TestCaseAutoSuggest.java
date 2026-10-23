@@ -1008,12 +1008,16 @@ public class TestCaseAutoSuggest {
          * @see ObjectTypeUtil#isKnownType(String)
          */
         private List<String> getActionBasedOnObject() {
+            int row = table.getSelectedRow();
+            if (row < 0) {
+                return new ArrayList<>();
+            }
             String objectName = Objects.toString(
-                table.getModel().getValueAt(table.getSelectedRow(), ObjectName.getIndex()),
+                table.getModel().getValueAt(row, ObjectName.getIndex()),
                 ""
             );
             String pageToken = Objects.toString(
-                table.getModel().getValueAt(table.getSelectedRow(), Reference.getIndex()),
+                table.getModel().getValueAt(row, Reference.getIndex()),
                 ""
             );
 
@@ -1163,6 +1167,18 @@ public class TestCaseAutoSuggest {
 
         @Override
         public void beforeSearch(String text) {
+            setSearchList(getActionBasedOnObject());
+        }
+
+        /**
+         * Recomputes the suggestion list before the popup is displayed so that the
+         * dropdown always reflects the object of the row being edited. Without this
+         * refresh the popup is opened with the list left over from the previously
+         * edited cell, which would offer actions for an object (e.g. "Synthetic Data")
+         * that is not the invalid object currently typed (e.g. "Data").
+         */
+        @Override
+        public void beforeShow() {
             setSearchList(getActionBasedOnObject());
         }
 

@@ -295,6 +295,68 @@ public class MethodInfoManager {
     }
 
     /**
+     * Object types whose test step {@code ObjectName} holds an Object Repository element name
+     * instead of the literal object type. Actions declaring one of these types can therefore
+     * never be matched against the object column and are always accepted.
+     */
+    private static final Set<String> ELEMENT_BASED_OBJECT_TYPES = Collections.unmodifiableSet(
+        new HashSet<>(
+            Arrays.asList(
+                ObjectType.PLAYWRIGHT,
+                ObjectType.WEB,
+                ObjectType.APP,
+                ObjectType.IMAGE,
+                ObjectType.PROTRACTORJS,
+                ObjectType.STRUCTUREDDATA,
+                ObjectType.SAP
+            )
+        )
+    );
+
+    /**
+     * Checks whether the given action may be executed for the given object name.
+     * <p>
+     * An action is only tied to a specific object when its {@code @Action} annotation declares a
+     * literal object type (for example {@link ObjectType#DATA}). Element based object types and
+     * {@link ObjectType#ANY} carry no such constraint, and unknown actions are reported separately
+     * by the execution engine, so all of those are accepted here.
+     *
+     * @param action the action (method) name taken from the test step
+     * @param objectName the object name taken from the test step
+     * @return true if the action is allowed for the object, false otherwise
+     */
+    public static boolean isActionAllowedForObject(String action, String objectName) {
+        Action declaredAction = getActionFor(action);
+        if (declaredAction == null) {
+            return true;
+        }
+        String declaredObject = declaredAction.object();
+        if (
+            declaredObject == null ||
+            declaredObject.trim().isEmpty() ||
+            ObjectType.ANY.equalsIgnoreCase(declaredObject) ||
+            ELEMENT_BASED_OBJECT_TYPES.contains(declaredObject)
+        ) {
+            return true;
+        }
+        return objectName != null && declaredObject.equalsIgnoreCase(objectName.trim());
+    }
+
+    /**
+     * Returns the object type declared by the given action, or an empty string when the action is
+     * unknown or declares no object type.
+     *
+     * @param action the action (method) name
+     * @return the declared object type
+     */
+    public static String getDeclaredObjectFor(String action) {
+        Action declaredAction = getActionFor(action);
+        return declaredAction == null || declaredAction.object() == null
+            ? ""
+            : declaredAction.object();
+    }
+
+    /**
      * Returns the resolved description for a test step, replacing placeholders with actual values.
      *
      * @param step the test step
