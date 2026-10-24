@@ -2271,7 +2271,16 @@ public class Project {
             scenario.save();
         }
         testData.save();
-        if (sharedTestData != null) {
+        // Only persist the app-root Shared Test Data (environment.properties, datasheets) when
+        // this project actually references it, or its store already exists on disk - otherwise
+        // every project.save() call (e.g. a plain project that never touches Shared Test Data)
+        // would unconditionally create Shared/SharedTestData under whatever user.dir happens to
+        // resolve to at the time (the app root in a packaged build, but a module/test sandbox
+        // directory in dev/test runs), leaking an empty shared store outside the real app root.
+        if (
+            sharedTestData != null &&
+            (usesSharedTestData() || new File(getSharedTestDataPath()).exists())
+        ) {
             // Persists the app-root Shared Test Data, including its environment.properties, so
             // environments added/renamed/deleted in the Shared Test Data tab survive a reload -
             // mirroring how testData.save() persists the project's own environments.

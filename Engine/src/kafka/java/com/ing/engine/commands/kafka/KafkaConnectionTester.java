@@ -15,7 +15,8 @@ import org.apache.kafka.common.config.SslConfigs;
  * <p>Invoked reflectively from the IDE ({@code DriverSettings.testKafkaConnection})
  * so the IDE has no compile-time dependency on {@code kafka-clients}; this source
  * depends on {@code kafka-clients}, which is only present when the Engine module
- * is built with the {@code -P kafka} profile.
+ * is built with the {@code kafka} profile, active by default (or explicitly via
+ * {@code -P kafka}).
  *
  * <p>Return contract: empty string on success; {@code "WARN:<msg>"} when the
  * broker is reachable but a referenced topic/group is missing (amber); any other
