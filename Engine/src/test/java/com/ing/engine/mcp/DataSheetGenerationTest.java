@@ -26,6 +26,7 @@ public class DataSheetGenerationTest {
     private MCPTools tools;
     private Path tempDir;
     private File project;
+    private String originalUserDir;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -34,12 +35,18 @@ public class DataSheetGenerationTest {
         TestDataFactory.load();
         tools = new MCPTools(null);
         tempDir = Files.createTempDirectory("ingenious-datasheet-test");
+        // Shared Test Data resolves from user.dir - isolate it under the temp dir so
+        // project.save() (triggered via the data_row_add tool) can't write a stray
+        // Shared/SharedTestData folder into this module's basedir.
+        originalUserDir = System.getProperty("user.dir");
+        System.setProperty("user.dir", tempDir.toString());
         project = tempDir.resolve("Proj").toFile();
         new Project(project.getAbsolutePath(), "csv").createProject();
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
+        System.setProperty("user.dir", originalUserDir);
         Files
             .walk(tempDir)
             .sorted(Comparator.reverseOrder())

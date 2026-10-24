@@ -2,6 +2,39 @@
 
 > Scope: recent codebase changes discussed in the Playwright BrowserContext, WebView context switching, column selection, ADB/mobile actions, IDE input focus, IntelliSense, LambdaTest reusable component markers, and AI agent retry-limit chats.
 
+## 12. Project.save() no longer leaks an app-root Shared Test Data folder
+
+`Project.save()` unconditionally called `sharedTestData.save()` for every project, even ones that never reference Shared Test Data. Since `Project.getSharedTestDataPath()` resolves `Shared/SharedTestData` relative to the JVM's `user.dir` (not anything project-local), any real `Project` + `.save()` call whose `user.dir` wasn't isolated to a sandbox wrote a stray `Shared/SharedTestData/` (with an empty `environment.properties` and `GlobalData.csv`) into whatever directory the process happened to be running from — observed as `Engine/Shared/SharedTestData` after a Maven test run, since Surefire's default working directory is the module basedir.
+
+### What changed
+
+- `Project.save()` now only calls `sharedTestData.save()` when the project actually references Shared Test Data (`usesSharedTestData()`) or its store already exists on disk — mirroring the guard already used by `registerSharedTestDataUsage()`. A plain project that never touches Shared Test Data no longer creates the app-root `Shared/SharedTestData` folder as a side effect of a generic save.
+- `DataSheetGenerationTest` (whose `ingenious_data_row_add` MCP tool call triggers `Project.save()`) now isolates `user.dir` to its temp directory in `@BeforeMethod`/`@AfterMethod`, matching the existing pattern used by the other Shared Test Data tests.
+
+### Files
+
+- [Datalib/src/main/java/com/ing/datalib/component/Project.java](Datalib/src/main/java/com/ing/datalib/component/Project.java)
+- [Engine/src/test/java/com/ing/engine/mcp/DataSheetGenerationTest.java](Engine/src/test/java/com/ing/engine/mcp/DataSheetGenerationTest.java)
+
+## 11. Default Maven build now includes Database and Kafka
+
+`mvn clean install` previously built only the Browser + Database archetypes, requiring engineers to remember `-P full` to get a complete build (Browser + Database + Kafka). The default build now produces everything, and the specialized `database`/`kafka` profiles remain available for engineers who want a narrower build.
+
+### What changed
+
+- `Engine/pom.xml`: the `kafka` profile is now `activeByDefault`, alongside the already-default `database` profile, so a plain `mvn clean install` activates both and compiles the Kafka command sources (`src/kafka/java`) in addition to the JDBC drivers.
+- The now-redundant `full` profile was removed — explicitly activating `-P database` or `-P kafka` still deactivates the other default profile, giving a Browser+Database-only or Browser+Kafka-only build respectively.
+- Doc comments in `KafkaOperations`, `KafkaConnectionTester`, and `DriverSettings` that referenced `-P kafka`/`-P full` as the way to enable Kafka support were updated to reflect that Kafka is active by default (and is excluded only when `-P database` is used explicitly).
+- `Resources/Configuration/archetypes/package-full.properties` comment updated to reflect that the full bundle is now produced by the default build, not `-P full`.
+
+### Files
+
+- [Engine/pom.xml](Engine/pom.xml)
+- [Engine/src/kafka/java/com/ing/engine/commands/kafka/KafkaOperations.java](Engine/src/kafka/java/com/ing/engine/commands/kafka/KafkaOperations.java)
+- [Engine/src/kafka/java/com/ing/engine/commands/kafka/KafkaConnectionTester.java](Engine/src/kafka/java/com/ing/engine/commands/kafka/KafkaConnectionTester.java)
+- [IDE/src/main/java/com/ing/ide/main/settings/DriverSettings.java](IDE/src/main/java/com/ing/ide/main/settings/DriverSettings.java)
+- [Resources/Configuration/archetypes/package-full.properties](Resources/Configuration/archetypes/package-full.properties)
+
 ## 10. AI-generated Datasheet reusable-scenario naming and duplicate rows
 
 AI-generated Datasheets for reusable scenarios incorrectly appended a `"(R) "` prefix to the scenario name, and `ingenious_data_row_add` always inserted a new row even when an identical one already existed for the same scenario/testcase/iteration. The `"(R) "` prefix also silently broke runtime data resolution, since reusable-scope lookups match on the plain scenario name plus the dedicated `Scope` column (`[Project]`/`[Shared]`), never a mangled name.

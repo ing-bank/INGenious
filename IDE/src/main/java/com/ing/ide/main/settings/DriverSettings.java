@@ -3700,7 +3700,8 @@ public class DriverSettings extends javax.swing.JFrame {
     /**
      * Validates broker reachability for the currently-selected Kafka config by
      * reflectively invoking the profile-gated {@code KafkaConnectionTester}
-     * (only present when the engine is built with {@code -P kafka}). Flips the
+     * (not present when the engine is built with {@code -P database}, which
+     * excludes the kafka profile that is otherwise active by default). Flips the
      * {@link com.ing.ide.main.utils.ConnectButton} bulb green/amber/red.
      */
     private void testKafkaConnection(
@@ -3723,7 +3724,7 @@ public class DriverSettings extends javax.swing.JFrame {
                     Object result = tester.getMethod("test", Properties.class).invoke(null, cfg);
                     return result == null ? "" : result.toString();
                 } catch (ClassNotFoundException cnf) {
-                    return "ERR:Kafka support is not enabled in this build (build with -P kafka).";
+                    return "ERR:Kafka support is not enabled in this build (rebuild without -P database).";
                 } catch (Exception ex) {
                     Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
                     return "ERR:" + cause.getMessage();
