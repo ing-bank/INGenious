@@ -298,14 +298,20 @@ public class ProjectDnD extends TransferHandler {
                     // the old name must be repointed at the new one before the scenario move.
                     pTree
                         .getProject()
-                        .refactorTestCase(scenario.getName(), oldTestCaseName, newTestCaseName);
+                        .refactorTestCase(
+                            scenario.getName(),
+                            oldTestCaseName,
+                            newTestCaseName,
+                            scenario.getSource()
+                        );
                 }
                 pTree
                     .getProject()
                     .refactorTestCaseScenario(
                         newTestCaseName,
                         scenario.getName(),
-                        dropscenario.toString()
+                        dropscenario.toString(),
+                        scenario.getSource()
                     );
             }
         }
