@@ -5,7 +5,10 @@ import com.ibm.msg.client.jms.JmsConnectionFactory;
 import com.ibm.msg.client.jms.JmsFactoryFactory;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
+import com.ing.engine.constants.PathsApiImpl;
+import com.ing.engine.constants.SystemDefaultsApiImpl;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.core.ExecutionContextApiImpl;
 import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.drivers.MobileObject;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
@@ -14,12 +17,17 @@ import com.ing.engine.drivers.StructuredDataObject;
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.reporting.TestCaseReport;
+import com.ing.engine.reporting.util.DateTimeApiImpl;
 import com.ing.ingenious.api.contract.CommandPluginApi;
+import com.ing.ingenious.api.contract.SystemDefaultsApi;
 import com.ing.ingenious.api.contract.data.UserDataAccessApi;
 import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
 import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
 import com.ing.ingenious.api.contract.drivers.PlaywrightDriverCreationApi;
+import com.ing.ingenious.api.contract.execution.ExecutionContextApi;
+import com.ing.ingenious.api.contract.paths.PathsApi;
 import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
+import com.ing.ingenious.api.contract.util.DateTimeApi;
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import com.microsoft.playwright.APIRequestContext;
@@ -310,17 +318,29 @@ public class Command implements CommandPluginApi {
         return Commander.getRunTimeElement();
     }
 
+    /**
+     * Implementation of {@link CommandPluginApi#executeMethod(String)} for the API-plugin contract.
+     * @param Action the action name to execute
+     */
+    @Override
     public void executeMethod(String Action) {
         Commander.executeAction(Action);
     }
 
-    public void executeMethod(Locator Locator, String Action, String Input) {
-        setElement(Locator);
+    /**
+     * Implementation of {@link CommandPluginApi#executeMethod(String, String)} for the API-plugin contract.
+     * @param Action the action name to execute
+     * @param Input the input data for the action
+     */
+    @Override
+    public void executeMethod(String Action, String Input) {
         setInput(Input);
         executeMethod(Action);
     }
 
-    public void executeMethod(String Action, String Input) {
+    // Locator-based executeMethod overloads are in General class (BrowserPluginApi)
+    public void executeMethod(Locator Locator, String Action, String Input) {
+        setElement(Locator);
         setInput(Input);
         executeMethod(Action);
     }
@@ -362,10 +382,23 @@ public class Command implements CommandPluginApi {
         return Commander;
     }
 
+    /**
+     * Implementation of {@link CommandPluginApi#executeTestCase(String, String, int)} for the API-plugin contract.
+     * @param scenarioName the scenario name
+     * @param testCaseName the test case name
+     * @param subIteration the sub-iteration number
+     */
+    @Override
     public void executeTestCase(String scenarioName, String testCaseName, int subIteration) {
         Commander.execute(scenarioName + ":" + testCaseName, subIteration);
     }
 
+    /**
+     * Implementation of {@link CommandPluginApi#executeTestCase(String, String)} for the API-plugin contract.
+     * @param scenarioName the scenario name
+     * @param testCaseName the test case name
+     */
+    @Override
     public void executeTestCase(String scenarioName, String testCaseName) {
         executeTestCase(scenarioName, testCaseName, userData.getSubIterationAsNumber());
     }
@@ -439,6 +472,42 @@ public class Command implements CommandPluginApi {
     @Override
     public TestCaseReportApi getReport() {
         return (TestCaseReportApi) Report;
+    }
+
+    /**
+     * Implementation of {@link CommandPluginApi#getDateTime()} for the API-plugin contract.
+     * @return the DateTimeApi instance for timestamp formatting
+     */
+    @Override
+    public DateTimeApi getDateTime() {
+        return DateTimeApiImpl.INSTANCE;
+    }
+
+    /**
+     * Implementation of {@link CommandPluginApi#getPaths()} for the API-plugin contract.
+     * @return the PathsApi instance for resolving project, application, results, and report paths
+     */
+    @Override
+    public PathsApi getPaths() {
+        return PathsApiImpl.INSTANCE;
+    }
+
+    /**
+     * Implementation of {@link CommandPluginApi#getSystemDefaults()} for the API-plugin contract.
+     * @return the SystemDefaultsApi instance for the framework's shared run-level defaults and flags
+     */
+    @Override
+    public SystemDefaultsApi getSystemDefaults() {
+        return SystemDefaultsApiImpl.INSTANCE;
+    }
+
+    /**
+     * Implementation of {@link CommandPluginApi#getExecutionContext()} for the API-plugin contract.
+     * @return the ExecutionContextApi instance for the current run's project, runner, and report manager
+     */
+    @Override
+    public ExecutionContextApi getExecutionContext() {
+        return ExecutionContextApiImpl.INSTANCE;
     }
 
     /**

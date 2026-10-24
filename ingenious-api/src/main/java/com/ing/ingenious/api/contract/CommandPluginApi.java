@@ -4,6 +4,9 @@ import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
 import com.ing.ingenious.api.contract.data.UserDataAccessApi;
 import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
 import com.ing.ingenious.api.contract.drivers.PlaywrightDriverCreationApi;
+import com.ing.ingenious.api.contract.execution.ExecutionContextApi;
+import com.ing.ingenious.api.contract.paths.PathsApi;
+import com.ing.ingenious.api.contract.util.DateTimeApi;
 
 import java.io.File;
 import java.util.Properties;
@@ -75,6 +78,37 @@ public interface CommandPluginApi {
     */
    TestCaseReportApi getReport();
 
+   /**
+    * Gets the date/time utility API for timestamp formatting.
+    * @return the DateTimeApi instance
+    * @since 3.1
+    */
+   DateTimeApi getDateTime();
+
+   /**
+    * Gets the path utility API for resolving project, application, results, and report paths.
+    * @return the PathsApi instance
+    * @since 3.1
+    */
+   PathsApi getPaths();
+
+   /**
+    * Gets the system defaults API for the framework's shared run-level
+    * timing defaults, execution-control flags, and command-line/environment
+    * variables.
+    * @return the SystemDefaultsApi instance
+    * @since 3.1
+    */
+   SystemDefaultsApi getSystemDefaults();
+
+   /**
+    * Gets the execution context API for the current run (project, runner,
+    * report manager, trigger id, start time).
+    * @return the ExecutionContextApi instance
+    * @since 3.1
+    */
+   ExecutionContextApi getExecutionContext();
+
     /**
      * Adds a runtime variable with the specified key and value.
      * @param key the variable key
@@ -131,5 +165,40 @@ public interface CommandPluginApi {
      * @return the context key for the current test execution
      */
     String getKey();
-  
+      /**
+     * Executes a test case with specified scenario name, test case name, and sub-iteration.
+     * This allows plugin actions to invoke other test cases programmatically.
+     * 
+     * @param scenarioName the name of the scenario containing the test case
+     * @param testCaseName the name of the test case to execute
+     * @param subIteration the sub-iteration number to execute
+     */
+    void executeTestCase(String scenarioName, String testCaseName, int subIteration);
+    
+    /**
+     * Executes a test case with specified scenario name and test case name.
+     * Uses the current sub-iteration number from user data.
+     * 
+     * @param scenarioName the name of the scenario containing the test case
+     * @param testCaseName the name of the test case to execute
+     */
+    void executeTestCase(String scenarioName, String testCaseName);
+    
+    /**
+     * Executes an action method by name.
+     * This allows plugin actions to invoke framework actions programmatically.
+     * 
+     * @param action the action name to execute
+     */
+    void executeMethod(String action);
+    
+    /**
+     * Executes an action method by name with input data.
+     * Sets the input parameter before executing the action.
+     * 
+     * @param action the action name to execute
+     * @param input the input data for the action
+     */
+    void executeMethod(String action, String input);
+
 }
