@@ -76,6 +76,9 @@ public class AppMainFrame extends JFrame {
     /** Last non-zero sidebar width, restored when the sidebar is re-shown. */
     private int aiSidebarWidth = 675;
 
+    /** Narrowest width that still shows every AI sidebar button; mirrors AICopilotUI's own minimum. */
+    private int aiSidebarMinWidth = 300;
+
     private boolean aiSidebarVisible = false;
 
     /** True while the divider is being positioned programmatically. */
@@ -428,10 +431,13 @@ public class AppMainFrame extends JFrame {
         centerSplit.setContinuousLayout(true);
         centerSplit.setOneTouchExpandable(true);
         centerSplit.setBorder(null);
-        // Small minimum sizes so the divider can be dragged freely in both
+        // Small minimum size so the divider can be dragged freely in both
         // directions (Swing otherwise refuses to move it past a component's min).
+        // AICopilotUI sets its own (wider) minimum so its button row is never
+        // squeezed smaller than what's needed to show every button.
         slideShow.setMinimumSize(new java.awt.Dimension(360, 0));
-        aiCopilot.getAICopilotUI().setMinimumSize(new java.awt.Dimension(300, 0));
+
+        aiSidebarMinWidth = aiCopilot.getAICopilotUI().getMinimumSize().width;
 
         // Restore persisted state.
         try {
@@ -442,8 +448,8 @@ public class AppMainFrame extends JFrame {
         } catch (NumberFormatException ignore) {
             aiSidebarWidth = 675;
         }
-        if (aiSidebarWidth < 300) {
-            aiSidebarWidth = 300;
+        if (aiSidebarWidth < aiSidebarMinWidth) {
+            aiSidebarWidth = aiSidebarMinWidth;
         }
         aiSidebarVisible =
             Boolean.parseBoolean(
@@ -554,8 +560,8 @@ public class AppMainFrame extends JFrame {
     }
 
     private int computeSidebarWidth(int totalWidth) {
-        int desiredWidth = Math.max(aiSidebarWidth, 300);
-        int maximumWidth = Math.max(280, (totalWidth * 3) / 4);
+        int desiredWidth = Math.max(aiSidebarWidth, aiSidebarMinWidth);
+        int maximumWidth = Math.max(aiSidebarMinWidth, (totalWidth * 3) / 4);
         return Math.min(desiredWidth, maximumWidth);
     }
 
