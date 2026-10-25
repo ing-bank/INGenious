@@ -1218,15 +1218,36 @@ public class TestCase extends DataModel {
         return false;
     }
 
-    public void refactorScenario(String oldScenarioName, String newScenarioName) {
+    /**
+     * Rewrites Execute steps whose effective scope matches {@code scope} and that reference
+     * {@code oldScenarioName} to point at {@code newScenarioName} instead.
+     * <p>
+     * A Test Plan scenario/test case can never legitimately be the target of an Execute step
+     * (only Project/Shared Reusable components are callable - see
+     * {@code ScopedExecutionResolver}), so a {@code TEST_PLAN} scope is always a no-op here.
+     * For Project/Shared renames, only steps whose reference resolves to that same scope are
+     * touched, so a same-named scenario/test case in a different scope is left untouched.
+     *
+     * @param scope the scope of the scenario/test case actually being renamed
+     */
+    public void refactorScenario(
+        String oldScenarioName,
+        String newScenarioName,
+        Scenario.Source scope
+    ) {
+        if (scope == Scenario.Source.TEST_PLAN) {
+            return;
+        }
         Boolean clearOnExit = getTestSteps().isEmpty();
         loadTableModel();
         for (TestStep testStep : testSteps) {
-            String[] values = testStep.getReusableData();
-            if (values != null) {
-                if (values[0].equals(oldScenarioName)) {
-                    testStep.asReusableStep(newScenarioName, values[1]);
-                }
+            ReusableRef ref = effectiveReusableRefOrNull(testStep);
+            if (
+                ref != null &&
+                matchesReusableSource(ref.getScope(), scope) &&
+                ref.getScenarioName().equals(oldScenarioName)
+            ) {
+                testStep.asReusableStep(newScenarioName, ref.getTestCaseName());
             }
         }
         if (clearOnExit) {
@@ -1235,19 +1256,33 @@ public class TestCase extends DataModel {
         }
     }
 
+    /**
+     * Rewrites Execute steps whose effective scope matches {@code scope} and that reference
+     * {@code scenarioName:oldTestCaseName} to point at {@code newTestCaseName} instead. See
+     * {@link #refactorScenario(String, String, Scenario.Source)} for the scope rules.
+     *
+     * @param scope the scope of the test case actually being renamed
+     */
     public void refactorTestCase(
         String scenarioName,
         String oldTestCaseName,
-        String newTestCaseName
+        String newTestCaseName,
+        Scenario.Source scope
     ) {
+        if (scope == Scenario.Source.TEST_PLAN) {
+            return;
+        }
         Boolean clearOnExit = getTestSteps().isEmpty();
         loadTableModel();
         for (TestStep testStep : testSteps) {
-            String[] values = testStep.getReusableData();
-            if (values != null) {
-                if (values[0].equals(scenarioName) && values[1].equals(oldTestCaseName)) {
-                    testStep.asReusableStep(scenarioName, newTestCaseName);
-                }
+            ReusableRef ref = effectiveReusableRefOrNull(testStep);
+            if (
+                ref != null &&
+                matchesReusableSource(ref.getScope(), scope) &&
+                ref.getScenarioName().equals(scenarioName) &&
+                ref.getTestCaseName().equals(oldTestCaseName)
+            ) {
+                testStep.asReusableStep(scenarioName, newTestCaseName);
             }
         }
         if (clearOnExit) {
@@ -1256,24 +1291,54 @@ public class TestCase extends DataModel {
         }
     }
 
+    /**
+     * Rewrites Execute steps whose effective scope matches {@code scope} and that reference
+     * {@code oldScenarioName:testCaseName} to point at {@code newScenarioName} instead (used
+     * when a test case moves to a different scenario). See
+     * {@link #refactorScenario(String, String, Scenario.Source)} for the scope rules.
+     *
+     * @param scope the scope of the scenario the test case is moving from
+     */
     public void refactorTestCaseScenario(
         String testCaseName,
         String oldScenarioName,
-        String newScenarioName
+        String newScenarioName,
+        Scenario.Source scope
     ) {
+        if (scope == Scenario.Source.TEST_PLAN) {
+            return;
+        }
         Boolean clearOnExit = getTestSteps().isEmpty();
         loadTableModel();
         for (TestStep testStep : testSteps) {
-            String[] values = testStep.getReusableData();
-            if (values != null) {
-                if (values[0].equals(oldScenarioName) && values[1].equals(testCaseName)) {
-                    testStep.asReusableStep(newScenarioName, testCaseName);
-                }
+            ReusableRef ref = effectiveReusableRefOrNull(testStep);
+            if (
+                ref != null &&
+                matchesReusableSource(ref.getScope(), scope) &&
+                ref.getScenarioName().equals(oldScenarioName) &&
+                ref.getTestCaseName().equals(testCaseName)
+            ) {
+                testStep.asReusableStep(newScenarioName, testCaseName);
             }
         }
         if (clearOnExit) {
             save();
             getTestSteps().clear();
+        }
+    }
+
+    /**
+     * Returns the step's effective reusable reference, or {@code null} when it isn't an Execute
+     * step or its action can't be parsed as one.
+     */
+    private ReusableRef effectiveReusableRefOrNull(TestStep testStep) {
+        if (!testStep.isReusableStep()) {
+            return null;
+        }
+        try {
+            return testStep.getEffectiveReusableRef();
+        } catch (IllegalArgumentException ex) {
+            return null;
         }
     }
 
@@ -1349,6 +1414,9 @@ public class TestCase extends DataModel {
     }
 
     private boolean matchesReusableSource(ReusableRef.Scope scope, Scenario.Source source) {
+        if (source == null) {
+            return false;
+        }
         if (scope == ReusableRef.Scope.PROJECT) {
             return source == Scenario.Source.REUSABLE_COMPONENTS;
         }
@@ -1745,6 +1813,7 @@ public class TestCase extends DataModel {
                 // Update name before refactoring so getLocation() resolves to the
                 // already-renamed file when this test case's own steps are (re)loaded.
                 name = newName;
+                resyncOwnMetadata();
                 getProject()
                     .refactorTestCase(
                         getScenario().getName(),
@@ -1758,6 +1827,17 @@ public class TestCase extends DataModel {
         return false;
     }
 
+    /**
+     * Reloads and force-resaves this test case so its on-disk {@code testCase:} metadata
+     * field reflects its current (possibly just-renamed) name - the rename itself only
+     * moves the file, it never rewrites that field.
+     */
+    private void resyncOwnMetadata() {
+        loadTableModel();
+        setSaved(false);
+        save();
+    }
+
     public Boolean renameReusable(String newName) {
         TestCase existing = getScenario().getTestCaseByName(newName);
         if (existing == null || existing == this) {
@@ -1766,6 +1846,7 @@ public class TestCase extends DataModel {
                 // Update name before refactoring so getLocation() resolves to the
                 // already-renamed file when this test case's own steps are (re)loaded.
                 name = newName;
+                resyncOwnMetadata();
                 getProject()
                     .refactorTestCase(
                         getScenario().getName(),
@@ -1792,6 +1873,7 @@ public class TestCase extends DataModel {
                 // Update name before refactoring so getLocation() resolves to the
                 // already-renamed file when this test case's own steps are (re)loaded.
                 name = newName;
+                resyncOwnMetadata();
                 getProject()
                     .refactorTestCase(
                         getScenario().getName(),

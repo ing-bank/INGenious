@@ -546,45 +546,61 @@ public class Scenario extends DataModel {
     }
 
     /**
-     * Refactors (renames) a scenario reference across all test cases.
+     * Refactors (renames) a scenario reference across all test cases, restricted to Execute
+     * steps whose effective scope matches {@code scope} (the scope of the scenario actually
+     * being renamed) - see {@link TestCase#refactorScenario(String, String, Source)}.
      * @param oldScenarioName old scenario name
      * @param newScenarioName new scenario name
+     * @param scope scope of the scenario being renamed
      */
-    public void refactorScenario(String oldScenarioName, String newScenarioName) {
+    public void refactorScenario(String oldScenarioName, String newScenarioName, Source scope) {
         for (TestCase testcase : testCases) {
-            testcase.refactorScenario(oldScenarioName, newScenarioName);
+            testcase.refactorScenario(oldScenarioName, newScenarioName, scope);
         }
     }
 
     /**
-     * Refactors (renames) a test case reference across all test cases.
+     * Refactors (renames) a test case reference across all test cases, restricted to Execute
+     * steps whose effective scope matches {@code scope} (the scope of the test case actually
+     * being renamed) - see {@link TestCase#refactorTestCase(String, String, String, Source)}.
      * @param scenarioName scenario containing the test case
      * @param oldTestCaseName old test case name
      * @param newTestCaseName new test case name
+     * @param scope scope of the test case being renamed
      */
     public void refactorTestCase(
         String scenarioName,
         String oldTestCaseName,
-        String newTestCaseName
+        String newTestCaseName,
+        Source scope
     ) {
         for (TestCase testcase : testCases) {
-            testcase.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName);
+            testcase.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName, scope);
         }
     }
 
     /**
-     * Refactors (moves) a test case from one scenario to another.
+     * Refactors (moves) a test case from one scenario to another, restricted to Execute steps
+     * whose effective scope matches {@code scope} (the scope of the scenario being moved from)
+     * - see {@link TestCase#refactorTestCaseScenario(String, String, String, Source)}.
      * @param testCaseName test case name
      * @param oldScenarioName old scenario name
      * @param newScenarioName new scenario name
+     * @param scope scope of the scenario the test case is moving from
      */
     public void refactorTestCaseScenario(
         String testCaseName,
         String oldScenarioName,
-        String newScenarioName
+        String newScenarioName,
+        Source scope
     ) {
         for (TestCase testcase : testCases) {
-            testcase.refactorTestCaseScenario(testCaseName, oldScenarioName, newScenarioName);
+            testcase.refactorTestCaseScenario(
+                testCaseName,
+                oldScenarioName,
+                newScenarioName,
+                scope
+            );
         }
     }
 
@@ -733,11 +749,26 @@ public class Scenario extends DataModel {
                 // Update name before refactoring so getLocation() resolves to the
                 // already-renamed directory when this scenario's own test cases are loaded.
                 name = newName;
+                resyncTestCaseMetadata();
                 getProject().refactorScenario(oldName, newName, source);
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Reloads and force-resaves every test case in this scenario so their on-disk
+     * {@code scenario:} metadata field reflects this scenario's current (possibly
+     * just-renamed) name - the rename itself only moves the directory, it never
+     * rewrites that field.
+     */
+    private void resyncTestCaseMetadata() {
+        loadTestCasesTableModel();
+        for (TestCase testCase : testCases) {
+            testCase.setSaved(false);
+        }
+        save();
     }
 
     /**
@@ -765,6 +796,7 @@ public class Scenario extends DataModel {
                 // Update name before refactoring so getLocation() resolves to the
                 // already-renamed directory when this scenario's own test cases are loaded.
                 name = newName;
+                resyncTestCaseMetadata();
                 p.refactorScenario(oldName, newName, source);
                 return true;
             }
@@ -793,6 +825,7 @@ public class Scenario extends DataModel {
                 // Update name before refactoring so getLocation() resolves to the
                 // already-renamed directory when this scenario's own test cases are loaded.
                 name = newName;
+                resyncTestCaseMetadata();
                 p.refactorScenario(oldName, newName, source);
                 return true;
             }

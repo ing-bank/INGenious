@@ -395,7 +395,11 @@ public class ScenarioTest {
         // including this one, via the real (unmocked) Scenario/TestCase logic.
         doAnswer(
                 invocation -> {
-                    scenario.refactorScenario("LoginScenario", "LoginScenarioRenamed");
+                    scenario.refactorScenario(
+                        "LoginScenario",
+                        "LoginScenarioRenamed",
+                        Scenario.Source.TEST_PLAN
+                    );
                     return null;
                 }
             )
@@ -466,5 +470,91 @@ public class ScenarioTest {
         Scenario found = project.getReusableScenarioByName("test");
         assertThat(found).isSameAs(scenario);
         assertThat(found.getTestCaseByName("NewTestCase")).isNotNull();
+    }
+
+    // ---- refactorScenario() must not cross scope boundaries ----
+    //
+    // Execute steps only ever target a Project or Shared Reusable component - never Test Plan
+    // (see ScopedExecutionResolver) - and a [Project]/[Shared] scoped reference must not be
+    // touched by a rename in a different scope, even when the scenario/test case name collides
+    // across scopes (e.g. a Test Plan "NewScenario" and a Project Reusable "NewScenario").
+
+    @Test
+    public void testRefactorScenario_testPlanScopeNeverTouchesExecuteSteps() throws IOException {
+        Scenario callerScenario = new Scenario(project, "CallerScenario");
+        TestCase caller = callerScenario.addTestCase("TC_Caller");
+        TestStep step = caller.addNewStep();
+        step.asReusableStep("NewScenario", "Foo");
+        step.setReference("[Project]");
+        caller.save();
+
+        // A same-named Test Plan scenario is renamed - this can never be what the Execute
+        // step above refers to (Test Plan scenarios aren't callable), so nothing should change.
+        caller.refactorScenario("NewScenario", "Renamed", Scenario.Source.TEST_PLAN);
+
+        assertThat(caller.getTestSteps().get(0).getAction()).isEqualTo("NewScenario:Foo");
+    }
+
+    @Test
+    public void testRefactorScenario_projectScopeOnlyUpdatesProjectScopedReferences()
+        throws IOException {
+        Scenario callerScenario = new Scenario(project, "CallerScenario2");
+        TestCase caller = callerScenario.addTestCase("TC_Caller");
+        TestStep projectStep = caller.addNewStep();
+        projectStep.asReusableStep("NewScenario", "Foo");
+        projectStep.setReference("[Project]");
+        TestStep sharedStep = caller.addNewStep();
+        sharedStep.asReusableStep("NewScenario", "Foo");
+        sharedStep.setReference("[Shared]");
+        caller.save();
+
+        caller.refactorScenario("NewScenario", "Renamed", Scenario.Source.REUSABLE_COMPONENTS);
+
+        assertThat(caller.getTestSteps().get(0).getAction()).isEqualTo("Renamed:Foo");
+        assertThat(caller.getTestSteps().get(1).getAction()).isEqualTo("NewScenario:Foo");
+    }
+
+    @Test
+    public void testRefactorScenario_sharedScopeOnlyUpdatesSharedScopedReferences()
+        throws IOException {
+        Scenario callerScenario = new Scenario(project, "CallerScenario3");
+        TestCase caller = callerScenario.addTestCase("TC_Caller");
+        TestStep projectStep = caller.addNewStep();
+        projectStep.asReusableStep("NewScenario", "Foo");
+        projectStep.setReference("[Project]");
+        TestStep sharedStep = caller.addNewStep();
+        sharedStep.asReusableStep("NewScenario", "Foo");
+        sharedStep.setReference("[Shared]");
+        caller.save();
+
+        caller.refactorScenario(
+            "NewScenario",
+            "Renamed",
+            Scenario.Source.SHARED_REUSABLE_COMPONENTS
+        );
+
+        assertThat(caller.getTestSteps().get(0).getAction()).isEqualTo("NewScenario:Foo");
+        assertThat(caller.getTestSteps().get(1).getAction()).isEqualTo("Renamed:Foo");
+    }
+
+    @Test
+    public void testRefactorScenario_unscopedReferenceTreatedAsProjectScope() throws IOException {
+        Scenario callerScenario = new Scenario(project, "CallerScenario4");
+        TestCase caller = callerScenario.addTestCase("TC_Caller");
+        TestStep step = caller.addNewStep();
+        step.asReusableStep("NewScenario", "Foo"); // no Reference tag: legacy unscoped
+        caller.save();
+
+        // Unscoped references resolve project-first at runtime, so a Shared rename must not
+        // touch them.
+        caller.refactorScenario(
+            "NewScenario",
+            "Renamed",
+            Scenario.Source.SHARED_REUSABLE_COMPONENTS
+        );
+        assertThat(caller.getTestSteps().get(0).getAction()).isEqualTo("NewScenario:Foo");
+
+        caller.refactorScenario("NewScenario", "Renamed", Scenario.Source.REUSABLE_COMPONENTS);
+        assertThat(caller.getTestSteps().get(0).getAction()).isEqualTo("Renamed:Foo");
     }
 }
