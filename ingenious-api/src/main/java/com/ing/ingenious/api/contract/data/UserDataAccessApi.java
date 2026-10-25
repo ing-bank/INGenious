@@ -131,7 +131,16 @@ public interface UserDataAccessApi {
     void putData(String sheet, String column, String value, String scenario, String testcase, String iteration, String subIteration);
 
     /**
-     * Gets a view of the test data for the specified sheet.
+     * Gets a view of the test data for the specified sheet, scoped to the
+     * currently executing scenario/testcase/iteration context.
+     * <p>
+     * Not to be confused with
+     * {@link com.ing.ingenious.api.contract.project.ProjectApi#getTestData()},
+     * which explicitly selects an environment with no "current context"
+     * implied. Use this method for the currently executing context; use
+     * {@code ProjectApi.getTestData()} to explicitly reach into a different
+     * environment's data.
+     * </p>
      * @param sheetName the sheet name
      * @return a TestDataViewApi for the sheet
      */
