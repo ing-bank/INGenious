@@ -70,7 +70,8 @@ import org.xml.sax.InputSource;
  *
  * <p>This source depends on {@code kafka-clients} / {@code kafka-avro-serializer},
  * which are only present on the classpath when the Engine module is built with
- * the {@code -P kafka} (or {@code -P full}) Maven profile.
+ * the {@code kafka} Maven profile, active by default (or explicitly via
+ * {@code -P kafka}).
  */
 public class KafkaOperations extends Command {
     // Producer state (keyed by the engine's per-run key).

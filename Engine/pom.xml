@@ -13,10 +13,12 @@
         <timestamp>${maven.build.timestamp} UTC</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
         <app.root>../</app.root>
-        <!-- Kafka sources are skipped unless the 'kafka' or 'full' profile is active.
-             Those profiles flip both properties: the exclude is disarmed and the
-             extra source root is pointed at the real directory. The default value
-             below is a path that does not exist, so no Kafka sources are compiled. -->
+        <!-- Kafka sources are skipped only when the 'kafka' profile is deactivated,
+             e.g. by explicitly activating another profile such as -P database.
+             The 'kafka' profile flips both properties below: the exclude is disarmed
+             and the extra source root is pointed at the real directory. The default
+             value below is a path that does not exist, so it is only used while the
+             'kafka' profile is inactive. -->
         <kafka.source.exclude>com/ing/engine/commands/kafka/**</kafka.source.exclude>
         <kafka.source.dir>${project.basedir}/src/kafka/disabled</kafka.source.dir>
         <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
@@ -457,8 +459,8 @@
                 </configuration>
             </plugin>   
             <!-- Kafka command sources live in src/kafka/java and are only compiled
-                 when the 'kafka' or 'full' profile points ${kafka.source.dir} at them
-                 (kafka-clients present). -->
+                 when the 'kafka' profile (active by default) points
+                 ${kafka.source.dir} at them (kafka-clients present). -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -649,19 +651,21 @@
     <!--
         Lightweight archetype-based distribution (RELEASE_STRATEGY.md §9.3).
 
-        The default build produces everything except Kafka/Avro (the 'database'
-        profile is activeByDefault). Use -P to change the archetype selection:
+        The default build produces everything, including Kafka/Avro (the 'database'
+        and 'kafka' profiles are both activeByDefault). Use -P to narrow the
+        archetype selection to a single feature set instead:
 
-            mvn clean package                 (browser + database - default)
-            mvn clean package -P kafka        (browser + Kafka/Avro, no database)
-            mvn clean package -P database,kafka
-            mvn clean package -P full         (everything, including kafka)
+            mvn clean package                 (browser + database + kafka - default)
+            mvn clean package -P database     (browser + database only, no kafka)
+            mvn clean package -P kafka        (browser + kafka only, no database)
 
-        Only the database (JDBC drivers, loaded reflectively at runtime) and kafka
-        archetypes can be fully gated today, so those profiles strip real
-        dependencies from the default build. Kafka command sources live in
-        src/kafka/java and are added to the compile roots only by the kafka and
-        full profiles, so a plain `mvn clean package` builds without any
+        Explicitly activating a profile via -P deactivates the activeByDefault
+        profiles in this POM, so -P database (or -P kafka) on its own builds only
+        that archetype. Only the database (JDBC drivers, loaded reflectively at
+        runtime) and kafka archetypes can be fully gated today, so those profiles
+        strip real dependencies from the default build. Kafka command sources live
+        in src/kafka/java and are added to the compile roots only by the kafka
+        profile, so `mvn clean package -P database` builds without any
         org.apache.kafka classes on the classpath.
 
         The mobile (Appium), api (Apache HttpClient), sap (JACOB) and axe (axe-core)
@@ -754,6 +758,9 @@
 
         <profile>
             <id>kafka</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <properties>
                 <kafka.source.exclude>no-sources-excluded/**</kafka.source.exclude>
                 <kafka.source.dir>${project.basedir}/src/kafka/java</kafka.source.dir>
@@ -818,68 +825,6 @@
             <!-- Accessibility (aXe) uses com.deque.html.axe-core:playwright, which
                  ships in the core <dependencies> block alongside Playwright. Marker
                  profile retained. -->
-        </profile>
-
-        <profile>
-            <id>full</id>
-            <properties>
-                <kafka.source.exclude>no-sources-excluded/**</kafka.source.exclude>
-                <kafka.source.dir>${project.basedir}/src/kafka/java</kafka.source.dir>
-            </properties>
-            <repositories>
-                <repository>
-                    <id>confluent</id>
-                    <url>https://packages.confluent.io/maven/</url>
-                </repository>
-            </repositories>
-            <dependencies>
-                <dependency>
-                    <groupId>com.microsoft.sqlserver</groupId>
-                    <artifactId>mssql-jdbc</artifactId>
-                    <version>13.2.1.jre11</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.mysql</groupId>
-                    <artifactId>mysql-connector-j</artifactId>
-                    <version>26.7.0</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.oracle.database.jdbc</groupId>
-                    <artifactId>ojdbc11</artifactId>
-                    <version>23.26.1.0.0</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.kafka</groupId>
-                    <artifactId>kafka-clients</artifactId>
-                    <version>${kafka-clients.version}</version>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>org.lz4</groupId>
-                            <artifactId>lz4-java</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>io.confluent</groupId>
-                    <artifactId>kafka-avro-serializer</artifactId>
-                    <version>${kafka-avro-serializer.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.github.luben</groupId>
-                    <artifactId>zstd-jni</artifactId>
-                    <version>${zstd-jni.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>at.yawk.lz4</groupId>
-                    <artifactId>lz4-java</artifactId>
-                    <version>${lz4-java.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.xerial.snappy</groupId>
-                    <artifactId>snappy-java</artifactId>
-                    <version>${snappy-java.version}</version>
-                </dependency>
-            </dependencies>
         </profile>
     </profiles>
 </project>

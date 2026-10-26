@@ -20,6 +20,7 @@ import com.ing.engine.execution.policy.ObjectReferenceAnalyzer;
 import com.ing.engine.execution.resolver.ExecutionResolver;
 import com.ing.engine.execution.resolver.ScopedExecutionResolver;
 import com.ing.engine.support.Step;
+import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.engine.support.reflect.MethodExecutor;
 import com.ing.ingenious.api.exception.ForcedException;
 import com.ing.ingenious.api.exception.mobile.ElementException;
@@ -279,6 +280,7 @@ public class TestStepRunner {
     private void executeStep(TestCaseRunner context, Step step, Parameter parameter)
         throws Throwable {
         step.printStep();
+        validateActionForObject(step);
         if (step.ObjectName.equals("String Operations")) {
             executeStringOperation(context);
         } else {
@@ -292,6 +294,30 @@ public class TestStepRunner {
             System.out.println("[ERROR][Could not find Action:" + action + "]");
             context.getReport().updateTestLog(action, "[Could not find Action]", Status.DEBUG);
         }
+    }
+
+    /**
+     * Fails the step when its action is not valid for the object it is executed against.
+     * <p>
+     * Actions are dispatched by name only, so without this guard an action declared for one object
+     * type (for example a {@code Synthetic Data} action) would silently execute for an unrelated or
+     * invalid object name such as {@code Data}.
+     *
+     * @param step the test step about to be executed
+     * @throws ForcedException if the action is not allowed for the step object
+     */
+    private void validateActionForObject(Step step) throws ForcedException {
+        if (MethodInfoManager.isActionAllowedForObject(step.Action, step.ObjectName)) {
+            return;
+        }
+        throw new ForcedException(
+            String.format(
+                "action [%s] is not valid for object [%s], expected object [%s]",
+                step.Action,
+                step.ObjectName,
+                MethodInfoManager.getDeclaredObjectFor(step.Action)
+            )
+        );
     }
 
     private void executeStringOperation(TestCaseRunner context) {

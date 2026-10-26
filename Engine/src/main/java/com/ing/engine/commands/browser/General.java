@@ -135,4 +135,25 @@ public class General extends Command implements BrowserPluginApi {
     public PlaywrightDriverCreationApi getDriver() {
         return Driver;
     }
+
+    /**
+     * Implementation of {@link BrowserPluginApi#executeMethod(Object, String, String)} for the API-plugin contract.
+     * @param locator the Playwright locator element (cast to Locator internally)
+     * @param action the action name to execute
+     * @param input the input data for the action
+     */
+    @Override
+    public void executeMethod(Object locator, String action, String input) {
+        super.executeMethod((com.microsoft.playwright.Locator) locator, action, input);
+    }
+
+    /**
+     * Implementation of {@link BrowserPluginApi#executeMethod(Object, String)} for the API-plugin contract.
+     * @param locator the Playwright locator element (cast to Locator internally)
+     * @param action the action name to execute
+     */
+    @Override
+    public void executeMethod(Object locator, String action) {
+        super.executeMethod((com.microsoft.playwright.Locator) locator, action);
+    }
 }

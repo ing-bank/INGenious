@@ -581,7 +581,8 @@ public final class Repl {
                     journal(),
                     input,
                     ui,
-                    aiConfig.operatingMode()
+                    aiConfig.operatingMode(),
+                    aiConfig.maxFailedAttempts
                 );
         } catch (AiProvider.AiException e) {
             if (spinning[0]) spinner.stop();
@@ -609,7 +610,15 @@ public final class Repl {
             }
             session.rememberFiles(paths);
         }
-        if (outcome.hitLimit) {
+        if (outcome.failureLimitReached) {
+            System.out.println(
+                theme.fail(
+                    "Stopped after " +
+                    aiConfig.maxFailedAttempts +
+                    " consecutive failed attempts; adjust your prompt/context and try again."
+                )
+            );
+        } else if (outcome.hitLimit) {
             System.out.println(
                 theme.yellow("Agent stopped at the step limit; ask it to continue if needed.")
             );
@@ -777,6 +786,13 @@ public final class Repl {
         // Confirm the key entities each step touched (scenario, test case, …).
         printEntityConfirmations(result);
 
+        // A plan can open a browser discovery session (browser_discover /
+        // session_start) and stop (agent declared "Done", or a later step
+        // failed) without ever reaching session_save/export/close. Close such
+        // leftovers now instead of leaving them to the 15-min idle reaper or
+        // process exit.
+        closeAbandonedBrowserSessions(plan, result);
+
         if (result.success) {
             System.out.println(theme.green(Theme.CHECK) + " " + theme.bold(theme.green("Done.")));
             session.setPendingPlan(null);
@@ -820,6 +836,58 @@ public final class Repl {
                 theme.green(Theme.CHECK) + " " + theme.bold(e.getKey()) + " — " + e.getValue()
             );
         }
+    }
+
+    /**
+     * Close any browser session a plan opened (via {@code browser_discover} /
+     * {@code browser_session_start}) but never finalized with
+     * {@code browser_session_save}/{@code _export}/{@code _close} in the same
+     * plan - e.g. the agent stopped exploring early, or a later step failed.
+     * Steps that never ran (plan halted before reaching them) are skipped.
+     */
+    private void closeAbandonedBrowserSessions(Plan plan, ExecutionResult result) {
+        java.util.Set<String> opened = new java.util.LinkedHashSet<>();
+        java.util.Set<String> finalized = new java.util.LinkedHashSet<>();
+        for (PlanStep step : plan.steps) {
+            JsonNode stepResult = result.stepResults.get(step.id);
+            if (stepResult == null) continue; // step never ran
+            switch (step.tool) {
+                case "browser_discover":
+                case "browser_session_start":
+                    String openedName = stepResult.path("session").asText(null);
+                    if (openedName == null) openedName = step.args.path("session").asText(null);
+                    if (openedName == null) openedName = step.args.path("name").asText(null);
+                    if (openedName != null) opened.add(openedName);
+                    break;
+                case "browser_session_save":
+                case "browser_session_export":
+                case "browser_session_close":
+                    String closedName = step.args.path("name").asText(null);
+                    if (closedName != null) finalized.add(closedName);
+                    break;
+                default:
+                    break;
+            }
+        }
+        opened.removeAll(finalized);
+        if (opened.isEmpty()) return;
+        Tool closeTool = registry.get("browser_session_close");
+        if (closeTool == null) return;
+        for (String name : opened) {
+            try {
+                closeTool.execute(mapper.createObjectNode().put("name", name));
+            } catch (ToolException ignored) {
+                // best-effort; MCPTools already logged the real outcome to stderr
+            }
+        }
+        System.out.println(
+            theme.dim(
+                "Closed " +
+                opened.size() +
+                " browser session(s) this plan opened but never saved/closed: " +
+                String.join(", ", opened)
+            )
+        );
     }
 
     /** Phase-5 repair loop: on step failure, let the AI propose a corrected plan. */

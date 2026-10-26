@@ -140,34 +140,46 @@ public class AICopilotUI extends JPanel {
     }
 
     private JPanel buildTopBar() {
-        JPanel bar = new JPanel(new BorderLayout());
+        // Two fixed, non-wrapping lines: (1) model + mode toggles — the
+        // widest line, so it floors the panel's minimum width (set below);
+        // (2) the Prompts/History/Recheck buttons plus the provider/model
+        // status.
+        JPanel bar = new JPanel();
+        bar.setLayout(new javax.swing.BoxLayout(bar, javax.swing.BoxLayout.Y_AXIS));
         bar.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
 
-        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
-        left.add(new JLabel("Model:"));
+        JPanel modelRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
+        modelRow.add(new JLabel("Model:"));
         modelSelector.setPreferredSize(new Dimension(260, 26));
-        left.add(modelSelector);
+        modelRow.add(modelSelector);
         agentModeToggle.setToolTipText(
             "Agent mode: let the AI create/edit scenarios, test cases, steps and OR entries (with approval)."
         );
-        left.add(agentModeToggle);
+        modelRow.add(agentModeToggle);
         attendedModeToggle.setToolTipText(
             "Attended mode: pause at logical checkpoints (and on the first run failure) to ask you for " +
             "input, instead of retrying fully on its own."
         );
-        left.add(attendedModeToggle);
+        modelRow.add(attendedModeToggle);
+
+        JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
         promptsToggle.setToolTipText("Show the prompt library — click a chip to fill the input.");
-        left.add(promptsToggle);
+        buttonRow.add(promptsToggle);
         historyButton.setToolTipText("Browse and reload past conversations, or start a new chat.");
-        left.add(historyButton);
+        buttonRow.add(historyButton);
+        buttonRow.add(connectButton);
+        buttonRow.add(statusLabel);
+        buttonRow.add(connectionBulb);
 
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
-        right.add(statusLabel);
-        right.add(connectionBulb);
-        right.add(connectButton);
+        bar.add(modelRow);
+        bar.add(buttonRow);
 
-        bar.add(left, BorderLayout.WEST);
-        bar.add(right, BorderLayout.EAST);
+        // Row 1 (model dropdown + checkboxes) is the widest line, so its
+        // natural width floors the whole panel's minimum width.
+        int minWidth = modelRow.getPreferredSize().width + 16;
+        int minHeight =
+            modelRow.getPreferredSize().height + buttonRow.getPreferredSize().height + 16;
+        setMinimumSize(new Dimension(minWidth, minHeight));
         return bar;
     }
 

@@ -56,6 +56,8 @@ public class AutoSuggest extends JComboBox<String> {
                     beforeShow();
                     if (!searchList.isEmpty()) {
                         showPopup();
+                    } else {
+                        hidePopup();
                     }
                 }
 

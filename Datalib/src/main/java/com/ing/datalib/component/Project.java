@@ -2271,7 +2271,16 @@ public class Project {
             scenario.save();
         }
         testData.save();
-        if (sharedTestData != null) {
+        // Only persist the app-root Shared Test Data (environment.properties, datasheets) when
+        // this project actually references it, or its store already exists on disk - otherwise
+        // every project.save() call (e.g. a plain project that never touches Shared Test Data)
+        // would unconditionally create Shared/SharedTestData under whatever user.dir happens to
+        // resolve to at the time (the app root in a packaged build, but a module/test sandbox
+        // directory in dev/test runs), leaking an empty shared store outside the real app root.
+        if (
+            sharedTestData != null &&
+            (usesSharedTestData() || new File(getSharedTestDataPath()).exists())
+        ) {
             // Persists the app-root Shared Test Data, including its environment.properties, so
             // environments added/renamed/deleted in the Shared Test Data tab survive a reload -
             // mirroring how testData.save() persists the project's own environments.
@@ -2366,7 +2375,7 @@ public class Project {
             new Object[] { oldScenarioName, newScenarioName }
         );
         for (Scenario scenario : getAllScenarios()) {
-            scenario.refactorScenario(oldScenarioName, newScenarioName);
+            scenario.refactorScenario(oldScenarioName, newScenarioName, scope);
         }
         for (Release release : releases) {
             release.refactorScenario(oldScenarioName, newScenarioName);
@@ -2439,7 +2448,7 @@ public class Project {
             new Object[] { oldTestCaseName, newTestCaseName }
         );
         for (Scenario scenario : getAllScenarios()) {
-            scenario.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName);
+            scenario.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName, scope);
         }
         for (Release release : releases) {
             release.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName);
@@ -2472,6 +2481,7 @@ public class Project {
 
     /**
      * Refactors (moves) a test case from one scenario to another across the entire project.
+     * Execute step references are not updated (scope unknown) - see the scope-aware overload.
      * @param testCaseName test case name
      * @param oldScenarioName old scenario name
      * @param newScenarioName new scenario name
@@ -2481,13 +2491,36 @@ public class Project {
         String oldScenarioName,
         String newScenarioName
     ) {
+        refactorTestCaseScenario(testCaseName, oldScenarioName, newScenarioName, null);
+    }
+
+    /**
+     * Refactors (moves) a test case from one scenario to another across the entire project,
+     * restricted to Execute steps whose effective scope matches {@code scope} (the scope of the
+     * scenario being moved from) - see {@link TestCase#refactorTestCaseScenario(String, String, String, Scenario.Source)}.
+     * @param testCaseName test case name
+     * @param oldScenarioName old scenario name
+     * @param newScenarioName new scenario name
+     * @param scope scope of the scenario the test case is moving from
+     */
+    public void refactorTestCaseScenario(
+        String testCaseName,
+        String oldScenarioName,
+        String newScenarioName,
+        Scenario.Source scope
+    ) {
         LOGGER.log(
             Level.INFO,
             "Refactoring started TestCase [{0}] from Scenario [{1}] to [{2}]",
             new Object[] { testCaseName, oldScenarioName, newScenarioName }
         );
         for (Scenario scenario : getAllScenarios()) {
-            scenario.refactorTestCaseScenario(testCaseName, oldScenarioName, newScenarioName);
+            scenario.refactorTestCaseScenario(
+                testCaseName,
+                oldScenarioName,
+                newScenarioName,
+                scope
+            );
         }
         for (Release release : releases) {
             release.refactorTestCaseScenario(testCaseName, oldScenarioName, newScenarioName);

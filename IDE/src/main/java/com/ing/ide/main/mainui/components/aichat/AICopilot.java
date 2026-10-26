@@ -777,7 +777,11 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         usageTracker.beginTask();
         final boolean[] mutated = { false };
         final AtomicReference<String> currentId = new AtomicReference<>("tc0");
-        final AgentOrchestrator orchestrator = new AgentOrchestrator(client, toolServer);
+        final AgentOrchestrator orchestrator = new AgentOrchestrator(
+            client,
+            toolServer,
+            credentials.getMaxFailedAttempts()
+        );
         activeAgent = orchestrator;
 
         Thread turn = new Thread(

@@ -1,6 +1,76 @@
 # INGenious Comprehensive Changelog
 
-> Scope: recent codebase changes discussed in the Playwright BrowserContext, WebView context switching, column selection, ADB/mobile actions, IDE input focus, IntelliSense, and LambdaTest reusable component markers chats.
+> Scope: recent codebase changes discussed in the Playwright BrowserContext, WebView context switching, column selection, ADB/mobile actions, IDE input focus, IntelliSense, LambdaTest reusable component markers, and AI agent retry-limit chats.
+
+## 12. Project.save() no longer leaks an app-root Shared Test Data folder
+
+`Project.save()` unconditionally called `sharedTestData.save()` for every project, even ones that never reference Shared Test Data. Since `Project.getSharedTestDataPath()` resolves `Shared/SharedTestData` relative to the JVM's `user.dir` (not anything project-local), any real `Project` + `.save()` call whose `user.dir` wasn't isolated to a sandbox wrote a stray `Shared/SharedTestData/` (with an empty `environment.properties` and `GlobalData.csv`) into whatever directory the process happened to be running from — observed as `Engine/Shared/SharedTestData` after a Maven test run, since Surefire's default working directory is the module basedir.
+
+### What changed
+
+- `Project.save()` now only calls `sharedTestData.save()` when the project actually references Shared Test Data (`usesSharedTestData()`) or its store already exists on disk — mirroring the guard already used by `registerSharedTestDataUsage()`. A plain project that never touches Shared Test Data no longer creates the app-root `Shared/SharedTestData` folder as a side effect of a generic save.
+- `DataSheetGenerationTest` (whose `ingenious_data_row_add` MCP tool call triggers `Project.save()`) now isolates `user.dir` to its temp directory in `@BeforeMethod`/`@AfterMethod`, matching the existing pattern used by the other Shared Test Data tests.
+
+### Files
+
+- [Datalib/src/main/java/com/ing/datalib/component/Project.java](Datalib/src/main/java/com/ing/datalib/component/Project.java)
+- [Engine/src/test/java/com/ing/engine/mcp/DataSheetGenerationTest.java](Engine/src/test/java/com/ing/engine/mcp/DataSheetGenerationTest.java)
+
+## 11. Default Maven build now includes Database and Kafka
+
+`mvn clean install` previously built only the Browser + Database archetypes, requiring engineers to remember `-P full` to get a complete build (Browser + Database + Kafka). The default build now produces everything, and the specialized `database`/`kafka` profiles remain available for engineers who want a narrower build.
+
+### What changed
+
+- `Engine/pom.xml`: the `kafka` profile is now `activeByDefault`, alongside the already-default `database` profile, so a plain `mvn clean install` activates both and compiles the Kafka command sources (`src/kafka/java`) in addition to the JDBC drivers.
+- The now-redundant `full` profile was removed — explicitly activating `-P database` or `-P kafka` still deactivates the other default profile, giving a Browser+Database-only or Browser+Kafka-only build respectively.
+- Doc comments in `KafkaOperations`, `KafkaConnectionTester`, and `DriverSettings` that referenced `-P kafka`/`-P full` as the way to enable Kafka support were updated to reflect that Kafka is active by default (and is excluded only when `-P database` is used explicitly).
+- `Resources/Configuration/archetypes/package-full.properties` comment updated to reflect that the full bundle is now produced by the default build, not `-P full`.
+
+### Files
+
+- [Engine/pom.xml](Engine/pom.xml)
+- [Engine/src/kafka/java/com/ing/engine/commands/kafka/KafkaOperations.java](Engine/src/kafka/java/com/ing/engine/commands/kafka/KafkaOperations.java)
+- [Engine/src/kafka/java/com/ing/engine/commands/kafka/KafkaConnectionTester.java](Engine/src/kafka/java/com/ing/engine/commands/kafka/KafkaConnectionTester.java)
+- [IDE/src/main/java/com/ing/ide/main/settings/DriverSettings.java](IDE/src/main/java/com/ing/ide/main/settings/DriverSettings.java)
+- [Resources/Configuration/archetypes/package-full.properties](Resources/Configuration/archetypes/package-full.properties)
+
+## 10. AI-generated Datasheet reusable-scenario naming and duplicate rows
+
+AI-generated Datasheets for reusable scenarios incorrectly appended a `"(R) "` prefix to the scenario name, and `ingenious_data_row_add` always inserted a new row even when an identical one already existed for the same scenario/testcase/iteration. The `"(R) "` prefix also silently broke runtime data resolution, since reusable-scope lookups match on the plain scenario name plus the dedicated `Scope` column (`[Project]`/`[Shared]`), never a mangled name.
+
+### What changed
+
+- `MCPTools.dataRowAdd` and `MCPTools.testCaseParameterize` no longer prefix the scenario name with `"(R) "` for reusable components; they set the `Scope` column to `"[Project]"` instead, matching the existing convention used by manual/runtime data resolution.
+- `MCPTools.writeDataRow` (shared by both tools) now matches existing rows on scenario + testcase + iteration + sub-iteration + scope before writing, so repeated calls for the same logical row update it in place instead of appending a duplicate. `dataRowAdd` reports `"duplicate": true` when an existing row was reused.
+- `ingenious_testcase_validate` gained two data-sheet lint rules: `[E13]` flags any scenario value still carrying the legacy `"(R) "` prefix, and `[W12]` flags exact-duplicate rows (same scenario/testcase/iteration/sub-iteration/scope and column values).
+- The CLI's `data row add` command (`DataCommand.java`) — a separate, human-facing authoring path — was intentionally left unchanged.
+
+### Files
+
+- [Engine/src/main/java/com/ing/engine/mcp/MCPTools.java](Engine/src/main/java/com/ing/engine/mcp/MCPTools.java)
+- [Engine/src/test/java/com/ing/engine/mcp/DataSheetGenerationTest.java](Engine/src/test/java/com/ing/engine/mcp/DataSheetGenerationTest.java)
+
+## 9. AI Discovery/agent retry-limit protection
+
+The AI agent loop (CLI's `AgentLoop` and the IDE's `AgentOrchestrator`, which drive INGenie test-generation/discovery requests) previously kept retrying tool calls until the overall step limit was hit, even when every attempt failed consecutively — wasting AI tokens and delaying feedback. Both loops now track **consecutive** tool-call failures and stop automatically once a configurable threshold (default **5**) is reached, instead of continuing to make AI requests.
+
+### What changed
+
+- `AgentLoop` (CLI) and `AgentOrchestrator` (IDE) each track a consecutive-failure counter across tool-call results: any failed tool call (unknown tool, `ToolException`, or runtime error) increments it; any successful tool call resets it to zero.
+- When the counter reaches the configured limit, the loop stops immediately (no further AI requests), logs the failure details via `java.util.logging`, and surfaces a clear message telling the user to adjust their prompt/context/inputs before retrying. `AgentLoop.Outcome` gained a `failureLimitReached` flag so the CLI REPL can render this distinctly from the existing step-limit message.
+- The limit is configurable without code changes: the CLI reads `maxFailedAttempts` from `~/.ingenious/ai.json` (`ProviderConfig`), and the IDE reads `aiMaxFailedAttempts` from `Configuration/app.settings` (`AppSettings`/`AICredentials.getMaxFailedAttempts()`), both defaulting to 5.
+- A new generation/discovery request (e.g. after the user edits their prompt or inputs) always starts a fresh counter — failures from a previous, already-stopped turn never carry over.
+
+### Files
+
+- [Engine/src/main/java/com/ing/engine/aicli/agent/AgentLoop.java](Engine/src/main/java/com/ing/engine/aicli/agent/AgentLoop.java)
+- [Engine/src/main/java/com/ing/engine/aicli/ai/ProviderConfig.java](Engine/src/main/java/com/ing/engine/aicli/ai/ProviderConfig.java)
+- [Engine/src/main/java/com/ing/engine/aicli/repl/Repl.java](Engine/src/main/java/com/ing/engine/aicli/repl/Repl.java)
+- [IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/agent/AgentOrchestrator.java](IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/agent/AgentOrchestrator.java)
+- [IDE/src/main/java/com/ing/ide/settings/AppSettings.java](IDE/src/main/java/com/ing/ide/settings/AppSettings.java)
+- [IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/auth/AICredentials.java](IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/auth/AICredentials.java)
+- [IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/AICopilot.java](IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/AICopilot.java)
 
 ## 8. LambdaTest reusable component markers
 
