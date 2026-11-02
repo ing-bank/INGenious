@@ -3,12 +3,15 @@ package com.ing.engine.util.data.fx;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Random;
+import java.util.UUID;
 
 /**
  *
  *
  */
 public class FunctionsLib {
+
+    public static final Random rn = new Random(UUID.randomUUID().getMostSignificantBits());
 
     public Object getDate(int dx) {
         return getDate(dx, "dd/MM/yyyy");
@@ -26,7 +29,6 @@ public class FunctionsLib {
     }
 
     public Object getRandom(Double from, Double to) {
-        Random rn = new Random(System.currentTimeMillis());
         return from + (rn.nextDouble() * (to - from));
     }
 
