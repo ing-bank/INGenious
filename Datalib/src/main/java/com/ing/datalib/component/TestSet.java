@@ -8,12 +8,10 @@ import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.component.utils.SaveListener;
 import com.ing.datalib.settings.ExecutionSettings;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.event.TableModelEvent;
 
 /**
@@ -265,7 +263,8 @@ public class TestSet extends DataModel {
             try {
                 removeEmptySteps();
                 List<List<String>> rows = new ArrayList<>(testSteps.size());
-                for (ExecutionStep testStep : testSteps) {
+                LinkedHashSet<ExecutionStep> testStepsToSave = getTestStepsInSavedOrder(testSteps);
+                for (ExecutionStep testStep : testStepsToSave) {
                     rows.add(new ArrayList<>(testStep.exeStepDetails));
                 }
                 store.save(file, name, release == null ? null : release.getName(), rows);
@@ -277,6 +276,22 @@ public class TestSet extends DataModel {
             }
         }
         execSettings.save();
+    }
+
+    /**
+     * Method to sort and de-duplicate the test set steps to save. Will sort the steps first by test scenario name, and
+     * then by test case name.
+     *
+     * @param testSteps List of test steps to sort in order to save.
+     * @return Sorted and de-duplicated list of test steps to save.
+     */
+    private LinkedHashSet<ExecutionStep> getTestStepsInSavedOrder(List<ExecutionStep> testSteps) {
+        return testSteps.stream()
+                .sorted(Comparator
+                        .comparing(ExecutionStep::getTestScenarioName)
+                        .thenComparing(ExecutionStep::getTestCaseName)
+                )
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private void createIfNotExists() {

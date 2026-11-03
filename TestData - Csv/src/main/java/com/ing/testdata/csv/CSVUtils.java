@@ -1,5 +1,7 @@
 package com.ing.testdata.csv;
 
+import com.ing.datalib.component.TestData;
+import com.ing.datalib.component.TestStep;
 import com.ing.datalib.component.utils.CSVHParser;
 import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.testdata.model.AbstractDataModel;
@@ -12,11 +14,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
@@ -116,7 +118,8 @@ public class CSVUtils {
             }
 
             testData.removeEmptyRecords();
-            for (Record record : testData.getRecords()) {
+            LinkedHashSet<Record> testDataRecordsToSave = getTestDataRecordsInSavedOrder(testData.getRecords());
+            for (Record record : testDataRecordsToSave) {
                 for (String value : record) {
                     printer.print(value);
                 }
@@ -125,6 +128,24 @@ public class CSVUtils {
         } catch (Exception ex) {
             Logger.getLogger(CSVUtils.class.getName()).log(Level.SEVERE, "Error while saving", ex);
         }
+    }
+
+    /**
+     * Method to sort and de-duplicate the test data records to save. Will sort the records first by test scenario name,
+     * then by test case name, then by iteration, and then by sub-iteration.
+     *
+     * @param records Test data records to sort in order to save.
+     * @return Sorted and de-duplicated list of test data records to save.
+     */
+    private static LinkedHashSet<Record> getTestDataRecordsInSavedOrder(List<Record> records) {
+        return records.stream()
+                .sorted(Comparator
+                        .comparing(Record::getScenario)
+                        .thenComparing(Record::getTestcase)
+                        .thenComparingInt(r -> Integer.parseInt(r.getIteration()))
+                        .thenComparingInt(r -> Integer.parseInt(r.getSubIteration()))
+                )
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
