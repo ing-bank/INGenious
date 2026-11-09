@@ -813,6 +813,7 @@ public class ConnectionTree extends JPanel {
             existing,
             dbp.getDbList()
         );
+        dialog.populateFromDuplicate(existing);
         dialog.setVisible(true);
         if (dialog.isSaved()) {
             dbp.addDB(dialog.getAlias(), dialog.toPersistedProps());
