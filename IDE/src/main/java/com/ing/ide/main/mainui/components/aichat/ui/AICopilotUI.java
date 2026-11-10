@@ -96,11 +96,45 @@ public class AICopilotUI extends JPanel {
         centerSplit.setDividerSize(8);
         add(centerSplit, BorderLayout.CENTER);
         wireActions();
+        wireZoomShortcuts();
         stopButton.setEnabled(false);
         // Default to Agent (tool-calling) mode so the assistant can actually act.
         agentModeToggle.setSelected(true);
         attendedModeToggle.setSelected(controller.isAttendedMode());
         startContextTimer();
+    }
+
+    /**
+     * Binds Ctrl/Cmd {@code +}, {@code -} and {@code 0} to the transcript zoom so
+     * the response font size can be adjusted from anywhere in the panel —
+     * including while the caret sits in the composer, where keystrokes never
+     * reach the embedded JavaFX scene.
+     */
+    private void wireZoomShortcuts() {
+        int mask = java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+        bindZoom("ai.zoom.in", KeyEvent.VK_PLUS, mask, chatWebView::zoomIn);
+        bindZoom("ai.zoom.in.equals", KeyEvent.VK_EQUALS, mask, chatWebView::zoomIn);
+        bindZoom("ai.zoom.in.add", KeyEvent.VK_ADD, mask, chatWebView::zoomIn);
+        bindZoom("ai.zoom.out", KeyEvent.VK_MINUS, mask, chatWebView::zoomOut);
+        bindZoom("ai.zoom.out.subtract", KeyEvent.VK_SUBTRACT, mask, chatWebView::zoomOut);
+        bindZoom("ai.zoom.reset", KeyEvent.VK_0, mask, chatWebView::resetZoom);
+        bindZoom("ai.zoom.reset.numpad", KeyEvent.VK_NUMPAD0, mask, chatWebView::resetZoom);
+    }
+
+    private void bindZoom(String key, int keyCode, int modifiers, Runnable action) {
+        getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+            .put(KeyStroke.getKeyStroke(keyCode, modifiers), key);
+        getActionMap()
+            .put(
+                key,
+                new javax.swing.AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(java.awt.event.ActionEvent e) {
+                        action.run();
+                    }
+                }
+            );
     }
 
     /** Polls the controller for the live selection and updates the breadcrumb. */
@@ -194,7 +228,14 @@ public class AICopilotUI extends JPanel {
         inputScroll.setPreferredSize(new Dimension(100, 96));
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
-        JLabel sendHint = new JLabel("Enter to send \u00b7 Shift+Enter for newline");
+        String zoomKey = System.getProperty("os.name", "").toLowerCase().contains("mac")
+            ? "Cmd"
+            : "Ctrl";
+        JLabel sendHint = new JLabel(
+            "Enter to send \u00b7 Shift+Enter for newline \u00b7 " +
+            zoomKey +
+            " +/\u2212 to resize text"
+        );
         sendHint.setEnabled(false);
         sendHint.setFont(sendHint.getFont().deriveFont(sendHint.getFont().getSize2D() - 1f));
         buttons.add(sendHint);
