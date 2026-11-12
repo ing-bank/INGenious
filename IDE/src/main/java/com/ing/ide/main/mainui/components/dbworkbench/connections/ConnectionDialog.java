@@ -162,6 +162,58 @@ public class ConnectionDialog extends JDialog {
         setLocationRelativeTo(owner);
     }
 
+    /**
+     * Pre-fill the dialog form with properties from an existing connection (for duplicate).
+     * Generates a numbered alias (e.g., dbConn_1, dbConn_2) to avoid conflicts.
+     *
+     * @param sourceProperties the properties to pre-fill from (e.g., from the duplicated connection)
+     */
+    public void populateFromDuplicate(Properties sourceProperties) {
+        if (sourceProperties == null) {
+            return;
+        }
+        String originalAlias = sourceProperties.getProperty("db.alias", "connection");
+        String newAlias = generateNextNumberedAlias(originalAlias);
+        aliasField.setText(newAlias);
+        driverField.setText(sourceProperties.getProperty(JdbcExecutor.DRIVER, ""));
+        connStringField.setText(sourceProperties.getProperty(JdbcExecutor.CONN_STR, ""));
+        userField.setText(sourceProperties.getProperty(JdbcExecutor.USER, ""));
+        passwordField.setText(
+            decryptForDisplay(sourceProperties.getProperty(JdbcExecutor.PASSWORD, ""))
+        );
+        timeoutField.setText(sourceProperties.getProperty(JdbcExecutor.TIMEOUT, "30"));
+        groupField.setText(sourceProperties.getProperty(ConnectionDialog.GROUP, ""));
+        commitCheck.setSelected(
+            Boolean.parseBoolean(sourceProperties.getProperty(JdbcExecutor.COMMIT, "false"))
+        );
+        readOnlyCheck.setSelected(
+            Boolean.parseBoolean(sourceProperties.getProperty(ConnectionDialog.READ_ONLY, "false"))
+        );
+
+        String vendor = sourceProperties.getProperty(ConnectionDialog.VENDOR, "");
+        if (vendor.isEmpty()) {
+            vendor = detectVendor(driverField.getText(), connStringField.getText());
+        }
+        String storedConnString = connStringField.getText();
+        vendorCombo.setSelectedItem(vendor);
+        connStringField.setText(storedConnString);
+        updateDriverStatus();
+    }
+
+    /**
+     * Generate the next numbered alias iteration to avoid conflicts.
+     * For example: dbConn -> dbConn_1, dbConn_1 -> dbConn_2, etc.
+     */
+    private String generateNextNumberedAlias(String baseAlias) {
+        int nextNumber = 1;
+        String candidate = baseAlias + "_" + nextNumber;
+        while (existingAliases.contains(candidate)) {
+            nextNumber++;
+            candidate = baseAlias + "_" + nextNumber;
+        }
+        return candidate;
+    }
+
     private void buildUi() {
         JPanel form = new JPanel(new GridBagLayout());
         form.setBorder(new EmptyBorder(14, 16, 8, 16));
