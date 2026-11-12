@@ -49,8 +49,11 @@
     -ing-pressed:         #E2E8F0;
     -ing-focus-ring:      rgba(119, 36, 255, 0.35);
 
-    /* Typography */
-    -fx-font-family:      "SF Pro Text", "Segoe UI", "ING Me", system;
+    /* Typography
+       JavaFX CSS has no web-style font fallback: a comma-separated list never
+       resolves and silently drops to the System font. The ING Me faces are
+       bundled and registered by FXTheme, so name the family directly. */
+    -fx-font-family:      "ING Me";
     -fx-font-size:        12px;
 }
 
@@ -106,7 +109,7 @@
 
 .menu-bar > .container > .menu-button > .label {
     -fx-text-fill: -ing-text;
-    -fx-font-weight: 600;
+    -fx-font-weight: bold;
     -fx-font-size: 12px;
 }
 
@@ -297,7 +300,7 @@
     -fx-padding: 5 16 5 16;
     -fx-font-size: 11px;
     -fx-text-fill: -ing-text-secondary;
-    -fx-font-weight: 600;
+    -fx-font-weight: bold;
     -fx-cursor: hand;
 }
 
@@ -428,7 +431,7 @@
     -fx-padding: 3 10;
     -fx-font-size: 10px;
     -fx-text-fill: -ing-text-on-accent;
-    -fx-font-weight: 600;
+    -fx-font-weight: bold;
 }
 
 
@@ -623,7 +626,7 @@
 
 .panel-header-label {
     -fx-text-fill: -ing-text;
-    -fx-font-weight: 600;
+    -fx-font-weight: bold;
     -fx-font-size: 13px;
     -fx-padding: 10 14 10 16;
     -fx-background-color: -ing-surface;
@@ -734,7 +737,7 @@
     -fx-background-radius: 12;
     -fx-padding: 3 12 3 12;
     -fx-font-size: 10px;
-    -fx-font-weight: 600;
+    -fx-font-weight: bold;
     -fx-graphic-text-gap: 5;
 }
 
@@ -766,7 +769,7 @@
 .status-project-label {
     -fx-text-fill: -ing-text;
     -fx-font-size: 11px;
-    -fx-font-weight: 600;
+    -fx-font-weight: bold;
     -fx-padding: 0 0 0 8;
     -fx-graphic-text-gap: 5;
 }
@@ -813,7 +816,7 @@
 .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
     -fx-text-fill: -ing-text-muted;
     -fx-font-size: 12px;
-    -fx-font-weight: 600;
+    -fx-font-weight: bold;
 }
 
 .tab-pane > .tab-header-area > .headers-region > .tab:selected > .tab-container > .tab-label {
@@ -847,7 +850,7 @@
 
 .fx-panel-header-title {
     -fx-text-fill: -ing-text;
-    -fx-font-weight: 600;
+    -fx-font-weight: bold;
     -fx-font-size: 13px;
     -fx-graphic-text-gap: 8;
 }
