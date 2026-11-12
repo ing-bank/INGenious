@@ -568,6 +568,20 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
     }
 
     /**
+     * Resets the editor back to a blank request without auto-saving.
+     * Used on project switch: the previous project's data has already been
+     * persisted, so re-saving here would leak the old request into the newly
+     * opened project.
+     */
+    public void resetEditor() {
+        clearSourceTracking();
+        this.currentRequest = new APIRequest();
+        requestPanel.loadRequest(currentRequest);
+        responsePanel.clear();
+        updateEditingHeader();
+    }
+
+    /**
      * Loads a request into the editor.
      */
     public void loadRequest(APIRequest request) {

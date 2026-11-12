@@ -492,6 +492,10 @@ public class APITester implements SlideShow.SlideChangeListener {
     }
 
     public void loadData() {
+        // Drop any request left over from the previously opened project before
+        // pulling in the new project's data.
+        apiTesterUI.resetEditor();
+
         Path apiPath = getApiDataPath();
         if (apiPath == null) {
             LOG.log(Level.WARNING, "Cannot load API Workbench data - no project is open");
@@ -511,6 +515,8 @@ public class APITester implements SlideShow.SlideChangeListener {
         );
 
         // Set first active environment
+        activeEnvironment = null;
+        httpClient.setEnvironment(null);
         for (APIEnvironment env : environments) {
             if (env.isActive()) {
                 activeEnvironment = env;
@@ -828,6 +834,8 @@ public class APITester implements SlideShow.SlideChangeListener {
             environments.clear();
             history.clear();
             activeEnvironment = null;
+            httpClient.setEnvironment(null);
+            apiTesterUI.resetEditor();
         }
         apiTesterUI.refresh();
     }
