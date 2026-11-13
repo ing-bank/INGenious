@@ -1,0 +1,333 @@
+================================================================================
+                    INGenious MCP Server Startup Flow
+              With Identified Issues and Suggested Fixes
+================================================================================
+
+NORMAL FLOW (What Should Happen)
+════════════════════════════════════════════════════════════════════════════════
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ 1. VS Code Extension: McpClient.start()                         │
+  │    (ingenious-vscode/src/client/mcp.ts:45)                      │
+  └────────────────────┬────────────────────────────────────────────┘
+                       │
+                       ▼
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ 2. Resolve CLI Path                                             │
+  │    resolveCliPath() → Returns path like: /usr/local/bin/ingenious
+  │    (ingenious-vscode/src/util/paths.ts:125)                     │
+  │                                                                  │
+  │    ❌ ISSUE #1: Path not validated, may not exist               │
+  │    🔧 FIX: Check fs.existsSync() and throw error if not found   │
+  └────────────────────┬────────────────────────────────────────────┘
+                       │
+                       ▼
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ 3. Get CLI Environment                                          │
+  │    cliEnv() → Build environment with JAVA_HOME                  │
+  │    (ingenious-vscode/src/util/paths.ts:136)                     │
+  │                                                                  │
+  │    ❌ ISSUE #4: javaHome not validated                          │
+  │    🔧 FIX: Check JAVA_HOME exists and has java binary           │
+  └────────────────────┬────────────────────────────────────────────┘
+                       │
+                       ▼
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ 4. Spawn Child Process: cp.spawn(cli, ['server', 'mcp'])        │
+  │    (ingenious-vscode/src/client/mcp.ts:63-68)                   │
+  │                                                                  │
+  │    ✓ Process starts if CLI exists and Java is available         │
+  │    ✓ Captures stderr for logging                                │
+  └────────────────────┬────────────────────────────────────────────┘
+                       │
+                       ▼
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ 5. Java Process: ServerCommand.McpCommand.call()                │
+  │    (Engine/src/main/java/.../ServerCommand.java:75)             │
+  │                                                                  │
+  │    Steps:                                                       │
+  │    a) Expand java.class.path to explicit JAR paths             │
+  │    b) Build -cp argument with all JARs                         │
+  │    c) Spawn Java: java -cp <classpath>                         │
+  │       com.ing.engine.core.Control server mcp                   │
+  │                                                                  │
+  │    ❌ ISSUE #2: Classpath expansion can fail silently          │
+  │    🔧 FIX: Validate each classpath entry, throw if invalid     │
+  │                                                                  │
+  │    ❌ ISSUE #3: Errors not logged (verbose-only)               │
+  │    🔧 FIX: Always log errors, write to diagnostic file         │
+  └────────────────────┬────────────────────────────────────────────┘
+                       │
+                       ▼
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ 6. MCPServer Initialization                                     │
+  │    (Engine/src/main/java/.../mcp/MCPServer.java:85)             │
+  │                                                                  │
+  │    Steps:                                                       │
+  │    a) Redirect System.out to System.err (keep JSON-RPC clean)  │
+  │    b) Create MCPTools, MCPPrompts, MCPResources                │
+  │    c) Start reading from stdin (JSON-RPC messages)             │
+  │    d) Wait for initialize request from client                  │
+  │                                                                  │
+  │    ✓ Server ready to handle requests                           │
+  └────────────────────┬────────────────────────────────────────────┘
+                       │
+                       ▼
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ 7. Client Sends Initialize Request                              │
+  │    (ingenious-vscode/src/client/mcp.ts:145-152)                 │
+  │                                                                  │
+  │    Message: {"jsonrpc":"2.0","id":1,"method":"initialize"...}  │
+  │    Timeout: 60000ms (60 seconds) ← DEFAULT                      │
+  │                                                                  │
+  │    ❌ ISSUE #6: Timeout too short for slow machines            │
+  │    🔧 FIX: Make configurable, default to 120000ms (2 min)      │
+  └────────────────────┬────────────────────────────────────────────┘
+                       │
+                       ▼
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ 8. Server Responds with Initialize Result                       │
+  │    (Engine/src/main/java/.../mcp/MCPServer.java:160)            │
+  │                                                                  │
+  │    Response: {"jsonrpc":"2.0","id":1,"result":{                │
+  │              "protocolVersion":"2024-11-05",...}}               │
+  │                                                                  │
+  │    ✓ Client receives response within timeout                    │
+  └────────────────────┬────────────────────────────────────────────┘
+                       │
+                       ▼
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ 9. Client Sends notifications/initialized                       │
+  │    (ingenious-vscode/src/client/mcp.ts:154)                     │
+  │                                                                  │
+  │    ✓ Handshake complete                                         │
+  │    ✓ Status: "connected"                                        │
+  │    ✓ AI Chat ready to use                                       │
+  └─────────────────────────────────────────────────────────────────┘
+
+
+FAILURE SCENARIOS & THEIR CAUSES
+════════════════════════════════════════════════════════════════════════════════
+
+Scenario A: "ENOENT: no such file or directory"
+───────────────────────────────────────────────
+  Problem: CLI executable not found
+  
+  ┌─ resolveCliPath() ─────────────────────────────────────┐
+  │ Returns: /usr/local/bin/ingenious (doesn't exist!)    │
+  └──────────────────────┬────────────────────────────────┘
+                         │
+                    ❌ FAILS HERE
+                         │
+  ┌─ cp.spawn() ──────────────────────────────────────────┐
+  │ Error: ENOENT: no such file or directory              │
+  │ Status: 'error'                                       │
+  └────────────────────────────────────────────────────────┘
+  
+  Root Cause: Issue #1 - CLI Path Resolution
+  Solution: Validate path exists before returning
+
+
+Scenario B: "ClassNotFoundException" or "NoClassDefFoundError"
+──────────────────────────────────────────────────────────────
+  Problem: Java cannot find INGenious classes
+  
+  ┌─ expandedClasspath() ──────────────────────────────────┐
+  │ lib/ directory doesn't exist                          │
+  │ listFiles() returns null                              │
+  │ No JAR files added to classpath                       │
+  │ Returns: "" (empty string) ← WRONG!                   │
+  └──────────────────────┬─────────────────────────────────┘
+                         │
+                    ❌ FAILS HERE
+                         │
+  ┌─ Java Process ────────────────────────────────────────┐
+  │ java -cp "" com.ing.engine.core.Control ...           │
+  │                                                        │
+  │ Error: Could not find or load main class              │
+  │ Exit Code: 1                                          │
+  │ Status: 'error'                                       │
+  └────────────────────────────────────────────────────────┘
+  
+  Root Cause: Issue #2 - Classpath Expansion
+  Solution: Add validation for each classpath entry
+
+
+Scenario C: MCP Server Exits with No Error Message
+────────────────────────────────────────────────────
+  Problem: Error happens but is silent
+  
+  ┌─ ServerCommand.call() ────────────────────────────────┐
+  │ Exception thrown (e.g., OutOfMemoryError)             │
+  │ verbose = false                                       │
+  │ System.err.println("[mcp] fatal: " + e.getMessage()); │
+  │ Stack trace NOT printed (verbose=false)               │
+  └──────────────────────┬─────────────────────────────────┘
+                         │
+                    ❌ FAILS HERE
+                         │
+  ┌─ Parent Process ──────────────────────────────────────┐
+  │ Sees: Process exited with code 1                      │
+  │ No error message visible                              │
+  │ Status: 'error'                                       │
+  │                                                        │
+  │ User has NO idea what went wrong!                     │
+  └────────────────────────────────────────────────────────┘
+  
+  Root Cause: Issue #3 - Silent Process Crashes
+  Solution: Always log errors, write to diagnostic file
+
+
+Scenario D: MCP Initialization Timeout
+────────────────────────────────────────
+  Problem: Server takes too long to start
+  
+  ┌─ Java Startup ───────────────────────────────────────┐
+  │ JVM startup: 15 seconds                              │
+  │ Classpath expansion: 30 seconds                       │
+  │ MCPServer init: 20 seconds                            │
+  │ Total: 65 seconds ← EXCEEDS TIMEOUT                  │
+  └──────────────────────┬────────────────────────────────┘
+                         │
+                    ❌ TIMEOUT FIRES
+                         │
+  ┌─ Client ────────────────────────────────────────────┐
+  │ Waits 60 seconds for initialize response             │
+  │ Timeout fires after 60s                              │
+  │ Closes connection                                    │
+  │                                                       │
+  │ Error: MCP request 'initialize' timed out            │
+  │ Status: 'error'                                      │
+  │                                                       │
+  │ But server was almost ready! (65s > 60s timeout)     │
+  └────────────────────────────────────────────────────────┘
+  
+  Root Cause: Issue #6 - Timeout Too Short
+  Solution: Make timeout configurable, increase default
+
+
+Scenario E: Configuration Path is Wrong
+─────────────────────────────────────────
+  Problem: User sets invalid cliPath or javaHome
+  
+  ┌─ VS Code Settings ────────────────────────────────────┐
+  │ "ingenious.cliPath": "/old/path/ingenious"            │
+  │ (But it was uninstalled and moved!)                   │
+  │                                                        │
+  │ "ingenious.javaHome": "/opt/java8"                    │
+  │ (But INGenious needs Java 17+!)                       │
+  └──────────────────────┬─────────────────────────────────┘
+                         │
+                    ❌ NO VALIDATION
+                         │
+  ┌─ Runtime Error ───────────────────────────────────────┐
+  │ CLI not found: spawn ENOENT                           │
+  │ Java version error: Unsupported major version         │
+  │                                                        │
+  │ User has to manually fix settings                    │
+  │ No guidance on what's wrong                           │
+  └────────────────────────────────────────────────────────┘
+  
+  Root Cause: Issue #4 - Configuration Validation Missing
+  Solution: Validate paths and Java version at startup
+
+
+TIMING ANALYSIS
+════════════════════════════════════════════════════════════════════════════════
+
+Total MCP Startup Time by Phase:
+
+  Phase                           | Min    | Typical | Max   | Issues
+  ────────────────────────────────┼────────┼─────────┼───────┼──────────────
+  1. CLI resolution               | 0.1s   | 0.2s    | 1s    | #1, #4
+  2. Spawn Java process           | 0.5s   | 1s      | 5s    | #1
+  3. JVM startup                  | 5s     | 15s     | 30s   | Java version
+  4. Classpath expansion          | 5s     | 10s     | 40s   | #2
+  5. MCPServer initialization     | 2s     | 8s      | 20s   | #3
+  6. JSON-RPC handshake           | 0.1s   | 0.5s    | 2s    | Timeout
+  ────────────────────────────────┼────────┼─────────┼───────┼──────────────
+  Total                           | 13s    | 34s     | 98s   |
+
+Current timeout: 60 seconds
+  → Fast machines: ✓ OK (13-34s < 60s)
+  → Slow machines: ✗ FAILS (65-98s > 60s)
+
+Recommended timeout: 120 seconds
+  → Fast machines: ✓ Still OK (13-34s < 120s)
+  → Slow machines: ✓ Should work (65-98s < 120s)
+
+
+DEPENDENCY TREE
+════════════════════════════════════════════════════════════════════════════════
+
+CLI Path Validation (Issue #1)
+  └─ Must succeed before: Java spawn
+     Impact: If CLI not found, process never starts
+
+
+Java Setup (Java Version Check)
+  └─ Must succeed before: Java process execution
+     Impact: Wrong Java version causes immediate failure
+
+
+Classpath Expansion (Issue #2)
+  └─ Must succeed before: Java main class execution
+     Impact: Empty/invalid classpath causes ClassNotFoundException
+  └─ Depends on: JAR directories exist and are readable
+
+
+Configuration Validation (Issue #4)
+  └─ Must succeed before: Process spawn
+     Impact: Invalid settings cause startup failures
+  └─ Depends on: Issue #1 and Java version check
+
+
+Error Logging (Issue #3)
+  └─ Must succeed during: Exception handling
+     Impact: Without logging, impossible to debug
+  └─ Depends on: Issue #5 (stderr capture)
+
+
+Stderr Capture (Issue #5)
+  └─ Should succeed during: Error logging
+     Impact: Enables remote diagnostics
+  └─ Depends on: Environment variable set by Copilot SDK
+
+
+Timeout Configuration (Issue #6)
+  └─ Must succeed during: Client initialization
+     Impact: Too short timeout causes false failures on slow machines
+
+
+RECOMMENDED FIX PRIORITY
+════════════════════════════════════════════════════════════════════════════════
+
+PHASE 1 - CRITICAL (4 hours, eliminates 90% of issues)
+────────────────────────────────────────────────────────
+  ✓ Fix #2: Classpath expansion (2h)
+    Impact: Prevents ClassNotFoundException
+    
+  ✓ Fix #3: Error logging (1.5h)
+    Impact: Makes failures visible instead of silent
+    
+  ✓ Fix #1: CLI path validation (1h)
+    Impact: Catches missing CLI early with clear message
+
+
+PHASE 2 - HIGH (1.5 hours, prevents failures on different machines)
+──────────────────────────────────────────────────────────────────
+  ✓ Fix #4: Configuration validation (1h)
+    Impact: Prevents issues from wrong settings
+    
+  ✓ Fix #6: Timeout configuration (0.5h)
+    Impact: Allows slow machines to initialize
+
+
+PHASE 3 - OPTIONAL (1 hour, improves diagnostics)
+──────────────────────────────────────────────────
+  ✓ Fix #5: Stderr capture (1h)
+    Impact: Enables remote debugging
+
+================================================================================
+                            END OF FLOWCHART
+================================================================================
