@@ -1,5 +1,6 @@
 package com.ing.engine.aicli.ai;
 
+import com.github.copilot.AllowCopilotExperimental;
 import com.github.copilot.CopilotClient;
 import com.github.copilot.CopilotSession;
 import com.github.copilot.SystemMessageMode;
@@ -8,6 +9,9 @@ import com.github.copilot.generated.AssistantUsageEvent;
 import com.github.copilot.generated.SessionUsageInfoEvent;
 import com.github.copilot.generated.ToolExecutionCompleteEvent;
 import com.github.copilot.generated.ToolExecutionStartEvent;
+import com.github.copilot.generated.rpc.McpServer;
+import com.github.copilot.generated.rpc.McpServerStatus;
+import com.github.copilot.generated.rpc.SessionMcpListResult;
 import com.github.copilot.rpc.CopilotClientOptions;
 import com.github.copilot.rpc.McpServerConfig;
 import com.github.copilot.rpc.McpStdioServerConfig;
@@ -17,7 +21,13 @@ import com.github.copilot.rpc.PermissionHandler;
 import com.github.copilot.rpc.SessionConfig;
 import com.github.copilot.rpc.SystemMessageConfig;
 import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +54,17 @@ import java.util.function.Supplier;
  * and authenticated ({@code copilot auth login}). This is a proof of concept.
  */
 public final class CopilotSdkProvider implements AiProvider {
+    private static final String MCP_SERVER_NAME = "ingenious";
+    private static final String MCP_STDERR_LOG = ".ingenious-mcp-stderr.log";
+    private static final String MCP_ARGFILE = ".ingenious-mcp.args";
+    private static final String MCP_TIMEOUT_PROPERTY = "ingenious.mcp.startupTimeoutSec";
+    private static final String MCP_TIMEOUT_ENV = "INGENIOUS_MCP_STARTUP_TIMEOUT";
+    private static final long DEFAULT_MCP_STARTUP_TIMEOUT_SEC = 120;
+    private static final long MCP_LIST_TIMEOUT_SEC = 30;
+    private static final long MCP_POLL_INTERVAL_MS = 500;
+    private static final int MCP_LOG_TAIL_BYTES = 16_384;
+    private static final int MCP_LOG_TAIL_LINES = 40;
+
     private final String requestedModel;
     private final Supplier<String> projectDir;
     private final Usage usage = new Usage();
@@ -305,6 +326,7 @@ public final class CopilotSdkProvider implements AiProvider {
             if (dir != null && !dir.isBlank()) {
                 config.setWorkingDirectory(dir);
             }
+            long logOffset = mcpStderrLog().length();
             session = client.createSession(config).get();
             session.on(
                 SessionUsageInfoEvent.class,
@@ -378,12 +400,17 @@ public final class CopilotSdkProvider implements AiProvider {
                     }
                 }
             );
+            awaitIngeniousMcp(logOffset);
             Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
+        } catch (IngeniousMcpUnavailableException e) {
+            resetSession();
+            throw e;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            resetSession();
             throw new AiException("Interrupted while starting Copilot.", e);
         } catch (Exception e) {
-            shutdown();
+            resetSession();
             throw new AiException(
                 "Could not start the Copilot CLI via the SDK: " +
                 rootMessage(e) +
@@ -392,6 +419,149 @@ public final class CopilotSdkProvider implements AiProvider {
                 e
             );
         }
+    }
+
+    /** Closes and forgets the client/session so the next request retries from scratch. */
+    private void resetSession() {
+        shutdown();
+        session = null;
+        client = null;
+    }
+
+    /**
+     * Waits until the Copilot CLI reports the {@code ingenious} MCP server as connected.
+     * The CLI connects MCP servers asynchronously and silently drops ones that fail, which
+     * otherwise surfaces only as "'ingenious' MCP not discoverable" from the model.
+     */
+    @AllowCopilotExperimental
+    private void awaitIngeniousMcp(long logOffset) throws Exception {
+        long deadline = System.currentTimeMillis() + mcpStartupTimeoutSec() * 1000L;
+        McpServer last = null;
+        while (true) {
+            SessionMcpListResult servers = session
+                .getRpc()
+                .mcp.list()
+                .get(MCP_LIST_TIMEOUT_SEC, TimeUnit.SECONDS);
+            last = findIngeniousServer(servers);
+            McpServerStatus status = last != null ? last.status() : null;
+            if (status == McpServerStatus.CONNECTED) {
+                return;
+            }
+            boolean pending = status == null || status == McpServerStatus.PENDING;
+            if (!pending || System.currentTimeMillis() >= deadline) {
+                throw new IngeniousMcpUnavailableException(describeMcpFailure(last, logOffset));
+            }
+            Thread.sleep(MCP_POLL_INTERVAL_MS);
+        }
+    }
+
+    @AllowCopilotExperimental
+    private static McpServer findIngeniousServer(SessionMcpListResult result) {
+        if (result == null || result.servers() == null) {
+            return null;
+        }
+        return result
+            .servers()
+            .stream()
+            .filter(s -> s != null && MCP_SERVER_NAME.equals(s.name()))
+            .findFirst()
+            .orElse(null);
+    }
+
+    @AllowCopilotExperimental
+    private String describeMcpFailure(McpServer server, long logOffset) {
+        File log = mcpStderrLog();
+        String tail = readLogTail(log, logOffset);
+        boolean jvmStarted = tail.contains("[ingenious-mcp] starting");
+        String status = server == null
+            ? "not registered"
+            : server.status() == null ? "unknown" : server.status().getValue();
+        StringBuilder sb = new StringBuilder();
+        sb
+            .append("The INGenious MCP server ('")
+            .append(MCP_SERVER_NAME)
+            .append("') did not start, so INGenious tools are unavailable to Copilot.\n")
+            .append("Status reported by the Copilot CLI: ")
+            .append(status);
+        if (server != null && server.error() != null && !server.error().isBlank()) {
+            sb.append("\nCopilot CLI error: ").append(server.error().strip());
+        }
+        sb.append("\nLikely cause: ");
+        if (!jvmStarted) {
+            sb
+                .append(
+                    "the MCP process never reached INGenious startup. Check that Java exists at '"
+                )
+                .append(javaExecutable())
+                .append("', that the install path '")
+                .append(runtimeRoot())
+                .append(
+                    "' contains lib/, and that security software does not block spawning java."
+                );
+        } else if (
+            tail.contains("Exception") || tail.contains("Error") || tail.contains("[mcp] fatal")
+        ) {
+            sb.append("the MCP server crashed during startup (see log below).");
+        } else if (server == null || server.status() == McpServerStatus.PENDING) {
+            sb
+                .append("the MCP server started but did not finish connecting within ")
+                .append(mcpStartupTimeoutSec())
+                .append("s. Increase it with -D")
+                .append(MCP_TIMEOUT_PROPERTY)
+                .append("=<seconds> or env ")
+                .append(MCP_TIMEOUT_ENV)
+                .append('.');
+        } else {
+            sb.append("the MCP server started but the Copilot CLI rejected the connection.");
+        }
+        sb.append("\nMCP startup log: ").append(log.getAbsolutePath());
+        if (!tail.isBlank()) {
+            sb.append("\n--- log tail ---\n").append(tail.strip());
+        }
+        return sb.toString();
+    }
+
+    private static String readLogTail(File log, long offset) {
+        if (!log.isFile()) {
+            return "";
+        }
+        try (RandomAccessFile raf = new RandomAccessFile(log, "r")) {
+            long start = offset > raf.length() ? 0 : offset;
+            int len = (int) Math.min(raf.length() - start, MCP_LOG_TAIL_BYTES);
+            raf.seek(raf.length() - len);
+            byte[] buf = new byte[len];
+            raf.readFully(buf);
+            String text = new String(buf, StandardCharsets.UTF_8);
+            String[] lines = text.split("\\R");
+            int from = Math.max(0, lines.length - MCP_LOG_TAIL_LINES);
+            return String.join("\n", Arrays.asList(lines).subList(from, lines.length));
+        } catch (IOException e) {
+            return "";
+        }
+    }
+
+    private static File mcpStderrLog() {
+        return new File(runtimeRoot(), MCP_STDERR_LOG);
+    }
+
+    private static long mcpStartupTimeoutSec() {
+        String raw = System.getProperty(MCP_TIMEOUT_PROPERTY, System.getenv(MCP_TIMEOUT_ENV));
+        if (raw != null) {
+            try {
+                long v = Long.parseLong(raw.trim());
+                if (v > 0) {
+                    return v;
+                }
+            } catch (NumberFormatException ignored) {
+                // fall through to default
+            }
+        }
+        return DEFAULT_MCP_STARTUP_TIMEOUT_SEC;
+    }
+
+    private static String javaExecutable() {
+        String exe = File.separatorChar == '\\' ? "java.exe" : "java";
+        return System.getProperty("java.home") + File.separator + "bin" + File.separator + exe;
     }
 
     private static List<String> availableModelIds(CopilotClient client) throws Exception {
@@ -418,16 +588,18 @@ public final class CopilotSdkProvider implements AiProvider {
     }
 
     /** Launches this same JVM's engine as an INGenious stdio MCP server for the CLI. */
-    private Map<String, McpServerConfig> ingeniousMcpServer() {
-        String javaBin =
-            System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+    private Map<String, McpServerConfig> ingeniousMcpServer()
+        throws IngeniousMcpUnavailableException {
+        String javaBin = javaExecutable();
         String root = runtimeRoot();
         List<String> args = new ArrayList<>();
         // Force the engine's relative plugins/ Configuration/ Projects/ lookups to
         // resolve against the runtime root even if the CLI spawns us elsewhere.
         args.add("-Duser.dir=" + root);
-        args.add("-cp");
-        args.add(expandedClasspath());
+        // Pass the classpath via a java @argfile rather than -cp: an expanded -cp with
+        // ~200 absolute jar paths exceeds the Windows command-line limit on deep install
+        // paths, and a shell would glob-expand a bare lib/* wildcard into many arguments.
+        args.add("@" + writeClasspathArgFile().getAbsolutePath());
         args.add("com.ing.engine.core.Control");
         args.add("server");
         args.add("mcp");
@@ -438,7 +610,7 @@ public final class CopilotSdkProvider implements AiProvider {
         }
         Map<String, String> env = new HashMap<>(System.getenv());
         // Capture the child's startup stderr so MCP launch failures are diagnosable.
-        env.put("INGENIOUS_MCP_STDERR", root + File.separator + ".ingenious-mcp-stderr.log");
+        env.put("INGENIOUS_MCP_STDERR", mcpStderrLog().getAbsolutePath());
         McpStdioServerConfig ingenious = new McpStdioServerConfig()
             .setCommand(javaBin)
             .setArgs(args)
@@ -461,42 +633,68 @@ public final class CopilotSdkProvider implements AiProvider {
     }
 
     /**
-     * Resolves {@code java.class.path} to an explicit, absolute classpath with every
-     * jar listed individually. The launcher uses relative wildcard entries
-     * ({@code lib/*:lib/clib/*}); the Copilot CLI spawns the MCP command through a
-     * shell, which would glob-expand a wildcard into multiple arguments and break
-     * {@code -cp}, so wildcards are expanded here into concrete jar paths.
+     * Writes the {@code -cp} option for the MCP child JVM to a java launcher argfile
+     * ({@code java @file}) in the runtime root, falling back to the temp directory when
+     * the runtime root is not writable.
      */
-    private static String expandedClasspath() {
+    private static File writeClasspathArgFile() throws IngeniousMcpUnavailableException {
+        String content = classpathArgFileContent(absoluteClasspath());
+        File target = new File(runtimeRoot(), MCP_ARGFILE);
+        try {
+            Files.writeString(target.toPath(), content, StandardCharsets.UTF_8);
+            return target;
+        } catch (IOException primary) {
+            try {
+                Path temp = Files.createTempFile("ingenious-mcp-", ".args");
+                Files.writeString(temp, content, StandardCharsets.UTF_8);
+                temp.toFile().deleteOnExit();
+                return temp.toFile();
+            } catch (IOException fallback) {
+                throw new IngeniousMcpUnavailableException(
+                    "INGenious MCP not started: could not write the MCP launcher argfile " +
+                    target.getAbsolutePath() +
+                    " (" +
+                    primary.getMessage() +
+                    ") or a temp file (" +
+                    fallback.getMessage() +
+                    "). Check write permissions on the INGenious folder.",
+                    fallback
+                );
+            }
+        }
+    }
+
+    /**
+     * Renders {@code -cp <classpath>} in java argfile syntax: the value is quoted so
+     * paths with spaces stay one argument, and backslashes/quotes are escaped because
+     * the launcher treats {@code \} as an escape character inside quotes.
+     */
+    static String classpathArgFileContent(String classpath) {
+        String escaped = classpath.replace("\\", "\\\\").replace("\"", "\\\"");
+        return "-cp\n\"" + escaped + "\"\n";
+    }
+
+    /**
+     * Makes every {@code java.class.path} entry absolute while keeping {@code dir/*}
+     * wildcards intact (the java launcher expands them in {@code -cp}), so the child
+     * JVM finds the same jars regardless of the directory it is spawned in.
+     */
+    static String absoluteClasspath() {
         String raw = System.getProperty("java.class.path", "");
-        String[] entries = raw.split(File.pathSeparator);
-        List<String> jars = new ArrayList<>();
-        for (String entry : entries) {
+        List<String> entries = new ArrayList<>();
+        for (String entry : raw.split(File.pathSeparator)) {
             if (entry == null || entry.isBlank()) {
                 continue;
             }
             if (entry.endsWith("*")) {
-                String dirPath = entry.substring(0, entry.length() - 1);
-                File dir = new File(dirPath).getAbsoluteFile();
-                File[] found = dir.listFiles(
-                    (d, name) -> {
-                        String lower = name.toLowerCase();
-                        return lower.endsWith(".jar");
-                    }
-                );
-                if (found != null) {
-                    for (File jar : found) {
-                        jars.add(jar.getAbsolutePath());
-                    }
-                }
+                String dir = entry.substring(0, entry.length() - 1);
+                File abs = new File(dir.isEmpty() ? "." : dir).getAbsoluteFile();
+                entries.add(abs.getPath() + File.separator + "*");
             } else {
-                jars.add(new File(entry).getAbsolutePath());
+                entries.add(new File(entry).getAbsolutePath());
             }
         }
-        if (jars.isEmpty()) {
-            return new File(raw).getAbsolutePath();
-        }
-        return String.join(File.pathSeparator, jars);
+        return String.join(File.pathSeparator, entries);
     }
 
     /**

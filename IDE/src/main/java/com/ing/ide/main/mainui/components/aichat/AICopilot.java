@@ -174,7 +174,12 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                 } catch (Exception ex) {
                     SwingUtilities.invokeLater(
                         () -> {
-                            ui.setConnected(false, "Copilot CLI not ready");
+                            boolean mcpDown =
+                                ex instanceof com.ing.engine.aicli.ai.IngeniousMcpUnavailableException;
+                            ui.setConnected(
+                                false,
+                                mcpDown ? "INGenious MCP not started" : "Copilot CLI not ready"
+                            );
                             showError(copilotSdkHint(ex));
                         }
                     );
@@ -187,6 +192,10 @@ public class AICopilot implements SlideShow.SlideChangeListener {
 
     /** Builds an actionable hint for a Copilot SDK/CLI failure. */
     private String copilotSdkHint(Throwable ex) {
+        if (ex instanceof com.ing.engine.aicli.ai.IngeniousMcpUnavailableException) {
+            // The Copilot CLI itself is fine; the message already carries the MCP root cause.
+            return ex.getMessage();
+        }
         String msg = ex.getMessage() == null ? ex.toString() : ex.getMessage();
         String hint =
             "Could not reach the GitHub Copilot CLI.\n\n" +
