@@ -83,6 +83,15 @@
         <bouncycastle.version>1.86</bouncycastle.version>
     </properties>
     <name>ingenious</name>
+    <profiles>
+        <!-- End-to-end UI tests; need a display. Run: mvn verify -Pe2e -pl IDE-E2E -am -->
+        <profile>
+            <id>e2e</id>
+            <modules>
+                <module>IDE-E2E</module>
+            </modules>
+        </profile>
+    </profiles>
     <dependencyManagement>
         <dependencies>
             <dependency>

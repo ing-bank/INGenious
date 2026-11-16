@@ -54,3 +54,6 @@ recent.items
 
 # UI migrator skill templates (local-only changes, not committed)
 /Resources/ai/skills/ingenious-ui-migrator/
+
+# INGenious UI (E2E) test results
+/ui-test-output/
