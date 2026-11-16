@@ -157,6 +157,14 @@ public final class HtmlReportWriter implements ReportWriter {
                 .append("\"></a>");
         }
         html.append("<figcaption>").append(esc(evidence.title()));
+        if (evidence.step() != null) {
+            html.append(" &middot; <b>&rarr; Step ").append(esc(evidence.step())).append("</b>");
+        } else if (evidence.assertion() != null) {
+            html
+                .append(" &middot; <b>&rarr; Assert ")
+                .append(esc(evidence.assertion()))
+                .append("</b>");
+        }
         if (evidence.isRecording()) {
             // Fallback for viewers without H.264 support (e.g. some embedded browsers)
             html

@@ -87,19 +87,15 @@ public final class E2EReportListener implements ITestListener {
         return ((EvidenceSource) instance).completeEvidence()
             .stream()
             .map(
-                file ->
-                    new Evidence(
-                        title(file),
-                        runDir.relativize(file.toAbsolutePath()).toString().replace('\\', '/')
+                e ->
+                    e.withPath(
+                        runDir
+                            .relativize(Path.of(e.path()).toAbsolutePath())
+                            .toString()
+                            .replace('\\', '/')
                     )
             )
             .collect(Collectors.toList());
-    }
-
-    private static String title(final Path file) {
-        final String name = file.getFileName().toString();
-        final int dot = name.lastIndexOf('.');
-        return dot > 0 ? name.substring(0, dot) : name;
     }
 
     private static String message(final Throwable error) {

@@ -17,11 +17,11 @@ public final class ReportFormats {
 
     private static final String DEFAULT_FORMAT = "html";
 
-    // Add the RTM writer here once it exists, e.g. AVAILABLE.put("rtm", RtmReportWriter::new)
     private static final Map<String, Supplier<ReportWriter>> AVAILABLE = new LinkedHashMap<>();
 
     static {
         AVAILABLE.put("html", HtmlReportWriter::new);
+        AVAILABLE.put("rtm", RtmReportWriter::new);
     }
 
     private ReportFormats() {}

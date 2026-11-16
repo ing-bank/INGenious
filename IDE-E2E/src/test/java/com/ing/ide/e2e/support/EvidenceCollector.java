@@ -1,5 +1,7 @@
 package com.ing.ide.e2e.support;
 
+import com.ing.ide.e2e.report.Evidence;
+import com.ing.ide.e2e.report.StepRef;
 import java.awt.Point;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -22,7 +24,7 @@ public final class EvidenceCollector implements ActionObserver {
 
     private final InputMode inputMode;
     private final EvidenceMode evidenceMode;
-    private final List<Path> collected = new ArrayList<>();
+    private final List<Evidence> collected = new ArrayList<>();
     private Path dir;
     private int counter;
     private ScreenRecorder recorder;
@@ -68,8 +70,18 @@ public final class EvidenceCollector implements ActionObserver {
      * @param step short description of the step, used in the file name and caption
      */
     public synchronized void take(final String step) {
+        take(step, StepRef.NONE);
+    }
+
+    /**
+     * Marks a step and links its screenshot to a step or assert of the RTM test case.
+     *
+     * @param step short description of the step, used in the file name and caption
+     * @param ref the RTM step or assert this screenshot proves
+     */
+    public synchronized void take(final String step, final StepRef ref) {
         if (evidenceMode.screenshots()) {
-            write(step, screenshot());
+            write(step, screenshot(), step, ref);
         }
         if (recorder != null) {
             recorder.caption(step, STEP_CAPTION_MS);
@@ -155,6 +167,24 @@ public final class EvidenceCollector implements ActionObserver {
         final Highlight target,
         final Runnable assertion
     ) {
+        verify(step, StepRef.NONE, target, assertion);
+    }
+
+    /**
+     * Like {@link #verify(String, Highlight, Runnable)}, and links the screenshot to a step or
+     * assert of the RTM test case.
+     *
+     * @param step short description of the check, used in the file name
+     * @param ref the RTM step or assert this check proves
+     * @param target the area that is checked and what is expected there
+     * @param assertion the assertion to run
+     */
+    public synchronized void verify(
+        final String step,
+        final StepRef ref,
+        final Highlight target,
+        final Runnable assertion
+    ) {
         AssertionError failure = null;
         try {
             assertion.run();
@@ -165,7 +195,12 @@ public final class EvidenceCollector implements ActionObserver {
         if (evidenceMode.screenshots()) {
             final ScreenCapture.Shot shot = screenshot();
             ScreenCapture.annotate(shot, target, passed);
-            write(passed ? step : step + "-FAILED", shot);
+            write(
+                passed ? step : step + "-FAILED",
+                shot,
+                (passed ? "PASSED: " : "FAILED: ") + target.label(),
+                ref
+            );
         }
         if (recorder != null) {
             final ScreenCapture.Shot frame = ScreenCapture.screen(inputMode);
@@ -183,7 +218,7 @@ public final class EvidenceCollector implements ActionObserver {
      * @param step short description used in the file name and caption
      */
     public synchronized void captureFailure(final String step) {
-        write(step, screenshot());
+        write(step, screenshot(), step, StepRef.NONE);
         if (recorder != null) {
             final ScreenCapture.Shot frame = ScreenCapture.screen(inputMode);
             ScreenCapture.caption(frame, step, ScreenCapture.FAIL_COLOR);
@@ -196,11 +231,19 @@ public final class EvidenceCollector implements ActionObserver {
      *
      * @return the recording (if any) followed by the screenshots, in capture order
      */
-    public synchronized List<Path> complete() {
+    public synchronized List<Evidence> complete() {
         final Path recording = stopRecording();
-        final List<Path> all = new ArrayList<>();
+        final List<Evidence> all = new ArrayList<>();
         if (recording != null) {
-            all.add(recording);
+            all.add(
+                new Evidence(
+                    "recording",
+                    recording.toString(),
+                    "Recording of the whole test case",
+                    null,
+                    null
+                )
+            );
         }
         all.addAll(collected);
         return all;
@@ -224,7 +267,12 @@ public final class EvidenceCollector implements ActionObserver {
         return recording;
     }
 
-    private void write(final String step, final ScreenCapture.Shot shot) {
+    private void write(
+        final String step,
+        final ScreenCapture.Shot shot,
+        final String caption,
+        final StepRef ref
+    ) {
         final String fileName = String.format(
             "%02d-%s.png",
             ++counter,
@@ -238,6 +286,14 @@ public final class EvidenceCollector implements ActionObserver {
         } catch (IOException e) {
             throw new UncheckedIOException("Cannot write screenshot " + file, e);
         }
-        collected.add(file);
+        collected.add(
+            new Evidence(
+                fileName.substring(0, fileName.length() - ".png".length()),
+                file.toString(),
+                caption,
+                ref.step(),
+                ref.assertion()
+            )
+        );
     }
 }

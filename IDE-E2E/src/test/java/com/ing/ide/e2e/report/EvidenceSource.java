@@ -1,6 +1,5 @@
 package com.ing.ide.e2e.report;
 
-import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -10,9 +9,9 @@ public interface EvidenceSource {
     /**
      * Ends evidence collection for the current test case (e.g. finalises its recording).
      *
-     * @return files captured for the current test case, in capture order
+     * @return evidence captured for the current test case, in capture order, with absolute paths
      */
-    List<Path> completeEvidence();
+    List<Evidence> completeEvidence();
 
     /**
      * Captures a screenshot of the failed state, while the IDE is still open.

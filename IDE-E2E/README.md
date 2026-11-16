@@ -34,7 +34,7 @@ Maven itself runs on JDK 26 or newer; point it at any JDK 17–25.
 |---|---|---|
 | `e2e.input` | `direct` | `direct`: calls the UI controls directly (`doClick`, `fire`, `setText`) and paints the IDE windows for evidence. Never touches your mouse or keyboard and needs no OS permissions. `robot`: real OS mouse and keyboard plus full-desktop captures, exactly like a user; use on CI or a virtual display. |
 | `e2e.evidence` | `screenshot` | `screenshot`: a PNG per step and per check. `recording`: one `recording.mp4` per test case instead. `both`: screenshots and a recording. A failure screenshot is always saved. |
-| `e2e.report` | `html` | Report formats, comma-separated. Available: `html`. Add a format (e.g. `rtm`) by implementing `ReportWriter` and registering it in `ReportFormats`; unknown formats fail the run. |
+| `e2e.report` | `html` | Report formats, comma-separated: `html`, `rtm` or `html,rtm`. Add a format by implementing `ReportWriter` and registering it in `ReportFormats`; unknown formats fail the run. |
 | `e2e.jvm` | Maven's JVM | JVM that runs the IDE. Must be JDK 17–25 (AssertJ Swing needs `java.applet`, removed in JDK 26). |
 
 ### Prerequisites
@@ -101,11 +101,71 @@ display). AssertJ Swing's `ScreenshotTaker` is deliberately not used: it capture
 thread and waits for an idle UI twice per shot, which made robot recordings take about 2 s per frame
 (a 17 s test took 5–7 minutes).
 
+## Publishing to the RTM (`-De2e.report=rtm`)
+
+The `rtm` format publishes results and evidence to the RTM repository
+(`p33148-ingenious-requirement-traceability-matrix`) for a testing cycle, so they show up in its
+evidence report next to manual results:
+
+```bash
+mvn -Pe2e -pl IDE-E2E -am verify -Dtest=none -Dsurefire.failIfNoSpecifiedTests=false \
+    -De2e.jvm=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java \
+    -De2e.evidence=both -De2e.report=html,rtm -De2e.rtm.cycle="releasev4.1"
+```
+
+| Property | Default | Purpose |
+|---|---|---|
+| `e2e.rtm.cycle` | (required) | Cycle name: the folder under the RTM's `cycles/`, created if new. |
+| `e2e.rtm.dir` | `../../p33148-ingenious-requirement-traceability-matrix` (sibling of this repo) | RTM repository root. |
+| `e2e.rtm.role` | `dev-test` | `dev-test` fills the Dev columns and `dev-test/` evidence folder; `qa` the QA ones. |
+| `e2e.rtm.tester` | `INGenious E2E (automated)` | Tester name recorded with each result. |
+| `e2e.rtm.python` | `python3` | Python 3 with PyYAML (e.g. `python` on Windows). |
+| `e2e.rtm.generateReport` | `true` | Regenerate the RTM's `reports/evidence-report.html`/`.md` for the cycle afterwards. |
+
+It uses only the RTM's own tooling, as the RTM requires (`results.yaml` is never written directly):
+
+1. `save_evidence.py` copies the test case's recording and screenshots to
+   `cycles/<cycle>/<role>/<code>-<n>.<ext>`.
+2. `record_test_result.py --batch-file` records `devResult`/`qaResult` (PASSED -> `Pass`, FAILED ->
+   `Fail`, SKIPPED -> `Blocked`), tester, date and notes (run id, version, input mode, OS, and the
+   first line of a failure), plus a `devEvidence`/`qaEvidence` item per file with its caption and
+   the step or assert it proves. The RTM report shows these as "-> Step n" / "-> Assert n".
+3. `generate_evidence_report.py --cycle` regenerates the RTM report (unless disabled).
+
+Script output goes to `ui-test-output/<run>/rtm-export.log`. Each test case is published once per
+run; re-running the same cycle adds new evidence files next to the earlier ones (the RTM tooling
+never overwrites) and updates the result. A missing cycle or a wrong `e2e.rtm.dir` fails the run
+before the IDE starts; a failing RTM script is logged and does not fail the test.
+
+**Codes must exist in the RTM.** `@Scenario`/`@TestCase` codes are RTM codes. Create the scenario
+and test case in the RTM first, with its own tool (from the RTM repo root):
+
+```bash
+python3 scripts/validation/manage_test_case.py add-test-case --scenario-code UI-SC006 \
+    --application-component UI --feature "Project creation" \
+    --scenario-description "Create a new project from the startup dialog" \
+    --test-case-description "..." --execution-mode Automated \
+    --automated-test-case-name "IDE-E2E: com.ing.ide.e2e.CreateProjectIT#<method>" \
+    --steps $'1. Start INGenious\n2. ...\n3. [ASSERT] ...' --asserts "..." --dry-run
+```
+
+**Linking evidence to RTM steps.** Pass a `StepRef` to `take` or `verify`. Numbers are the 1-based
+lines of the RTM test case's `steps` (`StepRef.step(n)`) or `asserts` (`StepRef.assertion(n)`):
+
+```java
+evidence.take("new-project-form", StepRef.step(3));
+evidence.verify("assert-title-bar-version", StepRef.assertion(1), mainWindow.titleBar("..."),
+    () -> assertThat(mainWindow.title()).isEqualTo(expectedTitle));
+```
+
+Evidence without a `StepRef` (the recording, failure screenshots) is attached to the test case only.
+The local HTML report shows the same links. Keep the numbers in sync when the RTM steps change.
+
 ## Writing tests
 
 - One class per scenario, one method per test case. Extend `IngeniousE2ETest`, name the class `*IT`,
   and annotate it with `@Scenario(code, description)` and each test method with
-  `@TestCase(code, description)`.
+  `@TestCase(code, description)`, using the RTM codes (e.g. `UI-SC006` / `UI-SC006-TC001`).
 - Call `evidence.take("step-name")` at meaningful steps; it becomes a screenshot and/or a caption in
   the recording.
 - Wrap assertions in `evidence.verify(step, highlight, () -> assertThat(...))`. It runs the
@@ -159,7 +219,11 @@ thread and waits for an idle UI twice per shot, which made robot recordings take
 - Only the title bar has a highlight helper; JavaFX nodes need one once a test checks them.
 - Web content inside JavaFX `WebView`s (AI chat, embedded browser) cannot be inspected by TestFX;
   check it through `executeScript` or evidence only.
-- Only the `html` report format exists; `rtm` is still to be implemented.
+- Step links need the RTM's `record_test_result.py` with batch-file evidence support (added in the
+  RTM repo alongside this module); an older RTM checkout records results but drops the links.
+- `StepRef` numbers are not checked against the RTM; a wrong number links to the wrong line.
+- The `rtm` format needs Python 3 with PyYAML on the machine that runs the tests, and the RTM
+  repository checked out.
 - Run folder names use UTC (Maven's build timestamp).
 
 **Test setup**

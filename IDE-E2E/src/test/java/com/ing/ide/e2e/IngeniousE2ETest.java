@@ -1,6 +1,7 @@
 package com.ing.ide.e2e;
 
 import com.ing.ide.e2e.report.E2EReportListener;
+import com.ing.ide.e2e.report.Evidence;
 import com.ing.ide.e2e.report.EvidenceSource;
 import com.ing.ide.e2e.report.ReportOutput;
 import com.ing.ide.e2e.report.Scenario;
@@ -12,7 +13,6 @@ import com.ing.ide.e2e.support.IngeniousApp;
 import com.ing.ide.e2e.support.InputMode;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.nio.file.Path;
 import java.util.List;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -65,7 +65,7 @@ public abstract class IngeniousE2ETest implements EvidenceSource {
     }
 
     @Override
-    public List<Path> completeEvidence() {
+    public List<Evidence> completeEvidence() {
         return evidence != null ? evidence.complete() : List.of();
     }
 

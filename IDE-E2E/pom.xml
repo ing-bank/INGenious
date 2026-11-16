@@ -27,6 +27,13 @@
         <e2e.report>html</e2e.report>
         <!-- Evidence per test case: screenshot (default), recording (MP4) or both -->
         <e2e.evidence>screenshot</e2e.evidence>
+        <!-- Report format 'rtm': publish results/evidence to the RTM repository through its own scripts -->
+        <e2e.rtm.dir>${project.basedir}/../../p33148-ingenious-requirement-traceability-matrix</e2e.rtm.dir>
+        <e2e.rtm.cycle></e2e.rtm.cycle>
+        <e2e.rtm.role>dev-test</e2e.rtm.role>
+        <e2e.rtm.tester>INGenious E2E (automated)</e2e.rtm.tester>
+        <e2e.rtm.python>python3</e2e.rtm.python>
+        <e2e.rtm.generateReport>true</e2e.rtm.generateReport>
         <!-- Overridden by the JaCoCo agent when present; kept empty so @{argLine} always resolves -->
         <argLine></argLine>
         <!--
@@ -166,6 +173,12 @@
                         <e2e.runId>${e2e.runId}</e2e.runId>
                         <e2e.report>${e2e.report}</e2e.report>
                         <e2e.evidence>${e2e.evidence}</e2e.evidence>
+                        <e2e.rtm.dir>${e2e.rtm.dir}</e2e.rtm.dir>
+                        <e2e.rtm.cycle>${e2e.rtm.cycle}</e2e.rtm.cycle>
+                        <e2e.rtm.role>${e2e.rtm.role}</e2e.rtm.role>
+                        <e2e.rtm.tester>${e2e.rtm.tester}</e2e.rtm.tester>
+                        <e2e.rtm.python>${e2e.rtm.python}</e2e.rtm.python>
+                        <e2e.rtm.generateReport>${e2e.rtm.generateReport}</e2e.rtm.generateReport>
                         <prism.allowhidpi>false</prism.allowhidpi>
                         <e2e.input>${e2e.input}</e2e.input>
                         <testfx.robot>awt</testfx.robot>
