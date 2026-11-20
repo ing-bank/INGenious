@@ -48,7 +48,7 @@ public class CreateProjectIT extends IngeniousE2ETest {
         final String expectedTitle = projectName + " - INGenious " + expectedVersion;
         evidence.verify(
             "assert-title-bar-version",
-            StepRef.assertion(1),
+            StepRef.assertion("Title bar shows"),
             mainWindow.titleBar("title bar shows version " + expectedVersion + " from the pom"),
             () -> assertThat(mainWindow.title()).as("title bar").isEqualTo(expectedTitle)
         );

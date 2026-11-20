@@ -149,17 +149,26 @@ python3 scripts/validation/manage_test_case.py add-test-case --scenario-code UI-
     --steps $'1. Start INGenious\n2. ...\n3. [ASSERT] ...' --asserts "..." --dry-run
 ```
 
-**Linking evidence to RTM steps.** Pass a `StepRef` to `take` or `verify`. Numbers are the 1-based
-lines of the RTM test case's `steps` (`StepRef.step(n)`) or `asserts` (`StepRef.assertion(n)`):
+**Linking evidence to RTM steps.** Pass a `StepRef` to `take` or `verify`:
+
+- `StepRef.step(n)`: the RTM `steps` line **printed** with number `n` (`4.` or `4)`), including
+  `[ASSERT]` steps.
+- `StepRef.assertion("text")`: the RTM `asserts` line containing that text (case-insensitive).
 
 ```java
 evidence.take("new-project-form", StepRef.step(3));
-evidence.verify("assert-title-bar-version", StepRef.assertion(1), mainWindow.titleBar("..."),
+evidence.verify("assert-title-bar-version", StepRef.assertion("Title bar shows"), mainWindow.titleBar("..."),
     () -> assertThat(mainWindow.title()).isEqualTo(expectedTitle));
 ```
 
-Evidence without a `StepRef` (the recording, failure screenshots) is attached to the test case only.
-Skipped test cases publish no evidence. The local HTML report shows the same links. Keep the numbers in sync when the RTM steps change.
+The `rtm` writer publishes steps by their printed number, which the RTM report links to (lines
+that don't start with a number continue the step above, so wrapped steps are one link target;
+extra and invisible whitespace is ignored). Asserts are published as their line position. Both are
+checked against the RTM scenario YAML; if the test case or step is not found, the evidence is
+published without a link and a `WARNING` is written to `rtm-export.log`. If a code appears twice in
+the RTM, the first is used. Evidence without a `StepRef` (the recording, failure screenshots) is attached to the test
+case only. Skipped test cases publish no evidence. The local HTML report shows the references as
+written.
 
 ## Writing tests
 
@@ -224,7 +233,7 @@ Skipped test cases publish no evidence. The local HTML report shows the same lin
   check it through `executeScript` or evidence only.
 - Step links need the RTM's `record_test_result.py` with batch-file evidence support (added in the
   RTM repo alongside this module); an older RTM checkout records results but drops the links.
-- `StepRef` numbers are not checked against the RTM; a wrong number links to the wrong line.
+- A `StepRef` that matches no RTM line only produces a warning, not a failure.
 - The `rtm` format needs Python 3 with PyYAML on the machine that runs the tests, and the RTM
   repository checked out.
 - Run folder names use UTC (Maven's build timestamp).

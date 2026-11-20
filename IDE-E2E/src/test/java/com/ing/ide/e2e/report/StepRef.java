@@ -1,56 +1,60 @@
 package com.ing.ide.e2e.report;
 
 /**
- * Links a piece of evidence to a line of the RTM test case: a {@code steps} line or an
- * {@code asserts} line, numbered from 1 in the order they appear in the RTM scenario YAML.
- * The RTM evidence report shows the link as "-> Step n" / "-> Assert n".
+ * Links a piece of evidence to a line of the RTM test case.
+ * <ul>
+ *   <li>{@link #step(int)}: the {@code steps} line printed with that number, e.g. {@code 4.} or
+ *   {@code 4)}, including {@code [ASSERT]} steps.</li>
+ *   <li>{@link #assertion(String)}: the {@code asserts} line containing that text (case-insensitive).</li>
+ * </ul>
+ * Steps are published with their printed number, which the RTM report links to; asserts are
+ * converted to their line position. The RTM writer checks both against the RTM scenario YAML.
  */
 public final class StepRef {
     /** No link. */
-    public static final StepRef NONE = new StepRef(null, 0);
+    public static final StepRef NONE = new StepRef(null, null);
 
-    private final String kind;
-    private final int number;
+    private final String step;
+    private final String assertion;
 
-    private StepRef(final String kind, final int number) {
-        this.kind = kind;
-        this.number = number;
+    private StepRef(final String step, final String assertion) {
+        this.step = step;
+        this.assertion = assertion;
     }
 
     /**
-     * @param number 1-based line of the test case's {@code steps}
+     * @param printedNumber the number printed at the start of the step, e.g. 4 for "4. Click ..."
      * @return a link to that step
      */
-    public static StepRef step(final int number) {
-        return new StepRef("step", positive(number));
+    public static StepRef step(final int printedNumber) {
+        if (printedNumber < 1) {
+            throw new IllegalArgumentException("Step numbers start at 1, got " + printedNumber);
+        }
+        return new StepRef(String.valueOf(printedNumber), null);
     }
 
     /**
-     * @param number 1-based line of the test case's {@code asserts}
+     * @param text text of the asserts line, or a distinctive part of it
      * @return a link to that assert
      */
-    public static StepRef assertion(final int number) {
-        return new StepRef("assert", positive(number));
+    public static StepRef assertion(final String text) {
+        if (text == null || text.isBlank()) {
+            throw new IllegalArgumentException("Assert text must not be blank");
+        }
+        return new StepRef(null, text.trim());
     }
 
     /**
-     * @return the step number, or {@code null} if this does not link a step
+     * @return the printed step number, or {@code null} if this does not link a step
      */
     public String step() {
-        return "step".equals(kind) ? String.valueOf(number) : null;
+        return step;
     }
 
     /**
-     * @return the assert number, or {@code null} if this does not link an assert
+     * @return the assert text, or {@code null} if this does not link an assert
      */
     public String assertion() {
-        return "assert".equals(kind) ? String.valueOf(number) : null;
-    }
-
-    private static int positive(final int number) {
-        if (number < 1) {
-            throw new IllegalArgumentException("Step and assert numbers start at 1, got " + number);
-        }
-        return number;
+        return assertion;
     }
 }

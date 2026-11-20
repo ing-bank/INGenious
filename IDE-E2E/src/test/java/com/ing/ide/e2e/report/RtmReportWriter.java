@@ -183,6 +183,8 @@ public final class RtmReportWriter implements ReportWriter {
                 " evidence items"
             );
         }
+        final String code = result.identity().testCaseCode();
+        final RtmStepResolver steps = RtmStepResolver.load(rtmDir, code);
         final List<Map<String, String>> items = new ArrayList<>();
         for (int i = 0; i < saved.size(); i++) {
             final Evidence evidence = result.evidence().get(i);
@@ -195,8 +197,29 @@ public final class RtmReportWriter implements ReportWriter {
                     .replace('\\', '/')
             );
             putIfPresent(item, "caption", evidence.caption());
-            putIfPresent(item, "step", evidence.step());
-            putIfPresent(item, "assert", evidence.assertion());
+            if (evidence.step() != null || evidence.assertion() != null) {
+                final String position = steps == null
+                    ? null
+                    : evidence.step() != null
+                        ? steps.step(evidence.step())
+                        : steps.assertion(evidence.assertion());
+                if (position == null) {
+                    warn(
+                        log,
+                        code +
+                        ": evidence " +
+                        evidence.title() +
+                        " published without a link - " +
+                        (
+                            steps == null
+                                ? "test case not found in the RTM"
+                                : "no RTM line matches " + describe(evidence)
+                        )
+                    );
+                } else {
+                    item.put(evidence.step() != null ? "step" : "assert", position);
+                }
+            }
             items.add(item);
         }
         return items;
@@ -218,6 +241,23 @@ public final class RtmReportWriter implements ReportWriter {
             entry.put(prefix + "Evidence", evidence);
         }
         return entry;
+    }
+
+    private static String describe(final Evidence evidence) {
+        return evidence.step() != null
+            ? "step " + evidence.step() + "."
+            : "assert \"" + evidence.assertion() + "\"";
+    }
+
+    private static void warn(final Path log, final String message) throws IOException {
+        System.err.println("[E2E report] WARNING " + message);
+        Files.writeString(
+            log,
+            "WARNING " + message + System.lineSeparator(),
+            StandardCharsets.UTF_8,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.APPEND
+        );
     }
 
     private static void putIfPresent(
