@@ -36,7 +36,10 @@ public class TourStep {
         EXEC_LEFT_SETTINGS,
         EXEC_TESTSET_CANVAS,
         EXEC_TESTPLAN_PANEL,
-        EXEC_RIGHT_SETTINGS
+        EXEC_RIGHT_SETTINGS,
+        DB_WORKBENCH_BUTTON,
+        PERF_STUDIO_BUTTON,
+        INGENIE_BUTTON
     }
 
     /**

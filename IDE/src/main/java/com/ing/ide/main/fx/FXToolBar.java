@@ -31,6 +31,9 @@ public class FXToolBar extends JFXPanel {
     private final AppActionListener actionListener;
     private ToggleButton autoSaveToggle;
     private ToggleButton darkModeToggle;
+    private Button dbWorkbenchButton;
+    private Button perfStudioButton;
+    private Button ingenieButton;
     private javafx.scene.control.ToolBar toolBar;
 
     public FXToolBar(AppActionListener actionListener) {
@@ -145,6 +148,7 @@ public class FXToolBar extends JFXPanel {
         }
 
         btn.setOnAction(e -> fireSwingAction("Database Workbench"));
+        dbWorkbenchButton = btn;
         return btn;
     }
 
@@ -163,6 +167,7 @@ public class FXToolBar extends JFXPanel {
         }
 
         btn.setOnAction(e -> fireSwingAction("Performance Studio"));
+        perfStudioButton = btn;
         return btn;
     }
 
@@ -178,6 +183,7 @@ public class FXToolBar extends JFXPanel {
         }
 
         btn.setOnAction(e -> fireSwingAction("INGenie"));
+        ingenieButton = btn;
         return btn;
     }
 
@@ -291,5 +297,36 @@ public class FXToolBar extends JFXPanel {
      */
     public ToggleButton getAutoSaveToggle() {
         return autoSaveToggle;
+    }
+
+    public java.awt.Rectangle getDBWorkbenchButtonBounds() {
+        return getButtonBounds(dbWorkbenchButton);
+    }
+
+    public java.awt.Rectangle getPerfStudioButtonBounds() {
+        return getButtonBounds(perfStudioButton);
+    }
+
+    public java.awt.Rectangle getIngenieButtonBounds() {
+        return getButtonBounds(ingenieButton);
+    }
+
+    private java.awt.Rectangle getButtonBounds(Button btn) {
+        if (btn == null || btn.getScene() == null) {
+            return null;
+        }
+
+        javafx.geometry.Bounds b = btn.localToScene(btn.getBoundsInLocal());
+
+        if (b == null || b.getWidth() <= 0 || b.getHeight() <= 0) {
+            return null;
+        }
+
+        return new java.awt.Rectangle(
+            (int) Math.round(b.getMinX()),
+            (int) Math.round(b.getMinY()),
+            (int) Math.round(b.getWidth()),
+            (int) Math.round(b.getHeight())
+        );
     }
 }

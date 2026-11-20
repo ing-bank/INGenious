@@ -201,6 +201,30 @@ public class TourManager {
                 TourStep.ViewToShow.API_TESTER
             ),
             new TourStep(
+                "Database Workbench",
+                "Connect to Databases, run SQL queries, inspect result grids, and " +
+                "convert queries with assertions directly into automated Test Cases or " +
+                "reusable User Intents",
+                TourStep.TargetComponent.DB_WORKBENCH_BUTTON,
+                TourStep.ViewToShow.TEST_DESIGN
+            ),
+            new TourStep(
+                "Performance Studio",
+                "Author and execute k6 performance and load tests inside the IDE. Generate  " +
+                "scripts from test cases, run load profiles with live charts, and view " +
+                "historical performance reports.",
+                TourStep.TargetComponent.PERF_STUDIO_BUTTON,
+                TourStep.ViewToShow.TEST_DESIGN
+            ),
+            new TourStep(
+                "INGenie",
+                "Click INGenie to toggle the built-in AI testing assistant. Generate " +
+                "Scenarios, author test steps, and get context-aware automation help  " +
+                "right alongside your workplace.",
+                TourStep.TargetComponent.INGENIE_BUTTON,
+                TourStep.ViewToShow.TEST_DESIGN
+            ),
+            new TourStep(
                 "Toolbar & Navigation",
                 "Switch between views, open or create projects, run tests, and toggle themes " +
                 "using the toolbar above. Hover over any button to see its tooltip and " +
@@ -551,9 +575,35 @@ public class TourManager {
                 return toLayeredPaneBounds(
                     frame.getTestExecution().getTestExecutionUI().getRightQuickSettingsPanel()
                 );
+            case DB_WORKBENCH_BUTTON:
+                return toToolbarButtonBounds(
+                    frame.getFXToolBar() != null
+                        ? frame.getFXToolBar().getDBWorkbenchButtonBounds()
+                        : null
+                );
+            case PERF_STUDIO_BUTTON:
+                return toToolbarButtonBounds(
+                    frame.getFXToolBar() != null
+                        ? frame.getFXToolBar().getPerfStudioButtonBounds()
+                        : null
+                );
+            case INGENIE_BUTTON:
+                return toToolbarButtonBounds(
+                    frame.getFXToolBar() != null
+                        ? frame.getFXToolBar().getIngenieButtonBounds()
+                        : null
+                );
             default:
                 return null;
         }
+    }
+
+    private Rectangle toToolbarButtonBounds(Rectangle btnBounds) {
+        com.ing.ide.main.fx.FXToolBar tb = frame.getFXToolBar();
+        if (tb == null || !tb.isShowing() || btnBounds == null) {
+            return null;
+        }
+        return SwingUtilities.convertRectangle(tb, btnBounds, frame.getLayeredPane());
     }
 
     /**
