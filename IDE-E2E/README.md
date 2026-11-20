@@ -170,6 +170,33 @@ the RTM, the first is used. Evidence without a `StepRef` (the recording, failure
 case only. Skipped test cases publish no evidence. The local HTML report shows the references as
 written.
 
+## Tests
+
+| Class | Scenario | Test cases | Starts with |
+|---|---|---|---|
+| `CreateProjectIT` | UI-SC006 | TC001 | Startup dialog |
+| `gen.FileMenuIT` | GEN-SC001 File menu | TC001 New, TC002 Open, TC003 Save, TC004 Restart (skipped -> `Blocked`) | Project open |
+| `gen.FileMenuQuitIT` | GEN-SC001 File menu | TC005 Quit (own JVM: it ends the IDE) | Project open |
+| `gen.ToolbarIT` | GEN-SC002 toolbar | TC001 New, TC002 Open | Project open |
+| `gen.WindowMenuIT` | GEN-SC003 Window menu | TC001-TC004 navigation, TC005 AdjustUI, TC006 menu closes, TC007 side view selector | Project open |
+
+Notes on the GEN tests:
+
+- **GEN-SC001-TC004 Restart** is skipped: Restart launches INGenious as a new OS process
+  (`ingenious.command` / `ingenious.bat`), outside the test's control. It is reported as `Blocked`.
+- Preconditions such as "on a screen other than Test Design" or "a partition was resized" are set
+  up through the IDE's API (`MainWindowPage.arrangeView`, `JSplitPane.setDividerLocation`); the step
+  under test always goes through the UI.
+- **Quit**: the harness turns the IDE's `System.exit` into a dispose, so "no process remains" is
+  checked as "INGenious requested exit and no window is left".
+- **Save**: the test does not create unsaved changes first; it checks that saving rewrote the
+  project's `.project` file and showed the "Saved" notification.
+
+`ProjectOpenE2ETest` is the base for "user is on the main application screen": it copies the
+Tutorial project twice (`E2E-<Class>-<time>-Main` / `-Other`), auto-opens the first on launch, and
+in robot mode clicks into the window before the first step. Test projects (`Projects/E2E*`) are
+deleted at the start of the next run.
+
 ## Writing tests
 
 - One class per scenario, one method per test case. Extend `IngeniousE2ETest`, name the class `*IT`,
