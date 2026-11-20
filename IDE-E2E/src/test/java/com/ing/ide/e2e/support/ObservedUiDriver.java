@@ -1,11 +1,13 @@
 package com.ing.ide.e2e.support;
 
 import java.awt.AWTException;
+import java.awt.Component;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PointerInfo;
 import java.awt.Robot;
 import java.awt.Window;
+import java.io.File;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -14,8 +16,12 @@ import java.util.concurrent.TimeoutException;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Labeled;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
 import javax.swing.AbstractButton;
+import javax.swing.JFileChooser;
+import javax.swing.JTextField;
 import org.assertj.swing.edt.GuiActionRunner;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -85,6 +91,71 @@ final class ObservedUiDriver implements UiDriver {
             GuiActionRunner.execute(() -> closeButton(window)),
             "Close window",
             () -> delegate.requestClose(window)
+        );
+    }
+
+    @Override
+    public void openMenu(final Menu menu) {
+        perform(
+            FxNodes.menuTitle(menu).map(FxNodes::center).orElse(null),
+            "Open menu \"" + menu.getText() + "\"",
+            () -> delegate.openMenu(menu)
+        );
+    }
+
+    @Override
+    public void chooseMenuItem(final MenuItem item) {
+        perform(
+            FxNodes.itemNode(item).map(FxNodes::center).orElse(null),
+            "Click \"" + item.getText() + "\"",
+            () -> delegate.chooseMenuItem(item)
+        );
+    }
+
+    @Override
+    public void clickOutside(final Menu menu, final Component outside) {
+        perform(
+            swingCenter(outside),
+            "Click outside the menu",
+            () -> delegate.clickOutside(menu, outside)
+        );
+    }
+
+    @Override
+    public void hover(final Component component) {
+        perform(swingCenter(component), "Hover", () -> delegate.hover(component));
+    }
+
+    @Override
+    public void typeAndEnter(final JTextField field, final String text) {
+        perform(
+            swingCenter(field),
+            "Type \"" + text + "\" + Enter",
+            () -> delegate.typeAndEnter(field, text)
+        );
+    }
+
+    @Override
+    public void chooseFile(final JFileChooser chooser, final File file) {
+        perform(
+            swingCenter(chooser),
+            "Choose \"" + file.getName() + "\"",
+            () -> delegate.chooseFile(chooser, file)
+        );
+    }
+
+    private static Point swingCenter(final Component component) {
+        return GuiActionRunner.execute(
+            () -> {
+                if (!component.isShowing()) {
+                    return null;
+                }
+                final Point location = component.getLocationOnScreen();
+                return new Point(
+                    location.x + component.getWidth() / 2,
+                    location.y + component.getHeight() / 2
+                );
+            }
         );
     }
 
@@ -189,5 +260,14 @@ final class ObservedUiDriver implements UiDriver {
         } catch (ExecutionException | TimeoutException e) {
             return null;
         }
+    }
+
+    @Override
+    public void activate(final Window window, final Component neutralSpot) {
+        perform(
+            swingCenter(neutralSpot),
+            "Click into the window",
+            () -> delegate.activate(window, neutralSpot)
+        );
     }
 }

@@ -66,7 +66,7 @@ public final class E2EReportListener implements ITestListener {
             Instant.ofEpochMilli(result.getStartMillis()).toString(),
             Math.max(0, result.getEndMillis() - result.getStartMillis()),
             message(result.getThrowable()),
-            evidence(result.getInstance(), runDir)
+            evidence(result.getInstance(), runDir, status)
         );
         try {
             final ResultStore store = new ResultStore(runDir);
@@ -80,11 +80,20 @@ public final class E2EReportListener implements ITestListener {
         }
     }
 
-    private static List<Evidence> evidence(final Object instance, final Path runDir) {
+    // A skipped test case did not run, so it has no evidence (its recording is still stopped)
+    private static List<Evidence> evidence(
+        final Object instance,
+        final Path runDir,
+        final TestStatus status
+    ) {
         if (!(instance instanceof EvidenceSource)) {
             return List.of();
         }
-        return ((EvidenceSource) instance).completeEvidence()
+        final List<Evidence> captured = ((EvidenceSource) instance).completeEvidence();
+        if (status == TestStatus.SKIPPED) {
+            return List.of();
+        }
+        return captured
             .stream()
             .map(
                 e ->

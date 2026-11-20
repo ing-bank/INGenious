@@ -51,6 +51,28 @@ public final class Highlight {
     }
 
     /**
+     * A caption without a box, for checks that have nothing on screen to point at (e.g. files on disk).
+     *
+     * @param label caption
+     * @return the highlight
+     */
+    public static Highlight captionOnly(final String label) {
+        return new Highlight(new Rectangle(), label);
+    }
+
+    /**
+     * Highlights a JavaFX node, e.g. a menu, a menu item or a toolbar button.
+     *
+     * @param node the node, must be on screen
+     * @param label caption, e.g. what the assertion expects
+     * @return the highlight; an empty area (caption only) if the node is not on screen
+     */
+    public static Highlight fxNode(final javafx.scene.Node node, final String label) {
+        final Rectangle bounds = FxNodes.screenBounds(node);
+        return new Highlight(bounds == null ? new Rectangle() : bounds, label);
+    }
+
+    /**
      * @return area in screen coordinates
      */
     public Rectangle screenBounds() {

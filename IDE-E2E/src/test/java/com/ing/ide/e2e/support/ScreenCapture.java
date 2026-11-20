@@ -75,6 +75,7 @@ final class ScreenCapture {
         if (mode == InputMode.ROBOT) {
             return desktop();
         }
+        final List<FxPopup> popups = fxPopups();
         return GuiActionRunner.execute(
             () -> {
                 final List<Window> windows = showingWindows();
@@ -89,7 +90,8 @@ final class ScreenCapture {
                     .map(ScreenCapture::screenBounds)
                     .reduce(Rectangle::union)
                     .orElseThrow();
-                return paint(windows, area, null);
+                popups.forEach(p -> area.add(p.bounds));
+                return paint(windows, area, null, popups);
             }
         );
     }
@@ -105,7 +107,10 @@ final class ScreenCapture {
             return desktop();
         }
         final Rectangle screen = defaultScreenBounds();
-        return GuiActionRunner.execute(() -> paint(showingWindows(), screen, EMPTY_SCREEN_COLOR));
+        final List<FxPopup> popups = fxPopups();
+        return GuiActionRunner.execute(
+            () -> paint(showingWindows(), screen, EMPTY_SCREEN_COLOR, popups)
+        );
     }
 
     /**
@@ -263,7 +268,8 @@ final class ScreenCapture {
     private static Shot paint(
         final List<Window> windows,
         final Rectangle area,
-        final Color background
+        final Color background,
+        final List<FxPopup> popups
     ) {
         final BufferedImage image = new BufferedImage(
             area.width,
@@ -290,6 +296,9 @@ final class ScreenCapture {
                 } finally {
                     wg.dispose();
                 }
+            }
+            for (final FxPopup popup : popups) {
+                g.drawImage(popup.image, popup.bounds.x - area.x, popup.bounds.y - area.y, null);
             }
         } finally {
             g.dispose();
@@ -357,5 +366,52 @@ final class ScreenCapture {
     private static Rectangle screenBounds(final Window window) {
         final Point location = window.getLocationOnScreen();
         return new Rectangle(location.x, location.y, window.getWidth(), window.getHeight());
+    }
+
+    // JavaFX popups (menus, tooltips) are native windows that Swing does not paint. Snapshot them on
+    // the JavaFX thread; must not be called on the Swing event thread.
+    private static List<FxPopup> fxPopups() {
+        try {
+            return FxNodes.onFx(
+                () ->
+                    javafx
+                        .stage.Window.getWindows()
+                        .stream()
+                        .filter(
+                            w ->
+                                w instanceof javafx.stage.PopupWindow &&
+                                w.isShowing() &&
+                                w.getScene() != null
+                        )
+                        .map(
+                            w ->
+                                new FxPopup(
+                                    javafx.embed.swing.SwingFXUtils.fromFXImage(
+                                        w.getScene().snapshot(null),
+                                        null
+                                    ),
+                                    new Rectangle(
+                                        (int) w.getX(),
+                                        (int) w.getY(),
+                                        (int) w.getWidth(),
+                                        (int) w.getHeight()
+                                    )
+                                )
+                        )
+                        .collect(Collectors.toList())
+            );
+        } catch (IllegalStateException e) {
+            return List.of();
+        }
+    }
+
+    private static final class FxPopup {
+        private final BufferedImage image;
+        private final Rectangle bounds;
+
+        private FxPopup(final BufferedImage image, final Rectangle bounds) {
+            this.image = image;
+            this.bounds = bounds;
+        }
     }
 }

@@ -22,10 +22,13 @@ import org.testfx.api.FxRobot;
  * an AssertJ Swing {@link Robot} for Swing windows and a TestFX {@link FxRobot} for embedded JavaFX.
  */
 public final class IngeniousApp {
+    private static final String EXIT_GUARD = "e2e.exitGuard";
+
     private final Robot swing;
     private final FxRobot fx;
     private final InputMode mode;
     private final UiDriver driver;
+    private volatile boolean exitRequested;
 
     private IngeniousApp(final Robot swing, final InputMode mode, final ActionObserver observer) {
         this.swing = swing;
@@ -107,10 +110,12 @@ public final class IngeniousApp {
                 return frame.isShowing() && frame.getTitle().startsWith(projectName + " - ");
             }
         };
-        return WindowFinder
+        final FrameFixture frame = WindowFinder
             .findFrame(matcher)
-            .withTimeout(Timeouts.STEP.toMillis(), TimeUnit.MILLISECONDS)
+            .withTimeout(Timeouts.LAUNCH.toMillis(), TimeUnit.MILLISECONDS)
             .using(swing);
+        preventSystemExitOnQuit(frame);
+        return frame;
     }
 
     /**
@@ -125,19 +130,32 @@ public final class IngeniousApp {
     public void preventSystemExitOnQuit(final FrameFixture mainWindow) {
         final JFrame frame = (JFrame) mainWindow.target();
         GuiActionRunner.execute(
-            () ->
+            () -> {
+                if (frame.getRootPane().getClientProperty(EXIT_GUARD) != null) {
+                    return;
+                }
+                frame.getRootPane().putClientProperty(EXIT_GUARD, Boolean.TRUE);
                 frame.addWindowListener(
                     new WindowAdapter() {
 
                         @Override
                         public void windowClosing(final WindowEvent e) {
                             if (frame.getDefaultCloseOperation() == JFrame.EXIT_ON_CLOSE) {
+                                exitRequested = true;
                                 frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                             }
                         }
                     }
-                )
+                );
+            }
         );
+    }
+
+    /**
+     * @return whether the IDE asked to exit the JVM (blocked by {@link #preventSystemExitOnQuit})
+     */
+    public boolean exitRequested() {
+        return exitRequested;
     }
 
     /**

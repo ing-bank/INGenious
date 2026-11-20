@@ -159,7 +159,7 @@ evidence.verify("assert-title-bar-version", StepRef.assertion(1), mainWindow.tit
 ```
 
 Evidence without a `StepRef` (the recording, failure screenshots) is attached to the test case only.
-The local HTML report shows the same links. Keep the numbers in sync when the RTM steps change.
+Skipped test cases publish no evidence. The local HTML report shows the same links. Keep the numbers in sync when the RTM steps change.
 
 ## Writing tests
 
@@ -176,6 +176,9 @@ The local HTML report shows the same links. Keep the numbers in sync when the RT
   (`app.driver()`), never directly through the robots, so the test works in both modes and every
   action shows up in the evidence.
 - Use the robots (`app.swing()`, `app.fx()`) only to find windows, components and nodes.
+- JavaFX menus: `mainWindow.menu("File").open()`, then `isOpen()`, `isVisibleAndEnabled(item)`,
+  `shownShortcut(item)`, `choose(item)`, `clickOutside(component)`, and `dropdown(...)` /
+  `itemHighlight(...)` for evidence. Toolbar buttons: `mainWindow.toolbarButton(tooltip)`.
 - Java style: the build runs prettier-java 0.7, which cannot parse records or text blocks; use
   plain immutable classes and string concatenation instead.
 
@@ -230,5 +233,10 @@ The local HTML report shows the same links. Keep the numbers in sync when the RT
 
 - The startup dialog page finds controls by style class and prompt text; add stable `setId(...)` /
   `setName(...)` to key controls to make tests less brittle.
-- Projects created by earlier runs stay in `target/e2e-home/Projects` (and show up in the startup
-  dialog) until `mvn clean`.
+- `MenuPage.isOpen()` uses JavaFX state, which cannot tell whether the dropdown is hidden behind
+  another window. In robot mode the dropdown screenshot shows what was really on screen.
+- Direct mode cannot click outside a menu; `clickOutside` hides the menu the way JavaFX's auto-hide
+  would. Robot mode performs the real click.
+- Robot mode on macOS: the first click into an app that is not frontmost only brings it forward,
+  and its windows then cover a dropdown opened right after. `ProjectOpenE2ETest` therefore clicks
+  the status bar first; tests with their own setup must do the same (`MainWindowPage.activate()`).

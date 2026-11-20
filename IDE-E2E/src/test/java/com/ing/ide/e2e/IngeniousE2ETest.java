@@ -39,11 +39,21 @@ public abstract class IngeniousE2ETest implements EvidenceSource {
         home = E2EHome.current();
         home.verifyPrepared();
         home.resetForFreshLaunch();
+        prepareHome(home);
         final InputMode mode = InputMode.fromSystemProperty();
         evidence =
             new EvidenceCollector(mode, EvidenceMode.fromSystemProperty(), ReportOutput.runDir());
         app = IngeniousApp.launch(mode, evidence);
     }
+
+    /**
+     * Sets up the installation before the IDE launches, e.g. creates and auto-opens a project.
+     * Runs after the installation is reset; the default does nothing (the startup dialog shows).
+     *
+     * @param home the installation
+     * @throws IOException if setup fails
+     */
+    protected void prepareHome(final E2EHome home) throws IOException {}
 
     @BeforeMethod(alwaysRun = true)
     public void startTestCase(final Method method) {
