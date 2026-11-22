@@ -110,19 +110,19 @@ public class AppMenuBar extends JMenuBar {
     }
 
     private JMenu changeFont(JMenu menu) {
-        //  menu.setFont(new Font("Default", Font.BOLD, 11));
-        //  return menu;
+        // menu.setFont(new Font("Default", Font.BOLD, 11));
+        // return menu;
         try {
-            //create the font to use. Specify the size!
+            // create the font to use. Specify the size!
             Font customFont = Font.createFont(
                 Font.TRUETYPE_FONT,
                 new File("resources/ui/resources/fonts/ingme_regular.ttf")
-            ); //.deriveFont(12f);
+            ); // .deriveFont(12f);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            //register the font
+            // register the font
             ge.registerFont(customFont);
         } catch (IOException | FontFormatException e) {
-            //  e.printStackTrace();
+            // e.printStackTrace();
         }
 
         // menu.setFont(new Font("Courier", Font.BOLD, 12));
@@ -152,6 +152,9 @@ public class AppMenuBar extends JMenuBar {
                 withShortCut(withIcon(Utils.createMenuItem("Save Project", sActionListener))),
                 'S'
             )
+        );
+        file.add(
+            withMnemonics(withIcon(Utils.createMenuItem("Save Project As", sActionListener)), 'A')
         );
         file.addSeparator();
 
@@ -199,18 +202,19 @@ public class AppMenuBar extends JMenuBar {
                 'A'
             )
         );
-        //   configure.add(
-        //           withMnemonics(
-        //                   withIcon(
-        //                           Utils.createMenuItem("AzureDevOps TestPlan Configuration", sActionListener)), 'T'));
+        // configure.add(
+        // withMnemonics(
+        // withIcon(
+        // Utils.createMenuItem("AzureDevOps TestPlan Configuration", sActionListener)),
+        // 'T'));
         configure.addSeparator();
 
-        //  configure.add(
-        //          withMnemonics(
-        //                  Utils.createMenuItem("Schedule Run", sActionListener), 'S'));
         // configure.add(
-        //       withMnemonics(
-        //             Utils.createMenuItem("Start Server", sActionListener), 't'));
+        // withMnemonics(
+        // Utils.createMenuItem("Schedule Run", sActionListener), 'S'));
+        // configure.add(
+        // withMnemonics(
+        // Utils.createMenuItem("Start Server", sActionListener), 't'));
 
         configure.addSeparator();
         configure.add(withMnemonics(Utils.createMenuItem("Options", sActionListener), 'O'));
@@ -239,11 +243,11 @@ public class AppMenuBar extends JMenuBar {
 
         tools.add(optionsMenu);
 
-        //        JMenu chromeOptionsMenu = new JMenu("Import Chrome Recording");
-        //        chromeOptionsMenu.add(withIcon(chromeOptionsMenu));
-        //        chromeOptionsMenu.add(withMnemonics(chromeOptionsMenu, 'I'));
-        //        chromeOptionsMenu.add(Utils.createMenuItem("Import JSON", sActionListener));
-        //        tools.add(chromeOptionsMenu);
+        // JMenu chromeOptionsMenu = new JMenu("Import Chrome Recording");
+        // chromeOptionsMenu.add(withIcon(chromeOptionsMenu));
+        // chromeOptionsMenu.add(withMnemonics(chromeOptionsMenu, 'I'));
+        // chromeOptionsMenu.add(Utils.createMenuItem("Import JSON", sActionListener));
+        // tools.add(chromeOptionsMenu);
 
         JMenu playwrightOptionsMenu = new JMenu("Import Playwright Recording");
         playwrightOptionsMenu.add(withIcon(playwrightOptionsMenu));
@@ -254,8 +258,10 @@ public class AppMenuBar extends JMenuBar {
         tools.add(playwrightOptionsMenu);
 
         JMenu sapOptionsMenu = new JMenu("Import SAP Recording");
-        // sapOptionsMenu.add(Utils.createMenuItem("VBScript (.vbs, .vba)", sActionListener, "Import SAP Recording:VBScript"));
-        // sapOptionsMenu.add(Utils.createMenuItem("JavaScript (.js)", sActionListener, "Import SAP Recording:JavaScript"));
+        // sapOptionsMenu.add(Utils.createMenuItem("VBScript (.vbs, .vba)",
+        // sActionListener, "Import SAP Recording:VBScript"));
+        // sapOptionsMenu.add(Utils.createMenuItem("JavaScript (.js)", sActionListener,
+        // "Import SAP Recording:JavaScript"));
         sapOptionsMenu.add(
             Utils.createMenuItem(
                 "PowerShell (.ps1)",
@@ -263,10 +269,14 @@ public class AppMenuBar extends JMenuBar {
                 "Import SAP Recording:PowerShell"
             )
         );
-        // sapOptionsMenu.add(Utils.createMenuItem("Python (.py)", sActionListener, "Import SAP Recording:Python"));
-        // sapOptionsMenu.add(Utils.createMenuItem("AutoIt (.au3)", sActionListener, "Import SAP Recording:AutoIt"));
-        // sapOptionsMenu.add(Utils.createMenuItem("C# (.cs)", sActionListener, "Import SAP Recording:CSharp"));
-        // sapOptionsMenu.add(Utils.createMenuItem("VB.NET (.vb)", sActionListener, "Import SAP Recording:VBNet"));
+        // sapOptionsMenu.add(Utils.createMenuItem("Python (.py)", sActionListener,
+        // "Import SAP Recording:Python"));
+        // sapOptionsMenu.add(Utils.createMenuItem("AutoIt (.au3)", sActionListener,
+        // "Import SAP Recording:AutoIt"));
+        // sapOptionsMenu.add(Utils.createMenuItem("C# (.cs)", sActionListener, "Import
+        // SAP Recording:CSharp"));
+        // sapOptionsMenu.add(Utils.createMenuItem("VB.NET (.vb)", sActionListener,
+        // "Import SAP Recording:VBNet"));
         sapOptionsMenu.add(
             Utils.createMenuItem("Java (.java, .jsh)", sActionListener, "Import SAP Recording:Java")
         );
@@ -289,7 +299,8 @@ public class AppMenuBar extends JMenuBar {
         );
 
         tools.addSeparator();
-        // tools.add(withMnemonics(Utils.createMenuItem("Mobile Recorder", sActionListener), 'R'));
+        // tools.add(withMnemonics(Utils.createMenuItem("Mobile Recorder",
+        // sActionListener), 'R'));
         tools.add(withMnemonics(Utils.createMenuItem("Project Health", sActionListener), 'P'));
 
         return tools;

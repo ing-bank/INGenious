@@ -32,9 +32,11 @@ import javax.swing.SwingUtilities;
 
 /**
  * JavaFX-based MenuBar wrapped in a JFXPanel for embedding in Swing.
- * Provides CSS-styled modern menus with the same actions as the Swing AppMenuBar.
+ * Provides CSS-styled modern menus with the same actions as the Swing
+ * AppMenuBar.
  * <p>
- * Actions are bridged to the existing AppActionListener via SwingUtilities.invokeLater().
+ * Actions are bridged to the existing AppActionListener via
+ * SwingUtilities.invokeLater().
  */
 public class FXMenuBar extends JFXPanel {
     private static final Logger LOG = Logger.getLogger(FXMenuBar.class.getName());
@@ -157,11 +159,11 @@ public class FXMenuBar extends JFXPanel {
             "API Workbench"
         );
         // bindAccelerator(
-        //     KeyStroke.getKeyStroke(
-        //         KeyEvent.VK_I,
-        //         InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
-        //     ),
-        //     "INGenie"
+        // KeyStroke.getKeyStroke(
+        // KeyEvent.VK_I,
+        // InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+        // ),
+        // "INGenie"
         // );
         bindAccelerator(
             KeyStroke.getKeyStroke(
@@ -243,6 +245,7 @@ public class FXMenuBar extends JFXPanel {
                     KeyCombination.SHORTCUT_DOWN,
                     KeyCombination.SHIFT_DOWN
                 ),
+                menuItem("Save Project As", "SaveProjectAs"),
                 new SeparatorMenuItem(),
                 recentProjectsMenu,
                 new SeparatorMenuItem(),
@@ -404,13 +407,15 @@ public class FXMenuBar extends JFXPanel {
                     KeyCombination.SHIFT_DOWN,
                     KeyCombination.ALT_DOWN
                 ),
-                /*  menuItem(
-                    "INGenie",
-                    "AICopilot",
-                    KeyCode.I,
-                    KeyCombination.SHIFT_DOWN,
-                    KeyCombination.ALT_DOWN
-                ),*/
+                /*
+                 * menuItem(
+                 * "INGenie",
+                 * "AICopilot",
+                 * KeyCode.I,
+                 * KeyCombination.SHIFT_DOWN,
+                 * KeyCombination.ALT_DOWN
+                 * ),
+                 */
                 menuItem(
                     "AdjustUI",
                     "settings",
@@ -489,7 +494,8 @@ public class FXMenuBar extends JFXPanel {
     }
 
     /**
-     * Creates a menu item for Import Collection with format-specific action command.
+     * Creates a menu item for Import Collection with format-specific action
+     * command.
      */
     private MenuItem createImportCollectionItem(String text, String iconName, String format) {
         MenuItem item = new MenuItem(text);
@@ -527,8 +533,8 @@ public class FXMenuBar extends JFXPanel {
     /**
      * Syncs the Multiple Environment checkbox state.
      * Called from AppMainFrame.afterProjectChange().
-
-    /**
+     *
+     * /**
      * Updates the Recent Projects menu with the current list of recent items.
      * Called from AppMainFrame after a project is loaded.
      */
