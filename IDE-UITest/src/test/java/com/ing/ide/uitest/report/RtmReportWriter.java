@@ -22,7 +22,8 @@ import java.util.stream.Collectors;
  * results appear in its evidence report for a testing cycle:
  * <ol>
  *   <li>evidence files are copied with {@code .github/skills/evidence-recorder/scripts/save_evidence.py}
- *   into {@code cycles/<cycle>/<role>/<code>-<n>.<ext>};</li>
+ *   into {@code <cycle folder>/<role>/<code>-<n>.<ext>}, where the cycle folder is
+ *   {@value #CYCLE_DIR_PROPERTY} or {@code <rtm.dir>/cycles/<}{@value #CYCLE_PROPERTY}{@code >};</li>
  *   <li>results are recorded with {@code scripts/evidence/record_test_result.py --batch-file}
  *   ({@code results.yaml} is never written directly, as the RTM requires);</li>
  *   <li>optionally the RTM evidence report is regenerated with
@@ -38,7 +39,9 @@ import java.util.stream.Collectors;
 public final class RtmReportWriter implements ReportWriter {
     /** RTM repository root. */
     public static final String DIR_PROPERTY = "uitest.rtm.dir";
-    /** Testing cycle name, i.e. the folder under {@code cycles/}. */
+    /** Absolute path of the testing cycle folder; evidence goes to its {@code <role>/} subfolder. */
+    public static final String CYCLE_DIR_PROPERTY = "uitest.rtm.cycleDir";
+    /** Testing cycle name, i.e. {@code <rtm.dir>/cycles/<name>}; used when no cycle folder is set. */
     public static final String CYCLE_PROPERTY = "uitest.rtm.cycle";
     /** {@code dev-test} (default) or {@code qa}: which result columns and evidence folder to fill. */
     public static final String ROLE_PROPERTY = "uitest.rtm.role";
@@ -61,7 +64,7 @@ public final class RtmReportWriter implements ReportWriter {
     private static final ObjectMapper JSON = new ObjectMapper();
 
     private final Path rtmDir;
-    private final String cycle;
+    private final Path cycleDir;
     private final String role;
     private final String tester;
     private final String python;
@@ -74,7 +77,7 @@ public final class RtmReportWriter implements ReportWriter {
      */
     public RtmReportWriter() {
         this.rtmDir = Paths.get(required(DIR_PROPERTY)).toAbsolutePath().normalize();
-        this.cycle = required(CYCLE_PROPERTY);
+        this.cycleDir = cycleDir(rtmDir);
         this.role = System.getProperty(ROLE_PROPERTY, "dev-test").trim().toLowerCase(Locale.ROOT);
         this.tester = System.getProperty(TESTER_PROPERTY, "INGenious UI Test (automated)").trim();
         this.python = System.getProperty(PYTHON_PROPERTY, "python3").trim();
@@ -82,18 +85,13 @@ public final class RtmReportWriter implements ReportWriter {
             !"false".equalsIgnoreCase(System.getProperty(GENERATE_PROPERTY, "true").trim());
         if (!"dev-test".equals(role) && !"qa".equals(role)) {
             throw new IllegalArgumentException(
-                "-D" + ROLE_PROPERTY + " must be 'dev-test' or 'qa', got '" + role + "'"
+                ROLE_PROPERTY + " must be 'dev-test' or 'qa', got '" + role + "'"
             );
         }
         for (final String script : List.of(SAVE_EVIDENCE, RECORD_RESULT, GENERATE_REPORT)) {
             if (!Files.isRegularFile(rtmDir.resolve(script))) {
                 throw new IllegalArgumentException(
-                    "-D" +
-                    DIR_PROPERTY +
-                    "=" +
-                    rtmDir +
-                    " is not the RTM repository: missing " +
-                    script
+                    DIR_PROPERTY + "=" + rtmDir + " is not the RTM repository: missing " + script
                 );
             }
         }
@@ -129,8 +127,8 @@ public final class RtmReportWriter implements ReportWriter {
             RECORD_RESULT,
             "--root",
             rtmDir.toString(),
-            "--cycle",
-            cycle,
+            "--evidences-dir",
+            cycleDir.toString(),
             "--batch-file",
             batch.toString()
         );
@@ -142,7 +140,14 @@ public final class RtmReportWriter implements ReportWriter {
             );
         }
         if (generateReport) {
-            runScript(log, GENERATE_REPORT, "--root", rtmDir.toString(), "--cycle", cycle);
+            runScript(
+                log,
+                GENERATE_REPORT,
+                "--root",
+                rtmDir.toString(),
+                "--evidences-dir",
+                cycleDir.toString()
+            );
         }
     }
 
@@ -156,12 +161,14 @@ public final class RtmReportWriter implements ReportWriter {
         if (result.evidence().isEmpty()) {
             return List.of();
         }
+        // save_evidence.py copies into Path(root) / "cycles" / cycle / role; an absolute cycle
+        // replaces the "root/cycles" prefix (pathlib), so the files land in <cycleDir>/<role>/.
         final List<String> args = new ArrayList<>(
             List.of(
                 "--root",
                 rtmDir.toString(),
                 "--cycle",
-                cycle,
+                cycleDir.toString(),
                 "--code",
                 result.identity().testCaseCode(),
                 "--role",
@@ -189,13 +196,7 @@ public final class RtmReportWriter implements ReportWriter {
         for (int i = 0; i < saved.size(); i++) {
             final Evidence evidence = result.evidence().get(i);
             final Map<String, String> item = new LinkedHashMap<>();
-            item.put(
-                "file",
-                rtmDir
-                    .relativize(saved.get(i).toAbsolutePath().normalize())
-                    .toString()
-                    .replace('\\', '/')
-            );
+            item.put("file", evidencePath(saved.get(i)));
             putIfPresent(item, "caption", evidence.caption());
             if (evidence.step() != null || evidence.assertion() != null) {
                 final String position = steps == null
@@ -341,10 +342,43 @@ public final class RtmReportWriter implements ReportWriter {
         return exported.resolve(result.identity().fileKey() + ".done");
     }
 
+    // The RTM resolves evidence paths against its root: relative inside the RTM, absolute outside it.
+    private String evidencePath(final Path saved) {
+        final Path file = saved.toAbsolutePath().normalize();
+        final Path path = file.startsWith(rtmDir) ? rtmDir.relativize(file) : file;
+        return path.toString().replace('\\', '/');
+    }
+
+    private static Path cycleDir(final Path rtmDir) {
+        final String dir = System.getProperty(CYCLE_DIR_PROPERTY, "").trim();
+        if (!dir.isEmpty()) {
+            final Path path = Paths.get(dir);
+            if (!path.isAbsolute()) {
+                throw new IllegalArgumentException(
+                    CYCLE_DIR_PROPERTY + " must be an absolute path, got '" + dir + "'"
+                );
+            }
+            return path.normalize();
+        }
+        final String cycle = System.getProperty(CYCLE_PROPERTY, "").trim();
+        if (cycle.isEmpty()) {
+            throw new IllegalArgumentException(
+                "Report format 'rtm' needs " +
+                CYCLE_DIR_PROPERTY +
+                " (absolute path) or " +
+                CYCLE_PROPERTY +
+                " (name under <rtm.dir>/cycles/), in uitest.properties or as -D"
+            );
+        }
+        return rtmDir.resolve("cycles").resolve(cycle).normalize();
+    }
+
     private static String required(final String property) {
         final String value = System.getProperty(property, "").trim();
         if (value.isEmpty()) {
-            throw new IllegalArgumentException("Report format 'rtm' needs -D" + property);
+            throw new IllegalArgumentException(
+                "Report format 'rtm' needs " + property + " (in uitest.properties or as -D)"
+            );
         }
         return value;
     }

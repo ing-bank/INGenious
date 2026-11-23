@@ -61,6 +61,30 @@ On Linux, wrap the command in `xvfb-run -a -s "-screen 0 1920x1080x24"` to run o
 
 ## 2. Command-line parameters
 
+### Where settings come from
+
+All `uitest.*` settings below are read from
+[`IDE-UITest/uitest.properties`](uitest.properties) (committed; every key is commented there). A `-D`
+on the command line always wins over the file, so the file holds your defaults and `-D` holds one-off
+changes:
+
+```properties
+# IDE-UITest/uitest.properties
+uitest.jvm=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+uitest.input=robot
+uitest.report=html,rtm
+uitest.rtm.cycleDir=/Users/me/codebases/p33148-ingenious-requirement-traceability-matrix/cycles/Sprint 12
+uitest.rtm.role=dev-test
+```
+
+- `-Duitest.config=/path/to/other.properties` uses another file instead, e.g. one per machine or per
+  pipeline. It must contain every key (copy `uitest.properties` and change what you need).
+- `${uitest.moduleDir}` (the `IDE-UITest` folder) and system properties such as `${java.home}` can be
+  used in values.
+- Don't commit machine-specific paths (`uitest.jvm`, `uitest.rtm.cycleDir`) to the shared file; use
+  `-D` or your own `-Duitest.config` file for those.
+- `uitest.runId` is the only setting not in the file (it is the build timestamp).
+
 ### Maven flags
 
 | Flag | Why |
@@ -125,9 +149,10 @@ Shipped suites: `smoke` (launch, create/open project, Window menu navigation, qu
 
 | Property | Default | Values and effect |
 |---|---|---|
-| `uitest.rtm.cycle` | (required) | Testing cycle: the folder under the RTM's `cycles/`, created if new. |
-| `uitest.rtm.dir` | `../p33148-ingenious-requirement-traceability-matrix` (next to this repo) | RTM repository root. |
-| `uitest.rtm.role` | `dev-test` | `dev-test` fills the Dev result columns and evidence folder; `qa` the QA ones. |
+| `uitest.rtm.cycleDir` | (empty) | Testing cycle folder, as an **absolute path**; created if new. Evidence goes to `<cycleDir>/<role>/`, results to `<cycleDir>/results.yaml`. The RTM evidence report only lists cycles under `<rtm.dir>/cycles/`. |
+| `uitest.rtm.cycle` | (empty) | Shortcut when `cycleDir` is empty: the cycle name, i.e. `<rtm.dir>/cycles/<name>`. One of the two is required. |
+| `uitest.rtm.dir` | `../p33148-ingenious-requirement-traceability-matrix` (next to this repo) | RTM repository root (its scripts and `scenarios/`). |
+| `uitest.rtm.role` | `dev-test` | `dev-test` fills the Dev result columns and `<cycle>/dev-test/`; `qa` the QA ones and `<cycle>/qa/`. |
 | `uitest.rtm.tester` | `INGenious UI Test (automated)` | Tester name recorded with each result. |
 | `uitest.rtm.python` | `python3` | Python 3 with PyYAML (e.g. `python` on Windows). |
 | `uitest.rtm.generateReport` | `true` | Regenerate the RTM's `reports/evidence-report.html`/`.md` for the cycle afterwards. |
@@ -493,20 +518,21 @@ Add a report format by implementing `ReportWriter` and registering it in `Report
 
 ## 8. Publishing to the RTM
 
-With `-Duitest.report=rtm` (or `html,rtm`) and `-Duitest.rtm.cycle=<cycle>`, results and evidence are
-published to the RTM testing cycle, next to manual results. Only the RTM's own scripts are used
-(`results.yaml` is never written directly):
+With `uitest.report=rtm` (or `html,rtm`) and a cycle (`uitest.rtm.cycleDir=<absolute path>` or
+`uitest.rtm.cycle=<name>`), results and evidence are published to that RTM testing cycle, next to
+manual results. Only the RTM's own scripts are used (`results.yaml` is never written directly):
 
-1. `save_evidence.py` copies the recording and screenshots to `cycles/<cycle>/<role>/<code>-<n>.<ext>`.
+1. `save_evidence.py` copies the recording and screenshots to `<cycle folder>/<role>/<code>-<n>.<ext>`.
 2. `record_test_result.py --batch-file` records the result (PASSED → `Pass`, FAILED → `Fail`,
    SKIPPED → `Blocked`), tester, date, notes (run id, version, input mode, OS, first line of a
-   failure) and one evidence item per file with its caption and step/assert link.
-3. `generate_evidence_report.py --cycle` regenerates the RTM report (unless
-   `-Duitest.rtm.generateReport=false`).
+   failure) and one evidence item per file with its caption and step/assert link. Evidence inside
+   the RTM repo is recorded relative to it; evidence in a cycle folder outside it, by absolute path.
+3. `generate_evidence_report.py --evidences-dir <cycle folder>` regenerates the RTM report (unless
+   `uitest.rtm.generateReport=false`).
 
 - Script output goes to `ui-test-output/<run>/rtm-export.log`.
 - Re-running the same cycle adds new evidence files next to the earlier ones and updates the result.
-- A missing cycle or a wrong `uitest.rtm.dir` fails the run before the IDE starts; a failing RTM
+- A missing or relative cycle folder or a wrong `uitest.rtm.dir` fails the run before the IDE starts; a failing RTM
   script is logged but does not fail the test.
 - If a code appears twice in the RTM, the first one is used.
 - Skipped test cases publish no evidence.
@@ -548,7 +574,9 @@ Notes:
 | `UI tests need JDK 17-25 ...` / `NoClassDefFoundError: java/applet/Applet` | Maven runs on JDK 26+. Pass `-Duitest.jvm=<JDK 17–25>/bin/java`. |
 | `... is not a prepared INGenious installation` | The test was started outside Maven (e.g. from the IDE's "Run test"). Run it with Maven so `target/uitest-home` is prepared. |
 | `No UI test case matches ...` / `Unknown suite ...` | A typo in the selection; the message lists what exists. Use `-Duitest.list=true`. |
-| `Report format 'rtm' needs -Duitest.rtm.cycle` | Add `-Duitest.rtm.cycle=<name>`. |
+| `Report format 'rtm' needs uitest.rtm.cycleDir ... or uitest.rtm.cycle` | Set one of them in `uitest.properties` or with `-D`. |
+| `uitest.rtm.cycleDir must be an absolute path` | Use a full path, e.g. `/Users/me/.../cycles/Sprint 12`. |
+| A `uitest.*` value seems ignored | `-D` overrides the file; check for a leftover `-D`, and that `-Duitest.config` points at the file you edited. |
 | Robot mode: clicks ignored, screenshots show only the wallpaper | macOS Accessibility / Screen Recording permission missing for the app that starts Maven; grant it and restart that app. |
 | Robot mode: clicks land in the wrong place | The screen changed during the run (mouse used, desktop switched, display (dis)connected). Re-run without touching anything. |
 | Robot mode: a dropdown is drawn behind the main window | The app wasn't frontmost. Call `MainWindowPage.activate()` before the first step (done by `ProjectOpenUiTest`). |

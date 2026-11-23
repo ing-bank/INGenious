@@ -58,10 +58,12 @@ needed to write tests; stage 4 to change the framework itself.
 
 - **Why:** the tests only run through Maven, which builds the IDE, prepares the test installation
   and passes the `-Duitest.*` settings.
-- **Where:** root `pom.xml` (`uitest` profile), `IDE-UITest/pom.xml`.
+- **Where:** root `pom.xml` (`uitest` profile), `IDE-UITest/pom.xml`, `IDE-UITest/uitest.properties`
+  (loaded by `properties-maven-plugin` at `initialize`).
 - **Learn:** profiles, multi-module builds (`-pl`, `-am`), lifecycle phases (`pre-integration-test`,
   `integration-test`, `verify`), surefire vs **failsafe**, `forkCount`/`reuseForks`, `workingDirectory`,
-  `systemPropertyVariables`.
+  `systemPropertyVariables`, why a `-D` beats a property loaded from a file (Maven resolves user
+  properties first, so the file's keys must not also be declared in the POM).
 - **Read:** https://maven.apache.org/guides/introduction/introduction-to-profiles.html,
   https://maven.apache.org/surefire/maven-failsafe-plugin/
 - **Checkpoint:** run the dry run from README §1 and explain from `IDE-UITest/pom.xml` how

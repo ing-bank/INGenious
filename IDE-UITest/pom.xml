@@ -18,40 +18,17 @@
         <jcodec.version>0.2.5</jcodec.version>
         <!-- Simulated INGenious installation the IDE runs in (it resolves everything from user.dir) -->
         <uitest.home>${project.build.directory}/uitest-home</uitest.home>
-        <!-- Results of every run go to <repo>/ui-test-output/<run id>/ (git-ignored) -->
-        <uitest.outputDir>${project.basedir}/../ui-test-output</uitest.outputDir>
         <!-- One id per mvn invocation, shared by all forked test JVMs (UTC) -->
         <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
         <uitest.runId>${maven.build.timestamp}</uitest.runId>
-        <!-- Report formats, comma-separated: html (more, e.g. rtm, can be registered in ReportFormats) -->
-        <uitest.report>html</uitest.report>
-        <!-- Evidence per test case: screenshot (default), recording (MP4) or both -->
-        <uitest.evidence>screenshot</uitest.evidence>
-        <!-- Test selection (RTM codes, comma-separated, * ? wildcards); empty = everything. See README -->
-        <uitest.tests></uitest.tests>
-        <uitest.scenarios></uitest.scenarios>
-        <uitest.suite></uitest.suite>
-        <uitest.exclude></uitest.exclude>
-        <uitest.list>false</uitest.list>
-        <!-- Report format 'rtm': publish results/evidence to the RTM repository through its own scripts -->
-        <uitest.rtm.dir>${project.basedir}/../../p33148-ingenious-requirement-traceability-matrix</uitest.rtm.dir>
-        <uitest.rtm.cycle></uitest.rtm.cycle>
-        <uitest.rtm.role>dev-test</uitest.rtm.role>
-        <uitest.rtm.tester>INGenious UI Test (automated)</uitest.rtm.tester>
-        <uitest.rtm.python>python3</uitest.rtm.python>
-        <uitest.rtm.generateReport>true</uitest.rtm.generateReport>
+        <!--
+            All other uitest.* settings come from this file (loaded at 'initialize'), so they must NOT be
+            declared here: -D on the command line still wins, because Maven resolves those first.
+        -->
+        <uitest.moduleDir>${project.basedir}</uitest.moduleDir>
+        <uitest.config>${project.basedir}/uitest.properties</uitest.config>
         <!-- Overridden by the JaCoCo agent when present; kept empty so @{argLine} always resolves -->
         <argLine></argLine>
-        <!--
-            JVM that runs the IDE under test. AssertJ Swing needs JDK 17-25 (JDK 26 removed java.applet).
-            Override when Maven itself runs on a newer JDK: -Duitest.jvm=/path/to/jdk-21/bin/java
-        -->
-        <uitest.jvm>${java.home}/bin/java</uitest.jvm>
-        <!--
-            How user input is delivered: 'direct' (default, silent - never touches your mouse/keyboard)
-            or 'robot' (real OS mouse/keyboard; use on CI / xvfb-run). Override: -Duitest.input=robot
-        -->
-        <uitest.input>direct</uitest.input>
         <!-- Coverage of the IDE under UI automation is not collected -->
         <jacoco.skip>true</jacoco.skip>
     </properties>
@@ -111,6 +88,25 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <id>read-uitest-config</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>${uitest.config}</file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <!--
                 Failsafe does not rewrite its summary when no test runs at all (e.g. -Duitest.list=true),
                 so verify would report the previous run's result. Delete it before every run.
@@ -214,6 +210,7 @@
                         <uitest.exclude>${uitest.exclude}</uitest.exclude>
                         <uitest.list>${uitest.list}</uitest.list>
                         <uitest.rtm.dir>${uitest.rtm.dir}</uitest.rtm.dir>
+                        <uitest.rtm.cycleDir>${uitest.rtm.cycleDir}</uitest.rtm.cycleDir>
                         <uitest.rtm.cycle>${uitest.rtm.cycle}</uitest.rtm.cycle>
                         <uitest.rtm.role>${uitest.rtm.role}</uitest.rtm.role>
                         <uitest.rtm.tester>${uitest.rtm.tester}</uitest.rtm.tester>
