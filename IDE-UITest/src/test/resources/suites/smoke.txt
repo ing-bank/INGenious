@@ -1,0 +1,8 @@
+# Quick check: launch, create/open a project, menus and navigation, quit.
+# One entry per line: test case or scenario code (* and ? wildcards), !code to exclude,
+# @suite to include another suite, # for comments.
+UI-SC006-TC001
+GEN-SC001-TC001
+GEN-SC001-TC005
+GEN-SC002-TC002
+GEN-SC003-TC001

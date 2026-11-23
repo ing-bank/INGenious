@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.ing</groupId>
+        <artifactId>ingenious-playwright</artifactId>
+        <version>4.0.0</version>
+    </parent>
+    <artifactId>ingenious-ide-uitest</artifactId>
+    <name>ingenious-ide-uitest</name>
+    <description>End-to-end UI tests that launch the INGenious IDE and drive it like a real user.</description>
+
+    <properties>
+        <assertj-swing.version>3.17.1</assertj-swing.version>
+        <testfx.version>4.0.18</testfx.version>
+        <failsafe.version>3.5.2</failsafe.version>
+        <jcodec.version>0.2.5</jcodec.version>
+        <!-- Simulated INGenious installation the IDE runs in (it resolves everything from user.dir) -->
+        <uitest.home>${project.build.directory}/uitest-home</uitest.home>
+        <!-- Results of every run go to <repo>/ui-test-output/<run id>/ (git-ignored) -->
+        <uitest.outputDir>${project.basedir}/../ui-test-output</uitest.outputDir>
+        <!-- One id per mvn invocation, shared by all forked test JVMs (UTC) -->
+        <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
+        <uitest.runId>${maven.build.timestamp}</uitest.runId>
+        <!-- Report formats, comma-separated: html (more, e.g. rtm, can be registered in ReportFormats) -->
+        <uitest.report>html</uitest.report>
+        <!-- Evidence per test case: screenshot (default), recording (MP4) or both -->
+        <uitest.evidence>screenshot</uitest.evidence>
+        <!-- Test selection (RTM codes, comma-separated, * ? wildcards); empty = everything. See README -->
+        <uitest.tests></uitest.tests>
+        <uitest.scenarios></uitest.scenarios>
+        <uitest.suite></uitest.suite>
+        <uitest.exclude></uitest.exclude>
+        <uitest.list>false</uitest.list>
+        <!-- Report format 'rtm': publish results/evidence to the RTM repository through its own scripts -->
+        <uitest.rtm.dir>${project.basedir}/../../p33148-ingenious-requirement-traceability-matrix</uitest.rtm.dir>
+        <uitest.rtm.cycle></uitest.rtm.cycle>
+        <uitest.rtm.role>dev-test</uitest.rtm.role>
+        <uitest.rtm.tester>INGenious UI Test (automated)</uitest.rtm.tester>
+        <uitest.rtm.python>python3</uitest.rtm.python>
+        <uitest.rtm.generateReport>true</uitest.rtm.generateReport>
+        <!-- Overridden by the JaCoCo agent when present; kept empty so @{argLine} always resolves -->
+        <argLine></argLine>
+        <!--
+            JVM that runs the IDE under test. AssertJ Swing needs JDK 17-25 (JDK 26 removed java.applet).
+            Override when Maven itself runs on a newer JDK: -Duitest.jvm=/path/to/jdk-21/bin/java
+        -->
+        <uitest.jvm>${java.home}/bin/java</uitest.jvm>
+        <!--
+            How user input is delivered: 'direct' (default, silent - never touches your mouse/keyboard)
+            or 'robot' (real OS mouse/keyboard; use on CI / xvfb-run). Override: -Duitest.input=robot
+        -->
+        <uitest.input>direct</uitest.input>
+        <!-- Coverage of the IDE under UI automation is not collected -->
+        <jacoco.skip>true</jacoco.skip>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.ing</groupId>
+            <artifactId>ingenious-ide</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Default CSV test data provider, discovered by classpath scanning when creating a project -->
+        <dependency>
+            <groupId>com.ing</groupId>
+            <artifactId>ingenious-testdata-csv</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Stores per-test-case results so reports can combine all forked test JVMs -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-swing</artifactId>
+            <version>${assertj-swing.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Pure-Java H.264/MP4 encoder for screen recordings (BSD licence, no ffmpeg needed) -->
+        <dependency>
+            <groupId>org.jcodec</groupId>
+            <artifactId>jcodec-javase</artifactId>
+            <version>${jcodec.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-core</artifactId>
+            <version>${testfx.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                Failsafe does not rewrite its summary when no test runs at all (e.g. -Duitest.list=true),
+                so verify would report the previous run's result. Delete it before every run.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>reset-failsafe-summary</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                        <configuration>
+                            <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                            <filesets>
+                                <fileset>
+                                    <directory>${project.build.directory}/failsafe-reports</directory>
+                                    <includes>
+                                        <include>failsafe-summary.xml</include>
+                                    </includes>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>prepare-uitest-home</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${uitest.home}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${resourceDir}</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.9.0</version>
+                <executions>
+                    <!-- The IDE scans lib/ingenious-engine*.jar under the app root for actions -->
+                    <execution>
+                        <id>copy-engine-jar</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.ing</groupId>
+                                    <artifactId>ingenious-engine</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${uitest.home}/lib</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${failsafe.version}</version>
+                <configuration>
+                    <workingDirectory>${uitest.home}</workingDirectory>
+                    <!-- Fresh JVM per test class: the IDE keeps static state and owns the display -->
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
+                    <jvm>${uitest.jvm}</jvm>
+                    <!-- AssertJ Swing reflects into java.util.TimerTask -->
+                    <argLine>@{argLine} -Xmx1024m -Dfile.encoding=UTF-8 --add-opens java.base/java.util=ALL-UNNAMED</argLine>
+                    <systemPropertyVariables>
+                        <ingenious.expectedVersion>${project.version}</ingenious.expectedVersion>
+                        <uitest.outputDir>${uitest.outputDir}</uitest.outputDir>
+                        <uitest.runId>${uitest.runId}</uitest.runId>
+                        <uitest.report>${uitest.report}</uitest.report>
+                        <uitest.evidence>${uitest.evidence}</uitest.evidence>
+                        <uitest.tests>${uitest.tests}</uitest.tests>
+                        <uitest.scenarios>${uitest.scenarios}</uitest.scenarios>
+                        <uitest.suite>${uitest.suite}</uitest.suite>
+                        <uitest.exclude>${uitest.exclude}</uitest.exclude>
+                        <uitest.list>${uitest.list}</uitest.list>
+                        <uitest.rtm.dir>${uitest.rtm.dir}</uitest.rtm.dir>
+                        <uitest.rtm.cycle>${uitest.rtm.cycle}</uitest.rtm.cycle>
+                        <uitest.rtm.role>${uitest.rtm.role}</uitest.rtm.role>
+                        <uitest.rtm.tester>${uitest.rtm.tester}</uitest.rtm.tester>
+                        <uitest.rtm.python>${uitest.rtm.python}</uitest.rtm.python>
+                        <uitest.rtm.generateReport>${uitest.rtm.generateReport}</uitest.rtm.generateReport>
+                        <prism.allowhidpi>false</prism.allowhidpi>
+                        <uitest.input>${uitest.input}</uitest.input>
+                        <testfx.robot>awt</testfx.robot>
+                        <java.awt.headless>false</java.awt.headless>
+                    </systemPropertyVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,2 @@
+# Every automated UI test case.
+*

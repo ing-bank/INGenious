@@ -84,11 +84,11 @@
     </properties>
     <name>ingenious</name>
     <profiles>
-        <!-- End-to-end UI tests; need a display. Run: mvn verify -Pe2e -pl IDE-E2E -am -->
+        <!-- End-to-end UI tests; need a display. Run: mvn verify -Puitest -pl IDE-UITest -am -->
         <profile>
-            <id>e2e</id>
+            <id>uitest</id>
             <modules>
-                <module>IDE-E2E</module>
+                <module>IDE-UITest</module>
             </modules>
         </profile>
     </profiles>
