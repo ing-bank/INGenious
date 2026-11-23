@@ -324,6 +324,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             validator.initValidations();
             changeSave(tc.isSaved());
             refreshTitle();
+            selectTestCaseInTree(tc);
 
             // Check if migration occurred and show notification
             int migratedCount = tc.getMigratedReferencesCount();
@@ -337,6 +338,26 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                     )
                 );
             }
+        }
+    }
+
+    /**
+     * Selects and reveals the given test case in whichever project tree owns it
+     * (Test Plan, User Intent, or Shared User Intent), so the user does not have
+     * to manually locate it after a "Go To" navigation.
+     * @param testCase test case to select; ignored if null or scenario-less
+     */
+    private void selectTestCaseInTree(TestCase testCase) {
+        if (testCase == null || testCase.getScenario() == null) {
+            return;
+        }
+        Scenario scenario = testCase.getScenario();
+        if (scenario.isSharedReusableScenario()) {
+            testDesign.getSharedReusableTree().selectTestCase(testCase);
+        } else if (scenario.isReusableScenario()) {
+            testDesign.getReusableTree().selectTestCase(testCase);
+        } else {
+            testDesign.getProjectTree().selectTestCase(testCase);
         }
     }
 

@@ -994,6 +994,42 @@ public class ProjectTree implements ActionListener {
     }
 
     /**
+     * Selects and scrolls to the node representing the given test case, if present in this tree.
+     * @param testCase test case to select
+     */
+    public void selectTestCase(TestCase testCase) {
+        TestCaseNode tcNode = findTestCaseNode(testCase);
+        if (tcNode != null) {
+            selectAndScrollTo(new TreePath(tcNode.getPath()));
+        }
+    }
+
+    /**
+     * Recursively searches this tree's nodes for the one wrapping the given test case.
+     * @param testCase test case to look for
+     * @return the matching node, or null if not found in this tree
+     */
+    private TestCaseNode findTestCaseNode(TestCase testCase) {
+        if (testCase == null || treeModel == null || treeModel.getRoot() == null) {
+            return null;
+        }
+        return findTestCaseNode((javax.swing.tree.TreeNode) treeModel.getRoot(), testCase);
+    }
+
+    private TestCaseNode findTestCaseNode(javax.swing.tree.TreeNode node, TestCase testCase) {
+        if (node instanceof TestCaseNode && testCase.equals(((TestCaseNode) node).getTestCase())) {
+            return (TestCaseNode) node;
+        }
+        for (javax.swing.tree.TreeNode child : Collections.list(node.children())) {
+            TestCaseNode found = findTestCaseNode(child, testCase);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Selects and scrolls to the specified tree path.
      * @param path tree path to select and scroll to
      */
