@@ -2,6 +2,8 @@ package com.ing.ide.main.utils;
 
 import com.ing.engine.support.DesktopApi;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -29,8 +31,12 @@ import javax.swing.JComponent;
  * toggles it at runtime. All WebView/DOM mutations are marshalled onto the
  * JavaFX application thread via {@link Platform#runLater}; callers may invoke
  * the public methods from any thread.</p>
+ *
+ * <p>Where {@code WebEngine.executeScript} is unsafe (JDK 26+, see {@link WebViewCompat}) the page
+ * is served by a {@link LocalScriptBridge} and polls it for the same scripts, so the look and
+ * behaviour are identical.</p>
  */
-public class ConsoleWebView {
+public class ConsoleWebView implements ConsoleView {
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern(
         "HH:mm:ss.SSS"
     );
@@ -45,9 +51,9 @@ public class ConsoleWebView {
         "\\x{1F1E6}-\\x{1F1FF}\\x{FE0E}\\x{FE0F}\\x{200D}\\x{203C}\\x{2049}]"
     );
     private static final Pattern TAG = Pattern.compile("^\\[([^\\[\\]]{1,24})\\]\\s*(.*)$");
-    private static final Pattern DIVIDER = Pattern.compile("^[=\\-\u2500\u2550]{6,}$");
-    private static final String SUMMARY_TAG = "[SUMMARY]";
-    private static final String REPORT_PATH_TAG = "[REPORTPATH]";
+    static final Pattern DIVIDER = Pattern.compile("^[=\\-\u2500\u2550]{6,}$");
+    static final String SUMMARY_TAG = "[SUMMARY]";
+    static final String REPORT_PATH_TAG = "[REPORTPATH]";
     private static final String OPEN_REPORT_PREFIX = "OPEN_REPORT:";
 
     // Emoji-capable font fallbacks so emoji glyphs render as proper color icons
@@ -65,13 +71,23 @@ public class ConsoleWebView {
     private final AtomicReference<WebEngine> engineRef = new AtomicReference<>();
     private volatile boolean ready;
     private final StringBuilder pendingScript = new StringBuilder();
+    private final LocalScriptBridge bridge;
 
     public ConsoleWebView() {
+        boolean dark = com.ing.ide.main.Main.isDarkMode();
+        bridge = WebViewCompat.isScriptingSafe() ? null : startBridge(dark);
         synchronized (INSTANCES) {
             INSTANCES.add(this);
         }
-        boolean dark = com.ing.ide.main.Main.isDarkMode();
         Platform.runLater(() -> initFx(dark));
+    }
+
+    private LocalScriptBridge startBridge(boolean dark) {
+        try {
+            return new LocalScriptBridge(baseHtml(dark));
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 
     /** Notifies every live console that the app-wide theme changed. */
@@ -101,18 +117,22 @@ public class ConsoleWebView {
                 }
             }
         );
-        engine.loadContent(baseHtml(dark));
-        engine
-            .getLoadWorker()
-            .stateProperty()
-            .addListener(
-                (obs, oldState, newState) -> {
-                    if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
-                        ready = true;
-                        flushPending(engine);
+        if (bridge != null) {
+            engine.load(bridge.getUrl());
+        } else {
+            engine.loadContent(baseHtml(dark));
+            engine
+                .getLoadWorker()
+                .stateProperty()
+                .addListener(
+                    (obs, oldState, newState) -> {
+                        if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
+                            ready = true;
+                            flushPending(engine);
+                        }
                     }
-                }
-            );
+                );
+        }
         engineRef.set(engine);
         fxPanel.setScene(new Scene(webView));
     }
@@ -187,7 +207,7 @@ public class ConsoleWebView {
     }
 
     /** Strips ANSI escapes and emoji, collapsing any whitespace gap they leave behind. */
-    private static String sanitize(String text) {
+    static String sanitize(String text) {
         String noAnsi = stripAnsi(text);
         String noEmoji = EMOJI.matcher(noAnsi).replaceAll("");
         return noEmoji.equals(noAnsi) ? noAnsi : noEmoji.replaceAll("[ \\t]{2,}", " ");
@@ -199,7 +219,7 @@ public class ConsoleWebView {
      * future tag is shown verbatim rather than being collapsed into a generic
      * "LOG" pill; the cssClass buckets it into a color family by keyword.
      */
-    private static String[] classify(String text, boolean isErrStream) {
+    static String[] classify(String text, boolean isErrStream) {
         String line = text == null ? "" : text.trim();
         Matcher m = TAG.matcher(line);
         if (m.matches()) {
@@ -234,6 +254,10 @@ public class ConsoleWebView {
     }
 
     private void runScript(String script) {
+        if (bridge != null) {
+            bridge.post(script);
+            return;
+        }
         Platform.runLater(
             () -> {
                 WebEngine engine = engineRef.get();

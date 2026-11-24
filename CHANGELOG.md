@@ -2,6 +2,52 @@
 
 > Scope: recent codebase changes discussed in the Playwright BrowserContext, WebView context switching, column selection, ADB/mobile actions, IDE input focus, IntelliSense, LambdaTest reusable component markers, and AI agent retry-limit chats.
 
+## 13. JDK 26 compatibility (Java 17 remains the minimum)
+
+INGenious now builds and tests on JDK 17 through JDK 26, and the CLI runs on both. On JDK 26 the IDE uses Swing views in place of its JavaFX WebView consoles (see below). The minimum supported Java version is unchanged at 17 and bytecode is still compiled for 17, so the same artifacts run on every JDK in that range.
+
+### What changed
+
+- `pom.xml`: `jacoco-maven-plugin` `0.8.12` → `0.8.16`. 0.8.12 could not instrument JDK 26 classes (`Unsupported class file major version 70`), so coverage was silently missing for ~49 classes under JDK 26; tests were unaffected.
+- `Resources/Engine/pom.xml`: compiler `<release>` raised from `11` to `17` to match the supported minimum.
+- `Resources/Readme.md`: software requirement now reads "Java 17 or above".
+- `.github/workflows/maven.yml`: the build job runs on a JDK `17` and `26` matrix (artifact and check names carry the JDK); the OWASP `security-scan` job moved from JDK 11 to JDK 17.
+- IDE, JDK 26 crash workaround: on JDK 26 and later, `WebEngine.executeScript` crashes the JVM (SIGSEGV in `jni_GetStaticFieldID` inside JavaFX WebKit). This reproduces without INGenious code on JavaFX 17.0.14 through 27.0.1, so a JavaFX upgrade cannot fix it; JDK 17 is unaffected. The IDE keeps its WebView console and AI chat, with the same design on every JDK, and no longer calls `executeScript` where it is unsafe:
+  - New `LocalScriptBridge`: an in-process HTTP server bound to 127.0.0.1 under an unguessable token path. The WebView loads the page from it, and the page polls it for queued scripts and evaluates them itself. Page-to-Java `alert` callbacks (the console's report link) still work.
+  - `ConsoleWebView` and `ChatWebView` use the bridge when `WebViewCompat.isScriptingSafe()` is false (JDK 26+) and call `executeScript` as before on JDK 17 to 25.
+  - `ConsoleView` and `ChatView` choose the implementation; `ConsoleSwingView` and `ChatSwingView` (plain Swing) remain only as a fallback if the bridge cannot start, or when forced with `-Dingenious.console.swing=true` or `-Dingenious.chat.swing=true`. `AICopilotUI.getChatWebView()` is now `getChatView()`.
+  - `FXDashBoard` uses `WebEngine.reload()` instead of `executeScript` when scripting is unsafe.
+  - `-Dingenious.webview.scripting=true|false` overrides the JDK-based check, for example to use `executeScript` again once the JDK/JavaFX bug is fixed.
+
+### Verified
+
+- `mvn clean install` on JDK 26 and JDK 17: all modules succeed, identical test results on both JDKs (1606 tests, 0 failures).
+- IDE starts on both JDKs; CLI `project create/validate/info/list` and an API test case run identically on both.
+- New unit tests (`WebViewCompatTest`, `LocalScriptBridgeTest`, `ConsoleSwingViewTest`, `ChatSwingViewTest`; 25 tests) pass on JDK 17 and JDK 26.
+- A harness feeding the real `ConsolePanel` (400 lines, summary, report link) and `ChatView` (streaming reply, tool call, usage) ran 3 of 3 times without a crash on both JDK 26 and JDK 17, using the WebView console and chat on both. Standalone checks on JDK 26: a page polling the bridge applied 1500 scripts and a page calling `alert` reached Java 30 of 30 times, in each of 3 runs.
+
+### Known limits
+
+- Screenshots of the JDK 26 views were not captured automatically (macOS blocked screen capture), so the match with the JDK 17 design has been checked by construction (same HTML, CSS and scripts), not pixel by pixel.
+- Not yet checked by hand: a full IDE session on JDK 26 (running a real test case, AI chat, dashboard refresh). The dashboard refresh change is untested.
+- Not changed: `maven-compiler-plugin` 3.8.1, Mockito/ByteBuddy and JavaFX 17 needed no changes.
+
+### Files
+
+- [pom.xml](pom.xml)
+- [Resources/Engine/pom.xml](Resources/Engine/pom.xml)
+- [Resources/Readme.md](Resources/Readme.md)
+- [.github/workflows/maven.yml](.github/workflows/maven.yml)
+- [IDE/src/main/java/com/ing/ide/main/utils/WebViewCompat.java](IDE/src/main/java/com/ing/ide/main/utils/WebViewCompat.java)
+- [IDE/src/main/java/com/ing/ide/main/utils/LocalScriptBridge.java](IDE/src/main/java/com/ing/ide/main/utils/LocalScriptBridge.java)
+- [IDE/src/main/java/com/ing/ide/main/utils/ConsoleView.java](IDE/src/main/java/com/ing/ide/main/utils/ConsoleView.java)
+- [IDE/src/main/java/com/ing/ide/main/utils/ConsoleSwingView.java](IDE/src/main/java/com/ing/ide/main/utils/ConsoleSwingView.java)
+- [IDE/src/main/java/com/ing/ide/main/utils/ConsoleWebView.java](IDE/src/main/java/com/ing/ide/main/utils/ConsoleWebView.java)
+- [IDE/src/main/java/com/ing/ide/main/utils/ConsolePanel.java](IDE/src/main/java/com/ing/ide/main/utils/ConsolePanel.java)
+- [IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/ui/ChatView.java](IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/ui/ChatView.java)
+- [IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/ui/ChatSwingView.java](IDE/src/main/java/com/ing/ide/main/mainui/components/aichat/ui/ChatSwingView.java)
+- [IDE/src/main/java/com/ing/ide/main/fx/FXDashBoard.java](IDE/src/main/java/com/ing/ide/main/fx/FXDashBoard.java)
+
 ## 12. Project.save() no longer leaks an app-root Shared Test Data folder
 
 `Project.save()` unconditionally called `sharedTestData.save()` for every project, even ones that never reference Shared Test Data. Since `Project.getSharedTestDataPath()` resolves `Shared/SharedTestData` relative to the JVM's `user.dir` (not anything project-local), any real `Project` + `.save()` call whose `user.dir` wasn't isolated to a sandbox wrote a stray `Shared/SharedTestData/` (with an empty `environment.properties` and `GlobalData.csv`) into whatever directory the process happened to be running from — observed as `Engine/Shared/SharedTestData` after a Maven test run, since Surefire's default working directory is the module basedir.

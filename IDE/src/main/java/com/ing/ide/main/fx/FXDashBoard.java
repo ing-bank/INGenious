@@ -5,6 +5,7 @@ import com.ing.engine.support.DesktopApi;
 import com.ing.ide.main.mainui.components.testexecution.TestExecution;
 import com.ing.ide.main.mainui.components.testexecution.tree.model.ReleaseNode;
 import com.ing.ide.main.mainui.components.testexecution.tree.model.TestSetNode;
+import com.ing.ide.main.utils.WebViewCompat;
 import java.awt.BorderLayout;
 import java.io.File;
 import java.net.URI;
@@ -289,7 +290,11 @@ public class FXDashBoard extends javax.swing.JPanel {
             webEngine.load(url);
             if (!latest) {
                 webEngine.getHistory().setMaxSize(0);
-                webEngine.executeScript("setTimeout(100);location.reload(true);");
+                if (WebViewCompat.isScriptingSafe()) {
+                    webEngine.executeScript("setTimeout(100);location.reload(true);");
+                } else {
+                    webEngine.reload();
+                }
                 webEngine.getHistory().setMaxSize(99);
             }
         } else {
