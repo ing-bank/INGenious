@@ -15,6 +15,7 @@ import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.mainui.ModernSplash;
 import com.ing.ide.main.ui.About;
 import com.ing.ide.main.utils.AppIcon;
+import com.ing.ide.util.SystemInfo;
 import com.ing.ide.util.logging.UILogger;
 import com.ing.util.encryption.Encryption;
 import java.awt.Color;
@@ -63,15 +64,10 @@ public class Main {
         configureJavaFxRendering();
     }
 
-    private static void configureJavaFxRendering() {
-        // Every JavaFX surface here is a Swing-embedded JFXPanel, which rasterises its
-        // scene at Prism's render scale and lets Swing blit the resulting image. On a
-        // mixed-DPI setup (HiDPI primary display + a standard/non-HD external screen)
-        // Prism renders each panel at the HiDPI scale and Swing then downscales it on
-        // the non-HD screen, uniformly blurring all JavaFX text, icons, borders and
-        // buttons. Forcing a 1x render scale keeps embedded JavaFX crisp on non-HD
-        // screens. Override with -Dprism.allowhidpi=true on HiDPI-only machines.
-        setDefaultSystemProperty("prism.allowhidpi", "false");
+    static void configureJavaFxRendering() {
+        // Keep 1x rendering on other platforms for mixed-DPI setups, but use native
+        // resolution on macOS. An explicit JVM property overrides either default.
+        setDefaultSystemProperty("prism.allowhidpi", SystemInfo.osx() ? "true" : "false");
     }
 
     private static void setDefaultSystemProperty(String key, String value) {

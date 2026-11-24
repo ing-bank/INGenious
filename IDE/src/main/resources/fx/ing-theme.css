@@ -149,11 +149,14 @@
     -fx-background-radius: 8;
     -fx-background-insets: 1 4 1 4;
     -fx-graphic-text-gap: 8;
+    -fx-font-smoothing-type: gray;
 }
 
 .menu-item > .label {
     -fx-text-fill: -ing-text;
-    -fx-font-size: 12px;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-font-smoothing-type: gray;
 }
 
 .menu-item:focused {
@@ -200,6 +203,8 @@
 
 .check-menu-item > .label {
     -fx-text-fill: -ing-text;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
 }
 
 .check-menu-item:focused {
