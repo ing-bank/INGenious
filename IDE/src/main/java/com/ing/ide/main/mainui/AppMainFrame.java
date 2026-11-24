@@ -327,24 +327,29 @@ public class AppMainFrame extends JFrame {
     }
 
     /**
-     * Swaps Swing menu bar and toolbar for JavaFX CSS-styled versions.
+     * Swaps the toolbar for its JavaFX version and uses the JavaFX menu bar outside macOS.
+     * macOS keeps the Swing menu bar because JavaFX transparent popup windows render
+     * submenu text more softly there.
      * Must be called on the EDT AFTER the frame is visible and maximized.
-     * This deferred approach prevents the macOS Glass native crash (NSTrackingRectTag)
-     * that occurs when JFXPanel is resized before its native peer is ready.
+     * Deferring JavaFX chrome setup until then avoids a macOS Glass crash when a
+     * JFXPanel is resized before its native peer is ready.
      */
     public void initFXChrome() {
-        fxMenuBar = new FXMenuBar(sActionListener);
+        fxMenuBar = SystemInfo.osx() ? null : new FXMenuBar(sActionListener);
         fxToolBar = new FXToolBar(sActionListener);
         fxStatusBar = new FXStatusBar();
 
-        // Remove Swing chrome
-        setJMenuBar(null);
+        if (fxMenuBar != null) {
+            setJMenuBar(null);
+        }
         remove(toolBar);
 
         // Add FX chrome at top
         JPanel chromePanel = new JPanel();
         chromePanel.setLayout(new BoxLayout(chromePanel, BoxLayout.Y_AXIS));
-        chromePanel.add(fxMenuBar);
+        if (fxMenuBar != null) {
+            chromePanel.add(fxMenuBar);
+        }
         chromePanel.add(fxToolBar);
         add(chromePanel, BorderLayout.NORTH);
 
@@ -354,12 +359,18 @@ public class AppMainFrame extends JFrame {
         // Sync multi-env state if project is loaded
         if (sProject != null) {
             Boolean isMulti = sProject.getTestData().getNoOfEnvironments() > 1;
-            fxMenuBar.setMultiEnvironment(isMulti);
+            if (fxMenuBar != null) {
+                fxMenuBar.setMultiEnvironment(isMulti);
+            } else {
+                menuBar.setMultiEnvironment();
+            }
             fxStatusBar.setProjectName(sProject.getName());
         }
 
         // Initialize Recent Projects menu
-        fxMenuBar.updateRecentProjects(recentItems.getRECENT_ITEMS());
+        if (fxMenuBar != null) {
+            fxMenuBar.updateRecentProjects(recentItems.getRECENT_ITEMS());
+        }
 
         fxStatusBar.setCurrentView("Test Design");
 
