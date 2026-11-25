@@ -23,14 +23,15 @@ import javax.swing.Timer;
  * Orchestrates the INGenious first-time user tour.
  * <p>
  * Usage:
+ * 
  * <pre>
- *   // Auto-show on first launch (call from afterProjectChange):
- *   if (TourManager.shouldShowTour()) {
- *       new TourManager(frame).startTour();
- *   }
+ * // Auto-show on first launch (call from afterProjectChange):
+ * if (TourManager.shouldShowTour()) {
+ *     new TourManager(frame).startTour();
+ * }
  *
- *   // Re-launch from Help menu:
- *   new TourManager(frame).startTour();
+ * // Re-launch from Help menu:
+ * new TourManager(frame).startTour();
  * </pre>
  *
  * Completion is persisted in {@link AppSettings} so the tour only shows
@@ -46,6 +47,7 @@ public class TourManager {
     private TourOverlayPanel overlay;
     private int currentStep;
     private final List<TourStep> steps;
+    private boolean aiSidebarOpenedByTour = false;
 
     public TourManager(AppMainFrame frame) {
         this.frame = frame;
@@ -205,24 +207,24 @@ public class TourManager {
                 "Connect to Databases, run SQL queries, inspect result grids, and " +
                 "convert queries with assertions directly into automated Test Cases or " +
                 "reusable User Intents",
-                TourStep.TargetComponent.DB_WORKBENCH_BUTTON,
-                TourStep.ViewToShow.TEST_DESIGN
+                TourStep.TargetComponent.NONE,
+                TourStep.ViewToShow.DB_WORKBENCH
             ),
             new TourStep(
                 "Performance Studio",
                 "Author and execute k6 performance and load tests inside the IDE. Generate  " +
                 "scripts from test cases, run load profiles with live charts, and view " +
                 "historical performance reports.",
-                TourStep.TargetComponent.PERF_STUDIO_BUTTON,
-                TourStep.ViewToShow.TEST_DESIGN
+                TourStep.TargetComponent.NONE,
+                TourStep.ViewToShow.PERF_STUDIO
             ),
             new TourStep(
                 "INGenie",
                 "Click INGenie to toggle the built-in AI testing assistant. Generate " +
                 "Scenarios, author test steps, and get context-aware automation help  " +
                 "right alongside your workplace.",
-                TourStep.TargetComponent.INGENIE_BUTTON,
-                TourStep.ViewToShow.TEST_DESIGN
+                TourStep.TargetComponent.NONE,
+                TourStep.ViewToShow.AI_COPILOT
             ),
             new TourStep(
                 "Toolbar & Navigation",
@@ -258,18 +260,17 @@ public class TourManager {
 
         // Keep overlay sized to the full layered pane as the window is resized
         lp.addComponentListener(
-            new java.awt.event.ComponentAdapter() {
+                new java.awt.event.ComponentAdapter() {
 
-                @Override
-                public void componentResized(java.awt.event.ComponentEvent e) {
-                    if (overlay != null && overlay.getParent() != null) {
-                        overlay.setBounds(0, 0, lp.getWidth(), lp.getHeight());
-                        overlay.doLayout();
-                        overlay.repaint();
+                    @Override
+                    public void componentResized(java.awt.event.ComponentEvent e) {
+                        if (overlay != null && overlay.getParent() != null) {
+                            overlay.setBounds(0, 0, lp.getWidth(), lp.getHeight());
+                            overlay.doLayout();
+                            overlay.repaint();
+                        }
                     }
-                }
-            }
-        );
+                });
 
         lp.add(overlay, JLayeredPane.POPUP_LAYER);
         overlay.setVisible(true);
@@ -295,15 +296,15 @@ public class TourManager {
 
         // Allow the view switch and tree reloads to settle before spotlighting
         Timer settle = new Timer(
-            220,
-            e -> {
-                if (overlay == null) return;
-                Rectangle spot = computeSpotlight(step.getTarget());
-                overlay.update(step, index, steps.size(), spot, Main.isDarkMode());
-                overlay.revalidate();
-                overlay.repaint();
-            }
-        );
+                220,
+                e -> {
+                    if (overlay == null)
+                        return;
+                    Rectangle spot = computeSpotlight(step.getTarget());
+                    overlay.update(step, index, steps.size(), spot, Main.isDarkMode());
+                    overlay.revalidate();
+                    overlay.repaint();
+                });
         settle.setRepeats(false);
         settle.start();
     }
@@ -328,6 +329,10 @@ public class TourManager {
      * Ends the tour, persists completion, and removes the overlay.
      */
     public void endTour() {
+        if (aiSidebarOpenedByTour) {
+            frame.setAISidebarVisible(false);
+            aiSidebarOpenedByTour = false;
+        }
         AppSettings.set(TOUR_COMPLETED_KEY, "true");
         AppSettings.store("Tour completed");
         removeOverlay();
@@ -337,6 +342,10 @@ public class TourManager {
     // ── View Switching ─────────────────────────────────────────────────────
 
     private void switchView(TourStep.ViewToShow view) {
+        if (view != TourStep.ViewToShow.AI_COPILOT && aiSidebarOpenedByTour) {
+            frame.setAISidebarVisible(false);
+            aiSidebarOpenedByTour = false;
+        }
         switch (view) {
             case TEST_DESIGN:
                 frame.showTestDesign();
@@ -350,8 +359,17 @@ public class TourManager {
             case API_TESTER:
                 frame.showAPITester();
                 break;
+            case DB_WORKBENCH:
+                frame.showDBWorkbench();
+                break;
+            case PERF_STUDIO:
+                frame.showPerfStudio();
+                break;
             case AI_COPILOT:
-                frame.showAICopilot();
+                if (!frame.isAISidebarVisible()) {
+                    aiSidebarOpenedByTour = true;
+                    frame.setAISidebarVisible(true);
+                }
                 break;
             default:
                 break;
@@ -362,13 +380,14 @@ public class TourManager {
 
     /**
      * Creates sample data in the project model so the spotlighted panel is
-     * not empty when first-time users see it.  All operations are idempotent
+     * not empty when first-time users see it. All operations are idempotent
      * (they check before creating) and are wrapped in try/catch so a failure
      * never aborts the tour.
      */
     private void prepareForStep(TourStep step) {
         Project project = frame.getProject();
-        if (project == null) return;
+        if (project == null)
+            return;
         switch (step.getTarget()) {
             case TEST_DATA:
                 ensureTestDataContent(project);
@@ -400,8 +419,8 @@ public class TourManager {
                 project.save();
             }
             com.ing.ide.main.mainui.components.testdesign.tree.ReusableTree rt = frame
-                .getTestDesign()
-                .getReusableTree();
+                    .getTestDesign()
+                    .getReusableTree();
             rt.load();
             SwingUtilities.invokeLater(() -> expandAllRows(rt.getTree()));
         } catch (Exception ex) {
@@ -434,18 +453,19 @@ public class TourManager {
         try {
             WebOR webOR = project.getObjectRepository().getWebOR();
             java.util.List pages = webOR.getPages();
-            if (pages.isEmpty()) return;
+            if (pages.isEmpty())
+                return;
             WebORPage page = (WebORPage) pages.get(0);
             java.util.List groups = page.getObjectGroups();
-            if (groups.isEmpty()) return;
+            if (groups.isEmpty())
+                return;
             com.ing.datalib.or.common.ObjectGroup grp = (com.ing.datalib.or.common.ObjectGroup) groups.get(
-                0
-            );
+                    0);
             java.util.List objs = grp.getObjects();
-            if (objs.isEmpty()) return;
+            if (objs.isEmpty())
+                return;
             com.ing.datalib.or.common.ORObjectInf obj = (com.ing.datalib.or.common.ORObjectInf) objs.get(
-                0
-            );
+                    0);
             JTree orTree = frame.getTestDesign().getObjectRepo().getWebOR().getProjectTree().tree;
             javax.swing.tree.TreePath path = obj.getTreePath();
             if (path != null) {
@@ -465,8 +485,8 @@ public class TourManager {
                 project.save();
             }
             com.ing.ide.main.mainui.components.testexecution.tree.TestSetTree tst = frame
-                .getTestExecution()
-                .getTestSetTree();
+                    .getTestExecution()
+                    .getTestSetTree();
             tst.load();
             SwingUtilities.invokeLater(() -> expandAllRows(tst.getTree()));
         } catch (Exception ex) {
@@ -481,8 +501,8 @@ public class TourManager {
     private void ensureTestDataContent(Project project) {
         try {
             com.ing.datalib.component.TestData defaultData = project
-                .getTestData()
-                .getTestDataFor("Default");
+                    .getTestData()
+                    .getTestDataFor("Default");
             if (defaultData != null) {
                 com.ing.datalib.testdata.model.GlobalDataModel gdModel = defaultData.getGlobalData();
                 gdModel.load();
@@ -496,32 +516,32 @@ public class TourManager {
                 }
             }
             com.ing.ide.main.mainui.components.testdesign.testdata.TestDataComponent tdc = frame
-                .getTestDesign()
-                .getTestDatacomp();
+                    .getTestDesign()
+                    .getTestDatacomp();
             tdc.load();
             // Programmatically select the Global Data tab (index 0) to trigger panel.load()
             SwingUtilities.invokeLater(
-                () -> {
-                    javax.swing.JTabbedPane envTab = tdc.getTestdataTab();
-                    if (envTab != null && envTab.getTabCount() > 0) {
-                        envTab.setSelectedIndex(0);
-                        java.awt.Component c = envTab.getSelectedComponent();
-                        if (c instanceof javax.swing.JTabbedPane) {
-                            javax.swing.JTabbedPane inner = (javax.swing.JTabbedPane) c;
-                            if (inner.getTabCount() > 0) {
-                                inner.setSelectedIndex(0); // Global Data is always tab 0
+                    () -> {
+                        javax.swing.JTabbedPane envTab = tdc.getTestdataTab();
+                        if (envTab != null && envTab.getTabCount() > 0) {
+                            envTab.setSelectedIndex(0);
+                            java.awt.Component c = envTab.getSelectedComponent();
+                            if (c instanceof javax.swing.JTabbedPane) {
+                                javax.swing.JTabbedPane inner = (javax.swing.JTabbedPane) c;
+                                if (inner.getTabCount() > 0) {
+                                    inner.setSelectedIndex(0); // Global Data is always tab 0
+                                }
                             }
                         }
-                    }
-                }
-            );
+                    });
         } catch (Exception ex) {
             LOG.log(Level.WARNING, "Tour: could not seed Test Data", ex);
         }
     }
 
     private void expandAllRows(JTree tree) {
-        if (tree == null) return;
+        if (tree == null)
+            return;
         for (int i = 0; i < tree.getRowCount(); i++) {
             tree.expandRow(i);
         }
@@ -539,71 +559,37 @@ public class TourManager {
                 return toLayeredPaneBounds(frame.getFXToolBar());
             case TEST_PLAN:
                 return toLayeredPaneBounds(
-                    frame.getTestDesign().getTestDesignUI().getTestPlanPanel()
-                );
+                        frame.getTestDesign().getTestDesignUI().getTestPlanPanel());
             case TEST_STEPS:
                 return toLayeredPaneBounds(frame.getTestDesign().getTestCaseComponent());
             case TEST_DATA:
                 return toLayeredPaneBounds(frame.getTestDesign().getTestDatacomp());
             case REUSABLES:
                 return toLayeredPaneBounds(
-                    frame.getTestDesign().getTestDesignUI().getReusablesPanel()
-                );
+                        frame.getTestDesign().getTestDesignUI().getReusablesPanel());
             case OBJECT_REPO:
                 return toLayeredPaneBounds(frame.getTestDesign().getObjectRepo());
             case OBJECT_PROPS:
                 return toLayeredPaneBounds(
-                    frame.getTestDesign().getObjectRepo().getWebOR().getObjectTable()
-                );
+                        frame.getTestDesign().getObjectRepo().getWebOR().getObjectTable());
             case TEST_LAB:
                 return toLayeredPaneBounds(
-                    frame.getTestExecution().getTestExecutionUI().getTestLabPanel()
-                );
+                        frame.getTestExecution().getTestExecutionUI().getTestLabPanel());
             case EXEC_LEFT_SETTINGS:
                 return toLayeredPaneBounds(
-                    frame.getTestExecution().getTestExecutionUI().getLeftQuickSettingsPanel()
-                );
+                        frame.getTestExecution().getTestExecutionUI().getLeftQuickSettingsPanel());
             case EXEC_TESTSET_CANVAS:
                 return toLayeredPaneBounds(
-                    frame.getTestExecution().getTestExecutionUI().getTestSetCanvas()
-                );
+                        frame.getTestExecution().getTestExecutionUI().getTestSetCanvas());
             case EXEC_TESTPLAN_PANEL:
                 return toLayeredPaneBounds(
-                    frame.getTestExecution().getTestExecutionUI().getTestPlanTreePanel()
-                );
+                        frame.getTestExecution().getTestExecutionUI().getTestPlanTreePanel());
             case EXEC_RIGHT_SETTINGS:
                 return toLayeredPaneBounds(
-                    frame.getTestExecution().getTestExecutionUI().getRightQuickSettingsPanel()
-                );
-            case DB_WORKBENCH_BUTTON:
-                return toToolbarButtonBounds(
-                    frame.getFXToolBar() != null
-                        ? frame.getFXToolBar().getDBWorkbenchButtonBounds()
-                        : null
-                );
-            case PERF_STUDIO_BUTTON:
-                return toToolbarButtonBounds(
-                    frame.getFXToolBar() != null
-                        ? frame.getFXToolBar().getPerfStudioButtonBounds()
-                        : null
-                );
-            case INGENIE_BUTTON:
-                return toToolbarButtonBounds(
-                    frame.getFXToolBar() != null
-                        ? frame.getFXToolBar().getIngenieButtonBounds()
-                        : null
-                );
+                        frame.getTestExecution().getTestExecutionUI().getRightQuickSettingsPanel());
             default:
                 return null;
         }
-    }
-
-    private Rectangle toToolbarButtonBounds(Rectangle btnBounds) {
-        com.ing.ide.main.fx.FXToolBar tb = frame.getFXToolBar();
-        if (tb == null || !tb.isShowing() || btnBounds == null) {
-            return null;
-        }
-        return SwingUtilities.convertRectangle(tb, btnBounds, frame.getLayeredPane());
     }
 
     /**
@@ -611,11 +597,11 @@ public class TourManager {
      * Returns {@code null} if the component is null, not showing, or has no parent.
      */
     private Rectangle toLayeredPaneBounds(Component c) {
-        if (c == null || !c.isShowing() || c.getParent() == null) return null;
+        if (c == null || !c.isShowing() || c.getParent() == null)
+            return null;
         return SwingUtilities.convertRectangle(
-            c.getParent(),
-            c.getBounds(),
-            frame.getLayeredPane()
-        );
+                c.getParent(),
+                c.getBounds(),
+                frame.getLayeredPane());
     }
 }

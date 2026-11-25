@@ -36,10 +36,7 @@ public class TourStep {
         EXEC_LEFT_SETTINGS,
         EXEC_TESTSET_CANVAS,
         EXEC_TESTPLAN_PANEL,
-        EXEC_RIGHT_SETTINGS,
-        DB_WORKBENCH_BUTTON,
-        PERF_STUDIO_BUTTON,
-        INGENIE_BUTTON
+        EXEC_RIGHT_SETTINGS
     }
 
     /**
@@ -52,6 +49,8 @@ public class TourStep {
         TEST_EXECUTION,
         DASHBOARD,
         API_TESTER,
+        DB_WORKBENCH,
+        PERF_STUDIO,
         AI_COPILOT
     }
 
@@ -61,11 +60,10 @@ public class TourStep {
     private final ViewToShow viewToShow;
 
     public TourStep(
-        String title,
-        String description,
-        TargetComponent target,
-        ViewToShow viewToShow
-    ) {
+            String title,
+            String description,
+            TargetComponent target,
+            ViewToShow viewToShow) {
         this.title = title;
         this.description = description;
         this.target = target;

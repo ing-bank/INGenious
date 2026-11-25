@@ -22,7 +22,8 @@ import javax.swing.SwingUtilities;
 
 /**
  * JavaFX-based ToolBar wrapped in a JFXPanel for embedding in Swing.
- * Provides CSS-styled modern toolbar buttons with the same actions as AppToolBar.
+ * Provides CSS-styled modern toolbar buttons with the same actions as
+ * AppToolBar.
  * Icons are rendered via Ikonli web font icons (INGIcons).
  */
 public class FXToolBar extends JFXPanel {
@@ -31,20 +32,16 @@ public class FXToolBar extends JFXPanel {
     private final AppActionListener actionListener;
     private ToggleButton autoSaveToggle;
     private ToggleButton darkModeToggle;
-    private Button dbWorkbenchButton;
-    private Button perfStudioButton;
-    private Button ingenieButton;
     private javafx.scene.control.ToolBar toolBar;
 
     public FXToolBar(AppActionListener actionListener) {
         this.actionListener = actionListener;
         CountDownLatch sceneReady = new CountDownLatch(1);
         Platform.runLater(
-            () -> {
-                initFX();
-                sceneReady.countDown();
-            }
-        );
+                () -> {
+                    initFX();
+                    sceneReady.countDown();
+                });
         try {
             sceneReady.await(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -56,27 +53,27 @@ public class FXToolBar extends JFXPanel {
         toolBar = new javafx.scene.control.ToolBar();
 
         toolBar
-            .getItems()
-            .addAll(
-                createButton("New Project", "NewProject"),
-                createButton("Open Project", "OpenProject"),
-                new Separator(),
-                createButton("Save Project", "SaveProject"),
-                new Separator(),
-                createAutoSaveSection(),
-                new Separator(),
-                createButton("Settings", "RunSettings"),
-                createButton("Archetype Configurations", "BrowserConfiguration"),
-                new Separator(),
-                //createMobileRecorderButton(),
-                //new Separator(),
-                createAPITesterButton(),
-                createDBWorkbenchButton(),
-                createPerfStudioButton(),
-                createSpacer(),
-                createAICopilotButton()
-                //, createDarkModeToggle()
-            );
+                .getItems()
+                .addAll(
+                        createButton("New Project", "NewProject"),
+                        createButton("Open Project", "OpenProject"),
+                        new Separator(),
+                        createButton("Save Project", "SaveProject"),
+                        new Separator(),
+                        createAutoSaveSection(),
+                        new Separator(),
+                        createButton("Settings", "RunSettings"),
+                        createButton("Archetype Configurations", "BrowserConfiguration"),
+                        new Separator(),
+                        // createMobileRecorderButton(),
+                        // new Separator(),
+                        createAPITesterButton(),
+                        createDBWorkbenchButton(),
+                        createPerfStudioButton(),
+                        createSpacer(),
+                        createAICopilotButton()
+                // , createDarkModeToggle()
+                );
 
         VBox root = new VBox(toolBar);
         root.getStyleClass().add("light-theme");
@@ -103,15 +100,16 @@ public class FXToolBar extends JFXPanel {
     }
 
     // private Button createMobileRecorderButton() {
-    //     Button btn = new Button("Mobile Recorder");
-    //     btn.getStyleClass().add("workbench-btn");
-    //     btn.setTooltip(new Tooltip("Record a mobile test from a live Appium session"));
-    //     org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored("recorder", 16);
-    //     if (icon != null) {
-    //         btn.setGraphic(icon);
-    //     }
-    //     btn.setOnAction(e -> fireSwingAction("Mobile Recorder"));
-    //     return btn;
+    // Button btn = new Button("Mobile Recorder");
+    // btn.getStyleClass().add("workbench-btn");
+    // btn.setTooltip(new Tooltip("Record a mobile test from a live Appium
+    // session"));
+    // org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored("recorder", 16);
+    // if (icon != null) {
+    // btn.setGraphic(icon);
+    // }
+    // btn.setOnAction(e -> fireSwingAction("Mobile Recorder"));
+    // return btn;
     // }
 
     private Button createAPITesterButton() {
@@ -121,10 +119,9 @@ public class FXToolBar extends JFXPanel {
 
         // Keep the icon explicitly black to match the neutral Workbench style.
         org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fx(
-            "APITester",
-            16,
-            javafx.scene.paint.Color.BLACK
-        );
+                "APITester",
+                16,
+                javafx.scene.paint.Color.BLACK);
         if (icon != null) {
             btn.setGraphic(icon);
         }
@@ -139,16 +136,14 @@ public class FXToolBar extends JFXPanel {
         btn.setTooltip(new Tooltip("Open Database Workbench - run SQL & build DB test cases"));
 
         org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fx(
-            "dbdock",
-            16,
-            javafx.scene.paint.Color.BLACK
-        );
+                "dbdock",
+                16,
+                javafx.scene.paint.Color.BLACK);
         if (icon != null) {
             btn.setGraphic(icon);
         }
 
         btn.setOnAction(e -> fireSwingAction("Database Workbench"));
-        dbWorkbenchButton = btn;
         return btn;
     }
 
@@ -158,16 +153,14 @@ public class FXToolBar extends JFXPanel {
         btn.setTooltip(new Tooltip("Open Performance Studio - author & run k6 load tests"));
 
         org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fx(
-            "perfstudio",
-            16,
-            javafx.scene.paint.Color.BLACK
-        );
+                "perfstudio",
+                16,
+                javafx.scene.paint.Color.BLACK);
         if (icon != null) {
             btn.setGraphic(icon);
         }
 
         btn.setOnAction(e -> fireSwingAction("Performance Studio"));
-        perfStudioButton = btn;
         return btn;
     }
 
@@ -183,7 +176,6 @@ public class FXToolBar extends JFXPanel {
         }
 
         btn.setOnAction(e -> fireSwingAction("INGenie"));
-        ingenieButton = btn;
         return btn;
     }
 
@@ -193,15 +185,14 @@ public class FXToolBar extends JFXPanel {
 
         autoSaveToggle = new ToggleButton("OFF");
         autoSaveToggle.setOnAction(
-            e -> {
-                if (autoSaveToggle.isSelected()) {
-                    autoSaveToggle.setText("ON");
-                } else {
-                    autoSaveToggle.setText("OFF");
-                }
-                fireSwingAction("Auto Save");
-            }
-        );
+                e -> {
+                    if (autoSaveToggle.isSelected()) {
+                        autoSaveToggle.setText("ON");
+                    } else {
+                        autoSaveToggle.setText("OFF");
+                    }
+                    fireSwingAction("Auto Save");
+                });
 
         HBox section = new HBox(6, label, autoSaveToggle);
         section.setAlignment(Pos.CENTER);
@@ -211,14 +202,12 @@ public class FXToolBar extends JFXPanel {
     private HBox createDarkModeToggle() {
         // Sun icon for light mode, Moon icon for dark mode
         org.kordamp.ikonli.javafx.FontIcon sunIcon = new org.kordamp.ikonli.javafx.FontIcon(
-            "fas-sun"
-        );
+                "fas-sun");
         sunIcon.setIconSize(14);
         sunIcon.setIconColor(javafx.scene.paint.Color.web("#FF6200"));
 
         org.kordamp.ikonli.javafx.FontIcon moonIcon = new org.kordamp.ikonli.javafx.FontIcon(
-            "fas-moon"
-        );
+                "fas-moon");
         moonIcon.setIconSize(14);
         moonIcon.setIconColor(javafx.scene.paint.Color.web("#7724FF"));
 
@@ -228,19 +217,18 @@ public class FXToolBar extends JFXPanel {
         updateDarkModeToggle();
 
         darkModeToggle.setOnAction(
-            e -> {
-                fireSwingAction("Dark Mode");
-                // Small delay to let theme switch, then update toggle appearance
-                Platform.runLater(
-                    () -> {
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException ignored) {}
-                        Platform.runLater(this::updateDarkModeToggle);
-                    }
-                );
-            }
-        );
+                e -> {
+                    fireSwingAction("Dark Mode");
+                    // Small delay to let theme switch, then update toggle appearance
+                    Platform.runLater(
+                            () -> {
+                                try {
+                                    Thread.sleep(100);
+                                } catch (InterruptedException ignored) {
+                                }
+                                Platform.runLater(this::updateDarkModeToggle);
+                            });
+                });
 
         HBox section = new HBox(6, darkModeToggle);
         section.setAlignment(Pos.CENTER);
@@ -251,8 +239,7 @@ public class FXToolBar extends JFXPanel {
         boolean isDark = Main.isDarkMode();
         if (isDark) {
             org.kordamp.ikonli.javafx.FontIcon moonIcon = new org.kordamp.ikonli.javafx.FontIcon(
-                "fas-moon"
-            );
+                    "fas-moon");
             moonIcon.setIconSize(14);
             moonIcon.setIconColor(javafx.scene.paint.Color.web("#89D6FD"));
             darkModeToggle.setGraphic(moonIcon);
@@ -260,8 +247,7 @@ public class FXToolBar extends JFXPanel {
             darkModeToggle.setSelected(true);
         } else {
             org.kordamp.ikonli.javafx.FontIcon sunIcon = new org.kordamp.ikonli.javafx.FontIcon(
-                "fas-sun"
-            );
+                    "fas-sun");
             sunIcon.setIconSize(14);
             sunIcon.setIconColor(javafx.scene.paint.Color.web("#FF6200"));
             darkModeToggle.setGraphic(sunIcon);
@@ -281,15 +267,13 @@ public class FXToolBar extends JFXPanel {
      */
     private void fireSwingAction(String command) {
         SwingUtilities.invokeLater(
-            () -> {
-                java.awt.event.ActionEvent swingEvent = new java.awt.event.ActionEvent(
-                    this,
-                    java.awt.event.ActionEvent.ACTION_PERFORMED,
-                    command
-                );
-                actionListener.actionPerformed(swingEvent);
-            }
-        );
+                () -> {
+                    java.awt.event.ActionEvent swingEvent = new java.awt.event.ActionEvent(
+                            this,
+                            java.awt.event.ActionEvent.ACTION_PERFORMED,
+                            command);
+                    actionListener.actionPerformed(swingEvent);
+                });
     }
 
     /**
@@ -297,36 +281,5 @@ public class FXToolBar extends JFXPanel {
      */
     public ToggleButton getAutoSaveToggle() {
         return autoSaveToggle;
-    }
-
-    public java.awt.Rectangle getDBWorkbenchButtonBounds() {
-        return getButtonBounds(dbWorkbenchButton);
-    }
-
-    public java.awt.Rectangle getPerfStudioButtonBounds() {
-        return getButtonBounds(perfStudioButton);
-    }
-
-    public java.awt.Rectangle getIngenieButtonBounds() {
-        return getButtonBounds(ingenieButton);
-    }
-
-    private java.awt.Rectangle getButtonBounds(Button btn) {
-        if (btn == null || btn.getScene() == null) {
-            return null;
-        }
-
-        javafx.geometry.Bounds b = btn.localToScene(btn.getBoundsInLocal());
-
-        if (b == null || b.getWidth() <= 0 || b.getHeight() <= 0) {
-            return null;
-        }
-
-        return new java.awt.Rectangle(
-            (int) Math.round(b.getMinX()),
-            (int) Math.round(b.getMinY()),
-            (int) Math.round(b.getWidth()),
-            (int) Math.round(b.getHeight())
-        );
     }
 }
