@@ -389,7 +389,7 @@ public class Main {
             // Sync JavaFX theme
             FXTheme.toggleTheme(isDarkMode);
             // Sync the live-streaming Console webview(s)
-            com.ing.ide.main.utils.ConsoleWebView.applyThemeToAll(isDarkMode);
+            com.ing.ide.main.utils.ConsoleView.applyThemeToAll(isDarkMode);
         } catch (Exception ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "Failed to toggle theme", ex);
         }

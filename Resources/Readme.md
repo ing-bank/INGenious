@@ -15,7 +15,7 @@
 
 **Software Requirements**
 
-* Java 11 or above
+* Java 17 or above
 * Maven [Installation guide can be found [here](https://maven.apache.org/install.html)]
 * For customizations, any IDE which supports Java Development (eg. Eclipse, Netbeans, IntelliJ etc.)
 

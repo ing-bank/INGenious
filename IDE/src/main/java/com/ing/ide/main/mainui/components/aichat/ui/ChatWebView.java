@@ -2,6 +2,10 @@ package com.ing.ide.main.mainui.components.aichat.ui;
 
 import com.ing.ide.main.mainui.components.aichat.model.ChatMessage;
 import com.ing.ide.main.mainui.components.aichat.util.MarkdownRenderer;
+import com.ing.ide.main.utils.LocalScriptBridge;
+import com.ing.ide.main.utils.WebViewCompat;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -30,8 +34,12 @@ import javax.swing.JComponent;
  * <p>All WebView/DOM mutations are marshalled onto the JavaFX application thread
  * via {@link Platform#runLater}; callers may invoke the public methods from any
  * thread.</p>
+ *
+ * <p>Where {@code WebEngine.executeScript} is unsafe (JDK 26+, see {@link WebViewCompat}) the page
+ * is served by a {@link LocalScriptBridge} and polls it for the same scripts, so the look and
+ * behaviour are identical.</p>
  */
-public class ChatWebView {
+public class ChatWebView implements ChatView {
     private static final Logger LOG = Logger.getLogger(ChatWebView.class.getName());
 
     private static final Preferences PREFS = Preferences.userNodeForPackage(ChatWebView.class);
@@ -70,29 +78,43 @@ public class ChatWebView {
     private final AtomicReference<WebEngine> engineRef = new AtomicReference<>();
     private volatile boolean ready;
     private final StringBuilder pendingScript = new StringBuilder();
+    private final LocalScriptBridge bridge;
     private volatile double fontPx;
 
     public ChatWebView() {
         this.fontPx = loadFontPx();
+        bridge = WebViewCompat.isScriptingSafe() ? null : startBridge();
         Platform.runLater(this::initFx);
+    }
+
+    private LocalScriptBridge startBridge() {
+        try {
+            return new LocalScriptBridge(baseHtml());
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 
     private void initFx() {
         WebView webView = new WebView();
         webView.setContextMenuEnabled(false);
         WebEngine engine = webView.getEngine();
-        engine.loadContent(baseHtml());
-        engine
-            .getLoadWorker()
-            .stateProperty()
-            .addListener(
-                (obs, oldState, newState) -> {
-                    if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
-                        ready = true;
-                        flushPending(engine);
+        if (bridge != null) {
+            engine.load(bridge.getUrl());
+        } else {
+            engine.loadContent(baseHtml());
+            engine
+                .getLoadWorker()
+                .stateProperty()
+                .addListener(
+                    (obs, oldState, newState) -> {
+                        if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
+                            ready = true;
+                            flushPending(engine);
+                        }
                     }
-                }
-            );
+                );
+        }
         engineRef.set(engine);
         Scene scene = new Scene(webView);
         scene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleZoomShortcut);
@@ -122,16 +144,19 @@ public class ChatWebView {
     }
 
     /** Increases the transcript font size by one step and persists it. */
+    @Override
     public void zoomIn() {
         setFontPx(fontPx + FONT_STEP_PX);
     }
 
     /** Decreases the transcript font size by one step and persists it. */
+    @Override
     public void zoomOut() {
         setFontPx(fontPx - FONT_STEP_PX);
     }
 
     /** Restores the default transcript font size and persists it. */
+    @Override
     public void resetZoom() {
         setFontPx(DEFAULT_FONT_PX);
     }
@@ -302,6 +327,10 @@ public class ChatWebView {
     }
 
     private void runScript(String script) {
+        if (bridge != null) {
+            bridge.post(script);
+            return;
+        }
         Platform.runLater(
             () -> {
                 WebEngine engine = engineRef.get();

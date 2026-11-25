@@ -38,7 +38,7 @@ import javax.swing.SwingUtilities;
  */
 public class AICopilotUI extends JPanel {
     private final AICopilot controller;
-    private final ChatWebView chatWebView = new ChatWebView();
+    private final ChatView chatView = ChatView.create();
 
     private final JComboBox<ModelInfo> modelSelector = new JComboBox<>();
     private final JCheckBox agentModeToggle = new JCheckBox("Agent");
@@ -112,13 +112,13 @@ public class AICopilotUI extends JPanel {
      */
     private void wireZoomShortcuts() {
         int mask = java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
-        bindZoom("ai.zoom.in", KeyEvent.VK_PLUS, mask, chatWebView::zoomIn);
-        bindZoom("ai.zoom.in.equals", KeyEvent.VK_EQUALS, mask, chatWebView::zoomIn);
-        bindZoom("ai.zoom.in.add", KeyEvent.VK_ADD, mask, chatWebView::zoomIn);
-        bindZoom("ai.zoom.out", KeyEvent.VK_MINUS, mask, chatWebView::zoomOut);
-        bindZoom("ai.zoom.out.subtract", KeyEvent.VK_SUBTRACT, mask, chatWebView::zoomOut);
-        bindZoom("ai.zoom.reset", KeyEvent.VK_0, mask, chatWebView::resetZoom);
-        bindZoom("ai.zoom.reset.numpad", KeyEvent.VK_NUMPAD0, mask, chatWebView::resetZoom);
+        bindZoom("ai.zoom.in", KeyEvent.VK_PLUS, mask, chatView::zoomIn);
+        bindZoom("ai.zoom.in.equals", KeyEvent.VK_EQUALS, mask, chatView::zoomIn);
+        bindZoom("ai.zoom.in.add", KeyEvent.VK_ADD, mask, chatView::zoomIn);
+        bindZoom("ai.zoom.out", KeyEvent.VK_MINUS, mask, chatView::zoomOut);
+        bindZoom("ai.zoom.out.subtract", KeyEvent.VK_SUBTRACT, mask, chatView::zoomOut);
+        bindZoom("ai.zoom.reset", KeyEvent.VK_0, mask, chatView::resetZoom);
+        bindZoom("ai.zoom.reset.numpad", KeyEvent.VK_NUMPAD0, mask, chatView::resetZoom);
     }
 
     private void bindZoom(String key, int keyCode, int modifiers, Runnable action) {
@@ -158,7 +158,7 @@ public class AICopilotUI extends JPanel {
     private JPanel buildCenter() {
         JPanel center = new JPanel(new BorderLayout());
         center.add(promptScroll, BorderLayout.NORTH);
-        center.add(chatWebView.getComponent(), BorderLayout.CENTER);
+        center.add(chatView.getComponent(), BorderLayout.CENTER);
         return center;
     }
 
@@ -429,8 +429,8 @@ public class AICopilotUI extends JPanel {
         menu.show(historyButton, 0, historyButton.getHeight());
     }
 
-    public ChatWebView getChatWebView() {
-        return chatWebView;
+    public ChatView getChatView() {
+        return chatView;
     }
 
     /** Whether the agent (tool-calling) mode is enabled. */
@@ -536,9 +536,9 @@ public class AICopilotUI extends JPanel {
                 stopButton.setEnabled(generating);
                 inputArea.setEnabled(!generating);
                 if (generating) {
-                    chatWebView.showThinking();
+                    chatView.showThinking();
                 } else {
-                    chatWebView.hideThinking();
+                    chatView.hideThinking();
                 }
             }
         );

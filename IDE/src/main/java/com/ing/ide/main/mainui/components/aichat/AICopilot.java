@@ -250,7 +250,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         if (assistantMessage != null) {
             assistantMessage.setCreditUsage(usageText);
         }
-        ui.getChatWebView().appendUsage(usageText);
+        ui.getChatView().appendUsage(usageText);
     }
 
     /** The most recent assistant message in the session, or {@code null}. */
@@ -455,7 +455,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         syncContextMessage();
         ChatMessage userMessage = ChatMessage.user(text);
         session.addMessage(userMessage);
-        ui.getChatWebView().addMessage(userMessage);
+        ui.getChatView().addMessage(userMessage);
         if (copilotSdkEnabled()) {
             startCopilotSdkTurn(text);
             return;
@@ -560,10 +560,10 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                         public void onToken(String chunk) {
                             if (!started[0]) {
                                 started[0] = true;
-                                ui.getChatWebView().beginAssistantMessage();
+                                ui.getChatView().beginAssistantMessage();
                             }
                             accumulated.append(chunk);
-                            ui.getChatWebView().updateAssistantMessage(accumulated.toString());
+                            ui.getChatView().updateAssistantMessage(accumulated.toString());
                         }
 
                         @Override
@@ -582,7 +582,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                             String full = accumulated.toString();
                             ChatMessage assistantMessage = ChatMessage.assistant(full);
                             session.addMessage(assistantMessage);
-                            ui.getChatWebView().endAssistantMessage();
+                            ui.getChatView().endAssistantMessage();
                             attachUsage(assistantMessage, usageTracker.taskSummary());
                             ui.setGenerating(false);
                             activeTurn = null;
@@ -591,7 +591,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
 
                         @Override
                         public void onError(Throwable error) {
-                            ui.getChatWebView().endAssistantMessage();
+                            ui.getChatView().endAssistantMessage();
                             ui.setGenerating(false);
                             activeTurn = null;
                             handleTurnError(error);
@@ -628,7 +628,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
             turn.interrupt();
             activeTurn = null;
             ui.setGenerating(false);
-            ui.getChatWebView().endAssistantMessage();
+            ui.getChatView().endAssistantMessage();
         }
     }
 
@@ -670,9 +670,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
 
                 @Override
                 public void onToolStart(String toolCallId, String toolName, String argsSummary) {
-                    ui
-                        .getChatWebView()
-                        .appendToolCall(toolCallId, toolName, oneLine(argsSummary, 80));
+                    ui.getChatView().appendToolCall(toolCallId, toolName, oneLine(argsSummary, 80));
                 }
 
                 @Override
@@ -684,7 +682,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                 ) {
                     activities.add(new Object[] { toolName, success, resultSummary });
                     ui
-                        .getChatWebView()
+                        .getChatView()
                         .resolveToolCall(
                             toolCallId,
                             oneLine(resultSummary, 80),
@@ -707,10 +705,10 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                     if (answer != null && !answer.isBlank()) {
                         assistantMessage = ChatMessage.assistant(answer);
                         session.addMessage(assistantMessage);
-                        ui.getChatWebView().addMessage(assistantMessage);
+                        ui.getChatView().addMessage(assistantMessage);
                     }
                     if (!activities.isEmpty()) {
-                        ui.getChatWebView().appendActivityReport(activityReport(activities));
+                        ui.getChatView().appendActivityReport(activityReport(activities));
                         triggerLiveReloadNow();
                     }
                     com.ing.engine.aicli.ai.TurnStats stats = provider.lastTurnStats();
@@ -795,7 +793,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
 
                         @Override
                         public void onAssistantText(String text) {
-                            ui.getChatWebView().addMessage(ChatMessage.assistant(text));
+                            ui.getChatView().addMessage(ChatMessage.assistant(text));
                         }
 
                         @Override
@@ -804,7 +802,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                             currentId.set(id);
                             ui.setFooter("Running tool: " + toolName + "…");
                             ui
-                                .getChatWebView()
+                                .getChatView()
                                 .appendToolCall(id, toolName, oneLine(argumentsJson, 80));
                         }
 
@@ -820,7 +818,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                                 mutated[0] = true;
                             }
                             ui
-                                .getChatWebView()
+                                .getChatView()
                                 .resolveToolCall(
                                     currentId.get(),
                                     oneLine(summary, 80),
@@ -953,7 +951,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
         contextMessage = null;
         session.addMessage(ChatMessage.system(AuthoringSkill.systemPrompt()));
         usageTracker.reset();
-        ui.getChatWebView().clear();
+        ui.getChatView().clear();
         ui.setFooter(" ");
     }
 
@@ -1024,7 +1022,7 @@ public class AICopilot implements SlideShow.SlideChangeListener {
             session.setModel(c.model);
         }
         usageTracker.reset();
-        ui.getChatWebView().clear();
+        ui.getChatView().clear();
         for (ChatMessage m : c.messages) {
             session.addMessage(m);
             String role = m.getRole();
@@ -1033,15 +1031,15 @@ public class AICopilot implements SlideShow.SlideChangeListener {
                 m.getContent() != null &&
                 !m.getContent().isBlank();
             if (renderable) {
-                ui.getChatWebView().addMessage(m);
-                ui.getChatWebView().appendUsage(m.getCreditUsage());
+                ui.getChatView().addMessage(m);
+                ui.getChatView().appendUsage(m.getCreditUsage());
             }
         }
         ui.setFooter(" ");
     }
 
     private void showError(String message) {
-        ui.getChatWebView().showError(message);
+        ui.getChatView().showError(message);
     }
 
     @Override

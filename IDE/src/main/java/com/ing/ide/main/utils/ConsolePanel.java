@@ -10,12 +10,12 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 public class ConsolePanel extends JPanel {
-    private final ConsoleWebView webView;
+    private final ConsoleView console;
 
     public ConsolePanel() {
         setLayout(new BorderLayout());
-        webView = new ConsoleWebView();
-        add(webView.getComponent(), BorderLayout.CENTER);
+        console = ConsoleView.create();
+        add(console.getComponent(), BorderLayout.CENTER);
     }
 
     /** Redirects System.out/System.err to the console for the duration of a run. */
@@ -32,15 +32,15 @@ public class ConsolePanel extends JPanel {
     }
 
     public void clear() {
-        SwingUtilities.invokeLater(webView::clear);
+        SwingUtilities.invokeLater(console::clear);
     }
 
     public void appendLine(String text) {
-        webView.appendLine(text);
+        console.appendLine(text);
     }
 
     public void appendErrorLine(String text) {
-        webView.appendErrorLine(text);
+        console.appendErrorLine(text);
     }
 
     /** Buffers written bytes and emits one {@code lineConsumer} call per completed line. */

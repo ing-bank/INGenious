@@ -10,14 +10,18 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [ '17', '21', '26' ]
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: ${{ matrix.java }}
           distribution: 'temurin'
           cache: maven
 
@@ -31,20 +35,21 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
+          check_name: Test Results (JDK ${{ matrix.java }})
           files: '**/surefire-reports/TEST-*.xml'
 
       - name: Upload JaCoCo Coverage Reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: jacoco-coverage-reports
+          name: jacoco-coverage-reports-jdk${{ matrix.java }}
           path: '**/target/site/jacoco/'
           retention-days: 14
 
       - name: Upload INGenious release
         uses: actions/upload-artifact@v4
         with:
-          name: INGenious framework
+          name: INGenious framework (JDK ${{ matrix.java }})
           path: Dist/target/*.zip
 
   security-scan:
@@ -55,10 +60,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
           cache: maven
 
