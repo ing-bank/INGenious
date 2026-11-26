@@ -76,7 +76,10 @@ public class AppMainFrame extends JFrame {
     /** Last non-zero sidebar width, restored when the sidebar is re-shown. */
     private int aiSidebarWidth = 675;
 
-    /** Narrowest width that still shows every AI sidebar button; mirrors AICopilotUI's own minimum. */
+    /**
+     * Narrowest width that still shows every AI sidebar button; mirrors
+     * AICopilotUI's own minimum.
+     */
     private int aiSidebarMinWidth = 300;
 
     private boolean aiSidebarVisible = false;
@@ -84,7 +87,10 @@ public class AppMainFrame extends JFrame {
     /** True while the divider is being positioned programmatically. */
     private boolean applyingAISidebar = false;
 
-    /** Guards automatic first-run tour launch so it is scheduled only once per app session. */
+    /**
+     * Guards automatic first-run tour launch so it is scheduled only once per app
+     * session.
+     */
     private boolean autoTourLaunchScheduled = false;
 
     private final AppMenuBar menuBar;
@@ -329,7 +335,8 @@ public class AppMainFrame extends JFrame {
     /**
      * Swaps Swing menu bar and toolbar for JavaFX CSS-styled versions.
      * Must be called on the EDT AFTER the frame is visible and maximized.
-     * This deferred approach prevents the macOS Glass native crash (NSTrackingRectTag)
+     * This deferred approach prevents the macOS Glass native crash
+     * (NSTrackingRectTag)
      * that occurs when JFXPanel is resized before its native peer is ready.
      */
     public void initFXChrome() {
@@ -723,7 +730,7 @@ public class AppMainFrame extends JFrame {
         final String _Enc = " Enc";
         boolean isMigrted = true;
         try {
-            //Updating new TM Properties
+            // Updating new TM Properties
             List<TestMgModule> modules = project
                 .getProjectSettings()
                 .getTestMgmtModule()
@@ -778,7 +785,7 @@ public class AppMainFrame extends JFrame {
                 .getLogger(AppMainFrame.class.getName())
                 .log(Level.INFO, "Test Management settings are copied ");
 
-            //Modify Encoding to Encryption in TestData and GlobalData
+            // Modify Encoding to Encryption in TestData and GlobalData
             Set<String> envs = project.getTestData().getEnvironments();
             envs.forEach(
                 environments -> {
@@ -851,14 +858,14 @@ public class AppMainFrame extends JFrame {
                 }
             );
 
-            //Migrating Encrypted Actions
+            // Migrating Encrypted Actions
             List<Scenario> scenarios = project.getScenarios();
             for (Scenario scenario : scenarios) {
                 List<TestCase> cases = scenario.getTestCases();
                 enableEncryptTC(cases);
             }
 
-            //Migrating Driver Settings
+            // Migrating Driver Settings
             Enumeration<Object> keysObj = project.getProjectSettings().getDriverSettings().keys();
             Iterator<Object> keys = keysObj.asIterator();
             while (keys.hasNext()) {
@@ -896,7 +903,7 @@ public class AppMainFrame extends JFrame {
                 }
             }
 
-            //Migarting Test Management settings at Release level
+            // Migarting Test Management settings at Release level
             List<Release> releases = project.getReleases();
             for (Release release : releases) {
                 List<TestSet> testsets = release.getTestSets();
@@ -963,7 +970,7 @@ public class AppMainFrame extends JFrame {
                 }
             }
 
-            //Migarting Test Management settings at Design level
+            // Migarting Test Management settings at Design level
             Enumeration<Object> keys1 = project
                 .getProjectSettings()
                 .getExecSettings()
@@ -1086,6 +1093,23 @@ public class AppMainFrame extends JFrame {
         );
     }
 
+    public void saveProjectAs(final String newName, final String parentLocation) {
+        if (sProject == null) {
+            return;
+        }
+        beforeProjectChange();
+        File srcDir = new File(sProject.getLocation());
+        File destDir = new File(parentLocation, newName);
+        try {
+            org.apache.commons.io.FileUtils.copyDirectory(srcDir, destDir);
+            loadProject(destDir.getAbsolutePath());
+            Notification.show("Project saved as [" + newName + "]");
+        } catch (IOException ex) {
+            Logger.getLogger(AppMainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            Notification.show("Failed to save project as [" + newName + "]: " + ex.getMessage());
+        }
+    }
+
     public void saveLoadedProject() {
         if (sProject != null && !sProject.getName().isEmpty()) {
             sProject.save();
@@ -1143,10 +1167,12 @@ public class AppMainFrame extends JFrame {
      * reusables, Object Repository entries) — appear immediately without a
      * restart or project switch.
      *
-     * <p>Preserves tree expansion/selection and re-opens the currently displayed
+     * <p>
+     * Preserves tree expansion/selection and re-opens the currently displayed
      * test case. Does <b>not</b> save the in-memory model first, so it never
      * clobbers the external changes it is picking up. Safe to call from any
-     * thread.</p>
+     * thread.
+     * </p>
      */
     public void reloadProject() {
         if (sProject == null || sProject.getName() == null || sProject.getName().isEmpty()) {
@@ -1236,7 +1262,8 @@ public class AppMainFrame extends JFrame {
             fxStatusBar.setProjectName(sProject.getName());
         }
         // Defer adjustUI to run after all pending EDT events (layout, repaint, etc.)
-        // This ensures split pane dividers are set correctly after views are fully populated
+        // This ensures split pane dividers are set correctly after views are fully
+        // populated
         SwingUtilities.invokeLater(this::adjustUI);
     }
 
@@ -1281,7 +1308,7 @@ public class AppMainFrame extends JFrame {
             return false;
         } else {
             recentItems.save();
-            //            spyHealReco.stopServerIfAny();
+            // spyHealReco.stopServerIfAny();
             dashBoardManager.stopServer();
             Main.finish();
             return true;

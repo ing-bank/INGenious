@@ -41,13 +41,15 @@ public class AppToolBar extends JToolBar {
         add(createButton("Open Project"));
         addSeparator();
         add(createButton("Save Project"));
+        add(createButton("Save Project As"));
         addSeparator();
         add(createLabel("Auto Save  "));
         add(createToggleButton("Auto Save"));
-        //addSeparator();
-        //add(createButton("Mobile Spy")); /**** This is disabled to ensure that the mobile capabilities are captured from Appium Inspector ****/
-        //addSeparator();
-        //add(createButton("Mobile Recorder"));
+        // addSeparator();
+        // add(createButton("Mobile Spy")); /**** This is disabled to ensure that the
+        // mobile capabilities are captured from Appium Inspector ****/
+        // addSeparator();
+        // add(createButton("Mobile Recorder"));
         addSeparator();
         add(createButton("Settings"));
         add(createButton("Archetype Configurations"));
@@ -59,7 +61,7 @@ public class AppToolBar extends JToolBar {
                 new java.awt.Dimension(32767, 32767)
             )
         );
-        //  add(createButton("Refresh"));
+        // add(createButton("Refresh"));
     }
 
     private JButton createButton(String action) {
@@ -71,7 +73,8 @@ public class AppToolBar extends JToolBar {
         );
         btn.setIcon(icon);
         if (icon == null) {
-            // No icon resource for this action — show the label so the button stays visible.
+            // No icon resource for this action — show the label so the button stays
+            // visible.
             btn.setText(action);
         }
         btn.addActionListener(sActionListener);

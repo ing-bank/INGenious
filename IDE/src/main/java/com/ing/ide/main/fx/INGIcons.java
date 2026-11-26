@@ -133,6 +133,8 @@ public final class INGIcons {
         register("NewProject", MaterialDesignP.PLUS_BOX, CLR_CREATE);
         register("OpenProject", MaterialDesignF.FOLDER_OPEN, CLR_OPEN);
         register("SaveProject", MaterialDesignC.CONTENT_SAVE, CLR_SAVE);
+        register("SaveProjectAs", MaterialDesignC.CONTENT_SAVE_ALL, CLR_SAVE);
+        register("SaveProjectAsMenu", MaterialDesignC.CONTENT_SAVE_ALL, CLR_SAVE);
         register("RunSettings", MaterialDesignC.COG, CLR_CONFIG);
         register("Settings", MaterialDesignC.COG, CLR_CONFIG);
         register("BrowserConfiguration", MaterialDesignW.WEB, CLR_TOOL);

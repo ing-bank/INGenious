@@ -47,7 +47,7 @@ public class AppActionListener implements ActionListener {
 
     private final Options options;
 
-    //private final SchedulerUI scheduler;
+    // private final SchedulerUI scheduler;
 
     private final BddParser bddParser;
 
@@ -65,7 +65,7 @@ public class AppActionListener implements ActionListener {
 
     private boolean autoSaveEnabled = false;
 
-    //private static AppActionListener instance;
+    // private static AppActionListener instance;
 
     public AppActionListener(AppMainFrame sMainFrame, AppToolBar appToolBar) throws IOException {
         this.sMainFrame = sMainFrame;
@@ -94,6 +94,9 @@ public class AppActionListener implements ActionListener {
                 break;
             case "Save Project":
                 sMainFrame.save();
+                break;
+            case "Save Project As":
+                saveProjectAs();
                 break;
             case "Restart":
                 sMainFrame.restart();
@@ -124,13 +127,13 @@ public class AppActionListener implements ActionListener {
                 sMainFrame.getSpyHealReco().showMobileSpy();
                 break;
             // case "Mobile Recorder":
-            //     if (sMainFrame.getProject() == null) {
-            //         Notification.show("Open a project before starting the Mobile Recorder.");
-            //     } else {
-            //         new com.ing.ide.main.mobilerecorder.MobileRecorderFrame(sMainFrame)
-            //         .setVisible(true);
-            //     }
-            //     break;
+            // if (sMainFrame.getProject() == null) {
+            // Notification.show("Open a project before starting the Mobile Recorder.");
+            // } else {
+            // new com.ing.ide.main.mobilerecorder.MobileRecorderFrame(sMainFrame)
+            // .setVisible(true);
+            // }
+            // break;
             case "Exploratory":
                 {
                     try {
@@ -395,7 +398,9 @@ public class AppActionListener implements ActionListener {
 
     /**
      * Handle SAP script import with optional language filter.
-     * @param language Specific language filter (VBScript, JavaScript, etc.) or null for all languages
+     *
+     * @param language Specific language filter (VBScript, JavaScript, etc.) or null
+     *                 for all languages
      */
     private void handleSapImport(String language) {
         try {
@@ -418,26 +423,27 @@ public class AppActionListener implements ActionListener {
             if (language != null) {
                 switch (language) {
                     // case "VBScript":
-                    //     sapScriptFile = Utils.openDialog("VBScript SAP Files (*.vbs, *.vba)", "vbs", "vba");
-                    //     break;
+                    // sapScriptFile = Utils.openDialog("VBScript SAP Files (*.vbs, *.vba)", "vbs",
+                    // "vba");
+                    // break;
                     // case "JavaScript":
-                    //     sapScriptFile = Utils.openDialog("JavaScript SAP Files (*.js)", "js");
-                    //     break;
+                    // sapScriptFile = Utils.openDialog("JavaScript SAP Files (*.js)", "js");
+                    // break;
                     case "PowerShell":
                         sapScriptFile = Utils.openDialog("PowerShell SAP Files (*.ps1)", "ps1");
                         break;
                     // case "Python":
-                    //     sapScriptFile = Utils.openDialog("Python SAP Files (*.py)", "py");
-                    //     break;
+                    // sapScriptFile = Utils.openDialog("Python SAP Files (*.py)", "py");
+                    // break;
                     // case "AutoIt":
-                    //     sapScriptFile = Utils.openDialog("AutoIt SAP Files (*.au3)", "au3");
-                    //     break;
+                    // sapScriptFile = Utils.openDialog("AutoIt SAP Files (*.au3)", "au3");
+                    // break;
                     // case "CSharp":
-                    //     sapScriptFile = Utils.openDialog("C# SAP Files (*.cs)", "cs");
-                    //     break;
+                    // sapScriptFile = Utils.openDialog("C# SAP Files (*.cs)", "cs");
+                    // break;
                     // case "VBNet":
-                    //     sapScriptFile = Utils.openDialog("VB.NET SAP Files (*.vb)", "vb");
-                    //     break;
+                    // sapScriptFile = Utils.openDialog("VB.NET SAP Files (*.vb)", "vb");
+                    // break;
                     case "Java":
                         sapScriptFile =
                             Utils.openDialog("Java SAP Files (*.java, *.jsh)", "java", "jsh");
@@ -510,6 +516,14 @@ public class AppActionListener implements ActionListener {
         }
     }
 
+    private void saveProjectAs() {
+        if (sMainFrame.getProject() == null) {
+            Notification.show("Please open a project first.");
+            return;
+        }
+        nProject.saveAs();
+    }
+
     private void openProject() {
         File file = Utils.openINGeniousProject();
         if (file != null) {
@@ -545,12 +559,14 @@ public class AppActionListener implements ActionListener {
      * Refreshes the method information by reloading it from the MethodInfoManager.
      * <p>
      * This method attempts to reload all method information. If a duplicate method
-     * is detected during the loading process, an error is logged and the application
+     * is detected during the loading process, an error is logged and the
+     * application
      * terminates with exit code 1.
      * </p>
      *
      * @throws DuplicateMethodException if duplicate methods are found during reload
-     *                                   (caught and handled internally by logging and exiting)
+     *                                  (caught and handled internally by logging
+     *                                  and exiting)
      */
     private void doRefresh() {
         try {
