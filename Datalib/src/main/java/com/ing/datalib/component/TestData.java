@@ -110,6 +110,7 @@ public abstract class TestData {
         }
         testDataList.clear();
         globalData = null;
+        FileUtils.deleteFile(getLocation());
     }
 
     public TestDataModel addTestData() {
