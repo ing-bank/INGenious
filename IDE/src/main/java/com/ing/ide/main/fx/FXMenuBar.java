@@ -3,6 +3,7 @@ package com.ing.ide.main.fx;
 import com.ing.ide.main.mainui.AppActionListener;
 import com.ing.ide.main.utils.recentItem.RecentItem;
 import com.ing.ide.util.Notification;
+import com.ing.ide.util.SystemInfo;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
@@ -93,6 +94,11 @@ public class FXMenuBar extends JFXPanel {
 
         Scene scene = new Scene(root);
         FXTheme.registerScene(scene);
+        if (SystemInfo.osx()) {
+            scene
+                .getStylesheets()
+                .add(FXMenuBar.class.getResource("/fx/macos-menu.css").toExternalForm());
+        }
         setScene(scene);
     }
 

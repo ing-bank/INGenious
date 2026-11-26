@@ -1,0 +1,9 @@
+.context-menu {
+    -fx-effect: null;
+}
+
+.menu-item > .label {
+    -fx-font-family: "ING Me";
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
