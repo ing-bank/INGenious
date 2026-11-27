@@ -264,7 +264,7 @@ public final class SummaryReport implements OverviewReport {
 
         afterReportComplete();
 
-        // Embed console.txt into every report HTML so the in-page Console
+        // Embed console.txt into the overview reports so the in-page Console
         // Viewer works regardless of browser file:// security restrictions.
         try {
             ConsoleEmbedder.embedInto(new File(FilePath.getCurrentResultsPath()));

@@ -1,19 +1,26 @@
 package com.ing.engine.reporting;
 
+import com.ing.engine.constants.AppResourcePath;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Embeds the contents of {@code console.txt} directly into each generated HTML
- * report (summary, detailed, testcase). Doing this at report-finalization time
- * means the in-page Console Viewer no longer depends on browser file-access
- * policies (which block {@code fetch()} / {@code XMLHttpRequest} for local
- * {@code file://} pages in most modern browsers).
+ * Embeds the contents of {@code console.txt} directly into the overview HTML
+ * reports (summary, detailed). Doing this at report-finalization time means the
+ * in-page Console Viewer no longer depends on browser file-access policies
+ * (which block {@code fetch()} / {@code XMLHttpRequest} for local {@code file://}
+ * pages in most modern browsers).
+ *
+ * <p>Test case pages are skipped: {@code console.txt} holds the output of the
+ * whole run, so embedding it into every test case page makes the report grow
+ * quadratically with the number of test cases. Their Console Viewer loads
+ * {@code console.txt} from disk instead.</p>
  *
  * <p>The HTML templates contain a marker element:</p>
  * <pre>{@code <script type="text/plain" id="ing-console-data">PLACEHOLDER</script>}</pre>
@@ -26,11 +33,17 @@ public final class ConsoleEmbedder {
 
     private static final String DATA_ID = "ing-console-data";
 
+    private static final Set<String> OVERVIEW_PAGES = Set.of(
+        AppResourcePath.SUMMARY_HTML_V2,
+        AppResourcePath.DETAILED_HTML,
+        AppResourcePath.DETAILED_HTML_V2
+    );
+
     private ConsoleEmbedder() {}
 
     /**
-     * Embed the contents of {@code resultsDir/console.txt} into every
-     * {@code *.html} file in {@code resultsDir}.
+     * Embed the contents of {@code resultsDir/console.txt} into the overview
+     * pages in {@code resultsDir}.
      */
     public static void embedInto(File resultsDir) {
         if (resultsDir == null || !resultsDir.isDirectory()) {
@@ -49,7 +62,7 @@ public final class ConsoleEmbedder {
             return;
         }
         String escaped = escapeForScriptBlock(consoleText);
-        File[] htmlFiles = resultsDir.listFiles((d, name) -> name.toLowerCase().endsWith(".html"));
+        File[] htmlFiles = resultsDir.listFiles((d, name) -> OVERVIEW_PAGES.contains(name));
         if (htmlFiles == null) {
             return;
         }
