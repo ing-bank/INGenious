@@ -26,7 +26,7 @@ public class AppResourcePath {
     private static final String AZURE_XML = "azure.xml";
     private static final String EXTENT_PDF = "extent.pdf";
     private static final String TC_REPORT_HTML = "testCase.html";
-    private static final String DETAILED_HTML = "detailed.html";
+    public static final String DETAILED_HTML = "detailed.html";
     private static final String PERF_HTML = "perfReport.html";
     private static final String REPORT_HISTORY_HTML = "ReportHistory.html";
     private static final String VIDEO_HTML = "videoReport.html";
@@ -35,7 +35,7 @@ public class AppResourcePath {
 
     // Modern v2 report templates (Alpine.js, Tailwind CSS, Chart.js)
     public static final String SUMMARY_HTML_V2 = "summary-v2.html";
-    private static final String DETAILED_HTML_V2 = "detailed-v2.html";
+    public static final String DETAILED_HTML_V2 = "detailed-v2.html";
     private static final String TC_REPORT_HTML_V2 = "testCase-v2.html";
     private static final String PERF_HTML_V2 = "perfReport-v2.html";
     private static final String VIDEO_HTML_V2 = "videoReport-v2.html";
